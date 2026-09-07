@@ -1,0 +1,310 @@
+name: Prepare feature PR
+
+# Auto-provisions the Linear/GitHub mirrored-issue pair and opens a draft PR
+# for any feat/<slug> branch, so nobody has to remember the manual steps in
+# AGENTS.md before pushing. Requires:
+#   - repo secret LINEAR_API_KEY (Linear -> Settings -> API -> Create key)
+#   - repo secret GH_PAT: a fine-grained PAT with Contents:read and
+#     Issues/Pull requests:write on this repo. NOT the default GITHUB_TOKEN
+#     -- GitHub's anti-recursion rule blocks GITHUB_TOKEN-created PRs from
+#     triggering pr-policy.yml, which would leave the PR stuck unchecked.
+#   - repo variables LINEAR_PROJECT_SLUG and LINEAR_PROJECT_NAME (Settings ->
+#     Secrets and variables -> Actions -> Variables). Get the slug from the
+#     Linear project's "Copy link" (last URL segment); the name is the
+#     fallback lookup if the slug ever changes.
+
+on:
+  push:
+    branches:
+      - "feat/**"
+  workflow_dispatch:
+    inputs:
+      head:
+        description: Existing feat/<slug> branch to prepare
+        required: true
+        type: string
+      title:
+        description: Optional issue and PR title (defaults to the latest commit subject)
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: prepare-feature-pr-${{ github.event_name == 'push' && github.ref_name || inputs.head }}
+  cancel-in-progress: false
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      GH_TOKEN: ${{ secrets.GH_PAT }}
+    steps:
+      - name: Require automation credentials
+        env:
+          LINEAR_API_KEY: ${{ secrets.LINEAR_API_KEY }}
+          LINEAR_PROJECT_SLUG: ${{ vars.LINEAR_PROJECT_SLUG }}
+          LINEAR_PROJECT_NAME: ${{ vars.LINEAR_PROJECT_NAME }}
+        run: |
+          set -euo pipefail
+          [[ -n "$GH_TOKEN" ]] || {
+            echo "GH_PAT is required to create a PR whose checks run automatically"
+            exit 1
+          }
+          [[ -n "$LINEAR_API_KEY" ]] || {
+            echo "LINEAR_API_KEY is required to create or find the Linear issue"
+            exit 1
+          }
+          [[ -n "$LINEAR_PROJECT_SLUG" && -n "$LINEAR_PROJECT_NAME" ]] || {
+            echo "Repo variables LINEAR_PROJECT_SLUG and LINEAR_PROJECT_NAME are required"
+            exit 1
+          }
+
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          ref: ${{ github.event_name == 'push' && github.sha || inputs.head }}
+
+      - name: Resolve branch metadata
+        id: metadata
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          PUSH_HEAD: ${{ github.ref_name }}
+          DISPATCH_HEAD: ${{ inputs.head }}
+          REQUESTED_TITLE: ${{ inputs.title }}
+        run: |
+          set -euo pipefail
+
+          if [[ "$EVENT_NAME" == "push" ]]; then
+            head="$PUSH_HEAD"
+          else
+            head="$DISPATCH_HEAD"
+          fi
+          [[ "$head" =~ ^feat/[a-z0-9][a-z0-9-]*$ ]] || {
+            echo "Feature branch must match feat/<slug>: $head"
+            exit 1
+          }
+
+          title="$REQUESTED_TITLE"
+          if [[ -z "$title" ]]; then
+            title="$(git log -1 --format=%s)"
+          fi
+          title="$(printf '%s' "$title" | sed -E 's/^COD-[0-9]+[[:space:]]+//I')"
+          [[ -n "$title" ]] || {
+            echo "Could not determine an issue and PR title"
+            exit 1
+          }
+
+          existing_linear_id=""
+          if [[ "$head" =~ ^feat/cod-([0-9]+)- ]]; then
+            existing_linear_id="COD-${BASH_REMATCH[1]}"
+          fi
+
+          delimiter="prepare-pr-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
+          {
+            echo "head=$head"
+            echo "automation_key=${GITHUB_REPOSITORY}:$head"
+            echo "existing_linear_id=$existing_linear_id"
+            echo "title<<$delimiter"
+            echo "$title"
+            echo "$delimiter"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Check for an existing PR
+        id: existing_pr
+        env:
+          HEAD_BRANCH: ${{ steps.metadata.outputs.head }}
+        run: |
+          set -euo pipefail
+          url="$(gh api --method GET "repos/${GITHUB_REPOSITORY}/pulls" \
+            -f state=all \
+            -f head="${GITHUB_REPOSITORY_OWNER}:${HEAD_BRANCH}" \
+            --jq '.[0].html_url // ""')"
+          if [[ -n "$url" ]]; then
+            echo "found=true" >> "$GITHUB_OUTPUT"
+            echo "url=$url" >> "$GITHUB_OUTPUT"
+            echo "PR already exists: $url"
+          else
+            echo "found=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Ensure Linear issue
+        if: steps.existing_pr.outputs.found == 'false'
+        id: linear
+        env:
+          LINEAR_API_KEY: ${{ secrets.LINEAR_API_KEY }}
+          LINEAR_TEAM_KEY: COD
+          LINEAR_PROJECT_SLUG: ${{ vars.LINEAR_PROJECT_SLUG }}
+          LINEAR_PROJECT_NAME: ${{ vars.LINEAR_PROJECT_NAME }}
+          LINEAR_ISSUE_TITLE: ${{ steps.metadata.outputs.title }}
+          LINEAR_AUTOMATION_KEY: ${{ steps.metadata.outputs.automation_key }}
+          LINEAR_EXISTING_IDENTIFIER: ${{ steps.metadata.outputs.existing_linear_id }}
+          SOURCE_BRANCH: ${{ steps.metadata.outputs.head }}
+        run: |
+          set -euo pipefail
+          result="$(python3 .github/scripts/ensure_linear_issue.py)"
+          echo "$result"
+          echo "id=$(jq -r '.identifier' <<< "$result")" >> "$GITHUB_OUTPUT"
+          echo "url=$(jq -r '.url' <<< "$result")" >> "$GITHUB_OUTPUT"
+          echo "action=$(jq -r '.action' <<< "$result")" >> "$GITHUB_OUTPUT"
+
+      - name: Ensure mirrored GitHub issue
+        if: steps.existing_pr.outputs.found == 'false'
+        id: github_issue
+        uses: actions/github-script@v7
+        env:
+          AUTOMATION_KEY: ${{ steps.metadata.outputs.automation_key }}
+          HEAD_BRANCH: ${{ steps.metadata.outputs.head }}
+          ISSUE_TITLE: ${{ steps.metadata.outputs.title }}
+          LINEAR_ID: ${{ steps.linear.outputs.id }}
+          LINEAR_URL: ${{ steps.linear.outputs.url }}
+        with:
+          github-token: ${{ secrets.GH_PAT }}
+          script: |
+            const marker = `<!-- pr-automation-key: ${process.env.AUTOMATION_KEY} -->`;
+            const issues = await github.paginate(github.rest.issues.listForRepo, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: "all",
+              per_page: 100,
+            });
+            const matches = issues.filter(
+              issue => !issue.pull_request && (issue.body || "").includes(marker)
+            );
+            if (matches.length > 1) {
+              throw new Error(`Multiple GitHub mirror issues use ${process.env.AUTOMATION_KEY}`);
+            }
+
+            let issue = matches[0];
+            let action = "reused";
+            if (!issue) {
+              const linearMatches = issues.filter(issue => {
+                if (issue.pull_request) return false;
+                const issueLinearId = issue.title.match(/^(COD-\d+)\b/i)?.[1]?.toUpperCase();
+                return issueLinearId === process.env.LINEAR_ID;
+              });
+              if (linearMatches.length > 1) {
+                throw new Error(`Multiple GitHub issues mirror ${process.env.LINEAR_ID}`);
+              }
+              issue = linearMatches[0];
+            }
+            if (issue) {
+              const issueLinearId = issue.title.match(/^(COD-\d+)\b/i)?.[1]?.toUpperCase();
+              if (issueLinearId !== process.env.LINEAR_ID) {
+                throw new Error(`#${issue.number} points to ${issueLinearId || "no Linear issue"}, not ${process.env.LINEAR_ID}`);
+              }
+              if (issue.state !== "open") {
+                throw new Error(`#${issue.number} is closed; refusing to reuse it for a new PR`);
+              }
+              const existingMarker = (issue.body || "").match(/<!-- pr-automation-key: ([^>]+) -->/)?.[1];
+              if (existingMarker && existingMarker !== process.env.AUTOMATION_KEY) {
+                throw new Error(`#${issue.number} already belongs to ${existingMarker}`);
+              }
+              if (!(issue.body || "").includes(marker)) {
+                const body = [issue.body || "", "", marker].join("\n").trim();
+                const response = await github.rest.issues.update({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: issue.number,
+                  body,
+                });
+                issue = response.data;
+              }
+            } else {
+              const body = [
+                `Mirrored from ${process.env.LINEAR_URL}.`,
+                `Source branch: \`${process.env.HEAD_BRANCH}\``,
+                "",
+                marker,
+              ].join("\n");
+              const response = await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: `${process.env.LINEAR_ID} ${process.env.ISSUE_TITLE}`,
+                body,
+              });
+              issue = response.data;
+              action = "created";
+            }
+
+            core.setOutput("number", issue.number);
+            core.setOutput("url", issue.html_url);
+            core.setOutput("action", action);
+
+      - name: Create draft PR
+        if: steps.existing_pr.outputs.found == 'false'
+        id: pull_request
+        uses: actions/github-script@v7
+        env:
+          HEAD_BRANCH: ${{ steps.metadata.outputs.head }}
+          ISSUE_TITLE: ${{ steps.metadata.outputs.title }}
+          LINEAR_ID: ${{ steps.linear.outputs.id }}
+          LINEAR_URL: ${{ steps.linear.outputs.url }}
+          GITHUB_ISSUE_NUMBER: ${{ steps.github_issue.outputs.number }}
+        with:
+          github-token: ${{ secrets.GH_PAT }}
+          script: |
+            const existing = await github.rest.pulls.list({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: "all",
+              head: `${context.repo.owner}:${process.env.HEAD_BRANCH}`,
+              per_page: 1,
+            });
+            if (existing.data.length) {
+              core.setOutput("url", existing.data[0].html_url);
+              core.setOutput("action", "reused");
+              return;
+            }
+
+            const body = [
+              "## 요약",
+              "",
+              `\`${process.env.HEAD_BRANCH}\`의 변경 사항을 검토하기 위해 자동 생성된 Draft PR입니다.`,
+              "",
+              "## 체크리스트",
+              "",
+              "- [ ] 관련 내용 검토 완료",
+              "- [ ] 문서/README 갱신 필요 시 반영",
+              "",
+              "## Linear 이슈",
+              "",
+              `- ${process.env.LINEAR_URL}`,
+              "",
+              `Closes ${process.env.LINEAR_ID}`,
+              `Closes #${process.env.GITHUB_ISSUE_NUMBER}`,
+            ].join("\n");
+            const response = await github.rest.pulls.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              head: process.env.HEAD_BRANCH,
+              base: "develop",
+              title: `${process.env.LINEAR_ID} ${process.env.ISSUE_TITLE}`,
+              body,
+              draft: true,
+            });
+            core.setOutput("url", response.data.html_url);
+            core.setOutput("action", "created");
+
+      - name: Write automation summary
+        env:
+          EXISTING_PR_URL: ${{ steps.existing_pr.outputs.url }}
+          PR_URL: ${{ steps.pull_request.outputs.url }}
+          LINEAR_ID: ${{ steps.linear.outputs.id }}
+          LINEAR_ACTION: ${{ steps.linear.outputs.action }}
+          GITHUB_ISSUE_URL: ${{ steps.github_issue.outputs.url }}
+          GITHUB_ISSUE_ACTION: ${{ steps.github_issue.outputs.action }}
+        run: |
+          {
+            echo "## Feature PR preparation"
+            if [[ -n "$EXISTING_PR_URL" ]]; then
+              echo "Existing PR: $EXISTING_PR_URL"
+            else
+              echo "Linear: $LINEAR_ID ($LINEAR_ACTION)"
+              echo "GitHub mirror: $GITHUB_ISSUE_URL ($GITHUB_ISSUE_ACTION)"
+              echo "Draft PR: $PR_URL"
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"

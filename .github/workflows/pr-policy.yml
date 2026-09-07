@@ -1,0 +1,150 @@
+name: PR policy
+
+# Requires: a Linear team using key COD (or edit the regexes below to match
+# your team's key), and one mirrored GitHub issue per Linear issue. Feature
+# branches only need to be feat/<slug> -- prepare-feature-pr.yml provisions
+# the Linear/GitHub issue pair and opens the PR automatically. See
+# AGENTS.md and CONTRIBUTING.md for the full procedure, including manual
+# fallback.
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened, closed]
+
+permissions:
+  contents: read
+
+jobs:
+  validate-flow:
+    if: github.event.action != 'closed' && github.event.pull_request.merged != true
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: read
+      pull-requests: read
+    steps:
+      - name: Validate branch flow and mirrored issue references
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: pr } = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.payload.pull_request.number,
+            });
+            const base = pr.base.ref;
+            const head = pr.head.ref;
+
+            if (base === "main") {
+              if (head !== "develop") {
+                core.setFailed("main accepts PRs only from develop");
+              }
+              return;
+            }
+            if (base !== "develop") {
+              core.setFailed(`Unsupported PR base: ${base}`);
+              return;
+            }
+            if (!/^feat\/[a-z0-9][a-z0-9-]*$/.test(head)) {
+              core.setFailed("develop accepts only feat/<slug> branches");
+              return;
+            }
+
+            const body = pr.body || "";
+            const linearMatch = body.match(/\bCloses\s+(COD-\d+)\b/i);
+            const githubMatch = body.match(/\bCloses\s+#(\d+)\b/i);
+            const titleMatch = pr.title.match(/^(COD-\d+)\b/i);
+
+            if (!linearMatch || !githubMatch || !titleMatch) {
+              core.setFailed("PR title and body must contain the mirrored issue pair (title: COD-n ..., body: Closes COD-n / Closes #n)");
+              return;
+            }
+
+            const linearId = linearMatch[1].toUpperCase();
+            if (titleMatch[1].toUpperCase() !== linearId) {
+              core.setFailed(`Title and Linear close reference must both use ${linearId}`);
+              return;
+            }
+
+            const issueNumber = Number(githubMatch[1]);
+            const { data: issue } = await github.rest.issues.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issueNumber,
+            });
+            const issueLinearId = issue.title.match(/^(COD-\d+)\b/i)?.[1]?.toUpperCase();
+            if (issue.pull_request || issueLinearId !== linearId) {
+              core.setFailed(`#${issueNumber} is not the GitHub mirror for ${linearId}`);
+              return;
+            }
+            if (issue.state !== "open") {
+              core.setFailed(`#${issueNumber} must be open before the PR is merged`);
+            }
+
+  close-mirrored-github-issue:
+    if: >-
+      github.event.action == 'closed' &&
+      github.event.pull_request.merged == true &&
+      github.base_ref == 'develop'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: read
+    steps:
+      - name: Close the mirrored GitHub issue
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            const body = pr.body || "";
+            const linearId = body.match(/\bCloses\s+(COD-\d+)\b/i)?.[1]?.toUpperCase();
+            const issueNumber = Number(body.match(/\bCloses\s+#(\d+)\b/i)?.[1]);
+            if (!linearId || !issueNumber) {
+              core.setFailed("Merged PR is missing its mirrored issue references");
+              return;
+            }
+
+            const { data: issue } = await github.rest.issues.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issueNumber,
+            });
+            const issueLinearId = issue.title.match(/^(COD-\d+)\b/i)?.[1]?.toUpperCase();
+            if (issue.pull_request || issueLinearId !== linearId) {
+              core.setFailed(`#${issueNumber} is not the GitHub mirror for ${linearId}`);
+              return;
+            }
+
+            await github.rest.issues.update({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: issueNumber,
+              state: "closed",
+              state_reason: "completed",
+            });
+
+  # Optional: uncomment and adapt for repos that cut versioned releases
+  # (requires a VERSION file, docs/kor|eng/releases/v<version>.md, and a
+  # CHANGELOG.md entry — see codingnanyong/busan-competition-2026 for a
+  # working example).
+  #
+  # validate-release:
+  #   if: github.event.action != 'closed' && github.base_ref == 'main'
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #       with:
+  #         fetch-depth: 0
+  #     - name: Validate release metadata
+  #       run: |
+  #         set -euo pipefail
+  #         VERSION="$(tr -d '[:space:]' < VERSION)"
+  #         [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
+  #         test -f "docs/kor/releases/v${VERSION}.md"
+  #         test -f "docs/eng/releases/v${VERSION}.md"
+  #         grep -Fq "[${VERSION}]" CHANGELOG.md
+  #         if git rev-parse "v${VERSION}" >/dev/null 2>&1; then
+  #           echo "Tag v${VERSION} already exists"
+  #           exit 1
+  #         fi

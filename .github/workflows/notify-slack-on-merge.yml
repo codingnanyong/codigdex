@@ -1,0 +1,44 @@
+name: Notify Slack on PR merge
+
+# Requires repo secret SLACK_WEBHOOK_URL (Slack app -> Incoming Webhooks,
+# add to your notifications channel).
+
+on:
+  pull_request:
+    types: [closed]
+    branches: [develop, main]
+
+jobs:
+  notify:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Post merge summary to Slack
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          BASE_BRANCH: ${{ github.event.pull_request.base.ref }}
+          HEAD_BRANCH: ${{ github.event.pull_request.head.ref }}
+          MERGED_BY: ${{ github.event.pull_request.merged_by.login }}
+        run: |
+          # feat/<slug> branches no longer embed the Linear id (see
+          # prepare-feature-pr.yml), so read title/body first and only
+          # fall back to the branch name for older feat/cod-<n>-<slug> PRs.
+          linear_id=$(printf '%s\n%s\n%s' "$PR_TITLE" "$PR_BODY" "$HEAD_BRANCH" | \
+            grep -oiE 'cod-[0-9]+' | head -n1 | tr '[:lower:]' '[:upper:]')
+          linear_line=""
+          if [ -n "$linear_id" ]; then
+            linear_line="\n• Linear: <https://linear.app/codingnanyong/issue/${linear_id}|${linear_id}>"
+          fi
+
+          text=$(printf '🔀 *PR #%s 병합* — %s\n• Branch: `%s` → `%s`\n• Merged by: %s\n• <%s|PR 보기>%b' \
+            "$PR_NUMBER" "$PR_TITLE" "$HEAD_BRANCH" "$BASE_BRANCH" "$MERGED_BY" "$PR_URL" "$linear_line")
+
+          payload=$(jq -n --arg text "$text" '{text: $text}')
+
+          curl -sf -X POST -H 'Content-type: application/json' \
+            --data "$payload" \
+            "$SLACK_WEBHOOK_URL"
