@@ -1,6 +1,10 @@
-# repo-template
+# codidex-game
 
-codingnanyong's standard starting point for new repos: Linear/GitHub-issue-gated PR flow, Claude + Codex PR review, Slack merge notifications, and the usual community-health files, all pre-wired.
+A pixel-art educational game that teaches programming/coding concepts. The core game mechanic is Pokédex-style collection: players defeat bug monsters, pass a short capture quiz to prove they understood the concept, and register a graded card in their personal "Codidex". Built with Next.js + Phaser.js, deployed to Vercel.
+
+This repo is based on codingnanyong's standard repo template: Linear/GitHub-issue-gated PR flow, Claude + Codex PR review, Slack merge notifications, and the usual community-health files, all pre-wired.
+
+See [docs/GAME_DESIGN.md](docs/GAME_DESIGN.md) for the game design document (concept, core loop, curriculum roadmap, example playthrough).
 
 ## What's included
 
