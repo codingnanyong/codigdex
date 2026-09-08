@@ -1,22 +1,75 @@
-# codigdex-game
+<p align="center">
+  <img src="web/public/assets/icons/codigdex-main-icon.png" width="120" alt="Codigdex logo">
+</p>
 
-A pixel-art educational game that teaches programming/coding concepts. The core game mechanic is Pokédex-style collection: players defeat bug monsters, pass a short capture quiz to prove they understood the concept, and register a graded card in their personal "Codigdex". Built with Next.js + Phaser.js, deployed to Vercel.
+<h1 align="center">Codigdex</h1>
 
-This repo is based on codingnanyong's standard repo template: Linear/GitHub-issue-gated PR flow, Claude + Codex PR review, Slack merge notifications, and the usual community-health files, all pre-wired.
+<p align="center">
+  A pixel-art coding-education game — beat bug monsters, pass a capture quiz, and register graded cards in your own Pokédex-style code dex.
+</p>
 
-See [docs/GAME_DESIGN.md](docs/GAME_DESIGN.md) for the game design document (concept, core loop, curriculum roadmap, example playthrough).
+<p align="center">
+  <a href="https://github.com/codingnanyong/codigdex/actions/workflows/ci.yml"><img src="https://github.com/codingnanyong/codigdex/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="https://github.com/codingnanyong/codigdex/actions/workflows/pr-policy.yml"><img src="https://github.com/codingnanyong/codigdex/actions/workflows/pr-policy.yml/badge.svg" alt="PR policy"></a>
+  <a href="https://github.com/codingnanyong/codigdex/actions/workflows/claude-review.yml"><img src="https://github.com/codingnanyong/codigdex/actions/workflows/claude-review.yml/badge.svg" alt="Claude Code Review"></a>
+  <a href="https://codigdex.vercel.app"><img src="https://img.shields.io/badge/demo-codigdex.vercel.app-black?logo=vercel&logoColor=white" alt="Live demo"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/github/license/codingnanyong/codigdex" alt="License"></a>
+</p>
 
-## What's included
+---
 
-- `.github/workflows/prepare-feature-pr.yml` + `.github/scripts/ensure_linear_issue.py` — push a `feat/<slug>` branch and this finds-or-creates the Linear issue, finds-or-creates the mirrored GitHub issue, and opens a Draft PR into `develop` with both closing references already filled in. No manual issue-pairing steps.
-- `.github/workflows/pr-policy.yml` — every PR into `develop` must reference a paired Linear issue (`COD-n`) and a mirrored GitHub issue (`#n`); `main` only accepts PRs from `develop`. Validates only — the provisioning above does the creating. See [AGENTS.md](AGENTS.md#pr--issue-policy).
-- `.github/workflows/claude-review.yml` — Claude automatically reviews every PR (needs setup, see below).
-- `.github/workflows/notify-slack-on-merge.yml` — posts a summary to Slack when a PR merges into `develop`/`main`.
-- `AGENTS.md` / `CLAUDE.md` — agent role & rules (Claude reads `CLAUDE.md`, which imports `AGENTS.md`; Codex and other tools read `AGENTS.md` directly).
-- `LICENSE` (MIT default — swap for an "All Rights Reserved" style notice if this is a content-only repo), `CODE_OF_CONDUCT.md`, `CONTRIBUTING.md`, `SECURITY.md`, `.github/pull_request_template.md`.
-- `docs/kor/GIT_WORKFLOW.md` / `docs/eng/GIT_WORKFLOW.md` — human-readable branch/PR/Linear policy (same policy `AGENTS.md` and `pr-policy.yml` enforce, written out for people). Add project-specific exceptions after it rather than duplicating the shared parts.
+## 🎮 What is Codigdex?
 
-## Setup checklist for a new repo made from this template
+Codigdex doesn't stop at *teaching* a coding concept — you have to prove you understood it. Defeat a bug monster in a code battle, pass its short capture quiz, and it's registered as a bronze/silver/gold card in your personal **Codigdex**. Filling out the dex *is* the game.
+
+You play a junior coder in Codeville, a pixel town floating on a server cloud, hunting down bug monsters concept by concept. Miss a perfect score? Bronze and silver cards can always be re-caught for gold later — the game rewards retrying, not punishing misses.
+
+<p align="center">
+  <img src="web/public/assets/wallpapers/codigdex-field-guide-wallpaper-v3.png" width="720" alt="Codigdex world map — a junior coder standing before a field-guide gazebo with paths branching to bug-monster regions">
+</p>
+
+Built with **Next.js + Phaser.js**, deployed on **Vercel**. See [docs/GAME_DESIGN.md](docs/GAME_DESIGN.md) for the full design doc — core loop, curriculum roadmap, card/dex system, and an example playthrough of CH.01.
+
+## ✨ Features
+
+**🐛 Game**
+- ✅ Quest → code battle → capture quiz → dex registration → reward loop, fully playable end-to-end (CH.01, "반복문의 숲")
+- ✅ Block-ordering code battle minigame
+- ✅ Bronze / silver / gold grading from capture-quiz accuracy, with gold-upgrade re-challenges
+- ✅ Codigdex dex screen with completion % and a chapter-master badge
+- ✅ Framework-free `lib/domain` game logic, unit + integration tested with Vitest
+
+**🤖 Repo automation**
+- ✅ Push a `feat/<slug>` branch → Linear issue + mirrored GitHub issue + Draft PR into `develop`, auto-created — no manual issue pairing
+- ✅ Every PR validated against the Linear/GitHub issue-pair policy before it can merge
+- ✅ Claude (and optionally Codex) auto-reviews every PR
+- ✅ Slack notification on every merge to `develop`/`main`
+- ✅ Lint, test, and build run in CI on every PR touching `web/`
+
+## 🚀 Quick start
+
+```bash
+cd web
+npm install
+npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000). Other useful scripts (run from `web/`): `npm run test`, `npm run lint`, `npm run build`.
+
+## 📖 Documentation
+
+- [docs/GAME_DESIGN.md](docs/GAME_DESIGN.md) — game design doc (concept, core loop, curriculum roadmap, playthrough example)
+- [AGENTS.md](AGENTS.md) — project purpose + the PR/issue policy that gates every merge (source of truth for both human and agent contributors)
+- [docs/kor/GIT_WORKFLOW.md](docs/kor/GIT_WORKFLOW.md) / [docs/eng/GIT_WORKFLOW.md](docs/eng/GIT_WORKFLOW.md) — human-readable branch/PR/Linear policy
+
+## 🧑‍💻 Contributing
+
+PRs follow `feat/<slug>` → Draft PR into `develop` → `develop` → `main`, gated by a paired Linear (`COD-n`) + GitHub (`#n`) issue — see [AGENTS.md](AGENTS.md#pr--issue-policy) for the full flow and manual fallback. Please also read [CONTRIBUTING.md](CONTRIBUTING.md), [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md), and [SECURITY.md](SECURITY.md) for reporting vulnerabilities.
+
+<details>
+<summary><h2 style="display:inline">🧰 Setup checklist for a new repo made from this template</h2></summary>
+
+This repo is built on codingnanyong's standard repo template: Linear/GitHub-issue-gated PR flow, Claude + Codex PR review, Slack merge notifications, and the usual community-health files, all pre-wired. The checklist below is what a *new* repo spun up from this template still needs — kept here for reference.
 
 Everything below is a **one-time, per-repo** step — things only a human can do or decide (create accounts/keys, name the project, click "Install"). Once done, day-to-day PR/issue/Slack work is fully automated; nobody touches these again unless a key rotates or the project is renamed.
 
@@ -45,3 +98,9 @@ Everything below is a **one-time, per-repo** step — things only a human can do
 7. **Branch protection** (optional but recommended): require the `validate-flow` and `review` checks to pass before merging into `develop`/`main`.
 
 Steps 5–6 are the only inputs the automation actually needs; everything after that (A above) runs itself. For the full day-to-day procedure and manual fallback if a secret expires, see [AGENTS.md](AGENTS.md#pr--issue-policy) or [CONTRIBUTING.md](CONTRIBUTING.md).
+
+</details>
+
+## 📄 License
+
+[MIT](LICENSE) © codingnanyong
