@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - "web/**"
+      - "test/**"
       - ".github/workflows/ci.yml"
 
 permissions:
