@@ -10,7 +10,7 @@ export class WorldMapScene extends Phaser.Scene {
   preload() {
     this.load.image(
       "field-guide",
-      "/assets/wallpapers/codidex-field-guide-wallpaper-v3.png"
+      "/assets/wallpapers/codigdex-field-guide-wallpaper-v3.png"
     );
   }
 
