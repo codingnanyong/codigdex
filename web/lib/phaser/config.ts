@@ -1,6 +1,9 @@
 import Phaser from "phaser";
 import { IntroScene } from "./scenes/IntroScene";
 import { WorldMapScene } from "./scenes/WorldMapScene";
+import { CodeBattleScene } from "./scenes/CodeBattleScene";
+import { CaptureQuizScene } from "./scenes/CaptureQuizScene";
+import { CodigdexScene } from "./scenes/CodigdexScene";
 
 export function createGameConfig(
   parent: HTMLElement
@@ -16,6 +19,6 @@ export function createGameConfig(
       mode: Phaser.Scale.FIT,
       autoCenter: Phaser.Scale.CENTER_BOTH,
     },
-    scene: [IntroScene, WorldMapScene],
+    scene: [IntroScene, WorldMapScene, CodeBattleScene, CaptureQuizScene, CodigdexScene],
   };
 }
