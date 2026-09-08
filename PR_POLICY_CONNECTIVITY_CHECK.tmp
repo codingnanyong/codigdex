@@ -1,3 +1,0 @@
-Temporary file created solely to verify the feat/<slug> -> develop -> main PR automation
-(prepare-feature-pr.yml + pr-policy.yml + Linear/Slack connectivity).
-Safe to delete; removed automatically as part of this connectivity check.
