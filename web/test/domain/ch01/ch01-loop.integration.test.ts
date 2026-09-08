@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { CH01_MASTER_BADGE_ID, CH01_MONSTER, TOTAL_CH01_MONSTERS } from "./content";
-import { EMPTY_DEX_STATE, applyCapture, gradeFromScore } from "./capture";
+import {
+  CH01_MASTER_BADGE_ID,
+  CH01_MONSTER,
+  TOTAL_CH01_MONSTERS,
+} from "@/lib/domain/ch01/content";
+import { EMPTY_DEX_STATE, applyCapture, gradeFromScore } from "@/lib/domain/ch01/capture";
 
 function scoreQuiz(answers: number[]): number {
   return answers.reduce(

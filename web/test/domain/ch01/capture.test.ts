@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { CH01_MASTER_BADGE_ID, CH01_MONSTER } from "./content";
-import { EMPTY_DEX_STATE, applyCapture, gradeFromScore, gradeRank } from "./capture";
+import { CH01_MASTER_BADGE_ID, CH01_MONSTER } from "@/lib/domain/ch01/content";
+import {
+  EMPTY_DEX_STATE,
+  applyCapture,
+  gradeFromScore,
+  gradeRank,
+} from "@/lib/domain/ch01/capture";
 
 describe("gradeFromScore", () => {
   it("returns gold when all questions are correct", () => {

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { getPixelFontFamily, whenPixelFontReady } from "./pixelFont";
+import { getPixelFontFamily, whenPixelFontReady } from "@/lib/phaser/pixelFont";
 
 describe("getPixelFontFamily", () => {
   it("falls back to monospace when there is no document (e.g. server-side)", () => {
