@@ -1,4 +1,6 @@
 import Phaser from "phaser";
+import { getPixelFontFamily, whenPixelFontReady } from "../pixelFont";
+import { PALETTE_HEX } from "../palette";
 
 const INTRO_DURATION_MS = 8_000;
 const ACCENT = 0xc76537;
@@ -55,6 +57,7 @@ export class IntroScene extends Phaser.Scene {
 
     this.createDiscoveryPulses();
     this.createRouteLights();
+    this.createPressStartPrompt();
 
     this.input.once("pointerdown", () => this.finishIntro());
     this.input.keyboard?.once("keydown-ENTER", () => this.finishIntro());
@@ -140,6 +143,44 @@ export class IntroScene extends Phaser.Scene {
         phase: index * 0.27,
         speed: 0.075 + index * 0.012,
       });
+    });
+  }
+
+  private createPressStartPrompt() {
+    const { width, height } = this.scale;
+
+    const prompt = this.add
+      .text(width / 2, height - 48, "PRESS START", {
+        fontFamily: "monospace",
+        fontSize: "20px",
+        color: PALETTE_HEX.cream,
+        stroke: PALETTE_HEX.ink,
+        strokeThickness: 4,
+      })
+      .setOrigin(0.5)
+      .setDepth(5)
+      .setAlpha(0);
+
+    whenPixelFontReady(() => {
+      prompt.setFontFamily(getPixelFontFamily());
+    });
+
+    this.tweens.add({
+      targets: prompt,
+      alpha: 1,
+      duration: 600,
+      delay: 900,
+      ease: "Quad.Out",
+      onComplete: () => {
+        this.tweens.add({
+          targets: prompt,
+          alpha: { from: 1, to: 0.35 },
+          duration: 700,
+          ease: "Sine.InOut",
+          yoyo: true,
+          repeat: -1,
+        });
+      },
     });
   }
 
