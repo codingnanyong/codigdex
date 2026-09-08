@@ -2,7 +2,7 @@
 
 ## Project purpose
 
-Codidex Game is a pixel-art educational game that teaches programming/coding concepts. The core game mechanic is Pokédex-style collection: players defeat bug monsters, pass a short capture quiz to prove they understood the concept, and register a graded (bronze/silver/gold) card in their personal "Codidex". Built with Next.js + Phaser.js, targeting deployment on Vercel.
+Codigdex Game is a pixel-art educational game that teaches programming/coding concepts. The core game mechanic is Pokédex-style collection: players defeat bug monsters, pass a short capture quiz to prove they understood the concept, and register a graded (bronze/silver/gold) card in their personal "Codigdex". Built with Next.js + Phaser.js, targeting deployment on Vercel.
 
 ## PR & issue policy
 

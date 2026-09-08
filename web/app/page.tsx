@@ -8,7 +8,7 @@ export default function Home() {
           className="text-2xl tracking-wide text-foreground"
           style={{ fontFamily: "var(--font-pixel)" }}
         >
-          CODIDEX
+          CODIGDEX
         </h1>
         <p className="mt-2 text-sm text-muted">
           코딩 개념을 도감처럼 수집하는 픽셀 코딩 교육 게임
