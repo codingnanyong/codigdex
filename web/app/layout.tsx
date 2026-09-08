@@ -19,12 +19,12 @@ const pressStart2P = Press_Start_2P({
 });
 
 export const metadata: Metadata = {
-  title: "Codidex",
+  title: "Codigdex",
   description:
     "Pixel-art coding education game with a Pokédex-style collection mechanic.",
   icons: {
-    icon: "/assets/icons/codidex-main-icon.png",
-    apple: "/assets/icons/codidex-main-icon.png",
+    icon: "/assets/icons/codigdex-main-icon.png",
+    apple: "/assets/icons/codigdex-main-icon.png",
   },
 };
 

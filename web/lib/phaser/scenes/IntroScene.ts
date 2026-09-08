@@ -20,15 +20,15 @@ export class IntroScene extends Phaser.Scene {
 
   preload() {
     this.load.image(
-      "codidex-intro",
-      "/assets/wallpapers/codidex-field-guide-wallpaper-v3.png"
+      "codigdex-intro",
+      "/assets/wallpapers/codigdex-field-guide-wallpaper-v3.png"
     );
   }
 
   create() {
     const { width, height } = this.scale;
     const background = this.add
-      .image(width / 2, height / 2, "codidex-intro")
+      .image(width / 2, height / 2, "codigdex-intro")
       .setDisplaySize(width, height)
       .setAlpha(0);
 

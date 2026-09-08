@@ -1,4 +1,4 @@
-# Codidex — web app
+# Codigdex — web app
 
 Next.js + Phaser.js game client. The repo root keeps policy/community-health files (`AGENTS.md`, `docs/`, etc.); this folder is the actual application.
 
