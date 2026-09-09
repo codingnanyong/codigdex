@@ -1,8 +1,9 @@
 import Phaser from "phaser";
 import { PALETTE, PALETTE_HEX } from "../palette";
 import { createButton } from "../ui";
+import { getPixelFontFamily, whenPixelFontReady } from "../pixelFont";
 import { ensureDexDefaults, readDexState } from "../registryAdapter";
-import { CH01_MONSTER, NPC_PRE_BATTLE_LINE } from "@/lib/domain/ch01/content";
+import { NPC_PRE_BATTLE_LINE, TUTORIAL_CHAPTER_TITLE, TUTORIAL_MONSTER } from "@/lib/domain/tutorial/content";
 
 const INK = PALETTE_HEX.ink;
 
@@ -30,8 +31,8 @@ export class WorldMapScene extends Phaser.Scene {
     const bg = this.add.image(width / 2, height / 2, "field-guide");
     bg.setDisplaySize(width, height);
 
-    this.add
-      .text(width / 2, 24, "CH.01 반복문의 숲", {
+    const header = this.add
+      .text(width / 2, 24, `📘 ${TUTORIAL_CHAPTER_TITLE}`, {
         fontFamily: "monospace",
         fontSize: "14px",
         color: INK,
@@ -39,6 +40,7 @@ export class WorldMapScene extends Phaser.Scene {
         padding: { x: 10, y: 4 },
       })
       .setOrigin(0.5);
+    whenPixelFontReady(() => header.setFontFamily(getPixelFontFamily()).setFontSize(11));
 
     this.hudText = this.add
       .text(16, 16, "", {
@@ -70,7 +72,7 @@ export class WorldMapScene extends Phaser.Scene {
 
   private getCapturedCard() {
     const { cards } = readDexState(this.registry);
-    return cards.find((card) => card.id === CH01_MONSTER.id);
+    return cards.find((card) => card.id === TUTORIAL_MONSTER.id);
   }
 
   private createQuestMarker() {
@@ -85,7 +87,7 @@ export class WorldMapScene extends Phaser.Scene {
       .setDepth(4);
 
     this.questLabel = this.add
-      .text(x, y - 26, CH01_MONSTER.name, {
+      .text(x, y - 26, TUTORIAL_MONSTER.name, {
         fontFamily: "monospace",
         fontSize: "12px",
         color: INK,
@@ -113,11 +115,11 @@ export class WorldMapScene extends Phaser.Scene {
     const card = this.getCapturedCard();
     if (card?.grade === "gold") {
       this.questMarker.setFillStyle(PALETTE.sand, 0.6);
-      this.questLabel.setText(`${CH01_MONSTER.name} (골드 완료)`);
+      this.questLabel.setText(`${TUTORIAL_MONSTER.name} (골드 완료)`);
     } else if (card) {
-      this.questLabel.setText(`${CH01_MONSTER.name} (${card.grade} · 재도전 가능)`);
+      this.questLabel.setText(`${TUTORIAL_MONSTER.name} (${card.grade} · 재도전 가능)`);
     } else {
-      this.questLabel.setText(CH01_MONSTER.name);
+      this.questLabel.setText(TUTORIAL_MONSTER.name);
     }
   }
 
@@ -138,7 +140,7 @@ export class WorldMapScene extends Phaser.Scene {
       .setDepth(10);
 
     const speaker = this.add
-      .text(width / 2 - boxWidth / 2 + 16, height - 110 - boxHeight / 2 + 14, `${CH01_MONSTER.npcName}:`, {
+      .text(width / 2 - boxWidth / 2 + 16, height - 110 - boxHeight / 2 + 14, `${TUTORIAL_MONSTER.npcName}:`, {
         fontFamily: "monospace",
         fontSize: "13px",
         color: PALETTE_HEX.maroon,
@@ -148,7 +150,7 @@ export class WorldMapScene extends Phaser.Scene {
 
     const message = card
       ? "이 슬라임, 아직 다 잡히지 않았나 봐요. 다시 한 번 도전해볼까요?"
-      : CH01_MONSTER.questText;
+      : TUTORIAL_MONSTER.questText;
 
     const body = this.add
       .text(width / 2 - boxWidth / 2 + 16, height - 110 - boxHeight / 2 + 36, message, {
@@ -192,7 +194,7 @@ export class WorldMapScene extends Phaser.Scene {
   private startBattle() {
     this.closeDialog();
     this.scene.start("code-battle", {
-      monsterId: CH01_MONSTER.id,
+      monsterId: TUTORIAL_MONSTER.id,
       npcLine: NPC_PRE_BATTLE_LINE,
     });
   }

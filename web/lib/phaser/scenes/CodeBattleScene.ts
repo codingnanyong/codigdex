@@ -1,7 +1,7 @@
 import Phaser from "phaser";
 import { PALETTE, PALETTE_HEX } from "../palette";
 import { createButton } from "../ui";
-import { CH01_MONSTER } from "@/lib/domain/ch01/content";
+import { TUTORIAL_MONSTER } from "@/lib/domain/tutorial/content";
 
 const INK = PALETTE_HEX.ink;
 const HP_SEGMENTS = 5;
@@ -37,7 +37,7 @@ export class CodeBattleScene extends Phaser.Scene {
     const { width, height } = this.scale;
 
     this.add
-      .text(width / 2, 20, `${CH01_MONSTER.npcName}: ${this.battleData.npcLine}`, {
+      .text(width / 2, 20, `${TUTORIAL_MONSTER.npcName}: ${this.battleData.npcLine}`, {
         fontFamily: "monospace",
         fontSize: "13px",
         color: INK,
@@ -110,7 +110,7 @@ export class CodeBattleScene extends Phaser.Scene {
   }
 
   private createBlockButtons() {
-    const shuffled = Phaser.Utils.Array.Shuffle([...CH01_MONSTER.codeBlocks]);
+    const shuffled = Phaser.Utils.Array.Shuffle([...TUTORIAL_MONSTER.codeBlocks]);
     const { width } = this.scale;
     const buttonWidth = 150;
     const gap = 20;
@@ -134,7 +134,7 @@ export class CodeBattleScene extends Phaser.Scene {
   private onBlockClicked(block: string) {
     if (this.running) return;
 
-    const expectedNext = CH01_MONSTER.codeBlocks[this.selection.length];
+    const expectedNext = TUTORIAL_MONSTER.codeBlocks[this.selection.length];
     if (block !== expectedNext) {
       this.feedbackText.setText("순서가 달라요! 다시 시도해보세요.");
       this.resetSelection();
@@ -145,7 +145,7 @@ export class CodeBattleScene extends Phaser.Scene {
     this.assemblyText.setText(`> ${this.selection.join(" ")}`);
     this.feedbackText.setText("");
 
-    if (this.selection.length === CH01_MONSTER.codeBlocks.length) {
+    if (this.selection.length === TUTORIAL_MONSTER.codeBlocks.length) {
       this.runCode();
     }
   }

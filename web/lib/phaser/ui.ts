@@ -1,5 +1,7 @@
 import Phaser from "phaser";
 import { PALETTE, PALETTE_HEX } from "./palette";
+import { GRADE_COLOR } from "./grade";
+import type { CardGrade } from "@/lib/domain/tutorial/content";
 
 export function createButton(
   scene: Phaser.Scene,
@@ -37,4 +39,89 @@ export function createButton(
   });
 
   return container;
+}
+
+/**
+ * Rounded parchment panel with a double border and corner rivets — the
+ * shared frame language for the Codigdex and capture-quiz panels.
+ */
+export function drawOrnateFrame(
+  scene: Phaser.Scene,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  options: { fill?: number; fillAlpha?: number; radius?: number } = {}
+): Phaser.GameObjects.Graphics {
+  const radius = options.radius ?? 14;
+  const fill = options.fill ?? PALETTE.cream;
+  const fillAlpha = options.fillAlpha ?? 0.98;
+  const left = x - width / 2;
+  const top = y - height / 2;
+
+  const g = scene.add.graphics();
+
+  g.fillStyle(PALETTE.nightBrown, 0.35);
+  g.fillRoundedRect(left + 4, top + 6, width, height, radius);
+
+  g.fillStyle(fill, fillAlpha);
+  g.fillRoundedRect(left, top, width, height, radius);
+  g.lineStyle(3, PALETTE.ink, 1);
+  g.strokeRoundedRect(left, top, width, height, radius);
+  g.lineStyle(1, PALETTE.amber, 0.85);
+  g.strokeRoundedRect(left + 7, top + 7, width - 14, height - 14, Math.max(radius - 5, 2));
+
+  g.fillStyle(PALETTE.amber, 1);
+  [
+    [left + 12, top + 12],
+    [left + width - 12, top + 12],
+    [left + 12, top + height - 12],
+    [left + width - 12, top + height - 12],
+  ].forEach(([cx, cy]) => g.fillCircle(cx, cy, 3.5));
+
+  return g;
+}
+
+function starPoints(
+  cx: number,
+  cy: number,
+  outerRadius: number,
+  innerRadius: number,
+  points = 5
+): Phaser.Math.Vector2[] {
+  const step = Math.PI / points;
+  const result: Phaser.Math.Vector2[] = [];
+  for (let i = 0; i < points * 2; i++) {
+    const r = i % 2 === 0 ? outerRadius : innerRadius;
+    const angle = i * step - Math.PI / 2;
+    result.push(new Phaser.Math.Vector2(cx + r * Math.cos(angle), cy + r * Math.sin(angle)));
+  }
+  return result;
+}
+
+/** Grade medal: a shadowed disc with a ring and star, colored by grade. */
+export function drawGradeMedal(
+  scene: Phaser.Scene,
+  x: number,
+  y: number,
+  grade: CardGrade,
+  radius = 24
+): Phaser.GameObjects.Graphics {
+  const color = GRADE_COLOR[grade];
+  const g = scene.add.graphics({ x, y });
+
+  g.fillStyle(PALETTE.nightBrown, 0.3);
+  g.fillCircle(2, 3, radius);
+
+  g.fillStyle(PALETTE.cream, 1);
+  g.fillCircle(0, 0, radius);
+  g.lineStyle(3, color, 1);
+  g.strokeCircle(0, 0, radius);
+  g.lineStyle(1, PALETTE.ink, 0.6);
+  g.strokeCircle(0, 0, radius - 4);
+
+  g.fillStyle(color, 1);
+  g.fillPoints(starPoints(0, 0, radius * 0.55, radius * 0.22), true);
+
+  return g;
 }
