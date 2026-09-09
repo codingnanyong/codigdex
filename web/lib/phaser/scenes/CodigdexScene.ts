@@ -7,6 +7,8 @@ import { GRADE_LABEL } from "../grade";
 import { CapturedCard, TOTAL_TUTORIAL_MONSTERS, TUTORIAL_MASTER_BADGE_ID } from "@/lib/domain/tutorial/content";
 
 const INK = PALETTE_HEX.ink;
+const PANEL_WIDTH = 720;
+const PANEL_HEIGHT = 440;
 
 export class CodigdexScene extends Phaser.Scene {
   constructor() {
@@ -22,14 +24,14 @@ export class CodigdexScene extends Phaser.Scene {
 
     const panelX = width / 2;
     const panelY = height / 2;
-    drawOrnateFrame(this, panelX, panelY, 720, 440);
+    drawOrnateFrame(this, panelX, panelY, PANEL_WIDTH, PANEL_HEIGHT);
 
     const { cards, badges } = readDexState(this.registry);
     const completion = Math.round((cards.length / TOTAL_TUTORIAL_MONSTERS) * 100);
     const hasBadge = badges.includes(TUTORIAL_MASTER_BADGE_ID);
 
     const title = this.add
-      .text(panelX, panelY - 220 + 30, "Codigdex 도감", {
+      .text(panelX, panelY - PANEL_HEIGHT / 2 + 30, "Codigdex 도감", {
         fontFamily: "monospace",
         fontSize: "18px",
         color: INK,
@@ -37,7 +39,7 @@ export class CodigdexScene extends Phaser.Scene {
       .setOrigin(0.5);
     whenPixelFontReady(() => title.setFontFamily(getPixelFontFamily()).setFontSize(16));
 
-    this.renderProgressBar(panelX, panelY - 220 + 60, completion, cards.length, hasBadge);
+    this.renderProgressBar(panelX, panelY - PANEL_HEIGHT / 2 + 60, completion, cards.length, hasBadge);
 
     if (cards.length === 0) {
       this.add
@@ -49,10 +51,10 @@ export class CodigdexScene extends Phaser.Scene {
         })
         .setOrigin(0.5);
     } else {
-      this.renderCardGrid(cards, panelX - 720 / 2 + 30, panelY - 60);
+      this.renderCardGrid(cards, panelX - PANEL_WIDTH / 2 + 30, panelY - 60);
     }
 
-    createButton(this, panelX, panelY + 220 - 30, 100, 32, "닫기", () => this.close());
+    createButton(this, panelX, panelY + PANEL_HEIGHT / 2 - 30, 100, 32, "닫기", () => this.close());
   }
 
   private renderProgressBar(

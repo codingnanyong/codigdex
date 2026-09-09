@@ -158,32 +158,41 @@ export class CaptureQuizScene extends Phaser.Scene {
     const { width, height } = this.scale;
 
     const panelWidth = 640;
-    const panelHeight = 420;
+    const minPanelHeight = 360;
+    const topPad = 30;
+    const bottomPad = 70;
+    const medalRadius = 30;
     const container = this.add.container(width / 2, height / 2).setDepth(1).setAlpha(0).setScale(0.85);
 
-    const frame = drawOrnateFrame(this, 0, 0, panelWidth, panelHeight);
-    const medal = drawGradeMedal(this, 0, -panelHeight / 2 + 44, grade, 30);
+    // Lay content out from an arbitrary top (cursor = 0) first, so panel
+    // height can be sized to whatever this monster's copy actually needs,
+    // then shift everything down once the final panel geometry is known.
+    let cursor = medalRadius;
+    const medal = drawGradeMedal(this, 0, cursor, grade, medalRadius);
+    cursor += medalRadius + 14;
 
     const title = this.add
-      .text(0, -panelHeight / 2 + 88, `"${TUTORIAL_MONSTER.name}" 카드 등록!`, {
+      .text(0, cursor, `"${TUTORIAL_MONSTER.name}" 카드 등록!`, {
         fontFamily: "monospace",
         fontSize: "15px",
         color: INK,
         align: "center",
       })
       .setOrigin(0.5, 0);
+    cursor += title.height + 4;
 
     const gradeText = this.add
-      .text(0, title.y + title.height + 4, `${GRADE_LABEL[grade]} 등급`, {
+      .text(0, cursor, `${GRADE_LABEL[grade]} 등급`, {
         fontFamily: "monospace",
         fontSize: "13px",
         color: GRADE_COLOR_HEX[grade],
         fontStyle: "bold",
       })
       .setOrigin(0.5, 0);
+    cursor += gradeText.height + 12;
 
     const description = this.add
-      .text(0, gradeText.y + gradeText.height + 12, TUTORIAL_MONSTER.description, {
+      .text(0, cursor, TUTORIAL_MONSTER.description, {
         fontFamily: "monospace",
         fontSize: "12px",
         color: INK,
@@ -191,8 +200,9 @@ export class CaptureQuizScene extends Phaser.Scene {
         wordWrap: { width: panelWidth - 120 },
       })
       .setOrigin(0.5, 0);
+    cursor += description.height + 14;
 
-    const snippetY = description.y + description.height + 14;
+    const snippetY = cursor;
     const snippetBg = this.add
       .rectangle(0, snippetY, panelWidth - 140, 46, PALETTE.nightBrown, 0.9)
       .setStrokeStyle(2, PALETTE.ink)
@@ -205,9 +215,10 @@ export class CaptureQuizScene extends Phaser.Scene {
         align: "center",
       })
       .setOrigin(0.5, 0);
+    cursor += 46 + 16;
 
     const npcLine = this.add
-      .text(0, snippetY + 46 + 16, `${TUTORIAL_MONSTER.npcName}: ${NPC_REACTIONS[grade]}`, {
+      .text(0, cursor, `${TUTORIAL_MONSTER.npcName}: ${NPC_REACTIONS[grade]}`, {
         fontFamily: "monospace",
         fontSize: "12px",
         color: PALETTE_HEX.maroon,
@@ -216,11 +227,12 @@ export class CaptureQuizScene extends Phaser.Scene {
         wordWrap: { width: panelWidth - 120 },
       })
       .setOrigin(0.5, 0);
+    cursor += npcLine.height + 10;
 
     const rewards = this.add
       .text(
         0,
-        npcLine.y + npcLine.height + 10,
+        cursor,
         `⚡ EXP +${TUTORIAL_MONSTER.rewards.exp}   🪙 코인 +${TUTORIAL_MONSTER.rewards.coins}`,
         {
           fontFamily: "monospace",
@@ -229,9 +241,9 @@ export class CaptureQuizScene extends Phaser.Scene {
         }
       )
       .setOrigin(0.5, 0);
+    cursor += rewards.height;
 
-    const elements: Phaser.GameObjects.GameObject[] = [
-      frame,
+    const shiftable: Array<Phaser.GameObjects.GameObject & { y: number }> = [
       medal,
       title,
       gradeText,
@@ -242,17 +254,31 @@ export class CaptureQuizScene extends Phaser.Scene {
       rewards,
     ];
 
+    let badge: Phaser.GameObjects.Text | undefined;
     if (earnedBadge) {
-      const badge = this.add
-        .text(0, rewards.y + rewards.height + 8, `🏅 튜토리얼 마스터 배지 획득: ${TUTORIAL_CHAPTER_TITLE}`, {
+      cursor += 8;
+      badge = this.add
+        .text(0, cursor, `🏅 튜토리얼 마스터 배지 획득: ${TUTORIAL_CHAPTER_TITLE}`, {
           fontFamily: "monospace",
           fontSize: "12px",
           color: PALETTE_HEX.amber,
           fontStyle: "bold",
         })
         .setOrigin(0.5, 0);
-      elements.push(badge);
+      cursor += badge.height;
+      shiftable.push(badge);
     }
+
+    const contentHeight = cursor;
+    const panelHeight = Math.max(minPanelHeight, contentHeight + topPad + bottomPad);
+    const shiftY = -panelHeight / 2 + topPad;
+    shiftable.forEach((el) => {
+      el.y += shiftY;
+    });
+
+    const frame = drawOrnateFrame(this, 0, 0, panelWidth, panelHeight);
+
+    const elements: Phaser.GameObjects.GameObject[] = [frame, ...shiftable];
 
     const confirm = createButton(this, 0, panelHeight / 2 - 32, 120, 34, "확인", () => {
       this.scene.start("world-map");
