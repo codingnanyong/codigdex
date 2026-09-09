@@ -22,9 +22,11 @@ export const REGISTRY_KEYS = {
   badges: "badges",
 } as const;
 
-export const CH01_MASTER_BADGE_ID = "ch01-master";
+export const TUTORIAL_MASTER_BADGE_ID = "tutorial-master";
 
-export const CH01_MONSTER = {
+export const TUTORIAL_CHAPTER_TITLE = "튜토리얼 · 반복문의 숲";
+
+export const TUTORIAL_MONSTER = {
   id: "infinite-loop-slime",
   name: "무한루프 슬라임",
   npcName: "루피",
@@ -58,4 +60,4 @@ export const NPC_REACTIONS: Record<CardGrade, string> = {
 export const NPC_PRE_BATTLE_LINE =
   "저 슬라임, 같은 자리를 계속 맴돌고 있어. for 반복문으로 정확히 5번만 물을 부어보자!";
 
-export const TOTAL_CH01_MONSTERS = 1;
+export const TOTAL_TUTORIAL_MONSTERS = 1;

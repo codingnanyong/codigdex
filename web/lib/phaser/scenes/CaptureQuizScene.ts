@@ -1,16 +1,23 @@
 import Phaser from "phaser";
 import { PALETTE, PALETTE_HEX } from "../palette";
-import { createButton } from "../ui";
+import { createButton, drawGradeMedal, drawOrnateFrame } from "../ui";
+import { getPixelFontFamily, whenPixelFontReady } from "../pixelFont";
 import { readDexState, writeDexState } from "../registryAdapter";
-import { CH01_MONSTER, NPC_REACTIONS } from "@/lib/domain/ch01/content";
-import { applyCapture, gradeFromScore } from "@/lib/domain/ch01/capture";
+import { GRADE_COLOR_HEX, GRADE_LABEL } from "../grade";
+import { NPC_REACTIONS, TUTORIAL_CHAPTER_TITLE, TUTORIAL_MONSTER } from "@/lib/domain/tutorial/content";
+import { applyCapture, gradeFromScore } from "@/lib/domain/tutorial/capture";
 
 const INK = PALETTE_HEX.ink;
+const CORRECT_FLASH = 0x4c8c4a;
+const INCORRECT_FLASH = 0xb23a2e;
+const OPTION_LETTERS = ["A", "B", "C", "D"];
 
 export class CaptureQuizScene extends Phaser.Scene {
   private questionIndex = 0;
   private correctCount = 0;
   private questionGroup?: Phaser.GameObjects.Container;
+  private progressDots: Phaser.GameObjects.Arc[] = [];
+  private locked = false;
 
   constructor() {
     super("capture-quiz");
@@ -20,6 +27,8 @@ export class CaptureQuizScene extends Phaser.Scene {
     this.questionIndex = 0;
     this.correctCount = 0;
     this.questionGroup = undefined;
+    this.progressDots = [];
+    this.locked = false;
   }
 
   create() {
@@ -29,50 +38,73 @@ export class CaptureQuizScene extends Phaser.Scene {
       .rectangle(width / 2, height / 2, width, height, PALETTE.nightBrown, 0.55)
       .setDepth(0);
 
-    this.add
-      .text(width / 2, 70, "캡처 퀴즈", {
+    const title = this.add
+      .text(width / 2, 56, "캡처 퀴즈", {
         fontFamily: "monospace",
         fontSize: "18px",
         color: PALETTE_HEX.cream,
       })
       .setOrigin(0.5)
       .setDepth(1);
+    whenPixelFontReady(() => title.setFontFamily(getPixelFontFamily()).setFontSize(16));
 
+    this.renderProgressDots(width / 2, 92);
     this.showQuestion();
+  }
+
+  private renderProgressDots(centerX: number, y: number) {
+    const total = TUTORIAL_MONSTER.quiz.length;
+    const gap = 22;
+    const startX = centerX - ((total - 1) * gap) / 2;
+    this.progressDots = Array.from({ length: total }, (_, i) =>
+      this.add
+        .circle(startX + i * gap, y, 5, PALETTE.wood, 1)
+        .setStrokeStyle(2, PALETTE.cream)
+        .setDepth(1)
+    );
+  }
+
+  private updateProgressDots() {
+    this.progressDots.forEach((dot, i) => {
+      dot.setFillStyle(i < this.questionIndex ? PALETTE.amber : PALETTE.wood, 1);
+    });
   }
 
   private showQuestion() {
     this.questionGroup?.destroy(true);
+    this.updateProgressDots();
 
-    const question = CH01_MONSTER.quiz[this.questionIndex];
+    const question = TUTORIAL_MONSTER.quiz[this.questionIndex];
     const { width } = this.scale;
     const elements: Phaser.GameObjects.GameObject[] = [];
 
-    const counter = this.add
-      .text(width / 2, 120, `Q${this.questionIndex + 1} / ${CH01_MONSTER.quiz.length}`, {
-        fontFamily: "monospace",
-        fontSize: "12px",
-        color: PALETTE_HEX.sand,
-      })
-      .setOrigin(0.5)
-      .setDepth(1);
-    elements.push(counter);
+    elements.push(drawOrnateFrame(this, width / 2, 212, width - 160, 200, { radius: 16 }).setDepth(1));
 
-    const prompt = this.add
-      .text(width / 2, 160, question.prompt, {
-        fontFamily: "monospace",
-        fontSize: "16px",
-        color: PALETTE_HEX.cream,
-        backgroundColor: "#2a1d14cc",
-        padding: { x: 12, y: 8 },
-        wordWrap: { width: width - 160 },
-        align: "center",
-      })
-      .setOrigin(0.5)
-      .setDepth(1);
-    elements.push(prompt);
+    elements.push(
+      this.add
+        .text(width / 2, 130, `Q${this.questionIndex + 1} / ${TUTORIAL_MONSTER.quiz.length}`, {
+          fontFamily: "monospace",
+          fontSize: "12px",
+          color: PALETTE_HEX.mutedBrown,
+        })
+        .setOrigin(0.5)
+        .setDepth(2)
+    );
 
-    const buttonWidth = 130;
+    elements.push(
+      this.add
+        .text(width / 2, 164, question.prompt, {
+          fontFamily: "monospace",
+          fontSize: "16px",
+          color: INK,
+          align: "center",
+          wordWrap: { width: width - 240 },
+        })
+        .setOrigin(0.5, 0)
+        .setDepth(2)
+    );
+
+    const buttonWidth = 150;
     const gap = 16;
     const totalWidth = question.choices.length * buttonWidth + (question.choices.length - 1) * gap;
     const startX = width / 2 - totalWidth / 2 + buttonWidth / 2;
@@ -81,77 +113,172 @@ export class CaptureQuizScene extends Phaser.Scene {
       const button = createButton(
         this,
         startX + index * (buttonWidth + gap),
-        230,
+        262,
         buttonWidth,
         40,
-        choice,
-        () => this.onAnswer(index === question.answerIndex)
+        `${OPTION_LETTERS[index]}. ${choice}`,
+        () => this.onAnswer(index === question.answerIndex, button)
       );
-      button.setDepth(1);
+      button.setDepth(2);
       elements.push(button);
     });
 
     this.questionGroup = this.add.container(0, 0, elements);
   }
 
-  private onAnswer(isCorrect: boolean) {
+  private onAnswer(isCorrect: boolean, button: Phaser.GameObjects.Container) {
+    if (this.locked) return;
+    this.locked = true;
     if (isCorrect) this.correctCount += 1;
 
+    const bg = button.list[0] as Phaser.GameObjects.Rectangle;
+    bg.disableInteractive();
+    bg.setFillStyle(isCorrect ? CORRECT_FLASH : INCORRECT_FLASH);
+
+    this.time.delayedCall(450, () => {
+      this.locked = false;
+      this.advance();
+    });
+  }
+
+  private advance() {
     this.questionIndex += 1;
-    if (this.questionIndex < CH01_MONSTER.quiz.length) {
+    if (this.questionIndex < TUTORIAL_MONSTER.quiz.length) {
       this.showQuestion();
     } else {
+      this.updateProgressDots();
       this.questionGroup?.destroy(true);
       this.showResult();
     }
   }
 
   private showResult() {
-    const grade = gradeFromScore(this.correctCount, CH01_MONSTER.quiz.length);
+    const grade = gradeFromScore(this.correctCount, TUTORIAL_MONSTER.quiz.length);
     const { earnedBadge } = this.registerCapture(grade);
     const { width, height } = this.scale;
 
-    const gradeLabel = { gold: "골드", silver: "실버", bronze: "브론즈" }[grade];
+    const panelWidth = 640;
+    const panelHeight = 420;
+    const container = this.add.container(width / 2, height / 2).setDepth(1).setAlpha(0).setScale(0.85);
 
-    const lines = [
-      `"${CH01_MONSTER.name}" 카드를 ${gradeLabel} 등급으로 등록했습니다!`,
-      "",
-      // Broken at the sentence boundary so each rendered line already fits
-      // the panel width — Phaser's wordWrap does not reserve extra vertical
-      // space for a line it wraps internally, which caused text below it to
-      // overlap the wrapped second half.
-      CH01_MONSTER.description.replace(". ", ".\n"),
-      "",
-      CH01_MONSTER.snippet,
-      "",
-      `${CH01_MONSTER.npcName}: ${NPC_REACTIONS[grade]}`,
-      "",
-      `EXP +${CH01_MONSTER.rewards.exp} · 코인 +${CH01_MONSTER.rewards.coins}`,
+    const frame = drawOrnateFrame(this, 0, 0, panelWidth, panelHeight);
+    const medal = drawGradeMedal(this, 0, -panelHeight / 2 + 44, grade, 30);
+
+    const title = this.add
+      .text(0, -panelHeight / 2 + 88, `"${TUTORIAL_MONSTER.name}" 카드 등록!`, {
+        fontFamily: "monospace",
+        fontSize: "15px",
+        color: INK,
+        align: "center",
+      })
+      .setOrigin(0.5, 0);
+
+    const gradeText = this.add
+      .text(0, title.y + title.height + 4, `${GRADE_LABEL[grade]} 등급`, {
+        fontFamily: "monospace",
+        fontSize: "13px",
+        color: GRADE_COLOR_HEX[grade],
+        fontStyle: "bold",
+      })
+      .setOrigin(0.5, 0);
+
+    const description = this.add
+      .text(0, gradeText.y + gradeText.height + 12, TUTORIAL_MONSTER.description, {
+        fontFamily: "monospace",
+        fontSize: "12px",
+        color: INK,
+        align: "center",
+        wordWrap: { width: panelWidth - 120 },
+      })
+      .setOrigin(0.5, 0);
+
+    const snippetY = description.y + description.height + 14;
+    const snippetBg = this.add
+      .rectangle(0, snippetY, panelWidth - 140, 46, PALETTE.nightBrown, 0.9)
+      .setStrokeStyle(2, PALETTE.ink)
+      .setOrigin(0.5, 0);
+    const snippetText = this.add
+      .text(0, snippetY + 8, TUTORIAL_MONSTER.snippet, {
+        fontFamily: "monospace",
+        fontSize: "12px",
+        color: PALETTE_HEX.sand,
+        align: "center",
+      })
+      .setOrigin(0.5, 0);
+
+    const npcLine = this.add
+      .text(0, snippetY + 46 + 16, `${TUTORIAL_MONSTER.npcName}: ${NPC_REACTIONS[grade]}`, {
+        fontFamily: "monospace",
+        fontSize: "12px",
+        color: PALETTE_HEX.maroon,
+        fontStyle: "bold",
+        align: "center",
+        wordWrap: { width: panelWidth - 120 },
+      })
+      .setOrigin(0.5, 0);
+
+    const rewards = this.add
+      .text(
+        0,
+        npcLine.y + npcLine.height + 10,
+        `⚡ EXP +${TUTORIAL_MONSTER.rewards.exp}   🪙 코인 +${TUTORIAL_MONSTER.rewards.coins}`,
+        {
+          fontFamily: "monospace",
+          fontSize: "12px",
+          color: PALETTE_HEX.mutedBrown,
+        }
+      )
+      .setOrigin(0.5, 0);
+
+    const elements: Phaser.GameObjects.GameObject[] = [
+      frame,
+      medal,
+      title,
+      gradeText,
+      description,
+      snippetBg,
+      snippetText,
+      npcLine,
+      rewards,
     ];
 
     if (earnedBadge) {
-      lines.push("", "🏅 챕터 마스터 배지 획득: CH.01 반복문의 숲");
+      const badge = this.add
+        .text(0, rewards.y + rewards.height + 8, `🏅 튜토리얼 마스터 배지 획득: ${TUTORIAL_CHAPTER_TITLE}`, {
+          fontFamily: "monospace",
+          fontSize: "12px",
+          color: PALETTE_HEX.amber,
+          fontStyle: "bold",
+        })
+        .setOrigin(0.5, 0);
+      elements.push(badge);
     }
 
-    this.add
-      .rectangle(width / 2, height / 2, 640, 340, PALETTE.cream, 0.98)
-      .setStrokeStyle(3, PALETTE.ink)
-      .setDepth(1);
-
-    this.add
-      .text(width / 2, height / 2 - 130, lines.join("\n"), {
-        fontFamily: "monospace",
-        fontSize: "13px",
-        color: INK,
-        align: "center",
-        wordWrap: { width: 600 },
-      })
-      .setOrigin(0.5, 0)
-      .setDepth(2);
-
-    createButton(this, width / 2, height / 2 + 150, 120, 34, "확인", () => {
+    const confirm = createButton(this, 0, panelHeight / 2 - 32, 120, 34, "확인", () => {
       this.scene.start("world-map");
-    }).setDepth(2);
+    });
+    elements.push(confirm);
+
+    container.add(elements);
+
+    this.tweens.add({
+      targets: container,
+      alpha: 1,
+      scale: 1,
+      duration: 260,
+      ease: "Back.Out",
+    });
+
+    if (grade === "gold") {
+      this.tweens.add({
+        targets: medal,
+        angle: { from: -8, to: 8 },
+        duration: 260,
+        yoyo: true,
+        repeat: 3,
+        ease: "Sine.InOut",
+      });
+    }
   }
 
   private registerCapture(grade: ReturnType<typeof gradeFromScore>): { earnedBadge: boolean } {
