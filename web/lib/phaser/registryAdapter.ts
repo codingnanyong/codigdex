@@ -1,6 +1,6 @@
 import Phaser from "phaser";
-import { DexState, EMPTY_DEX_STATE } from "@/lib/domain/ch01/capture";
-import { REGISTRY_KEYS } from "@/lib/domain/ch01/content";
+import { DexState, EMPTY_DEX_STATE } from "@/lib/domain/tutorial/capture";
+import { REGISTRY_KEYS } from "@/lib/domain/tutorial/content";
 
 export function ensureDexDefaults(registry: Phaser.Data.DataManager) {
   if (registry.get(REGISTRY_KEYS.exp) === undefined) {

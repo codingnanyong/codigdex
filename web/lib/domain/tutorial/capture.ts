@@ -1,4 +1,4 @@
-import { CH01_MASTER_BADGE_ID, CH01_MONSTER, CapturedCard, CardGrade } from "./content";
+import { TUTORIAL_MASTER_BADGE_ID, TUTORIAL_MONSTER, CapturedCard, CardGrade } from "./content";
 
 export interface DexState {
   cards: CapturedCard[];
@@ -35,29 +35,29 @@ export function applyCapture(
   now: () => string = () => new Date().toISOString()
 ): CaptureResult {
   const cards = [...state.cards];
-  const existingIndex = cards.findIndex((card) => card.id === CH01_MONSTER.id);
+  const existingIndex = cards.findIndex((card) => card.id === TUTORIAL_MONSTER.id);
 
   if (existingIndex === -1) {
     cards.push({
-      id: CH01_MONSTER.id,
-      name: CH01_MONSTER.name,
+      id: TUTORIAL_MONSTER.id,
+      name: TUTORIAL_MONSTER.name,
       grade,
-      description: CH01_MONSTER.description,
-      snippet: CH01_MONSTER.snippet,
+      description: TUTORIAL_MONSTER.description,
+      snippet: TUTORIAL_MONSTER.snippet,
       capturedAt: now(),
     });
   } else if (gradeRank(grade) > gradeRank(cards[existingIndex].grade)) {
     cards[existingIndex] = { ...cards[existingIndex], grade };
   }
 
-  const exp = state.exp + CH01_MONSTER.rewards.exp;
-  const coins = state.coins + CH01_MONSTER.rewards.coins;
+  const exp = state.exp + TUTORIAL_MONSTER.rewards.exp;
+  const coins = state.coins + TUTORIAL_MONSTER.rewards.coins;
 
   const allGold = cards.length > 0 && cards.every((card) => card.grade === "gold");
   const badges = [...state.badges];
   let earnedBadge = false;
-  if (allGold && !badges.includes(CH01_MASTER_BADGE_ID)) {
-    badges.push(CH01_MASTER_BADGE_ID);
+  if (allGold && !badges.includes(TUTORIAL_MASTER_BADGE_ID)) {
+    badges.push(TUTORIAL_MASTER_BADGE_ID);
     earnedBadge = true;
   }
 

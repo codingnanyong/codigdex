@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { CH01_MASTER_BADGE_ID, CH01_MONSTER } from "@/lib/domain/ch01/content";
+import { TUTORIAL_MASTER_BADGE_ID, TUTORIAL_MONSTER } from "@/lib/domain/tutorial/content";
 import {
   EMPTY_DEX_STATE,
   applyCapture,
   gradeFromScore,
   gradeRank,
-} from "@/lib/domain/ch01/capture";
+} from "@/lib/domain/tutorial/capture";
 
 describe("gradeFromScore", () => {
   it("returns gold when all questions are correct", () => {
@@ -40,20 +40,20 @@ describe("applyCapture", () => {
 
     expect(state.cards).toHaveLength(1);
     expect(state.cards[0]).toMatchObject({
-      id: CH01_MONSTER.id,
+      id: TUTORIAL_MONSTER.id,
       grade: "bronze",
       capturedAt: fixedNow(),
     });
-    expect(state.exp).toBe(CH01_MONSTER.rewards.exp);
-    expect(state.coins).toBe(CH01_MONSTER.rewards.coins);
+    expect(state.exp).toBe(TUTORIAL_MONSTER.rewards.exp);
+    expect(state.coins).toBe(TUTORIAL_MONSTER.rewards.coins);
     expect(earnedBadge).toBe(false);
   });
 
-  it("awards the chapter-master badge the first time every card reaches gold", () => {
+  it("awards the tutorial-master badge the first time every card reaches gold", () => {
     const { state, earnedBadge } = applyCapture(EMPTY_DEX_STATE, "gold", fixedNow);
 
     expect(state.cards[0].grade).toBe("gold");
-    expect(state.badges).toContain(CH01_MASTER_BADGE_ID);
+    expect(state.badges).toContain(TUTORIAL_MASTER_BADGE_ID);
     expect(earnedBadge).toBe(true);
   });
 
@@ -78,15 +78,15 @@ describe("applyCapture", () => {
     const afterGold = applyCapture(EMPTY_DEX_STATE, "gold", fixedNow).state;
     const { state } = applyCapture(afterGold, "bronze", fixedNow);
 
-    expect(state.exp).toBe(CH01_MONSTER.rewards.exp * 2);
-    expect(state.coins).toBe(CH01_MONSTER.rewards.coins * 2);
+    expect(state.exp).toBe(TUTORIAL_MONSTER.rewards.exp * 2);
+    expect(state.coins).toBe(TUTORIAL_MONSTER.rewards.coins * 2);
   });
 
-  it("only awards the chapter-master badge once", () => {
+  it("only awards the tutorial-master badge once", () => {
     const afterFirstGold = applyCapture(EMPTY_DEX_STATE, "gold", fixedNow).state;
     const { earnedBadge, state } = applyCapture(afterFirstGold, "gold", fixedNow);
 
-    expect(state.badges.filter((badge) => badge === CH01_MASTER_BADGE_ID)).toHaveLength(1);
+    expect(state.badges.filter((badge) => badge === TUTORIAL_MASTER_BADGE_ID)).toHaveLength(1);
     expect(earnedBadge).toBe(false);
   });
 });
