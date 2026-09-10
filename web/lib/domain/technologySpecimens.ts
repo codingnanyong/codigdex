@@ -44,6 +44,11 @@ export const TECHNOLOGY_SPECIMENS = {
   },
 } satisfies Record<string, TechnologySpecimen>;
 
-export const FUTURE_TECHNOLOGY_SPECIMENS = Object.values(TECHNOLOGY_SPECIMENS).filter(
-  (specimen) => specimen.role === "future"
+/**
+ * Only the specimens whose chapters exist appear on the path map. The
+ * `future` ones stay registered here — the art is drawn and the names are
+ * settled — but nothing renders them until their chapters are written.
+ */
+export const COMMON_TECHNOLOGY_SPECIMENS = Object.values(TECHNOLOGY_SPECIMENS).filter(
+  (specimen) => specimen.role === "common"
 );

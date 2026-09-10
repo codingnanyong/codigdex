@@ -1,6 +1,6 @@
 import Phaser from "phaser";
 import {
-  FUTURE_TECHNOLOGY_SPECIMENS,
+  COMMON_TECHNOLOGY_SPECIMENS,
   TECHNOLOGY_SPECIMENS,
 } from "../../domain/technologySpecimens";
 import { PALETTE, PALETTE_HEX } from "../palette";
@@ -45,8 +45,15 @@ const CAREER_NODES: PathNode[] = [
 ];
 
 const ALL_NODES = [...COMMON_NODES, PROMOTION_NODE, ...CAREER_NODES];
-const COMMON_WIDTH = 150;
+const COMMON_WIDTH = 164;
 const COMMON_HEIGHT = 86;
+/**
+ * Sprite box and text column inside a node. A specimen is not guaranteed to
+ * be transparent out to its own edges, so the text column has to clear the
+ * full sprite box — not just the medallion circle drawn behind it.
+ */
+const SPRITE_BOX = { common: 46, career: 44 } as const;
+const SPRITE_GAP = 8;
 const PROMOTION_SIZE = 92;
 const CAREER_WIDTH = 244;
 const CAREER_HEIGHT = 54;
@@ -59,7 +66,7 @@ export class PathMapScene extends Phaser.Scene {
   }
 
   preload() {
-    Object.values(TECHNOLOGY_SPECIMENS).forEach(({ textureKey, assetPath }) => {
+    COMMON_TECHNOLOGY_SPECIMENS.forEach(({ textureKey, assetPath }) => {
       this.load.image(textureKey, assetPath);
     });
     this.load.image("career-frontend", "/assets/careers/frontend-developer.png");
@@ -77,7 +84,6 @@ export class PathMapScene extends Phaser.Scene {
     this.drawSectionLabels();
     this.drawConnections();
     ALL_NODES.forEach((node) => this.drawNode(node));
-    this.drawDiscoveredSpecimens();
 
     createButton(this, width / 2, height - 27, 140, 32, "돌아가기", () =>
       this.scene.start("world-map")
@@ -164,11 +170,27 @@ export class PathMapScene extends Phaser.Scene {
       lines.strokePath();
     };
 
-    drawPath([[190, 272], [225, 272]], true);
-    drawPath([[375, 272], [444, 272]], true);
+    // Derived from the node geometry rather than hardcoded, so resizing a
+    // card can't leave a connector stubbed short or buried under a panel.
+    const [git, terminal] = COMMON_NODES;
+    const commonHalf = COMMON_WIDTH / 2;
+    drawPath([[git.x + commonHalf, git.y], [terminal.x - commonHalf, terminal.y]], true);
+    drawPath(
+      [
+        [terminal.x + commonHalf, terminal.y],
+        [PROMOTION_NODE.x - PROMOTION_SIZE / 2, PROMOTION_NODE.y],
+      ],
+      true
+    );
 
     const branchX = 620;
-    drawPath([[536, 272], [branchX, 272]], false);
+    drawPath(
+      [
+        [PROMOTION_NODE.x + PROMOTION_SIZE / 2, PROMOTION_NODE.y],
+        [branchX, PROMOTION_NODE.y],
+      ],
+      false
+    );
     lines.lineStyle(6, PALETTE.ink, 1);
     lines.lineBetween(branchX, CAREER_NODES[0].y, branchX, CAREER_NODES.at(-1)!.y);
     lines.lineStyle(2, PALETTE.mutedBrown, 0.62);
@@ -202,16 +224,12 @@ export class PathMapScene extends Phaser.Scene {
     panel.fillStyle(unlocked ? PALETTE.maroon : PALETTE.nightBrown, 1);
     panel.fillRect(-width / 2, -height / 2, 6, height);
 
+    const spriteBox = node.kind === "common" ? SPRITE_BOX.common : SPRITE_BOX.career;
+    const spriteCenterX = -width / 2 + 12 + spriteBox / 2;
     const icon = node.spriteKey
-      ? this.drawNodeSprite(
-          node.spriteKey,
-          -width / 2 + 29,
-          0,
-          node.kind === "common" ? 56 : 48,
-          unlocked
-        )
-      : this.drawIcon(node.icon!, -width / 2 + 29, 0, unlocked);
-    const textLeft = -width / 2 + 54;
+      ? this.drawNodeSprite(node.spriteKey, spriteCenterX, 0, spriteBox, unlocked)
+      : this.drawIcon(node.icon!, spriteCenterX, 0, unlocked);
+    const textLeft = spriteCenterX + spriteBox / 2 + SPRITE_GAP;
     const eyebrow = this.add
       .text(textLeft, -13, node.eyebrow, {
         ...pixelText("caption"),
@@ -299,54 +317,20 @@ export class PathMapScene extends Phaser.Scene {
     x: number,
     y: number,
     size: number,
-    active = false
+    active: boolean
   ) {
+    // Specimen art has to be transparent to its edges for this to read as a
+    // portrait in a ring rather than a square on a disc — the sprite is drawn
+    // at the full box size, wider than the medallion behind it.
     const medallion = this.add.circle(x, y, size / 2 - 2, PALETTE.nightBrown, 1);
     medallion.setStrokeStyle(2, PALETTE.amber, 0.72);
-    const portrait = this.add.image(x, y + 1, textureKey).setDisplaySize(size, size);
-    portrait.setAlpha(active ? 1 : 0.78);
+
+    const portrait = this.add
+      .image(x, y + 1, textureKey)
+      .setDisplaySize(size, size)
+      .setAlpha(active ? 1 : 0.78);
+
     return this.add.container(0, 0, [medallion, portrait]);
-  }
-
-  private drawDiscoveredSpecimens() {
-    const centerX = 220;
-    const centerY = 421;
-    const panel = this.add.graphics();
-    panel.fillStyle(PALETTE.ink, 0.72);
-    panel.fillRect(centerX - 174, centerY - 50, 348, 100);
-    panel.lineStyle(1, PALETTE.mutedBrown, 0.72);
-    panel.strokeRect(centerX - 174, centerY - 50, 348, 100);
-
-    this.add
-      .text(centerX, centerY - 38, "미리 발견된 기술 개체", {
-        ...pixelText("caption"),
-        color: PALETTE_HEX.sand,
-        letterSpacing: 1,
-      })
-      .setOrigin(0.5);
-
-    FUTURE_TECHNOLOGY_SPECIMENS.forEach((specimen, index) => {
-      const x = centerX - 108 + index * 108;
-      const card = this.add.container(x, centerY + 5);
-      const medallion = this.add.circle(0, -2, 27, PALETTE.nightBrown, 1);
-      medallion.setStrokeStyle(2, PALETTE.amber, 0.55);
-      const portrait = this.add
-        .image(0, -1, specimen.textureKey)
-        .setDisplaySize(54, 54)
-        .setAlpha(0.86);
-      const label = this.add
-        .text(0, 31, specimen.name, {
-          ...pixelText("caption"),
-          color: PALETTE_HEX.cream,
-        })
-        .setOrigin(0.5);
-
-      card.add([medallion, portrait, label]);
-      card.setSize(86, 72).setInteractive({ cursor: "pointer" });
-      card.on("pointerover", () => card.setScale(1.07));
-      card.on("pointerout", () => card.setScale(1));
-      card.on("pointerup", () => this.showToast(`${specimen.name} 개체의 챕터는 준비 중이에요.`));
-    });
   }
 
   private onNodeSelected(node: PathNode) {
