@@ -1,7 +1,28 @@
 import Phaser from "phaser";
 import { PALETTE, PALETTE_HEX } from "./palette";
 import { GRADE_COLOR } from "./grade";
+import { getPixelFontFamily, whenPixelFontReady } from "./pixelFont";
 import type { CardGrade } from "@/lib/domain/tutorial/content";
+
+/**
+ * Re-applies the pixel font to every Text object already in a scene, once
+ * the webfont has actually loaded. Text created after that point should
+ * just pass `getPixelFontFamily()` directly and never need this — this only
+ * catches whatever a scene's `create()` drew before the font was ready.
+ */
+export function applyPixelFontToScene(scene: Phaser.Scene) {
+  whenPixelFontReady(() => {
+    const family = getPixelFontFamily();
+    const restyle = (child: Phaser.GameObjects.GameObject) => {
+      if (child instanceof Phaser.GameObjects.Text) {
+        child.setFontFamily(family);
+      } else if (child instanceof Phaser.GameObjects.Container) {
+        child.list.forEach(restyle);
+      }
+    };
+    scene.children.list.forEach(restyle);
+  });
+}
 
 export function createButton(
   scene: Phaser.Scene,
@@ -20,7 +41,7 @@ export function createButton(
 
   const text = scene.add
     .text(0, 0, label, {
-      fontFamily: options.fontFamily ?? "monospace",
+      fontFamily: options.fontFamily ?? getPixelFontFamily(),
       fontSize: options.fontSize ?? "13px",
       color: PALETTE_HEX.cream,
       align: "center",

@@ -6,11 +6,14 @@ export default function Home() {
       <header className="text-center">
         <h1
           className="text-2xl tracking-wide text-foreground"
-          style={{ fontFamily: "var(--font-pixel)" }}
+          style={{ fontFamily: "var(--font-pixel-en)" }}
         >
           CODIGDEX
         </h1>
-        <p className="mt-2 text-sm text-muted">
+        <p
+          className="mt-2 text-sm text-muted"
+          style={{ fontFamily: "var(--font-pixel)" }}
+        >
           코딩 개념을 도감처럼 수집하는 픽셀 코딩 교육 게임
         </p>
       </header>

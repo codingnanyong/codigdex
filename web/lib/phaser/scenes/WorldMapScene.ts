@@ -1,14 +1,14 @@
 import Phaser from "phaser";
 import { PALETTE, PALETTE_HEX } from "../palette";
-import { createButton } from "../ui";
-import { getPixelFontFamily, whenPixelFontReady } from "../pixelFont";
+import { createButton, drawOrnateFrame, applyPixelFontToScene } from "../ui";
+import { getPixelFontFamily } from "../pixelFont";
 import { ensureDexDefaults, readDexState } from "../registryAdapter";
 import { NPC_PRE_BATTLE_LINE, TUTORIAL_CHAPTER_TITLE, TUTORIAL_MONSTER } from "@/lib/domain/tutorial/content";
+import { findJob, JOB_REGISTRY_KEY } from "@/lib/domain/player/jobs";
 
 const INK = PALETTE_HEX.ink;
 
 export class WorldMapScene extends Phaser.Scene {
-  private hudText!: Phaser.GameObjects.Text;
   private questMarker!: Phaser.GameObjects.Arc;
   private questLabel!: Phaser.GameObjects.Text;
   private dialogGroup?: Phaser.GameObjects.Container;
@@ -31,43 +31,35 @@ export class WorldMapScene extends Phaser.Scene {
     const bg = this.add.image(width / 2, height / 2, "field-guide");
     bg.setDisplaySize(width, height);
 
-    const header = this.add
+    drawOrnateFrame(this, width / 2, 24, 340, 34, { radius: 10 });
+    this.add
       .text(width / 2, 24, `📘 ${TUTORIAL_CHAPTER_TITLE}`, {
-        fontFamily: "monospace",
-        fontSize: "14px",
+        fontFamily: getPixelFontFamily(),
+        fontSize: "11px",
         color: INK,
-        backgroundColor: "#f1e4cbcc",
-        padding: { x: 10, y: 4 },
       })
       .setOrigin(0.5);
-    whenPixelFontReady(() => header.setFontFamily(getPixelFontFamily()).setFontSize(11));
 
-    this.hudText = this.add
-      .text(16, 16, "", {
-        fontFamily: "monospace",
-        fontSize: "13px",
-        color: PALETTE_HEX.cream,
-        backgroundColor: "#2a1d14cc",
-        padding: { x: 8, y: 4 },
+    const job = findJob(this.registry.get(JOB_REGISTRY_KEY) as string | undefined);
+    drawOrnateFrame(this, 101, 34, 170, 36, { radius: 8 });
+    this.add
+      .text(101, 34, job.name, {
+        fontFamily: getPixelFontFamily(),
+        fontSize: "11px",
+        color: INK,
       })
-      .setOrigin(0, 0);
+      .setOrigin(0.5);
 
     createButton(this, width - 70, 26, 120, 32, "Codigdex 도감", () =>
       this.openCodigdex()
     );
 
     this.createQuestMarker();
-    this.refreshHud();
+    applyPixelFontToScene(this);
 
     this.events.on(Phaser.Scenes.Events.RESUME, () => {
-      this.refreshHud();
       this.refreshQuestMarker();
     });
-  }
-
-  private refreshHud() {
-    const { exp, coins } = readDexState(this.registry);
-    this.hudText.setText(`EXP ${exp}   코인 ${coins}`);
   }
 
   private getCapturedCard() {
@@ -86,13 +78,12 @@ export class WorldMapScene extends Phaser.Scene {
       .setInteractive({ useHandCursor: true })
       .setDepth(4);
 
+    drawOrnateFrame(this, x, y - 26, 260, 30, { radius: 8 }).setDepth(4);
     this.questLabel = this.add
       .text(x, y - 26, TUTORIAL_MONSTER.name, {
-        fontFamily: "monospace",
-        fontSize: "12px",
+        fontFamily: getPixelFontFamily(),
+        fontSize: "11px",
         color: INK,
-        backgroundColor: "#f1e4cbcc",
-        padding: { x: 6, y: 2 },
       })
       .setOrigin(0.5)
       .setDepth(4);
@@ -133,38 +124,37 @@ export class WorldMapScene extends Phaser.Scene {
     const card = this.getCapturedCard();
     const boxWidth = 560;
     const boxHeight = 150;
+    const boxCenterY = height - 110;
 
-    const panel = this.add
-      .rectangle(width / 2, height - 110, boxWidth, boxHeight, PALETTE.cream, 0.97)
-      .setStrokeStyle(3, PALETTE.ink)
-      .setDepth(10);
+    const frame = drawOrnateFrame(this, width / 2, boxCenterY, boxWidth, boxHeight, {
+      radius: 14,
+    }).setDepth(10);
 
     const speaker = this.add
-      .text(width / 2 - boxWidth / 2 + 16, height - 110 - boxHeight / 2 + 14, `${TUTORIAL_MONSTER.npcName}:`, {
-        fontFamily: "monospace",
-        fontSize: "13px",
+      .text(width / 2 - boxWidth / 2 + 20, boxCenterY - boxHeight / 2 + 16, `${TUTORIAL_MONSTER.npcName}:`, {
+        fontFamily: getPixelFontFamily(),
+        fontSize: "12px",
         color: PALETTE_HEX.maroon,
-        fontStyle: "bold",
       })
       .setDepth(11);
 
     const message = card
-      ? "이 슬라임, 아직 다 잡히지 않았나 봐요. 다시 한 번 도전해볼까요?"
+      ? "이 버그, 아직 반복을 멈추지 않았나 봐요. 다시 한 번 도전해볼까요?"
       : TUTORIAL_MONSTER.questText;
 
     const body = this.add
-      .text(width / 2 - boxWidth / 2 + 16, height - 110 - boxHeight / 2 + 36, message, {
-        fontFamily: "monospace",
-        fontSize: "13px",
+      .text(width / 2 - boxWidth / 2 + 20, boxCenterY - boxHeight / 2 + 40, message, {
+        fontFamily: getPixelFontFamily(),
+        fontSize: "12px",
         color: INK,
-        wordWrap: { width: boxWidth - 32 },
+        wordWrap: { width: boxWidth - 40 },
       })
       .setDepth(11);
 
     const startButton = createButton(
       this,
       width / 2 + boxWidth / 2 - 90,
-      height - 110 + boxHeight / 2 - 24,
+      boxCenterY + boxHeight / 2 - 24,
       140,
       32,
       "코드 배틀 시작",
@@ -175,7 +165,7 @@ export class WorldMapScene extends Phaser.Scene {
     const closeButton = createButton(
       this,
       width / 2 - boxWidth / 2 + 60,
-      height - 110 + boxHeight / 2 - 24,
+      boxCenterY + boxHeight / 2 - 24,
       80,
       32,
       "닫기",
@@ -183,7 +173,8 @@ export class WorldMapScene extends Phaser.Scene {
     );
     closeButton.setDepth(11);
 
-    this.dialogGroup = this.add.container(0, 0, [panel, speaker, body, startButton, closeButton]);
+    this.dialogGroup = this.add.container(0, 0, [frame, speaker, body, startButton, closeButton]);
+    applyPixelFontToScene(this);
   }
 
   private closeDialog() {
