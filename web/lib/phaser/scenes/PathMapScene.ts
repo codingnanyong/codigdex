@@ -209,7 +209,16 @@ export class PathMapScene extends Phaser.Scene {
       .setOrigin(0.5);
 
     card.add([panel, icon, chapter, label, ...badgeItems, lock]);
-    card.setSize(CARD_WIDTH, CARD_HEIGHT).setInteractive({ useHandCursor: true });
+    // Container children are centered on the container's local origin, but
+    // Container.setInteractive() with no explicit shape anchors the hit area
+    // at (0,0) — i.e. the card's top-left corner, not its center. Pass a
+    // centered rectangle explicitly so the clickable area matches what's
+    // actually drawn.
+    card.setInteractive(
+      new Phaser.Geom.Rectangle(-CARD_WIDTH / 2, -CARD_HEIGHT / 2, CARD_WIDTH, CARD_HEIGHT),
+      Phaser.Geom.Rectangle.Contains
+    );
+    card.input!.cursor = "pointer";
 
     card.on("pointerover", () => card.setScale(1.025));
     card.on("pointerout", () => card.setScale(1));
