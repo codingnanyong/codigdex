@@ -1,8 +1,9 @@
 import Phaser from "phaser";
 import { PALETTE, PALETTE_HEX } from "../palette";
 import { applyPixelFontToScene } from "../ui";
-import { getPixelFontFamily } from "../pixelFont";
-import { TUTORIAL_MONSTER } from "@/lib/domain/tutorial/content";
+import { pixelText } from "../pixelFont";
+import { QuizQuestion, TUTORIAL_MONSTER } from "@/lib/domain/tutorial/content";
+import { drawQuizQuestions, quizCountForLevel } from "@/lib/domain/tutorial/quiz";
 
 const INK = PALETTE_HEX.ink;
 const CORRECT_FLASH = 0x4c8c4a;
@@ -12,7 +13,6 @@ const HP_GREEN = 0x4c8c4a;
 const HP_YELLOW = 0xd9a441;
 const HP_RED = 0xb23a2e;
 const OPTION_LETTERS = ["A", "B", "C", "D"];
-const HP_SEGMENTS = TUTORIAL_MONSTER.quiz.length;
 const HP_BAR_WIDTH = 150;
 const HP_BAR_HEIGHT = 10;
 
@@ -23,7 +23,7 @@ function hpColorFor(ratio: number): number {
 }
 
 const STATUS_BOX = { x: 200, y: 118, width: 280, height: 76 };
-const MESSAGE_BOX = { x: 480, y: 280, width: 860, height: 110 };
+const MESSAGE_BOX = { x: 480, y: 288, width: 860, height: 146 };
 const COMMAND_BOX = { x: 480, y: 440, width: 860, height: 150 };
 
 interface CodeBattleData {
@@ -33,6 +33,7 @@ interface CodeBattleData {
 
 export class CodeBattleScene extends Phaser.Scene {
   private battleData!: CodeBattleData;
+  private questions: QuizQuestion[] = [];
   private questionIndex = 0;
   private correctCount = 0;
   private locked = false;
@@ -50,6 +51,10 @@ export class CodeBattleScene extends Phaser.Scene {
 
   init(data: CodeBattleData) {
     this.battleData = data;
+    this.questions = drawQuizQuestions(
+      TUTORIAL_MONSTER.quizPool,
+      quizCountForLevel(TUTORIAL_MONSTER.level)
+    );
     this.questionIndex = 0;
     this.correctCount = 0;
     this.locked = false;
@@ -65,8 +70,7 @@ export class CodeBattleScene extends Phaser.Scene {
 
     this.add
       .text(width / 2, 12, `${TUTORIAL_MONSTER.npcName}: ${this.battleData.npcLine}`, {
-        fontFamily: getPixelFontFamily(),
-        fontSize: "12px",
+        ...pixelText("body"),
         color: INK,
         backgroundColor: "#f1e4cbcc",
         padding: { x: 10, y: 5 },
@@ -118,16 +122,14 @@ export class CodeBattleScene extends Phaser.Scene {
 
     this.add
       .text(left + 16, top + 12, `${TUTORIAL_MONSTER.name}  Lv.${TUTORIAL_MONSTER.level}`, {
-        fontFamily: getPixelFontFamily(),
-        fontSize: "11px",
+        ...pixelText("body"),
         color: INK,
       })
       .setOrigin(0, 0);
 
     this.add
       .text(left + 16, top + 42, "HP", {
-        fontFamily: getPixelFontFamily(),
-        fontSize: "10px",
+        ...pixelText("caption"),
         color: INK,
         fontStyle: "italic",
       })
@@ -155,26 +157,26 @@ export class CodeBattleScene extends Phaser.Scene {
 
     this.progressText = this.add
       .text(left + 18, top + 14, "", {
-        fontFamily: getPixelFontFamily(),
-        fontSize: "10px",
+        ...pixelText("caption"),
         color: PALETTE_HEX.mutedBrown,
       })
       .setOrigin(0, 0);
 
+    // Centered rather than top-anchored: prompts run from one line to four
+    // (code samples span several), and centering keeps every one of them
+    // balanced inside the box instead of hanging off the bottom.
     this.questionText = this.add
-      .text(x, top + 34, "", {
-        fontFamily: getPixelFontFamily(),
-        fontSize: "14px",
+      .text(x, y + 4, "", {
+        ...pixelText("subtitle"),
         color: INK,
         align: "center",
         wordWrap: { width: width - 90 },
       })
-      .setOrigin(0.5, 0);
+      .setOrigin(0.5, 0.5);
 
     this.feedbackText = this.add
       .text(x, top + height - 16, "", {
-        fontFamily: getPixelFontFamily(),
-        fontSize: "11px",
+        ...pixelText("body"),
         color: PALETTE_HEX.maroon,
       })
       .setOrigin(0.5, 1);
@@ -190,8 +192,8 @@ export class CodeBattleScene extends Phaser.Scene {
     this.answerCells = [];
     this.feedbackText.setText("");
 
-    const question = TUTORIAL_MONSTER.quiz[this.questionIndex];
-    this.progressText.setText(`Q${this.questionIndex + 1} / ${TUTORIAL_MONSTER.quiz.length}`);
+    const question = this.questions[this.questionIndex];
+    this.progressText.setText(`Q${this.questionIndex + 1} / ${this.questions.length}`);
     this.questionText.setText(question.prompt);
 
     const { x, y, width, height } = COMMAND_BOX;
@@ -234,8 +236,7 @@ export class CodeBattleScene extends Phaser.Scene {
 
     const text = this.add
       .text(0, 0, label, {
-        fontFamily: getPixelFontFamily(),
-        fontSize: "12px",
+        ...pixelText("body"),
         color: PALETTE_HEX.cream,
       })
       .setOrigin(0.5);
@@ -272,7 +273,8 @@ export class CodeBattleScene extends Phaser.Scene {
   }
 
   private damageMonster() {
-    const remainingRatio = (HP_SEGMENTS - this.correctCount) / HP_SEGMENTS;
+    const total = this.questions.length;
+    const remainingRatio = (total - this.correctCount) / total;
     this.hpBarFill.setFillStyle(hpColorFor(remainingRatio));
     this.tweens.add({
       targets: this.hpBarFill,
@@ -290,7 +292,7 @@ export class CodeBattleScene extends Phaser.Scene {
 
   private advance() {
     this.questionIndex += 1;
-    if (this.questionIndex < TUTORIAL_MONSTER.quiz.length) {
+    if (this.questionIndex < this.questions.length) {
       this.showQuestion();
       return;
     }
@@ -298,7 +300,7 @@ export class CodeBattleScene extends Phaser.Scene {
     this.answerCells.forEach((cell) => cell.destroy());
     this.answerCells = [];
 
-    if (this.correctCount === HP_SEGMENTS) {
+    if (this.correctCount === this.questions.length) {
       this.feedbackText.setText("무한루프 버그를 물리쳤어요!");
       this.tweens.add({
         targets: this.monsterSprite,
@@ -316,6 +318,7 @@ export class CodeBattleScene extends Phaser.Scene {
     this.scene.start("capture-quiz", {
       monsterId: this.battleData.monsterId,
       correctCount: this.correctCount,
+      total: this.questions.length,
     });
   }
 }

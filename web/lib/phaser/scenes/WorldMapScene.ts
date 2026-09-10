@@ -1,7 +1,7 @@
 import Phaser from "phaser";
 import { PALETTE, PALETTE_HEX } from "../palette";
 import { createButton, drawOrnateFrame, applyPixelFontToScene } from "../ui";
-import { getPixelFontFamily } from "../pixelFont";
+import { pixelText } from "../pixelFont";
 import { ensureDexDefaults, readDexState } from "../registryAdapter";
 import { NPC_PRE_BATTLE_LINE, TUTORIAL_CHAPTER_TITLE, TUTORIAL_MONSTER } from "@/lib/domain/tutorial/content";
 import { findJob, JOB_REGISTRY_KEY } from "@/lib/domain/player/jobs";
@@ -34,8 +34,7 @@ export class WorldMapScene extends Phaser.Scene {
     drawOrnateFrame(this, width / 2, 24, 340, 34, { radius: 10 });
     this.add
       .text(width / 2, 24, `📘 ${TUTORIAL_CHAPTER_TITLE}`, {
-        fontFamily: getPixelFontFamily(),
-        fontSize: "11px",
+        ...pixelText("body"),
         color: INK,
       })
       .setOrigin(0.5);
@@ -44,8 +43,7 @@ export class WorldMapScene extends Phaser.Scene {
     drawOrnateFrame(this, 101, 34, 170, 36, { radius: 8 });
     this.add
       .text(101, 34, job.name, {
-        fontFamily: getPixelFontFamily(),
-        fontSize: "11px",
+        ...pixelText("body"),
         color: INK,
       })
       .setOrigin(0.5);
@@ -81,8 +79,7 @@ export class WorldMapScene extends Phaser.Scene {
     drawOrnateFrame(this, x, y - 26, 260, 30, { radius: 8 }).setDepth(4);
     this.questLabel = this.add
       .text(x, y - 26, TUTORIAL_MONSTER.name, {
-        fontFamily: getPixelFontFamily(),
-        fontSize: "11px",
+        ...pixelText("body"),
         color: INK,
       })
       .setOrigin(0.5)
@@ -130,8 +127,7 @@ export class WorldMapScene extends Phaser.Scene {
 
     const speaker = this.add
       .text(width / 2 - boxWidth / 2 + 20, boxCenterY - boxHeight / 2 + 16, `${TUTORIAL_MONSTER.npcName}:`, {
-        fontFamily: getPixelFontFamily(),
-        fontSize: "12px",
+        ...pixelText("body"),
         color: PALETTE_HEX.maroon,
       })
       .setDepth(11);
@@ -142,8 +138,7 @@ export class WorldMapScene extends Phaser.Scene {
 
     const body = this.add
       .text(width / 2 - boxWidth / 2 + 20, boxCenterY - boxHeight / 2 + 40, message, {
-        fontFamily: getPixelFontFamily(),
-        fontSize: "12px",
+        ...pixelText("body"),
         color: INK,
         wordWrap: { width: boxWidth - 40 },
       })

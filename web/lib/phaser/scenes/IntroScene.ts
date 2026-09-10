@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { getPixelFontFamily } from "../pixelFont";
+import { pixelText } from "../pixelFont";
 import { applyPixelFontToScene } from "../ui";
 import { PALETTE_HEX } from "../palette";
 
@@ -152,8 +152,7 @@ export class IntroScene extends Phaser.Scene {
 
     const prompt = this.add
       .text(width / 2, height - 48, "PRESS START", {
-        fontFamily: getPixelFontFamily(),
-        fontSize: "20px",
+        ...pixelText("title"),
         color: PALETTE_HEX.cream,
         stroke: PALETTE_HEX.ink,
         strokeThickness: 4,
