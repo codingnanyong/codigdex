@@ -19,8 +19,8 @@ export class WorldMapScene extends Phaser.Scene {
 
   preload() {
     this.load.image(
-      "tutorial-loop-path-map",
-      "/assets/maps/tutorial-loop-path-map.png"
+      "field-guide",
+      "/assets/wallpapers/codigdex-field-guide-wallpaper-v3.png"
     );
   }
 
@@ -28,7 +28,7 @@ export class WorldMapScene extends Phaser.Scene {
     const { width, height } = this.scale;
     ensureDexDefaults(this.registry);
 
-    const bg = this.add.image(width / 2, height / 2, "tutorial-loop-path-map");
+    const bg = this.add.image(width / 2, height / 2, "field-guide");
     bg.setDisplaySize(width, height);
 
     drawOrnateFrame(this, width / 2, 24, 340, 34, { radius: 10 });
@@ -70,7 +70,7 @@ export class WorldMapScene extends Phaser.Scene {
   private createQuestMarker() {
     const { width, height } = this.scale;
     const x = width / 2;
-    const y = height / 2;
+    const y = height / 2 + 40;
 
     this.questMarker = this.add
       .circle(x, y, 14, PALETTE.maroon, 0.85)
