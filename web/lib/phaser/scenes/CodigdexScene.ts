@@ -265,11 +265,10 @@ export class CodigdexScene extends Phaser.Scene {
     const imageSize = 200;
     const infoWidth = panelWidth - 120;
 
-    let cursor = imageSize / 2 + 16;
     const image = this.add
       .image(0, imageSize / 2, "loop-bug")
       .setDisplaySize(imageSize, imageSize * (2 / 3));
-    cursor = imageSize * (2 / 3) + 24;
+    let cursor = imageSize * (2 / 3) + 24;
 
     const dexNumber = this.add
       .text(0, cursor, `No. ${TUTORIAL_MONSTER.dexNumber}`, {

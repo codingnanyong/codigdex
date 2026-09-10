@@ -41,6 +41,9 @@ describe("applyCapture", () => {
     expect(state.cards).toHaveLength(1);
     expect(state.cards[0]).toMatchObject({
       id: TUTORIAL_MONSTER.id,
+      dexNumber: TUTORIAL_MONSTER.dexNumber,
+      classification: TUTORIAL_MONSTER.classification,
+      trait: TUTORIAL_MONSTER.trait,
       grade: "bronze",
       capturedAt: fixedNow(),
     });

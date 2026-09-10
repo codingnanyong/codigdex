@@ -23,6 +23,10 @@ export function createGameConfig(
     },
     scene: [
       IntroScene,
+      // JobSelectScene has no entry point yet — nothing calls
+      // scene.start("job-select") until PathMapScene's common-dex nodes
+      // have real content to finish. Registered here so it's ready to
+      // wire in once that content exists.
       JobSelectScene,
       PathMapScene,
       WorldMapScene,
