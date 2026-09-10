@@ -29,8 +29,16 @@ export function drawQuizQuestions(
   return shuffle(pool, rng)
     .slice(0, Math.max(0, Math.min(count, pool.length)))
     .map((question) => {
-      const answer = question.choices[question.answerIndex];
-      const choices = shuffle(question.choices, rng);
-      return { ...question, choices, answerIndex: choices.indexOf(answer) };
+      // Shuffle positions rather than the choice strings, so the answer is
+      // still tracked correctly even if a question ever repeats a choice.
+      const order = shuffle(
+        question.choices.map((_, index) => index),
+        rng
+      );
+      return {
+        ...question,
+        choices: order.map((index) => question.choices[index]),
+        answerIndex: order.indexOf(question.answerIndex),
+      };
     });
 }

@@ -48,6 +48,16 @@ describe("drawQuizQuestions", () => {
     }
   });
 
+  it("keeps every choice, duplicates included, and still lands on the answer", () => {
+    const pool = [{ prompt: "같은 보기가 두 번 나오면?", choices: ["1", "1", "2", "3"], answerIndex: 3 }];
+
+    for (let attempt = 0; attempt < 20; attempt++) {
+      const [question] = drawQuizQuestions(pool, 1);
+      expect(question.choices[question.answerIndex]).toBe("3");
+      expect([...question.choices].sort()).toEqual(["1", "1", "2", "3"]);
+    }
+  });
+
   it("caps the draw at the pool size", () => {
     expect(drawQuizQuestions(POOL, POOL.length + 5)).toHaveLength(POOL.length);
   });

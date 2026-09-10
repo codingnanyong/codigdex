@@ -5,8 +5,9 @@ import { pixelText, whenPixelFontReady } from "./pixelFont";
 /**
  * Re-rasterizes every Text object already in a scene once the webfont has
  * actually loaded — text drawn before that point bakes the fallback face
- * into its texture and never refreshes on its own. Each object keeps the
- * family it was created with, since roles map to different Galmuri faces.
+ * into its texture and never refreshes on its own. Setting each object's
+ * own family back on itself is just the public way to make Phaser redraw
+ * that texture; the family string itself doesn't change.
  */
 export function applyPixelFontToScene(scene: Phaser.Scene) {
   whenPixelFontReady(() => {
