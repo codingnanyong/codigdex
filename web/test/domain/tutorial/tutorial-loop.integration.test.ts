@@ -23,13 +23,14 @@ describe("Tutorial quest -> quiz -> capture -> dex loop", () => {
     expect(state.cards.length).toBe(TOTAL_TUTORIAL_MONSTERS);
   });
 
-  it("does not register anything for a botched attempt, and lets the player retry into a capture", () => {
+  it("flags a botched attempt as unsuccessful, and lets the player retry into a capture", () => {
     const wrongAnswers = TUTORIAL_MONSTER.quiz.map((question) => (question.answerIndex + 1) % question.choices.length);
     const firstSucceeded = isSuccessfulCapture(scoreQuiz(wrongAnswers), TUTORIAL_MONSTER.quiz.length);
 
+    // CaptureQuizScene only calls applyCapture when isSuccessfulCapture is
+    // true, so a false result here is what keeps a botched attempt from
+    // ever reaching the dex.
     expect(firstSucceeded).toBe(false);
-    // A failed attempt never calls applyCapture, so the dex stays empty.
-    expect(EMPTY_DEX_STATE.cards).toHaveLength(0);
 
     const correctAnswers = TUTORIAL_MONSTER.quiz.map((question) => question.answerIndex);
     const secondSucceeded = isSuccessfulCapture(scoreQuiz(correctAnswers), TUTORIAL_MONSTER.quiz.length);
