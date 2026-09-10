@@ -33,7 +33,7 @@ Built with **Next.js + Phaser.js**, deployed on **Vercel**. See [docs/GAME_DESIG
 ## ✨ Features
 
 **🐛 Game**
-- ✅ Quest → code battle → capture quiz → dex registration → reward loop, fully playable end-to-end (CH.01, "반복문의 숲")
+- ✅ Quest → code battle → capture quiz → dex registration → reward loop, fully playable end-to-end (tutorial, "반복문의 숲")
 - ✅ Block-ordering code battle minigame
 - ✅ Bronze / silver / gold grading from capture-quiz accuracy, with gold-upgrade re-challenges
 - ✅ Codigdex dex screen with completion % and a chapter-master badge

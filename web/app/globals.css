@@ -17,7 +17,7 @@
      game actually renders. Press Start 2P (--font-pixel-en, from next/font)
      stays reserved for the Latin-only "CODIGDEX" wordmark.
 
-     It's a 7px bitmap face: only 7px and whole multiples of it (14/21/28/42)
+     It's a 7px bitmap face: only 7px and whole multiples of it (14/21/28/42/70)
      stay sharp, and Latin needs at least 2x before its single-pixel strokes
      stop antialiasing into grey. Pick sizes through lib/phaser/pixelFont.ts
      rather than hardcoding them. */

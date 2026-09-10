@@ -28,7 +28,7 @@ export class CodigdexScene extends Phaser.Scene {
   preload() {
     this.load.image(
       "loop-bug",
-      "/assets/monsters/loop-bug.png"
+      "/assets/monsters/loop-bug-v2.png"
     );
   }
 
@@ -158,7 +158,7 @@ export class CodigdexScene extends Phaser.Scene {
 
       this.add
         .text(centerX, cursor, card.trait, {
-          ...pixelText("caption"),
+          ...pixelText("body"),
           color: SAND,
           align: "center",
           wordWrap: { width: infoWidth },
@@ -167,7 +167,7 @@ export class CodigdexScene extends Phaser.Scene {
     } else {
       this.add
         .text(centerX, cursor, "아직 관찰되지 않았습니다", {
-          ...pixelText("caption"),
+          ...pixelText("body"),
           color: PALETTE_HEX.mutedBrown,
           align: "center",
           wordWrap: { width: infoWidth },

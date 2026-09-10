@@ -21,6 +21,12 @@ export const REGISTRY_KEYS = {
 
 export const TUTORIAL_CHAPTER_TITLE = "튜토리얼 · 반복문의 숲";
 
+export const TUTORIAL_ONBOARDING_LINES = [
+  "처음 왔구나, 주니어 개발자! 나는 버그 연구원 루피야.",
+  "이 세계의 버그는 코드 지식으로 물리친 뒤, 마지막 문제까지 맞혀야 도감에 등록할 수 있어.",
+  "첫 번째 버그가 우물가에서 소동을 벌이고 있어. 빛나는 의뢰 표식을 눌러 만나 보자!",
+] as const;
+
 export const TUTORIAL_MONSTER = {
   id: "infinite-loop-slime",
   dexNumber: "001",

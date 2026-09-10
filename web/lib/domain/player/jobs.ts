@@ -5,7 +5,7 @@ export interface JobOption {
 }
 
 // Every player starts here. Real job selection only makes sense once the
-// common path (Git, Docker, ...) actually exists to walk through first —
+// common path (Git, terminal/Linux, ...) actually exists to walk through first —
 // until then everyone is just this.
 export const DEFAULT_JOB: JobOption = {
   id: "junior",

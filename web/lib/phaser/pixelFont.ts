@@ -13,6 +13,7 @@ const PIXEL_SIZES = {
   subtitle: 21, // 3x
   title: 28, // 4x
   hero: 42, // 6x
+  display: 70, // 10x — title screens only
 } as const;
 
 export type PixelTextRole = keyof typeof PIXEL_SIZES;
