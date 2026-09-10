@@ -1,7 +1,7 @@
 import Phaser from "phaser";
 import { PALETTE, PALETTE_HEX } from "../palette";
 import { drawOrnateFrame, applyPixelFontToScene } from "../ui";
-import { getPixelFontFamily } from "../pixelFont";
+import { pixelText } from "../pixelFont";
 import { JOB_OPTIONS, JOB_REGISTRY_KEY } from "@/lib/domain/player/jobs";
 
 const INK = PALETTE_HEX.ink;
@@ -20,8 +20,7 @@ export class JobSelectScene extends Phaser.Scene {
 
     this.add
       .text(width / 2, 60, "당신의 직업을 선택하세요", {
-        fontFamily: getPixelFontFamily(),
-        fontSize: "18px",
+        ...pixelText("subtitle"),
         color: INK,
       })
       .setOrigin(0.5);
@@ -37,8 +36,7 @@ export class JobSelectScene extends Phaser.Scene {
 
       this.add
         .text(cx, cardY - 30, job.name, {
-          fontFamily: getPixelFontFamily(),
-          fontSize: "14px",
+          ...pixelText("subtitle"),
           color: INK,
           align: "center",
           wordWrap: { width: CARD_WIDTH - 40 },
@@ -47,8 +45,7 @@ export class JobSelectScene extends Phaser.Scene {
 
       this.add
         .text(cx, cardY + 30, job.tagline, {
-          fontFamily: getPixelFontFamily(),
-          fontSize: "11px",
+          ...pixelText("body"),
           color: PALETTE_HEX.mutedBrown,
           align: "center",
           wordWrap: { width: CARD_WIDTH - 50 },

@@ -30,5 +30,5 @@ export default function PhaserGame() {
     };
   }, []);
 
-  return <div ref={containerRef} className="mx-auto w-full max-w-[960px]" />;
+  return <div ref={containerRef} className="pixel-canvas mx-auto w-full max-w-[960px]" />;
 }

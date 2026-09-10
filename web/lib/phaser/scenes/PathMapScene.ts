@@ -1,7 +1,7 @@
 import Phaser from "phaser";
 import { PALETTE, PALETTE_HEX } from "../palette";
 import { applyPixelFontToScene, createButton } from "../ui";
-import { getPixelFontFamily } from "../pixelFont";
+import { pixelText } from "../pixelFont";
 
 const CARD_WIDTH = 230;
 const CARD_HEIGHT = 92;
@@ -89,8 +89,7 @@ export class PathMapScene extends Phaser.Scene {
 
     this.add
       .text(width / 2, 34, "COMMON PATH", {
-        fontFamily: getPixelFontFamily(),
-        fontSize: "9px",
+        ...pixelText("caption"),
         color: PALETTE_HEX.amber,
         letterSpacing: 2,
       })
@@ -98,8 +97,7 @@ export class PathMapScene extends Phaser.Scene {
 
     this.add
       .text(width / 2, 55, "공통 도감 · 다음 여정을 준비 중이에요", {
-        fontFamily: getPixelFontFamily(),
-        fontSize: "14px",
+        ...pixelText("subtitle"),
         color: PALETTE_HEX.cream,
       })
       .setOrigin(0.5);
@@ -115,8 +113,7 @@ export class PathMapScene extends Phaser.Scene {
     tiers.forEach(({ x, label }) => {
       this.add
         .text(x, 115, label, {
-          fontFamily: getPixelFontFamily(),
-          fontSize: "9px",
+          ...pixelText("caption"),
           color: PALETTE_HEX.mutedBrown,
           letterSpacing: 1,
         })
@@ -181,14 +178,12 @@ export class PathMapScene extends Phaser.Scene {
     icon.setPosition(-CARD_WIDTH / 2 + 34, 2);
 
     const chapter = this.add.text(-CARD_WIDTH / 2 + 64, -31, node.chapter, {
-      fontFamily: getPixelFontFamily(),
-      fontSize: "8px",
+      ...pixelText("caption"),
       color: PALETTE_HEX.mutedBrown,
     });
 
     const label = this.add.text(-CARD_WIDTH / 2 + 64, -15, node.label, {
-      fontFamily: getPixelFontFamily(),
-      fontSize: "13px",
+      ...pixelText("body"),
       color: PALETTE_HEX.ink,
     });
 
@@ -202,8 +197,7 @@ export class PathMapScene extends Phaser.Scene {
 
     const lock = this.add
       .text(CARD_WIDTH / 2 - 22, 24, "◆", {
-        fontFamily: getPixelFontFamily(),
-        fontSize: "12px",
+        ...pixelText("body"),
         color: PALETTE_HEX.sand,
       })
       .setOrigin(0.5);
@@ -254,8 +248,7 @@ export class PathMapScene extends Phaser.Scene {
     } else {
       const question = this.add
         .text(0, 0, "?", {
-          fontFamily: getPixelFontFamily(),
-          fontSize: "22px",
+          ...pixelText("title"),
           color: PALETTE_HEX.cream,
         })
         .setOrigin(0.5);
@@ -271,8 +264,7 @@ export class PathMapScene extends Phaser.Scene {
     const { width, height } = this.scale;
     this.toast = this.add
       .text(width / 2, height - 78, message, {
-        fontFamily: getPixelFontFamily(),
-        fontSize: "11px",
+        ...pixelText("body"),
         color: PALETTE_HEX.cream,
         backgroundColor: "#2a1d14ee",
         padding: { x: 12, y: 7 },

@@ -1,7 +1,7 @@
 import Phaser from "phaser";
 import { PALETTE, PALETTE_HEX } from "../palette";
 import { applyPixelFontToScene } from "../ui";
-import { getPixelFontFamily } from "../pixelFont";
+import { pixelText } from "../pixelFont";
 import { TUTORIAL_MONSTER } from "@/lib/domain/tutorial/content";
 
 const INK = PALETTE_HEX.ink;
@@ -65,8 +65,7 @@ export class CodeBattleScene extends Phaser.Scene {
 
     this.add
       .text(width / 2, 12, `${TUTORIAL_MONSTER.npcName}: ${this.battleData.npcLine}`, {
-        fontFamily: getPixelFontFamily(),
-        fontSize: "12px",
+        ...pixelText("body"),
         color: INK,
         backgroundColor: "#f1e4cbcc",
         padding: { x: 10, y: 5 },
@@ -118,16 +117,14 @@ export class CodeBattleScene extends Phaser.Scene {
 
     this.add
       .text(left + 16, top + 12, `${TUTORIAL_MONSTER.name}  Lv.${TUTORIAL_MONSTER.level}`, {
-        fontFamily: getPixelFontFamily(),
-        fontSize: "11px",
+        ...pixelText("body"),
         color: INK,
       })
       .setOrigin(0, 0);
 
     this.add
       .text(left + 16, top + 42, "HP", {
-        fontFamily: getPixelFontFamily(),
-        fontSize: "10px",
+        ...pixelText("caption"),
         color: INK,
         fontStyle: "italic",
       })
@@ -155,16 +152,14 @@ export class CodeBattleScene extends Phaser.Scene {
 
     this.progressText = this.add
       .text(left + 18, top + 14, "", {
-        fontFamily: getPixelFontFamily(),
-        fontSize: "10px",
+        ...pixelText("caption"),
         color: PALETTE_HEX.mutedBrown,
       })
       .setOrigin(0, 0);
 
     this.questionText = this.add
       .text(x, top + 34, "", {
-        fontFamily: getPixelFontFamily(),
-        fontSize: "14px",
+        ...pixelText("subtitle"),
         color: INK,
         align: "center",
         wordWrap: { width: width - 90 },
@@ -173,8 +168,7 @@ export class CodeBattleScene extends Phaser.Scene {
 
     this.feedbackText = this.add
       .text(x, top + height - 16, "", {
-        fontFamily: getPixelFontFamily(),
-        fontSize: "11px",
+        ...pixelText("body"),
         color: PALETTE_HEX.maroon,
       })
       .setOrigin(0.5, 1);
@@ -234,8 +228,7 @@ export class CodeBattleScene extends Phaser.Scene {
 
     const text = this.add
       .text(0, 0, label, {
-        fontFamily: getPixelFontFamily(),
-        fontSize: "12px",
+        ...pixelText("body"),
         color: PALETTE_HEX.cream,
       })
       .setOrigin(0.5);
