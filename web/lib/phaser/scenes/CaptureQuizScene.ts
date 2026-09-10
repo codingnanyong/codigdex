@@ -1,7 +1,7 @@
 import Phaser from "phaser";
 import { PALETTE, PALETTE_HEX } from "../palette";
 import { createButton, drawOrnateFrame, applyPixelFontToScene } from "../ui";
-import { getPixelFontFamily } from "../pixelFont";
+import { pixelText } from "../pixelFont";
 import { readDexState, writeDexState } from "../registryAdapter";
 import { NPC_RETRY_LINE, NPC_SUCCESS_LINE, TUTORIAL_MONSTER } from "@/lib/domain/tutorial/content";
 import { applyCapture, isSuccessfulCapture } from "@/lib/domain/tutorial/capture";
@@ -11,10 +11,12 @@ const INK = PALETTE_HEX.ink;
 interface CaptureResultData {
   monsterId: string;
   correctCount: number;
+  total: number;
 }
 
 export class CaptureQuizScene extends Phaser.Scene {
   private correctCount = 0;
+  private total = 0;
 
   constructor() {
     super("capture-quiz");
@@ -22,6 +24,7 @@ export class CaptureQuizScene extends Phaser.Scene {
 
   init(data: CaptureResultData) {
     this.correctCount = data.correctCount;
+    this.total = data.total;
   }
 
   create() {
@@ -31,7 +34,7 @@ export class CaptureQuizScene extends Phaser.Scene {
       .rectangle(width / 2, height / 2, width, height, PALETTE.nightBrown, 0.55)
       .setDepth(0);
 
-    if (isSuccessfulCapture(this.correctCount, TUTORIAL_MONSTER.quiz.length)) {
+    if (isSuccessfulCapture(this.correctCount, this.total)) {
       this.registerCapture();
       this.showSuccess();
     } else {
@@ -55,8 +58,7 @@ export class CaptureQuizScene extends Phaser.Scene {
     let cursor = 0;
     const title = this.add
       .text(0, cursor, `"${TUTORIAL_MONSTER.name}" 도감 등록 완료!`, {
-        fontFamily: getPixelFontFamily(),
-        fontSize: "16px",
+        ...pixelText("subtitle"),
         color: INK,
         align: "center",
       })
@@ -65,8 +67,7 @@ export class CaptureQuizScene extends Phaser.Scene {
 
     const description = this.add
       .text(0, cursor, TUTORIAL_MONSTER.description, {
-        fontFamily: getPixelFontFamily(),
-        fontSize: "12px",
+        ...pixelText("body"),
         color: INK,
         align: "center",
         wordWrap: { width: panelWidth - 120 },
@@ -81,8 +82,7 @@ export class CaptureQuizScene extends Phaser.Scene {
       .setOrigin(0.5, 0);
     const snippetText = this.add
       .text(0, snippetY + 8, TUTORIAL_MONSTER.snippet, {
-        fontFamily: getPixelFontFamily(),
-        fontSize: "12px",
+        ...pixelText("body"),
         color: PALETTE_HEX.sand,
         align: "center",
       })
@@ -91,8 +91,7 @@ export class CaptureQuizScene extends Phaser.Scene {
 
     const npcLine = this.add
       .text(0, cursor, `${TUTORIAL_MONSTER.npcName}: ${NPC_SUCCESS_LINE}`, {
-        fontFamily: getPixelFontFamily(),
-        fontSize: "12px",
+        ...pixelText("body"),
         color: PALETTE_HEX.maroon,
         fontStyle: "bold",
         align: "center",
@@ -146,8 +145,7 @@ export class CaptureQuizScene extends Phaser.Scene {
 
     const title = this.add
       .text(0, -panelHeight / 2 + 40, `"${TUTORIAL_MONSTER.name}"를 놓쳤어요!`, {
-        fontFamily: getPixelFontFamily(),
-        fontSize: "16px",
+        ...pixelText("subtitle"),
         color: INK,
         align: "center",
       })
@@ -155,8 +153,7 @@ export class CaptureQuizScene extends Phaser.Scene {
 
     const npcLine = this.add
       .text(0, -20, `${TUTORIAL_MONSTER.npcName}: ${NPC_RETRY_LINE}`, {
-        fontFamily: getPixelFontFamily(),
-        fontSize: "12px",
+        ...pixelText("body"),
         color: PALETTE_HEX.maroon,
         fontStyle: "bold",
         align: "center",

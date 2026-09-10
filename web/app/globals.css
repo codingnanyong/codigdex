@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 @font-face {
-  font-family: "Galmuri11";
-  src: url("/fonts/Galmuri11.woff2") format("woff2");
+  font-family: "Galmuri7";
+  src: url("/fonts/Galmuri7.woff2") format("woff2");
   font-weight: normal;
   font-style: normal;
   font-display: swap;
@@ -15,8 +15,13 @@
   --accent: #a33422;
   /* Galmuri is a Korean-and-Latin bitmap font, so it covers every string this
      game actually renders. Press Start 2P (--font-pixel-en, from next/font)
-     stays reserved for the Latin-only "CODIGDEX" wordmark. */
-  --font-pixel: "Galmuri11";
+     stays reserved for the Latin-only "CODIGDEX" wordmark.
+
+     It's a 7px bitmap face: only 7px and whole multiples of it (14/21/28/42/70)
+     stay sharp, and Latin needs at least 2x before its single-pixel strokes
+     stop antialiasing into grey. Pick sizes through lib/phaser/pixelFont.ts
+     rather than hardcoding them. */
+  --font-pixel: "Galmuri7";
 }
 
 @theme inline {
@@ -43,4 +48,11 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+}
+
+/* The game renders into a 960x540 buffer that the browser then scales to the
+   element size and the device pixel ratio. Without this it interpolates, which
+   softens every sprite and every bitmap glyph into mush. */
+.pixel-canvas canvas {
+  image-rendering: pixelated;
 }

@@ -1,19 +1,19 @@
 import Phaser from "phaser";
 import { PALETTE, PALETTE_HEX } from "./palette";
-import { getPixelFontFamily, whenPixelFontReady } from "./pixelFont";
+import { pixelText, whenPixelFontReady } from "./pixelFont";
 
 /**
- * Re-applies the pixel font to every Text object already in a scene, once
- * the webfont has actually loaded. Text created after that point should
- * just pass `getPixelFontFamily()` directly and never need this — this only
- * catches whatever a scene's `create()` drew before the font was ready.
+ * Re-rasterizes every Text object already in a scene once the webfont has
+ * actually loaded — text drawn before that point bakes the fallback face
+ * into its texture and never refreshes on its own. Setting each object's
+ * own family back on itself is just the public way to make Phaser redraw
+ * that texture; the family string itself doesn't change.
  */
 export function applyPixelFontToScene(scene: Phaser.Scene) {
   whenPixelFontReady(() => {
-    const family = getPixelFontFamily();
     const restyle = (child: Phaser.GameObjects.GameObject) => {
       if (child instanceof Phaser.GameObjects.Text) {
-        child.setFontFamily(family);
+        child.setFontFamily(child.style.fontFamily);
       } else if (child instanceof Phaser.GameObjects.Container) {
         child.list.forEach(restyle);
       }
@@ -37,10 +37,11 @@ export function createButton(
     .setStrokeStyle(2, PALETTE.ink)
     .setInteractive({ useHandCursor: true });
 
+  const body = pixelText("body");
   const text = scene.add
     .text(0, 0, label, {
-      fontFamily: options.fontFamily ?? getPixelFontFamily(),
-      fontSize: options.fontSize ?? "13px",
+      fontFamily: options.fontFamily ?? body.fontFamily,
+      fontSize: options.fontSize ?? body.fontSize,
       color: PALETTE_HEX.cream,
       align: "center",
       wordWrap: { width: width - 16 },

@@ -1,7 +1,7 @@
 import Phaser from "phaser";
 import { PALETTE, PALETTE_HEX } from "../palette";
 import { createButton, drawOrnateFrame, applyPixelFontToScene } from "../ui";
-import { getPixelFontFamily } from "../pixelFont";
+import { pixelText } from "../pixelFont";
 import { readDexState } from "../registryAdapter";
 import {
   CapturedCard,
@@ -28,7 +28,7 @@ export class CodigdexScene extends Phaser.Scene {
   preload() {
     this.load.image(
       "loop-bug",
-      "/assets/monsters/loop-bug.png"
+      "/assets/monsters/loop-bug-v2.png"
     );
   }
 
@@ -52,8 +52,7 @@ export class CodigdexScene extends Phaser.Scene {
     this.drawHeaderBadges(panelX, headerY);
     this.add
       .text(panelX, headerY, "CODIGDEX 도감", {
-        fontFamily: getPixelFontFamily(),
-        fontSize: "15px",
+        ...pixelText("subtitle"),
         color: CREAM,
       })
       .setOrigin(0.5);
@@ -122,8 +121,7 @@ export class CodigdexScene extends Phaser.Scene {
     } else {
       this.add
         .text(centerX, previewCenterY, "?", {
-          fontFamily: getPixelFontFamily(),
-          fontSize: "40px",
+          ...pixelText("hero"),
           color: PALETTE_HEX.mutedBrown,
         })
         .setOrigin(0.5);
@@ -134,8 +132,7 @@ export class CodigdexScene extends Phaser.Scene {
 
     const dexNumber = this.add
       .text(centerX, cursor, `No. ${TUTORIAL_MONSTER.dexNumber}`, {
-        fontFamily: getPixelFontFamily(),
-        fontSize: "11px",
+        ...pixelText("body"),
         color: SAND,
       })
       .setOrigin(0.5, 0);
@@ -143,8 +140,7 @@ export class CodigdexScene extends Phaser.Scene {
 
     const name = this.add
       .text(centerX, cursor, card ? card.name : "???", {
-        fontFamily: getPixelFontFamily(),
-        fontSize: "15px",
+        ...pixelText("subtitle"),
         color: CREAM,
         fontStyle: "bold",
       })
@@ -154,8 +150,7 @@ export class CodigdexScene extends Phaser.Scene {
     if (card) {
       const classification = this.add
         .text(centerX, cursor, card.classification, {
-          fontFamily: getPixelFontFamily(),
-          fontSize: "11px",
+          ...pixelText("body"),
           color: PALETTE_HEX.amber,
         })
         .setOrigin(0.5, 0);
@@ -163,8 +158,7 @@ export class CodigdexScene extends Phaser.Scene {
 
       this.add
         .text(centerX, cursor, card.trait, {
-          fontFamily: getPixelFontFamily(),
-          fontSize: "10px",
+          ...pixelText("body"),
           color: SAND,
           align: "center",
           wordWrap: { width: infoWidth },
@@ -173,8 +167,7 @@ export class CodigdexScene extends Phaser.Scene {
     } else {
       this.add
         .text(centerX, cursor, "아직 관찰되지 않았습니다", {
-          fontFamily: getPixelFontFamily(),
-          fontSize: "10px",
+          ...pixelText("body"),
           color: PALETTE_HEX.mutedBrown,
           align: "center",
           wordWrap: { width: infoWidth },
@@ -207,8 +200,7 @@ export class CodigdexScene extends Phaser.Scene {
 
     this.add
       .text(left + 48, top + ROW_HEIGHT / 2, `No.${TUTORIAL_MONSTER.dexNumber}  ${card ? card.name : "???"}`, {
-        fontFamily: getPixelFontFamily(),
-        fontSize: "13px",
+        ...pixelText("body"),
         color: card ? CREAM : PALETTE_HEX.mutedBrown,
       })
       .setOrigin(0, 0.5);
@@ -216,8 +208,7 @@ export class CodigdexScene extends Phaser.Scene {
     const statsY = top + ROW_HEIGHT + 24;
     this.add
       .text(centerX, statsY, `등록 ${card ? 1 : 0}  ·  전체 ${TOTAL_TUTORIAL_MONSTERS}`, {
-        fontFamily: getPixelFontFamily(),
-        fontSize: "12px",
+        ...pixelText("body"),
         color: SAND,
       })
       .setOrigin(0.5, 0);
@@ -243,8 +234,7 @@ export class CodigdexScene extends Phaser.Scene {
 
     const dexNumber = this.add
       .text(0, cursor, `No. ${TUTORIAL_MONSTER.dexNumber}`, {
-        fontFamily: getPixelFontFamily(),
-        fontSize: "11px",
+        ...pixelText("body"),
         color: PALETTE_HEX.mutedBrown,
       })
       .setOrigin(0.5, 0);
@@ -252,8 +242,7 @@ export class CodigdexScene extends Phaser.Scene {
 
     const name = this.add
       .text(0, cursor, card.name, {
-        fontFamily: getPixelFontFamily(),
-        fontSize: "18px",
+        ...pixelText("subtitle"),
         color: PALETTE_HEX.ink,
         fontStyle: "bold",
       })
@@ -262,8 +251,7 @@ export class CodigdexScene extends Phaser.Scene {
 
     const classification = this.add
       .text(0, cursor, card.classification, {
-        fontFamily: getPixelFontFamily(),
-        fontSize: "12px",
+        ...pixelText("body"),
         color: PALETTE_HEX.maroon,
       })
       .setOrigin(0.5, 0);
@@ -271,8 +259,7 @@ export class CodigdexScene extends Phaser.Scene {
 
     const description = this.add
       .text(0, cursor, card.description, {
-        fontFamily: getPixelFontFamily(),
-        fontSize: "12px",
+        ...pixelText("body"),
         color: PALETTE_HEX.ink,
         align: "center",
         wordWrap: { width: infoWidth },
@@ -286,8 +273,7 @@ export class CodigdexScene extends Phaser.Scene {
       .setOrigin(0.5, 0);
     const snippetText = this.add
       .text(0, cursor + 8, card.snippet, {
-        fontFamily: getPixelFontFamily(),
-        fontSize: "12px",
+        ...pixelText("body"),
         color: PALETTE_HEX.sand,
         align: "center",
       })
@@ -296,8 +282,7 @@ export class CodigdexScene extends Phaser.Scene {
 
     const dateLabel = this.add
       .text(0, cursor, new Date(card.capturedAt).toLocaleDateString("ko-KR"), {
-        fontFamily: getPixelFontFamily(),
-        fontSize: "10px",
+        ...pixelText("caption"),
         color: PALETTE_HEX.mutedBrown,
       })
       .setOrigin(0.5, 0);
