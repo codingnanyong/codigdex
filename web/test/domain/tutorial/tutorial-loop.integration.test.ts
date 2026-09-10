@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { TUTORIAL_MONSTER, TOTAL_TUTORIAL_MONSTERS } from "@/lib/domain/tutorial/content";
-import { EMPTY_DEX_STATE, applyCapture, gradeFromScore } from "@/lib/domain/tutorial/capture";
+import { EMPTY_DEX_STATE, applyCapture, isSuccessfulCapture } from "@/lib/domain/tutorial/capture";
 
 function scoreQuiz(answers: number[]): number {
   return answers.reduce(
@@ -11,33 +11,33 @@ function scoreQuiz(answers: number[]): number {
 }
 
 describe("Tutorial quest -> quiz -> capture -> dex loop", () => {
-  it("grades a perfect run gold and registers the card", () => {
+  it("registers the card only after a perfect run", () => {
     const correctAnswers = TUTORIAL_MONSTER.quiz.map((question) => question.answerIndex);
     const correctCount = scoreQuiz(correctAnswers);
-    const grade = gradeFromScore(correctCount, TUTORIAL_MONSTER.quiz.length);
+    const succeeded = isSuccessfulCapture(correctCount, TUTORIAL_MONSTER.quiz.length);
 
-    const state = applyCapture(EMPTY_DEX_STATE, grade);
+    expect(succeeded).toBe(true);
+    const state = applyCapture(EMPTY_DEX_STATE);
 
-    expect(grade).toBe("gold");
-    expect(state.cards).toEqual([
-      expect.objectContaining({ id: TUTORIAL_MONSTER.id, grade: "gold" }),
-    ]);
+    expect(state.cards).toEqual([expect.objectContaining({ id: TUTORIAL_MONSTER.id })]);
     expect(state.cards.length).toBe(TOTAL_TUTORIAL_MONSTERS);
   });
 
-  it("lets a player retry a botched attempt and climb from bronze to gold", () => {
+  it("flags a botched attempt as unsuccessful, and lets the player retry into a capture", () => {
     const wrongAnswers = TUTORIAL_MONSTER.quiz.map((question) => (question.answerIndex + 1) % question.choices.length);
-    const firstGrade = gradeFromScore(scoreQuiz(wrongAnswers), TUTORIAL_MONSTER.quiz.length);
-    const afterFirstTry = applyCapture(EMPTY_DEX_STATE, firstGrade);
+    const firstSucceeded = isSuccessfulCapture(scoreQuiz(wrongAnswers), TUTORIAL_MONSTER.quiz.length);
 
-    expect(firstGrade).toBe("bronze");
-    expect(afterFirstTry.cards[0].grade).toBe("bronze");
+    // CaptureQuizScene only calls applyCapture when isSuccessfulCapture is
+    // true, so a false result here is what keeps a botched attempt from
+    // ever reaching the dex.
+    expect(firstSucceeded).toBe(false);
 
     const correctAnswers = TUTORIAL_MONSTER.quiz.map((question) => question.answerIndex);
-    const secondGrade = gradeFromScore(scoreQuiz(correctAnswers), TUTORIAL_MONSTER.quiz.length);
-    const afterRetry = applyCapture(afterFirstTry, secondGrade);
+    const secondSucceeded = isSuccessfulCapture(scoreQuiz(correctAnswers), TUTORIAL_MONSTER.quiz.length);
+    expect(secondSucceeded).toBe(true);
 
-    expect(afterRetry.cards).toHaveLength(1);
-    expect(afterRetry.cards[0].grade).toBe("gold");
+    const state = applyCapture(EMPTY_DEX_STATE);
+    expect(state.cards).toHaveLength(1);
+    expect(state.cards[0].id).toBe(TUTORIAL_MONSTER.id);
   });
 });

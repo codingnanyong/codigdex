@@ -1,8 +1,6 @@
 import Phaser from "phaser";
 import { PALETTE, PALETTE_HEX } from "./palette";
-import { GRADE_COLOR } from "./grade";
 import { getPixelFontFamily, whenPixelFontReady } from "./pixelFont";
-import type { CardGrade } from "@/lib/domain/tutorial/content";
 
 /**
  * Re-applies the pixel font to every Text object already in a scene, once
@@ -103,46 +101,3 @@ export function drawOrnateFrame(
   return g;
 }
 
-function starPoints(
-  cx: number,
-  cy: number,
-  outerRadius: number,
-  innerRadius: number,
-  points = 5
-): Phaser.Math.Vector2[] {
-  const step = Math.PI / points;
-  const result: Phaser.Math.Vector2[] = [];
-  for (let i = 0; i < points * 2; i++) {
-    const r = i % 2 === 0 ? outerRadius : innerRadius;
-    const angle = i * step - Math.PI / 2;
-    result.push(new Phaser.Math.Vector2(cx + r * Math.cos(angle), cy + r * Math.sin(angle)));
-  }
-  return result;
-}
-
-/** Grade medal: a shadowed disc with a ring and star, colored by grade. */
-export function drawGradeMedal(
-  scene: Phaser.Scene,
-  x: number,
-  y: number,
-  grade: CardGrade,
-  radius = 24
-): Phaser.GameObjects.Graphics {
-  const color = GRADE_COLOR[grade];
-  const g = scene.add.graphics({ x, y });
-
-  g.fillStyle(PALETTE.nightBrown, 0.3);
-  g.fillCircle(2, 3, radius);
-
-  g.fillStyle(PALETTE.cream, 1);
-  g.fillCircle(0, 0, radius);
-  g.lineStyle(3, color, 1);
-  g.strokeCircle(0, 0, radius);
-  g.lineStyle(1, PALETTE.ink, 0.6);
-  g.strokeCircle(0, 0, radius - 4);
-
-  g.fillStyle(color, 1);
-  g.fillPoints(starPoints(0, 0, radius * 0.55, radius * 0.22), true);
-
-  return g;
-}

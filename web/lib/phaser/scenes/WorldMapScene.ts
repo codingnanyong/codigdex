@@ -104,11 +104,9 @@ export class WorldMapScene extends Phaser.Scene {
 
   private refreshQuestMarker() {
     const card = this.getCapturedCard();
-    if (card?.grade === "gold") {
+    if (card) {
       this.questMarker.setFillStyle(PALETTE.sand, 0.6);
-      this.questLabel.setText(`${TUTORIAL_MONSTER.name} (골드 완료)`);
-    } else if (card) {
-      this.questLabel.setText(`${TUTORIAL_MONSTER.name} (${card.grade} · 재도전 가능)`);
+      this.questLabel.setText(`${TUTORIAL_MONSTER.name} (캡처 완료)`);
     } else {
       this.questLabel.setText(TUTORIAL_MONSTER.name);
     }
@@ -139,7 +137,7 @@ export class WorldMapScene extends Phaser.Scene {
       .setDepth(11);
 
     const message = card
-      ? "이 버그, 아직 반복을 멈추지 않았나 봐요. 다시 한 번 도전해볼까요?"
+      ? "이미 도감에 등록한 버그예요. 복습 겸 한 번 더 도전해볼까요?"
       : TUTORIAL_MONSTER.questText;
 
     const body = this.add
