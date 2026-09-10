@@ -1,10 +1,7 @@
-export type CardGrade = "bronze" | "silver" | "gold";
-
 export interface CapturedCard {
   id: string;
   dexNumber: string;
   name: string;
-  grade: CardGrade;
   classification: string;
   trait: string;
   description: string;
@@ -61,11 +58,11 @@ export const TUTORIAL_MONSTER = {
   snippet: "for i in range(5):\n    물_긷기()",
 } as const;
 
-export const NPC_REACTIONS: Record<CardGrade, string> = {
-  gold: "오, 골드로 잡았네! 나도 저번에 실버로 겨우 잡았었는데 ㅋㅋ",
-  silver: "실버도 훌륭해! 한 번 더 조우하면 골드도 노려볼 수 있어.",
-  bronze: "브론즈 등록 완료! 다음에 다시 만나면 복습 겸 재도전해보자.",
-};
+export const NPC_SUCCESS_LINE =
+  "오, 완벽하게 잡았네! 바로 도감에 등록해줄게.";
+
+export const NPC_RETRY_LINE =
+  "아직 다 못 잡은 것 같아. 반복문을 다시 한번 살펴보고 재도전해보자!";
 
 export const NPC_PRE_BATTLE_LINE =
   "저 버그, 같은 경로를 계속 맴돌고 있어. for 반복문으로 정확히 5번만 물을 부어보자!";

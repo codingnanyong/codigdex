@@ -1,9 +1,8 @@
 import Phaser from "phaser";
 import { PALETTE, PALETTE_HEX } from "../palette";
-import { createButton, drawGradeMedal, drawOrnateFrame, applyPixelFontToScene } from "../ui";
+import { createButton, drawOrnateFrame, applyPixelFontToScene } from "../ui";
 import { getPixelFontFamily } from "../pixelFont";
 import { readDexState } from "../registryAdapter";
-import { GRADE_LABEL } from "../grade";
 import {
   CapturedCard,
   TOTAL_TUTORIAL_MONSTERS,
@@ -120,24 +119,6 @@ export class CodigdexScene extends Phaser.Scene {
       this.add
         .image(centerX, previewCenterY - 4, "loop-bug")
         .setDisplaySize(PREVIEW_SIZE - 16, (PREVIEW_SIZE - 16) * (2 / 3));
-
-      const medal = drawGradeMedal(
-        this,
-        centerX + PREVIEW_SIZE / 2 - 24,
-        previewCenterY + PREVIEW_SIZE / 2 - 24,
-        card.grade,
-        22
-      );
-      if (card.grade === "gold") {
-        this.tweens.add({
-          targets: medal,
-          alpha: { from: 0.65, to: 1 },
-          duration: 700,
-          ease: "Sine.InOut",
-          yoyo: true,
-          repeat: -1,
-        });
-      }
     } else {
       this.add
         .text(centerX, previewCenterY, "?", {
@@ -232,16 +213,6 @@ export class CodigdexScene extends Phaser.Scene {
       })
       .setOrigin(0, 0.5);
 
-    if (card) {
-      this.add
-        .text(right - 16, top + ROW_HEIGHT / 2, GRADE_LABEL[card.grade], {
-          fontFamily: getPixelFontFamily(),
-          fontSize: "11px",
-          color: SAND,
-        })
-        .setOrigin(1, 0.5);
-    }
-
     const statsY = top + ROW_HEIGHT + 24;
     this.add
       .text(centerX, statsY, `등록 ${card ? 1 : 0}  ·  전체 ${TOTAL_TUTORIAL_MONSTERS}`, {
@@ -290,7 +261,7 @@ export class CodigdexScene extends Phaser.Scene {
     cursor += name.height + 4;
 
     const classification = this.add
-      .text(0, cursor, `${card.classification}  ·  ${GRADE_LABEL[card.grade]} 등급`, {
+      .text(0, cursor, card.classification, {
         fontFamily: getPixelFontFamily(),
         fontSize: "12px",
         color: PALETTE_HEX.maroon,

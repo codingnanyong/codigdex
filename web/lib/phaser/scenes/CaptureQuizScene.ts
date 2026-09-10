@@ -3,8 +3,8 @@ import { PALETTE, PALETTE_HEX } from "../palette";
 import { createButton, drawOrnateFrame, applyPixelFontToScene } from "../ui";
 import { getPixelFontFamily } from "../pixelFont";
 import { readDexState, writeDexState } from "../registryAdapter";
-import { NPC_REACTIONS, TUTORIAL_MONSTER } from "@/lib/domain/tutorial/content";
-import { applyCapture, gradeFromScore } from "@/lib/domain/tutorial/capture";
+import { NPC_RETRY_LINE, NPC_SUCCESS_LINE, TUTORIAL_MONSTER } from "@/lib/domain/tutorial/content";
+import { applyCapture, isSuccessfulCapture } from "@/lib/domain/tutorial/capture";
 
 const INK = PALETTE_HEX.ink;
 
@@ -31,13 +31,16 @@ export class CaptureQuizScene extends Phaser.Scene {
       .rectangle(width / 2, height / 2, width, height, PALETTE.nightBrown, 0.55)
       .setDepth(0);
 
-    this.showResult();
+    if (isSuccessfulCapture(this.correctCount, TUTORIAL_MONSTER.quiz.length)) {
+      this.registerCapture();
+      this.showSuccess();
+    } else {
+      this.showFailure();
+    }
     applyPixelFontToScene(this);
   }
 
-  private showResult() {
-    const grade = gradeFromScore(this.correctCount, TUTORIAL_MONSTER.quiz.length);
-    this.registerCapture(grade);
+  private showSuccess() {
     const { width, height } = this.scale;
 
     const panelWidth = 640;
@@ -87,7 +90,7 @@ export class CaptureQuizScene extends Phaser.Scene {
     cursor += 46 + 16;
 
     const npcLine = this.add
-      .text(0, cursor, `${TUTORIAL_MONSTER.npcName}: ${NPC_REACTIONS[grade]}`, {
+      .text(0, cursor, `${TUTORIAL_MONSTER.npcName}: ${NPC_SUCCESS_LINE}`, {
         fontFamily: getPixelFontFamily(),
         fontSize: "12px",
         color: PALETTE_HEX.maroon,
@@ -114,7 +117,6 @@ export class CaptureQuizScene extends Phaser.Scene {
     });
 
     const frame = drawOrnateFrame(this, 0, 0, panelWidth, panelHeight);
-
     const elements: Phaser.GameObjects.GameObject[] = [frame, ...shiftable];
 
     const confirm = createButton(this, 0, panelHeight / 2 - 32, 120, 34, "확인", () => {
@@ -133,8 +135,52 @@ export class CaptureQuizScene extends Phaser.Scene {
     });
   }
 
-  private registerCapture(grade: ReturnType<typeof gradeFromScore>) {
-    const state = applyCapture(readDexState(this.registry), grade);
+  private showFailure() {
+    const { width, height } = this.scale;
+
+    const panelWidth = 560;
+    const panelHeight = 240;
+    const container = this.add.container(width / 2, height / 2).setDepth(1).setAlpha(0).setScale(0.85);
+
+    const frame = drawOrnateFrame(this, 0, 0, panelWidth, panelHeight);
+
+    const title = this.add
+      .text(0, -panelHeight / 2 + 40, `"${TUTORIAL_MONSTER.name}"를 놓쳤어요!`, {
+        fontFamily: getPixelFontFamily(),
+        fontSize: "16px",
+        color: INK,
+        align: "center",
+      })
+      .setOrigin(0.5);
+
+    const npcLine = this.add
+      .text(0, -20, `${TUTORIAL_MONSTER.npcName}: ${NPC_RETRY_LINE}`, {
+        fontFamily: getPixelFontFamily(),
+        fontSize: "12px",
+        color: PALETTE_HEX.maroon,
+        fontStyle: "bold",
+        align: "center",
+        wordWrap: { width: panelWidth - 120 },
+      })
+      .setOrigin(0.5, 0);
+
+    const retry = createButton(this, 0, panelHeight / 2 - 32, 140, 34, "재도전", () => {
+      this.scene.start("world-map");
+    });
+
+    container.add([frame, title, npcLine, retry]);
+
+    this.tweens.add({
+      targets: container,
+      alpha: 1,
+      scale: 1,
+      duration: 260,
+      ease: "Back.Out",
+    });
+  }
+
+  private registerCapture() {
+    const state = applyCapture(readDexState(this.registry));
     writeDexState(this.registry, state);
   }
 }
