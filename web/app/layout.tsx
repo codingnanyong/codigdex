@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 const pressStart2P = Press_Start_2P({
-  variable: "--font-pixel",
+  variable: "--font-pixel-en",
   weight: "400",
   subsets: ["latin"],
 });

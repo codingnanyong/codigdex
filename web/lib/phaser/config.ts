@@ -1,5 +1,7 @@
 import Phaser from "phaser";
 import { IntroScene } from "./scenes/IntroScene";
+import { JobSelectScene } from "./scenes/JobSelectScene";
+import { PathMapScene } from "./scenes/PathMapScene";
 import { WorldMapScene } from "./scenes/WorldMapScene";
 import { CodeBattleScene } from "./scenes/CodeBattleScene";
 import { CaptureQuizScene } from "./scenes/CaptureQuizScene";
@@ -19,6 +21,14 @@ export function createGameConfig(
       mode: Phaser.Scale.FIT,
       autoCenter: Phaser.Scale.CENTER_BOTH,
     },
-    scene: [IntroScene, WorldMapScene, CodeBattleScene, CaptureQuizScene, CodigdexScene],
+    scene: [
+      IntroScene,
+      JobSelectScene,
+      PathMapScene,
+      WorldMapScene,
+      CodeBattleScene,
+      CaptureQuizScene,
+      CodigdexScene,
+    ],
   };
 }

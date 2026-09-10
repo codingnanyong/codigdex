@@ -1,5 +1,6 @@
 import Phaser from "phaser";
-import { getPixelFontFamily, whenPixelFontReady } from "../pixelFont";
+import { getPixelFontFamily } from "../pixelFont";
+import { applyPixelFontToScene } from "../ui";
 import { PALETTE_HEX } from "../palette";
 
 const INTRO_DURATION_MS = 8_000;
@@ -151,7 +152,7 @@ export class IntroScene extends Phaser.Scene {
 
     const prompt = this.add
       .text(width / 2, height - 48, "PRESS START", {
-        fontFamily: "monospace",
+        fontFamily: getPixelFontFamily(),
         fontSize: "20px",
         color: PALETTE_HEX.cream,
         stroke: PALETTE_HEX.ink,
@@ -161,9 +162,7 @@ export class IntroScene extends Phaser.Scene {
       .setDepth(5)
       .setAlpha(0);
 
-    whenPixelFontReady(() => {
-      prompt.setFontFamily(getPixelFontFamily());
-    });
+    applyPixelFontToScene(this);
 
     this.tweens.add({
       targets: prompt,

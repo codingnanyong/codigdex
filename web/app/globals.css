@@ -1,10 +1,22 @@
 @import "tailwindcss";
 
+@font-face {
+  font-family: "Galmuri11";
+  src: url("/fonts/Galmuri11.woff2") format("woff2");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
   --background: #f1e4cb;
   --foreground: #2a1d14;
   --muted: #7a6248;
   --accent: #a33422;
+  /* Galmuri is a Korean-and-Latin bitmap font, so it covers every string this
+     game actually renders. Press Start 2P (--font-pixel-en, from next/font)
+     stays reserved for the Latin-only "CODIGDEX" wordmark. */
+  --font-pixel: "Galmuri11";
 }
 
 @theme inline {
@@ -15,6 +27,7 @@
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
   --font-pixel: var(--font-pixel);
+  --font-pixel-en: var(--font-pixel-en);
 }
 
 @media (prefers-color-scheme: dark) {
