@@ -16,6 +16,7 @@ describe("pixelText", () => {
     subtitle: "21px",
     title: "28px",
     hero: "42px",
+    display: "70px",
   };
 
   it.each(Object.entries(EXPECTED))("sizes the %s role at %s", (role, fontSize) => {

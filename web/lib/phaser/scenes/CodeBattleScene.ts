@@ -62,7 +62,7 @@ export class CodeBattleScene extends Phaser.Scene {
   }
 
   preload() {
-    this.load.image("loop-bug", "/assets/monsters/loop-bug.png");
+    this.load.image("loop-bug", "/assets/monsters/loop-bug-v2.png");
   }
 
   create() {
@@ -162,17 +162,16 @@ export class CodeBattleScene extends Phaser.Scene {
       })
       .setOrigin(0, 0);
 
-    // Centered rather than top-anchored: prompts run from one line to four
-    // (code samples span several), and centering keeps every one of them
-    // balanced inside the box instead of hanging off the bottom.
+    // Keep the prompt in its own vertical region so multiline examples never
+    // collide with the bottom-anchored feedback line.
     this.questionText = this.add
-      .text(x, y + 4, "", {
-        ...pixelText("subtitle"),
+      .text(x, top + 40, "", {
+        ...pixelText("body"),
         color: INK,
         align: "center",
         wordWrap: { width: width - 90 },
       })
-      .setOrigin(0.5, 0.5);
+      .setOrigin(0.5, 0);
 
     this.feedbackText = this.add
       .text(x, top + height - 16, "", {
