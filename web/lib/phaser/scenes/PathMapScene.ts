@@ -34,9 +34,9 @@ export class PathMapScene extends Phaser.Scene {
     const { width, height } = this.scale;
 
     // Placeholder background — flat fill until a real map illustration
-    // (like WorldMapScene's "field-guide" wallpaper) exists. Once one does,
-    // preload() + this.add.image(...).setDisplaySize(width, height) here,
-    // same pattern as WorldMapScene.
+    // exists (like WorldMapScene's "tutorial-loop-path-map" wallpaper).
+    // Once one does, preload() + this.add.image(...).setDisplaySize(width,
+    // height) here, same pattern as WorldMapScene.
     this.add.rectangle(width / 2, height / 2, width, height, PALETTE.nightBrown, 1);
 
     this.add
