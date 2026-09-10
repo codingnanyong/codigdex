@@ -11,10 +11,12 @@ const INK = PALETTE_HEX.ink;
 interface CaptureResultData {
   monsterId: string;
   correctCount: number;
+  total: number;
 }
 
 export class CaptureQuizScene extends Phaser.Scene {
   private correctCount = 0;
+  private total = 0;
 
   constructor() {
     super("capture-quiz");
@@ -22,6 +24,7 @@ export class CaptureQuizScene extends Phaser.Scene {
 
   init(data: CaptureResultData) {
     this.correctCount = data.correctCount;
+    this.total = data.total;
   }
 
   create() {
@@ -31,7 +34,7 @@ export class CaptureQuizScene extends Phaser.Scene {
       .rectangle(width / 2, height / 2, width, height, PALETTE.nightBrown, 0.55)
       .setDepth(0);
 
-    if (isSuccessfulCapture(this.correctCount, TUTORIAL_MONSTER.quiz.length)) {
+    if (isSuccessfulCapture(this.correctCount, this.total)) {
       this.registerCapture();
       this.showSuccess();
     } else {

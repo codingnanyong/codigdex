@@ -1,20 +1,15 @@
 import { describe, expect, it } from "vitest";
 import { TUTORIAL_MONSTER, TOTAL_TUTORIAL_MONSTERS } from "@/lib/domain/tutorial/content";
 import { EMPTY_DEX_STATE, applyCapture, isSuccessfulCapture } from "@/lib/domain/tutorial/capture";
-
-function scoreQuiz(answers: number[]): number {
-  return answers.reduce(
-    (correct, answerIndex, questionIndex) =>
-      answerIndex === TUTORIAL_MONSTER.quiz[questionIndex].answerIndex ? correct + 1 : correct,
-    0
-  );
-}
+import { drawQuizQuestions, quizCountForLevel } from "@/lib/domain/tutorial/quiz";
 
 describe("Tutorial quest -> quiz -> capture -> dex loop", () => {
+  const battleQuestions = () => drawQuizQuestions(TUTORIAL_MONSTER.quizPool, quizCountForLevel(TUTORIAL_MONSTER.level));
+
   it("registers the card only after a perfect run", () => {
-    const correctAnswers = TUTORIAL_MONSTER.quiz.map((question) => question.answerIndex);
-    const correctCount = scoreQuiz(correctAnswers);
-    const succeeded = isSuccessfulCapture(correctCount, TUTORIAL_MONSTER.quiz.length);
+    const questions = battleQuestions();
+    const correctCount = questions.length;
+    const succeeded = isSuccessfulCapture(correctCount, questions.length);
 
     expect(succeeded).toBe(true);
     const state = applyCapture(EMPTY_DEX_STATE);
@@ -24,17 +19,15 @@ describe("Tutorial quest -> quiz -> capture -> dex loop", () => {
   });
 
   it("flags a botched attempt as unsuccessful, and lets the player retry into a capture", () => {
-    const wrongAnswers = TUTORIAL_MONSTER.quiz.map((question) => (question.answerIndex + 1) % question.choices.length);
-    const firstSucceeded = isSuccessfulCapture(scoreQuiz(wrongAnswers), TUTORIAL_MONSTER.quiz.length);
+    const questions = battleQuestions();
 
     // CaptureQuizScene only calls applyCapture when isSuccessfulCapture is
     // true, so a false result here is what keeps a botched attempt from
     // ever reaching the dex.
-    expect(firstSucceeded).toBe(false);
+    expect(isSuccessfulCapture(questions.length - 1, questions.length)).toBe(false);
 
-    const correctAnswers = TUTORIAL_MONSTER.quiz.map((question) => question.answerIndex);
-    const secondSucceeded = isSuccessfulCapture(scoreQuiz(correctAnswers), TUTORIAL_MONSTER.quiz.length);
-    expect(secondSucceeded).toBe(true);
+    const retry = battleQuestions();
+    expect(isSuccessfulCapture(retry.length, retry.length)).toBe(true);
 
     const state = applyCapture(EMPTY_DEX_STATE);
     expect(state.cards).toHaveLength(1);
