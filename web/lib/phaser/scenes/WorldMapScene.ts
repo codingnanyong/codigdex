@@ -17,7 +17,9 @@ import {
   readDexState,
   TUTORIAL_ONBOARDING_SEEN_KEY,
 } from "../registryAdapter";
-import { applyPixelFontToScene, createButton, drawOrnateFrame } from "../ui";
+import { applyPixelFontToScene, createButton, drawOrnateFrame, showToast } from "../ui";
+import { drawCareerAtlas } from "../worldMap/careerAtlas";
+import { careerPathFor } from "../worldMap/careerPaths";
 import { showGuideHint } from "../worldMap/guideHint";
 import { OnboardingDialog } from "../worldMap/onboarding";
 import { showQuestDialog } from "../worldMap/questDialog";
@@ -34,6 +36,8 @@ export class WorldMapScene extends Phaser.Scene {
   private activeChapter?: ChapterDefinition;
   private activeMonster?: MonsterDefinition;
   private captured: ReadonlySet<string> = new Set();
+  private selectedCareerId?: JobId;
+  private toast?: Phaser.GameObjects.Text;
 
   constructor() {
     super("world-map");
@@ -41,9 +45,12 @@ export class WorldMapScene extends Phaser.Scene {
 
   preload() {
     // The registry is hydrated at boot, so only this visit's backdrop needs downloading.
-    const { backdrop } = this.resolveProgress();
+    const { backdrop, selectedJob } = this.resolveProgress();
     this.load.image(backdrop.textureKey, backdrop.assetPath);
     this.load.image("npc-lupi-guide", "/assets/npcs/lupi-guide-v1.png");
+    if (selectedJob.textureKey && selectedJob.assetPath) {
+      this.load.image(selectedJob.textureKey, selectedJob.assetPath);
+    }
     preloadMonsterArt(this, CHAPTERS.flatMap((chapter) => chapter.stages));
   }
 
@@ -65,18 +72,25 @@ export class WorldMapScene extends Phaser.Scene {
     this.guideHint = undefined;
     this.activeChapter = undefined;
     this.activeMonster = undefined;
+    this.selectedCareerId = undefined;
+    this.toast = undefined;
 
     const { captured, storedJob, selectedJob, backdrop } = this.resolveProgress();
     this.captured = captured;
     this.activeChapter = selectActiveChapter(this.captured);
     this.activeMonster = this.activeChapter?.stages[currentStageIndex(this.activeChapter, this.captured)];
+    this.selectedCareerId = selectedJob.id === "junior" ? undefined : (selectedJob.id as JobId);
 
     if (storedJob.id !== selectedJob.id) this.registry.set(JOB_REGISTRY_KEY, selectedJob.id);
     this.add.image(width / 2, height / 2, backdrop.textureKey).setDisplaySize(width, height);
     if (backdrop.ambience) playAmbience(this, backdrop.ambience);
 
     this.hud = this.createHud(backdrop);
-    if (this.activeChapter && this.activeMonster) this.createQuestActors();
+    if (this.activeChapter && this.activeMonster) {
+      this.createQuestActors();
+    } else if (this.selectedCareerId) {
+      this.createCareerAtlas(this.selectedCareerId);
+    }
     applyPixelFontToScene(this);
 
     if (!this.isTutorialCaptured() && this.registry.get(TUTORIAL_ONBOARDING_SEEN_KEY) !== true) {
@@ -108,6 +122,26 @@ export class WorldMapScene extends Phaser.Scene {
       this.guideHint = undefined;
       this.activeChapter = undefined;
       this.activeMonster = undefined;
+      this.selectedCareerId = undefined;
+      this.toast = undefined;
+    });
+  }
+
+  private createCareerAtlas(careerId: JobId) {
+    const job = findJob(careerId);
+    drawCareerAtlas(this, {
+      job,
+      path: careerPathFor(careerId),
+      onRegion: (region) => {
+        this.scene.start("career-region", { careerId, regionId: region.id });
+      },
+      onMystery: () => {
+        this.toast = showToast(
+          this,
+          "??? · 다른 1차 직업 경로까지 완성하면 정체가 드러나요.",
+          this.toast
+        );
+      },
     });
   }
 

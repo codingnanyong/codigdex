@@ -21,7 +21,7 @@ export class PreviewPane {
   }
 
   /** Rebuilds the pane for `entry`, replacing whatever it showed before. */
-  show({ monster, card }: DexEntry) {
+  show({ dexNumber, monster, card, planned }: DexEntry) {
     this.group?.destroy(true);
     const { scene, centerX } = this;
     const previewTop = this.top + 6;
@@ -34,7 +34,7 @@ export class PreviewPane {
         .setStrokeStyle(2, PALETTE.mutedBrown),
     ];
 
-    if (card) {
+    if (card && monster) {
       const fit = fitTexture(scene, monster.textureKey, PREVIEW_SIZE - 16, PREVIEW_SIZE - 16);
       items.push(scene.add.image(centerX, previewCenterY, monster.textureKey).setScale(fit.scale));
     } else {
@@ -52,14 +52,14 @@ export class PreviewPane {
       cursor += line.height + gap;
     };
 
-    addLine(`No. ${monster.dexNumber}`, { ...pixelText("body"), color: PALETTE_HEX.sand }, 4);
+    addLine(`No. ${dexNumber}`, { ...pixelText("body"), color: PALETTE_HEX.sand }, 4);
     addLine(card ? card.name : "???", { ...pixelText("subtitle"), color: PALETTE_HEX.cream, fontStyle: "bold" }, 6);
     if (card) {
       addLine(card.classification, { ...pixelText("body"), color: PALETTE_HEX.amber }, 6);
       addLine(card.trait, { ...pixelText("body"), color: PALETTE_HEX.sand, align: "center", wordWrap: { width: infoWidth } }, 0);
     } else {
       addLine(
-        "아직 관찰되지 않았습니다",
+        planned ? "아직 발견되지 않은 지역입니다" : "아직 관찰되지 않았습니다",
         { ...pixelText("body"), color: PALETTE_HEX.mutedBrown, align: "center", wordWrap: { width: infoWidth } },
         0
       );
