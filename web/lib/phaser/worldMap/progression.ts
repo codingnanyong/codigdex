@@ -3,6 +3,7 @@ import { GIT_CHAPTER } from "@/lib/domain/chapters/git";
 import { LINUX_CHAPTER } from "@/lib/domain/chapters/linux";
 import { TUTORIAL_CHAPTER } from "@/lib/domain/chapters/tutorial";
 import type { AmbienceId, ChapterDefinition } from "@/lib/domain/chapters/types";
+import { CAREER_PATHS } from "./careerPaths";
 import type { JobId } from "@/lib/domain/player/jobs";
 
 export interface WorldBackdrop {
@@ -33,33 +34,7 @@ const LINUX_BACKDROP: WorldBackdrop = {
   ambience: "linux-cave",
 };
 
-const CAREER_BACKDROPS: Record<JobId, WorldBackdrop> = {
-  frontend: {
-    textureKey: "world-career-frontend",
-    assetPath: "/assets/wallpapers/career-paths/frontend-path-map-v1.png",
-    title: "웹 프론트엔드 개발자 경로",
-  },
-  backend: {
-    textureKey: "world-career-backend",
-    assetPath: "/assets/wallpapers/career-paths/backend-path-map-v1.png",
-    title: "백엔드 개발자 경로",
-  },
-  devops: {
-    textureKey: "world-career-devops",
-    assetPath: "/assets/wallpapers/career-paths/devops-path-map-v1.png",
-    title: "DevOps 엔지니어 경로",
-  },
-  "data-engineer": {
-    textureKey: "world-career-data-engineer",
-    assetPath: "/assets/wallpapers/career-paths/data-engineer-path-map-v1.png",
-    title: "데이터 엔지니어 경로",
-  },
-  "data-analyst": {
-    textureKey: "world-career-data-analyst",
-    assetPath: "/assets/wallpapers/career-paths/data-analyst-path-map-v1.png",
-    title: "데이터 분석가 경로",
-  },
-};
+const CAREER_BACKDROPS: Record<JobId, WorldBackdrop> = CAREER_PATHS;
 
 export const WORLD_BACKDROPS = [TUTORIAL_BACKDROP, GIT_BACKDROP, LINUX_BACKDROP, ...Object.values(CAREER_BACKDROPS)];
 

@@ -3,6 +3,7 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { CHAPTERS } from "@/lib/domain/chapters";
 import { TECHNOLOGY_SPECIMENS } from "@/lib/domain/technologySpecimens";
+import { JOB_OPTIONS } from "@/lib/domain/player/jobs";
 import { WORLD_BACKDROPS } from "@/lib/phaser/worldMap/progression";
 
 const PUBLIC_DIR = path.resolve(__dirname, "../../public");
@@ -14,6 +15,7 @@ const PUBLIC_DIR = path.resolve(__dirname, "../../public");
  */
 const referencedAssets = [
   "/assets/npcs/lupi-guide-v1.png",
+  ...JOB_OPTIONS.flatMap((job) => job.assetPath ? [job.assetPath] : []),
   ...Object.values(TECHNOLOGY_SPECIMENS).map((specimen) => specimen.assetPath),
   ...WORLD_BACKDROPS.map((backdrop) => backdrop.assetPath),
   ...CHAPTERS.flatMap((chapter) => [

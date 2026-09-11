@@ -106,6 +106,29 @@ export function drawPromotionNode(
   makePressable(card, new Phaser.Geom.Rectangle(-half, -half, PROMOTION_SIZE, PROMOTION_SIZE), 1.04, onSelect);
 }
 
+/** A locked silhouette for a future tier-two job; its real name stays hidden. */
+export function drawMysteryCareerNode(
+  scene: Phaser.Scene,
+  x: number,
+  y: number,
+  onSelect: () => void
+) {
+  const width = 104;
+  const height = 54;
+  const panel = scene.add
+    .rectangle(0, 0, width, height, PALETTE.nightBrown, 0.96)
+    .setStrokeStyle(2, PALETTE.mutedBrown);
+  const eyebrow = scene.add
+    .text(0, -13, "2차 전직", { ...pixelText("caption"), color: PALETTE_HEX.sand })
+    .setOrigin(0.5);
+  const label = scene.add
+    .text(0, 11, "◆  ???", { ...pixelText("body"), color: PALETTE_HEX.cream })
+    .setOrigin(0.5);
+  const card = scene.add.container(x, y, [panel, eyebrow, label]);
+  makePressable(card, new Phaser.Geom.Rectangle(-width / 2, -height / 2, width, height), 1.035, onSelect);
+  return card;
+}
+
 /**
  * Specimen art has to be transparent to its edges for this to read as a
  * portrait in a ring rather than a square on a disc — the sprite is drawn at
