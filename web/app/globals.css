@@ -8,6 +8,14 @@
   font-display: swap;
 }
 
+@font-face {
+  font-family: "Galmuri14";
+  src: url("/fonts/Galmuri14.woff2") format("woff2");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
   --background: #f1e4cb;
   --foreground: #2a1d14;
@@ -22,6 +30,10 @@
      stop antialiasing into grey. Pick sizes through lib/phaser/pixelFont.ts
      rather than hardcoding them. */
   --font-pixel: "Galmuri7";
+  /* 14px body copy uses Galmuri14 instead: same footprint as Galmuri7 at 2x,
+     but drawn on a 14px grid, so Hangul finals and compound vowels stay
+     legible instead of clumping into blocks. */
+  --font-pixel-body: "Galmuri14";
 }
 
 @theme inline {
@@ -50,9 +62,49 @@ body {
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
 }
 
-/* The game renders into a 960x540 buffer that the browser then scales to the
-   element size and the device pixel ratio. Without this it interpolates, which
-   softens every sprite and every bitmap glyph into mush. */
+/* The game container grows with the viewport at 16:9, leaving room for the
+   page header (--game-chrome). Phaser's FIT mode then scales the canvas into it. */
+:root {
+  --game-chrome: 8rem;
+}
+
+.pixel-canvas {
+  width: min(100%, calc((100vh - var(--game-chrome)) * 16 / 9));
+  width: min(100%, calc((100dvh - var(--game-chrome)) * 16 / 9));
+  aspect-ratio: 16 / 9;
+}
+
+/* The game renders into a 960x540 buffer that the browser scales to the element
+   size and the device pixel ratio. Pixelated keeps sprites and bitmap glyphs
+   sharp at whole-number scales; PhaserGame switches to smoothing whenever the
+   scale is fractional (lib/phaser/displayScale.ts), where nearest-neighbour
+   would make strokes uneven. */
 .pixel-canvas canvas {
   image-rendering: pixelated;
+  /* Taps are game input, not page zoom, scroll or text selection. */
+  touch-action: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.rotate-hint {
+  display: none;
+}
+
+@media (orientation: portrait) and (max-width: 767px) {
+  .rotate-hint {
+    display: block;
+  }
+}
+
+/* Phones held sideways have little height to spare: drop the header so the game gets all of it. */
+@media (max-height: 540px) {
+  :root {
+    /* Just the page's vertical padding once the header is gone. */
+    --game-chrome: 2.5rem;
+  }
+
+  .game-header {
+    display: none;
+  }
 }

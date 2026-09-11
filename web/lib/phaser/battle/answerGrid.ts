@@ -8,8 +8,9 @@ const CORRECT_FLASH = 0x4c8c4a;
 const INCORRECT_FLASH = 0xb23a2e;
 const CELL_IDLE = 0x2a1d14;
 const OPTION_LETTERS = ["A", "B", "C", "D"];
-const PAD = 28;
-const CELL_GAP = 20;
+// Tight insets leave each cell tall enough for a two-line choice.
+const PAD = 14;
+const CELL_GAP = 10;
 
 /** The dark command box and its answer cells, laid out two by two. */
 export class AnswerGrid {
@@ -75,7 +76,7 @@ export class AnswerGrid {
         ...pixelText("body"),
         color: PALETTE_HEX.cream,
         align: "center",
-        wordWrap: { width: width - 20 },
+        wordWrap: { width: width - 24 },
       })
       .setOrigin(0.5);
 

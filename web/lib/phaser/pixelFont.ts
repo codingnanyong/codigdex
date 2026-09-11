@@ -18,23 +18,40 @@ const PIXEL_SIZES = {
 
 export type PixelTextRole = keyof typeof PIXEL_SIZES;
 
-export function getPixelFontFamily(): string {
+const PIXEL_FONT_VARIABLE = "--font-pixel";
+const BODY_FONT_VARIABLE = "--font-pixel-body";
+
+/**
+ * Body copy is where the quiz prompts and answers live, and Galmuri7 at 2x
+ * clumps Hangul finals into blocks. Galmuri14 has the same 14px footprint
+ * drawn on its own grid, so it swaps in without moving any layout.
+ */
+export function fontVariableFor(role: PixelTextRole): string {
+  return role === "body" ? BODY_FONT_VARIABLE : PIXEL_FONT_VARIABLE;
+}
+
+export function getPixelFontFamily(variable: string = PIXEL_FONT_VARIABLE): string {
   if (typeof document === "undefined") return FALLBACK;
-  const value = getComputedStyle(document.documentElement)
-    .getPropertyValue("--font-pixel")
-    .trim();
+  const value = getComputedStyle(document.documentElement).getPropertyValue(variable).trim();
   return value ? `${value}, ${FALLBACK}` : FALLBACK;
 }
 
 /** Font family + size for a text role, sized to stay pixel-sharp. */
 export function pixelText(role: PixelTextRole): { fontFamily: string; fontSize: string } {
-  return { fontFamily: getPixelFontFamily(), fontSize: `${PIXEL_SIZES[role]}px` };
+  return { fontFamily: getPixelFontFamily(fontVariableFor(role)), fontSize: `${PIXEL_SIZES[role]}px` };
 }
 
 export function whenPixelFontReady(callback: () => void) {
-  if (typeof document === "undefined" || !document.fonts?.ready) {
+  if (typeof document === "undefined" || !document.fonts?.load) {
     callback();
     return;
   }
-  document.fonts.ready.then(callback).catch(callback);
+  // Canvas text never makes the browser fetch a face the page itself doesn't
+  // use, so request each one explicitly before re-rasterizing.
+  const faces = [PIXEL_FONT_VARIABLE, BODY_FONT_VARIABLE].map((variable) =>
+    document.fonts.load(`14px ${getPixelFontFamily(variable)}`)
+  );
+  Promise.all(faces)
+    .then(() => document.fonts.ready)
+    .then(callback, callback);
 }

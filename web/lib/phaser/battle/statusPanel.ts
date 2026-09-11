@@ -38,9 +38,8 @@ export class StatusPanel {
 
     scene.add
       .text(left + 16, top + 42, "HP", {
-        ...pixelText("caption"),
+        ...pixelText("body"),
         color: PALETTE_HEX.ink,
-        fontStyle: "italic",
       })
       .setOrigin(0, 0.5);
 

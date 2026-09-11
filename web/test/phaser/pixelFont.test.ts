@@ -1,5 +1,11 @@
 import { describe, expect, it, vi } from "vitest";
-import { PixelTextRole, getPixelFontFamily, pixelText, whenPixelFontReady } from "@/lib/phaser/pixelFont";
+import {
+  PixelTextRole,
+  fontVariableFor,
+  getPixelFontFamily,
+  pixelText,
+  whenPixelFontReady,
+} from "@/lib/phaser/pixelFont";
 
 describe("getPixelFontFamily", () => {
   it("falls back to monospace when there is no document (e.g. server-side)", () => {
@@ -29,10 +35,12 @@ describe("pixelText", () => {
     }
   });
 
-  it("uses one family for every role", () => {
-    const families = (Object.keys(EXPECTED) as PixelTextRole[]).map((role) => pixelText(role).fontFamily);
-    expect(new Set(families).size).toBe(1);
-    expect(families[0]).toBe(getPixelFontFamily());
+  it("draws body copy in Galmuri14 and every other role in Galmuri7", () => {
+    expect(fontVariableFor("body")).toBe("--font-pixel-body");
+    for (const role of (Object.keys(EXPECTED) as PixelTextRole[]).filter((role) => role !== "body")) {
+      expect(fontVariableFor(role)).toBe("--font-pixel");
+    }
+    expect(pixelText("body").fontFamily).toBe(getPixelFontFamily("--font-pixel-body"));
   });
 });
 
