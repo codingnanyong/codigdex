@@ -22,8 +22,12 @@ export function createGameConfig(
       preBoot: (game) => initializeRegistryPersistence(game.registry),
     },
     scale: {
+      // The page sizes the container to the viewport at 16:9 (globals.css);
+      // FIT fills it, and rounding keeps the canvas box on whole CSS pixels.
       mode: Phaser.Scale.FIT,
       autoCenter: Phaser.Scale.CENTER_BOTH,
+      expandParent: false,
+      autoRound: true,
     },
     scene: [
       IntroScene,

@@ -1,7 +1,7 @@
 import Phaser from "phaser";
 import { findStage } from "@/lib/domain/chapters";
 import type { ChapterDefinition, MonsterDefinition } from "@/lib/domain/chapters/types";
-import { applyCapture, isSuccessfulCapture } from "@/lib/domain/dex/capture";
+import { applyCapture, isSuccessfulCapture, requiredCorrectAnswers } from "@/lib/domain/dex/capture";
 import { showCapturedPanel, showMissedPanel } from "../capture/resultPanels";
 import { describeUnlock } from "../capture/unlockNotice";
 import { readDexState, writeDexState } from "../registryAdapter";
@@ -65,6 +65,7 @@ export class CaptureQuizScene extends Phaser.Scene {
     const { chapter, monster } = this;
     showMissedPanel(this, {
       monster,
+      resultLine: `정답 ${this.correctCount} / ${this.total} · ${requiredCorrectAnswers(this.total)}개 이상 맞히면 포획돼요`,
       npcLine: `${chapter.npcName}: ${chapter.retryLine}`,
       onRetry: () => this.scene.start("world-map"),
     });

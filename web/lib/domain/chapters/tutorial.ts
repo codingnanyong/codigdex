@@ -2,7 +2,7 @@ import type { ChapterDefinition } from "./types";
 
 export const TUTORIAL_ONBOARDING_LINES = [
   "처음 왔구나, 주니어 개발자! 나는 버그 연구원 루피야.",
-  "이 세계의 버그는 코드 지식으로 물리친 뒤, 마지막 문제까지 맞혀야 도감에 등록할 수 있어.",
+  "이 세계의 버그는 코드 문제로 물리쳐. 나온 문제의 60% 이상을 맞히면 도감에 등록할 수 있어.",
   "첫 번째 버그가 우물가에서 소동을 벌이고 있어. 빛나는 의뢰 표식을 눌러 만나 보자!",
 ] as const;
 
@@ -12,7 +12,7 @@ export const TUTORIAL_CHAPTER: ChapterDefinition = {
   name: "튜토리얼",
   place: "반복문의 숲",
   npcName: "루피",
-  successLine: "오, 완벽하게 잡았네! 바로 도감에 등록해줄게.",
+  successLine: "오, 잘 잡았네! 바로 도감에 등록해줄게.",
   retryLine: "아직 다 못 잡은 것 같아. 반복문을 다시 한번 살펴보고 재도전해보자!",
   retryScene: "world-map",
   stages: [

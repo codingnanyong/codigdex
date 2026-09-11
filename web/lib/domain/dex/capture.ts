@@ -8,8 +8,16 @@ export const EMPTY_DEX_STATE: DexState = {
   cards: [],
 };
 
+/** Percentage of a battle's questions that must land to capture the monster. */
+export const CAPTURE_PASS_PERCENT = 60;
+
+/** Correct answers needed out of `total`, rounded up: Lv.1's 3 questions need 2, Lv.5's 7 need 5. */
+export function requiredCorrectAnswers(total: number): number {
+  return Math.ceil((total * CAPTURE_PASS_PERCENT) / 100);
+}
+
 export function isSuccessfulCapture(correct: number, total: number): boolean {
-  return total > 0 && correct >= total;
+  return total > 0 && correct >= requiredCorrectAnswers(total);
 }
 
 export function capturedIds(state: DexState): Set<string> {

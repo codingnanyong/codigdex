@@ -1,6 +1,7 @@
 import type Phaser from "phaser";
 import { chapterTitle, currentStageIndex, stageStatus } from "@/lib/domain/chapters";
 import type { ChapterDefinition } from "@/lib/domain/chapters/types";
+import { requiredCorrectAnswers } from "@/lib/domain/dex/capture";
 import { quizCountForLevel } from "@/lib/domain/dex/quiz";
 import { fitTexture } from "../monsterArt";
 import { PALETTE, PALETTE_HEX } from "../palette";
@@ -190,10 +191,11 @@ export class StagePanel {
     this.briefing.setText(
       locked ? "앞 단계를 먼저 포획하면 모습을 드러내요." : `${this.chapter.npcName}: ${monster.briefing}`
     );
+    const questionCount = quizCountForLevel(monster.level);
     this.rule.setText(
       locked
         ? ""
-        : `문제 ${quizCountForLevel(monster.level)}개 · 전부 맞히면 도감 등록${status === "cleared" ? " · 복습" : ""}`
+        : `문제 ${questionCount}개 · ${requiredCorrectAnswers(questionCount)}개 이상 맞히면 도감 등록${status === "cleared" ? " · 복습" : ""}`
     );
     setButtonEnabled(this.startButton, !locked);
   }

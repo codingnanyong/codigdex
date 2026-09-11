@@ -15,6 +15,7 @@ import {
   applyCapture,
   capturedIds,
   isSuccessfulCapture,
+  requiredCorrectAnswers,
 } from "@/lib/domain/dex/capture";
 import { drawQuizQuestions, quizCountForLevel } from "@/lib/domain/dex/quiz";
 
@@ -31,7 +32,8 @@ describe("tutorial -> Git's five stages -> Linux", () => {
 
         const questions = drawBattle(monster);
         expect(questions).toHaveLength(quizCountForLevel(monster.level));
-        expect(isSuccessfulCapture(questions.length, questions.length)).toBe(true);
+        // Clearing just the pass line is enough to move on.
+        expect(isSuccessfulCapture(requiredCorrectAnswers(questions.length), questions.length)).toBe(true);
         state = applyCapture(state, monster);
 
         expect(stageStatus(chapter, index, capturedIds(state))).toBe("cleared");
@@ -48,8 +50,9 @@ describe("tutorial -> Git's five stages -> Linux", () => {
     const questions = drawBattle(GIT_CHAPTER.stages[0]);
 
     // CaptureQuizScene only calls applyCapture when this is true, so a
-    // single miss leaves the dex, and every lock downstream, untouched.
-    expect(isSuccessfulCapture(questions.length - 1, questions.length)).toBe(false);
+    // battle one answer short of the pass line leaves the dex, and every
+    // lock downstream, untouched.
+    expect(isSuccessfulCapture(requiredCorrectAnswers(questions.length) - 1, questions.length)).toBe(false);
     expect(stageStatus(GIT_CHAPTER, 0, capturedIds(state))).toBe("available");
     expect(stageStatus(GIT_CHAPTER, 1, capturedIds(state))).toBe("locked");
     expect(chapterStatus(LINUX_CHAPTER, capturedIds(state))).toBe("locked");
