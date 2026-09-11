@@ -106,20 +106,34 @@ export class WorldMapScene extends Phaser.Scene {
     const storedJob = this.registry.get(JOB_REGISTRY_KEY) as string | undefined;
     const job = findJob(isCommonPathComplete(this.captured) ? storedJob : undefined);
 
-    const items: Phaser.GameObjects.GameObject[] = [
-      drawOrnateFrame(this, width / 2, 24, 340, 34, { radius: 10 }),
-      this.add
-        .text(width / 2, 24, `📘 ${backdrop.title}`, {
+    const chapterFrame = drawOrnateFrame(this, width / 2, 24, 340, 34, { radius: 10 });
+    const chapterTitle = this.add
+        .text(width / 2, 24, `📘 ${backdrop.title}  ▾`, {
           ...pixelText("body"),
           color: PALETTE_HEX.ink,
         })
-        .setOrigin(0.5),
+        .setOrigin(0.5);
+    const chapterHitArea = this.add
+      .rectangle(width / 2, 24, 340, 34, 0xffffff, 0)
+      .setInteractive({ useHandCursor: true });
+    chapterHitArea.on("pointerover", () => chapterFrame.setAlpha(0.86));
+    chapterHitArea.on("pointerout", () => chapterFrame.setAlpha(1));
+    chapterHitArea.on("pointerup", () => this.openChapterMap());
+
+    const items: Phaser.GameObjects.GameObject[] = [
+      chapterFrame,
+      chapterTitle,
+      chapterHitArea,
       createButton(this, 101, 34, 170, 36, `${job.name}  ▶`, () => this.scene.start("job-select")),
     ];
     if (this.isTutorialCaptured()) {
       items.push(createButton(this, width - 70, 26, 120, 32, "Codigdex 도감", () => this.openCodigdex()));
     }
     return this.add.container(0, 0, items);
+  }
+
+  private openChapterMap() {
+    this.scene.start("path-map", { focusChapterId: this.activeChapter?.id });
   }
 
   private isTutorialCaptured(): boolean {

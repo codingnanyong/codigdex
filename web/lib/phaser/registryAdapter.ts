@@ -91,6 +91,19 @@ export function hasSavedProgress(registry: Phaser.Data.DataManager): boolean {
   return readDexState(registry).cards.length > 0 || registry.get(TUTORIAL_ONBOARDING_SEEN_KEY) === true;
 }
 
+/** Clears the current adventure while leaving the game's code and asset cache intact. */
+export function resetGameProgress(registry: Phaser.Data.DataManager, storage = browserStorage()) {
+  try {
+    storage?.removeItem(SAVE_STORAGE_KEY);
+  } catch {
+    // Registry reset still works when browser storage is unavailable.
+  }
+  registry.set(CARDS_KEY, EMPTY_DEX_STATE.cards);
+  registry.set(JOB_REGISTRY_KEY, "junior");
+  registry.set(TUTORIAL_ONBOARDING_SEEN_KEY, false);
+  persistRegistry(registry, storage);
+}
+
 export function ensureDexDefaults(registry: Phaser.Data.DataManager) {
   if (registry.get(CARDS_KEY) === undefined) {
     registry.set(CARDS_KEY, EMPTY_DEX_STATE.cards);
