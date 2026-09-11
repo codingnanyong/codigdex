@@ -127,7 +127,7 @@ export const TECHNOLOGY_SPECIMENS = {
     id: "monitoring",
     name: "모니터링",
     textureKey: "tech-monitoring",
-    assetPath: art("ch15.monitoring", "monitoring-specimen.png"),
+    assetPath: art("ch15.monitoring", "monitoring-specimen-v2.png"),
     role: "future",
     paths: ["backend", "devops", "data-engineer"],
   },

@@ -8,7 +8,7 @@ import type { ChapterDefinition, MonsterDefinition } from "@/lib/domain/chapters
 import { findJob, JOB_REGISTRY_KEY, type JobId } from "@/lib/domain/player/jobs";
 import { capturedIds } from "@/lib/domain/dex/capture";
 import { playAmbience } from "../ambience";
-import { preloadMonsterArt } from "../monsterArt";
+import { fitTexture, preloadMonsterArt } from "../monsterArt";
 import { PALETTE } from "../palette";
 import { PALETTE_HEX } from "../palette";
 import { pixelText } from "../pixelFont";
@@ -180,9 +180,10 @@ export class WorldMapScene extends Phaser.Scene {
     npc.on("pointerup", () => this.onQuestClicked());
 
     this.add.ellipse(monsterX, monsterY + 62, 100, 20, PALETTE.nightBrown, 0.28).setDepth(2);
+    const monsterFit = fitTexture(this, monster.textureKey, 128, 128);
     const monsterImage = this.add
       .image(monsterX, monsterY, monster.textureKey)
-      .setDisplaySize(126, 126)
+      .setScale(monsterFit.scale)
       .setDepth(3)
       .setInteractive({ useHandCursor: true });
     monsterImage.on("pointerup", () => this.onQuestClicked());
