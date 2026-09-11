@@ -14,7 +14,7 @@ const sproutQuiz = [
   { prompt: "현재 폴더의 모든 변경을 한 번에 스테이징하려면?", choices: ["git add .", "git commit .", "git push .", "git init ."], answerIndex: 0 },
   { prompt: "`git init`을 하면 폴더 안에 생기는 숨김 폴더는?", choices: [".git", ".github", ".gitignore", ".config"], answerIndex: 0 },
   { prompt: "다음 중 가장 좋은 커밋 메시지는?", choices: ["로그인 버튼 오류 수정", "asdf", "수정함", "몰라"], answerIndex: 0 },
-  { prompt: "커밋에 남을 작성자 이름을 설정하는 명령은?", choices: ["git config user.name", "git init user.name", "git log user.name", "git add user.name"], answerIndex: 0 },
+  { prompt: "커밋에 남을 작성자 이름을 설정하는 명령은?", choices: ['git config user.name "루피"', 'git init user.name "루피"', 'git log user.name "루피"', 'git add user.name "루피"'], answerIndex: 0 },
   { prompt: "커밋 하나의 변경 내용을 자세히 보는 명령은?", choices: ["git show", "git init", "git add", "git clone"], answerIndex: 0 },
   { prompt: "스테이징했지만 아직 커밋하지 않은 변경을 비교하려면?", choices: ["git diff --staged", "git log --staged", "git status --diff", "git show --add"], answerIndex: 0 },
   { prompt: "`git status`의 'Untracked files'가 뜻하는 것은?", choices: ["아직 추적하지 않는 새 파일", "삭제된 파일", "원격에만 있는 파일", "충돌이 난 파일"], answerIndex: 0 },

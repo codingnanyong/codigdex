@@ -23,12 +23,7 @@ import { OnboardingDialog } from "../worldMap/onboarding";
 import { showQuestDialog } from "../worldMap/questDialog";
 import { QuestMarker } from "../worldMap/questMarker";
 import { drawChapterRoute, routePointsFor } from "../worldMap/chapterRoute";
-import {
-  selectActiveChapter,
-  selectWorldBackdrop,
-  WORLD_BACKDROPS,
-  type WorldBackdrop,
-} from "../worldMap/progression";
+import { selectActiveChapter, selectWorldBackdrop, type WorldBackdrop } from "../worldMap/progression";
 
 /** Progress-aware waiting screen: onboarding first, then the current chapter or career landscape. */
 export class WorldMapScene extends Phaser.Scene {
@@ -45,9 +40,20 @@ export class WorldMapScene extends Phaser.Scene {
   }
 
   preload() {
-    WORLD_BACKDROPS.forEach(({ textureKey, assetPath }) => this.load.image(textureKey, assetPath));
+    // The registry is hydrated at boot, so only this visit's backdrop needs downloading.
+    const { backdrop } = this.resolveProgress();
+    this.load.image(backdrop.textureKey, backdrop.assetPath);
     this.load.image("npc-lupi-guide", "/assets/npcs/lupi-guide-v1.png");
     preloadMonsterArt(this, CHAPTERS.flatMap((chapter) => chapter.stages));
+  }
+
+  /** Where the player stands. A career only counts once the common path is complete. */
+  private resolveProgress() {
+    const captured = capturedIds(readDexState(this.registry));
+    const storedJob = findJob(this.registry.get(JOB_REGISTRY_KEY) as string | undefined);
+    const selectedJob = isCommonPathComplete(captured) ? storedJob : findJob(undefined);
+    const careerId = selectedJob.id === "junior" ? undefined : (selectedJob.id as JobId);
+    return { captured, storedJob, selectedJob, backdrop: selectWorldBackdrop(captured, careerId) };
   }
 
   create() {
@@ -60,15 +66,12 @@ export class WorldMapScene extends Phaser.Scene {
     this.activeChapter = undefined;
     this.activeMonster = undefined;
 
-    this.captured = capturedIds(readDexState(this.registry));
+    const { captured, storedJob, selectedJob, backdrop } = this.resolveProgress();
+    this.captured = captured;
     this.activeChapter = selectActiveChapter(this.captured);
     this.activeMonster = this.activeChapter?.stages[currentStageIndex(this.activeChapter, this.captured)];
 
-    const storedJob = findJob(this.registry.get(JOB_REGISTRY_KEY) as string | undefined);
-    const selectedJob = isCommonPathComplete(this.captured) ? storedJob : findJob(undefined);
     if (storedJob.id !== selectedJob.id) this.registry.set(JOB_REGISTRY_KEY, selectedJob.id);
-    const careerId = selectedJob.id === "junior" ? undefined : (selectedJob.id as JobId);
-    const backdrop = selectWorldBackdrop(this.captured, careerId);
     this.add.image(width / 2, height / 2, backdrop.textureKey).setDisplaySize(width, height);
     if (backdrop.ambience) playAmbience(this, backdrop.ambience);
 
@@ -81,13 +84,20 @@ export class WorldMapScene extends Phaser.Scene {
       const quest = this.quest as QuestMarker | undefined;
       quest?.group.setAlpha(0);
       quest?.setEnabled(false);
-      this.time.delayedCall(550, () =>
+      // The quest actors and hidden HUD are already interactive; swallow taps
+      // until the dialog's own shade takes over, so onboarding can't be skipped.
+      const inputBlocker = this.add
+        .rectangle(width / 2, height / 2, width, height, 0x000000, 0)
+        .setInteractive()
+        .setDepth(20);
+      this.time.delayedCall(550, () => {
+        inputBlocker.destroy();
         new OnboardingDialog(this, {
           speaker: "버그 연구원 루피",
           lines: TUTORIAL_ONBOARDING_LINES,
           onFinish: () => this.finishOnboarding(),
-        })
-      );
+        });
+      });
     } else if (this.activeMonster) {
       this.time.delayedCall(250, () => this.showHint());
     }
