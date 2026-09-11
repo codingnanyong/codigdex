@@ -61,6 +61,17 @@ export function createButton(
   return container;
 }
 
+/** Turns a createButton button on or off, dimming it while it's off. */
+export function setButtonEnabled(button: Phaser.GameObjects.Container, enabled: boolean) {
+  const bg = button.list[0] as Phaser.GameObjects.Rectangle;
+  if (enabled) {
+    bg.setInteractive({ useHandCursor: true });
+  } else {
+    bg.disableInteractive();
+  }
+  button.setAlpha(enabled ? 1 : 0.45);
+}
+
 /**
  * Rounded parchment panel with a double border and corner rivets — the
  * shared frame language for the Codigdex and capture-quiz panels.
@@ -102,3 +113,72 @@ export function drawOrnateFrame(
   return g;
 }
 
+/** Full-screen dimmer behind a modal. It's interactive, so clicks can't reach the scene below. */
+export function addShade(scene: Phaser.Scene, alpha: number, depth = 0): Phaser.GameObjects.Rectangle {
+  const { width, height } = scene.scale;
+  return scene.add
+    .rectangle(width / 2, height / 2, width, height, PALETTE.nightBrown, alpha)
+    .setInteractive()
+    .setDepth(depth);
+}
+
+/** Scales a freshly built modal up into place. */
+export function popIn(scene: Phaser.Scene, target: Phaser.GameObjects.Container, fromScale = 0.9) {
+  target.setAlpha(0).setScale(fromScale);
+  scene.tweens.add({
+    targets: target,
+    alpha: 1,
+    scale: 1,
+    duration: 240,
+    ease: "Back.Out",
+  });
+}
+
+/**
+ * A code sample on a dark plate, centered on x = 0 with its top edge at `y`.
+ * Snippets run one to three lines, so the plate is sized to the text. Add the
+ * plate to a container before the text so it renders underneath.
+ */
+export function addSnippetBlock(scene: Phaser.Scene, y: number, width: number, snippet: string) {
+  const text = scene.add
+    .text(0, y + 8, snippet, {
+      ...pixelText("body"),
+      color: PALETTE_HEX.sand,
+      align: "center",
+    })
+    .setOrigin(0.5, 0);
+  const height = text.height + 16;
+  const plate = scene.add
+    .rectangle(0, y, width, height, PALETTE.nightBrown, 0.9)
+    .setStrokeStyle(2, PALETTE.ink)
+    .setOrigin(0.5, 0);
+  return { plate, text, height };
+}
+
+/** A short message along the bottom that fades away, replacing `previous` if it's still up. */
+export function showToast(
+  scene: Phaser.Scene,
+  message: string,
+  previous?: Phaser.GameObjects.Text
+): Phaser.GameObjects.Text {
+  previous?.destroy();
+  const { width, height } = scene.scale;
+  const toast = scene.add
+    .text(width / 2, height - 65, message, {
+      ...pixelText("body"),
+      color: PALETTE_HEX.cream,
+      backgroundColor: "#2a1d14f2",
+      padding: { x: 12, y: 7 },
+    })
+    .setOrigin(0.5)
+    .setDepth(10);
+
+  scene.tweens.add({
+    targets: toast,
+    alpha: { from: 1, to: 0 },
+    delay: 1_400,
+    duration: 400,
+    onComplete: () => toast.destroy(),
+  });
+  return toast;
+}

@@ -1,401 +1,279 @@
 import Phaser from "phaser";
-import { PALETTE, PALETTE_HEX } from "../palette";
-import { createButton, drawOrnateFrame, applyPixelFontToScene } from "../ui";
-import { pixelText } from "../pixelFont";
-import { ensureDexDefaults, readDexState } from "../registryAdapter";
+import { CHAPTERS, currentStageIndex, isCommonPathComplete } from "@/lib/domain/chapters";
 import {
-  NPC_PRE_BATTLE_LINE,
-  TUTORIAL_CHAPTER_TITLE,
   TUTORIAL_MONSTER,
   TUTORIAL_ONBOARDING_LINES,
-} from "@/lib/domain/tutorial/content";
-import { findJob, JOB_REGISTRY_KEY } from "@/lib/domain/player/jobs";
+} from "@/lib/domain/chapters/tutorial";
+import type { ChapterDefinition, MonsterDefinition } from "@/lib/domain/chapters/types";
+import { findJob, JOB_REGISTRY_KEY, type JobId } from "@/lib/domain/player/jobs";
+import { capturedIds } from "@/lib/domain/dex/capture";
+import { playAmbience } from "../ambience";
+import { preloadMonsterArt } from "../monsterArt";
+import { PALETTE } from "../palette";
+import { PALETTE_HEX } from "../palette";
+import { pixelText } from "../pixelFont";
+import {
+  ensureDexDefaults,
+  readDexState,
+  TUTORIAL_ONBOARDING_SEEN_KEY,
+} from "../registryAdapter";
+import { applyPixelFontToScene, createButton, drawOrnateFrame } from "../ui";
+import { showGuideHint } from "../worldMap/guideHint";
+import { OnboardingDialog } from "../worldMap/onboarding";
+import { showQuestDialog } from "../worldMap/questDialog";
+import { QuestMarker } from "../worldMap/questMarker";
+import { drawChapterRoute, routePointsFor } from "../worldMap/chapterRoute";
+import {
+  selectActiveChapter,
+  selectWorldBackdrop,
+  WORLD_BACKDROPS,
+  type WorldBackdrop,
+} from "../worldMap/progression";
 
-const INK = PALETTE_HEX.ink;
-const ONBOARDING_SEEN_KEY = "tutorialOnboardingSeen";
-
+/** Progress-aware waiting screen: onboarding first, then the current chapter or career landscape. */
 export class WorldMapScene extends Phaser.Scene {
-  private questMarker!: Phaser.GameObjects.Arc;
-  private questHitArea!: Phaser.GameObjects.Rectangle;
-  private questLabel!: Phaser.GameObjects.Text;
-  private questGroup!: Phaser.GameObjects.Container;
-  private mapHud!: Phaser.GameObjects.Container;
-  private dialogGroup?: Phaser.GameObjects.Container;
-  private onboardingGroup?: Phaser.GameObjects.Container;
-  private onboardingBody?: Phaser.GameObjects.Text;
-  private onboardingNextButton?: Phaser.GameObjects.Container;
+  private hud!: Phaser.GameObjects.Container;
+  private quest?: QuestMarker;
+  private questDialog?: Phaser.GameObjects.Container;
   private guideHint?: Phaser.GameObjects.Container;
-  private onboardingPage = 0;
+  private activeChapter?: ChapterDefinition;
+  private activeMonster?: MonsterDefinition;
+  private captured: ReadonlySet<string> = new Set();
 
   constructor() {
     super("world-map");
   }
 
   preload() {
-    this.load.image(
-      "tutorial-loop-forest",
-      "/assets/wallpapers/tutorial-loop-forest-v1.png"
-    );
+    WORLD_BACKDROPS.forEach(({ textureKey, assetPath }) => this.load.image(textureKey, assetPath));
+    this.load.image("npc-lupi-guide", "/assets/npcs/lupi-guide-v1.png");
+    preloadMonsterArt(this, CHAPTERS.flatMap((chapter) => chapter.stages));
   }
 
   create() {
     const { width, height } = this.scale;
     ensureDexDefaults(this.registry);
+    // Scene instances outlive restarts, so drop references to the last run's objects.
+    this.quest = undefined;
+    this.questDialog = undefined;
+    this.guideHint = undefined;
+    this.activeChapter = undefined;
+    this.activeMonster = undefined;
 
-    const bg = this.add.image(width / 2, height / 2, "tutorial-loop-forest");
-    bg.setDisplaySize(width, height);
+    this.captured = capturedIds(readDexState(this.registry));
+    this.activeChapter = selectActiveChapter(this.captured);
+    this.activeMonster = this.activeChapter?.stages[currentStageIndex(this.activeChapter, this.captured)];
 
-    const chapterFrame = drawOrnateFrame(this, width / 2, 24, 340, 34, { radius: 10 });
-    const chapterTitle = this.add
-      .text(width / 2, 24, `📘 ${TUTORIAL_CHAPTER_TITLE}`, {
-        ...pixelText("body"),
-        color: INK,
-      })
-      .setOrigin(0.5);
+    const storedJob = findJob(this.registry.get(JOB_REGISTRY_KEY) as string | undefined);
+    const selectedJob = isCommonPathComplete(this.captured) ? storedJob : findJob(undefined);
+    if (storedJob.id !== selectedJob.id) this.registry.set(JOB_REGISTRY_KEY, selectedJob.id);
+    const careerId = selectedJob.id === "junior" ? undefined : (selectedJob.id as JobId);
+    const backdrop = selectWorldBackdrop(this.captured, careerId);
+    this.add.image(width / 2, height / 2, backdrop.textureKey).setDisplaySize(width, height);
+    if (backdrop.ambience) playAmbience(this, backdrop.ambience);
 
-    const job = findJob(this.registry.get(JOB_REGISTRY_KEY) as string | undefined);
-    const jobPathButton = createButton(this, 101, 34, 170, 36, `${job.name}  ▶`, () =>
-      this.scene.start("path-map")
-    );
-
-    const hudItems: Phaser.GameObjects.GameObject[] = [
-      chapterFrame,
-      chapterTitle,
-      jobPathButton,
-    ];
-    if (this.getCapturedCard()) {
-      hudItems.push(
-        createButton(this, width - 70, 26, 120, 32, "Codigdex 도감", () =>
-          this.openCodigdex()
-        )
-      );
-    }
-    this.mapHud = this.add.container(0, 0, hudItems);
-
-    this.createQuestMarker();
+    this.hud = this.createHud(backdrop);
+    if (this.activeChapter && this.activeMonster) this.createQuestActors();
     applyPixelFontToScene(this);
 
-    if (this.registry.get(ONBOARDING_SEEN_KEY) !== true) {
-      this.mapHud.setAlpha(0);
-      this.questGroup.setAlpha(0);
-      this.questHitArea.disableInteractive();
-      this.time.delayedCall(550, () => this.showOnboarding());
-    } else {
-      this.time.delayedCall(250, () => this.showGuideHint());
+    if (!this.isTutorialCaptured() && this.registry.get(TUTORIAL_ONBOARDING_SEEN_KEY) !== true) {
+      this.hud.setAlpha(0);
+      const quest = this.quest as QuestMarker | undefined;
+      quest?.group.setAlpha(0);
+      quest?.setEnabled(false);
+      this.time.delayedCall(550, () =>
+        new OnboardingDialog(this, {
+          speaker: "버그 연구원 루피",
+          lines: TUTORIAL_ONBOARDING_LINES,
+          onFinish: () => this.finishOnboarding(),
+        })
+      );
+    } else if (this.activeMonster) {
+      this.time.delayedCall(250, () => this.showHint());
     }
 
-    this.events.on(Phaser.Scenes.Events.RESUME, () => {
-      this.refreshQuestMarker();
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      this.quest = undefined;
+      this.questDialog = undefined;
+      this.guideHint = undefined;
+      this.activeChapter = undefined;
+      this.activeMonster = undefined;
     });
   }
 
-  private getCapturedCard() {
-    const { cards } = readDexState(this.registry);
-    return cards.find((card) => card.id === TUTORIAL_MONSTER.id);
+  private createHud(backdrop: WorldBackdrop): Phaser.GameObjects.Container {
+    const { width } = this.scale;
+    const storedJob = this.registry.get(JOB_REGISTRY_KEY) as string | undefined;
+    const job = findJob(isCommonPathComplete(this.captured) ? storedJob : undefined);
+
+    const items: Phaser.GameObjects.GameObject[] = [
+      drawOrnateFrame(this, width / 2, 24, 340, 34, { radius: 10 }),
+      this.add
+        .text(width / 2, 24, `📘 ${backdrop.title}`, {
+          ...pixelText("body"),
+          color: PALETTE_HEX.ink,
+        })
+        .setOrigin(0.5),
+      createButton(this, 101, 34, 170, 36, `${job.name}  ▶`, () => this.scene.start("job-select")),
+    ];
+    if (this.isTutorialCaptured()) {
+      items.push(createButton(this, width - 70, 26, 120, 32, "Codigdex 도감", () => this.openCodigdex()));
+    }
+    return this.add.container(0, 0, items);
   }
 
-  private createQuestMarker() {
-    const { width, height } = this.scale;
-    const x = width / 2;
-    const y = height / 2 + 12;
+  private isTutorialCaptured(): boolean {
+    return readDexState(this.registry).cards.some((card) => card.id === TUTORIAL_MONSTER.id);
+  }
 
-    this.questHitArea = this.add
-      .rectangle(x, y - 12, 280, 72, 0xffffff, 0)
-      .setInteractive({ useHandCursor: true })
-      .setDepth(4);
+  private refreshQuest() {
+    if (!this.activeChapter || !this.activeMonster) return;
+    this.quest?.update(this.questLabel(), false);
+  }
 
-    this.questMarker = this.add
-      .circle(x, y, 14, PALETTE.maroon, 0.85)
-      .setStrokeStyle(2, PALETTE.ink)
-      .setDepth(4);
+  private questLabel(): string {
+    if (!this.activeChapter || !this.activeMonster) return "";
+    const index = this.activeChapter.stages.indexOf(this.activeMonster);
+    return this.activeChapter.id === "tutorial"
+      ? `첫 의뢰 · ${this.activeMonster.name}`
+      : `${this.activeChapter.label} · ${index + 1}/${this.activeChapter.stages.length} · ${this.activeMonster.name}`;
+  }
 
-    const labelFrame = drawOrnateFrame(this, x, y - 26, 260, 30, { radius: 8 }).setDepth(4);
-    this.questLabel = this.add
-      .text(x, y - 26, `첫 의뢰 · ${TUTORIAL_MONSTER.name}`, {
-        ...pixelText("body"),
-        color: INK,
-      })
-      .setOrigin(0.5)
-      .setDepth(4);
+  private createQuestActors() {
+    const { activeChapter: chapter, activeMonster: monster } = this;
+    if (!chapter || !monster) return;
 
+    const activeIndex = currentStageIndex(chapter, this.captured);
+    const route = routePointsFor(chapter);
+    const point = route?.[activeIndex];
+    const monsterX = point?.x ?? 604;
+    const monsterY = point ? point.y - 68 : 270;
+    const npcSide = monsterX < this.scale.width / 2 ? 1 : -1;
+    const npcTargetX = Phaser.Math.Clamp(monsterX + npcSide * 126, 92, this.scale.width - 92);
+    const npcTargetY = monsterY + 18;
+    const previousPoint = route?.[Math.max(0, activeIndex - 1)];
+    const npcStartX = activeIndex > 0 && previousPoint ? previousPoint.x : npcTargetX;
+    const npcStartY = activeIndex > 0 && previousPoint ? previousPoint.y - 50 : npcTargetY;
+
+    drawChapterRoute(this, chapter, this.captured, activeIndex, () => this.onQuestClicked());
+
+    const npcShadow = this.add.ellipse(npcStartX, npcStartY + 67, 82, 18, PALETTE.nightBrown, 0.28).setDepth(2);
+    const npc = this.add
+      .image(npcStartX, npcStartY, "npc-lupi-guide")
+      .setDisplaySize(142, 142)
+      .setDepth(3)
+      .setInteractive({ useHandCursor: true });
+    npc.on("pointerup", () => this.onQuestClicked());
+
+    this.add.ellipse(monsterX, monsterY + 62, 100, 20, PALETTE.nightBrown, 0.28).setDepth(2);
+    const monsterImage = this.add
+      .image(monsterX, monsterY, monster.textureKey)
+      .setDisplaySize(126, 126)
+      .setDepth(3)
+      .setInteractive({ useHandCursor: true });
+    monsterImage.on("pointerup", () => this.onQuestClicked());
+
+    if (activeIndex > 0 && previousPoint) {
+      this.tweens.add({
+        targets: npc,
+        x: npcTargetX,
+        y: npcTargetY,
+        duration: 900,
+        ease: "Sine.InOut",
+      });
+      this.tweens.add({
+        targets: npcShadow,
+        x: npcTargetX,
+        y: npcTargetY + 67,
+        duration: 900,
+        ease: "Sine.InOut",
+      });
+    }
     this.tweens.add({
-      targets: this.questMarker,
-      scale: { from: 1, to: 1.35 },
-      alpha: { from: 0.7, to: 1 },
-      duration: 650,
+      targets: monsterImage,
+      y: "-=5",
+      duration: 1100,
+      delay: 240,
       ease: "Sine.InOut",
       yoyo: true,
       repeat: -1,
     });
 
-    this.questGroup = this.add.container(0, 0, [
-      this.questHitArea,
-      labelFrame,
-      this.questMarker,
-      this.questLabel,
-    ]);
-
-    this.questHitArea.on("pointerup", () => this.onQuestMarkerClicked());
-    this.refreshQuestMarker();
-  }
-
-  private refreshQuestMarker() {
-    const card = this.getCapturedCard();
-    if (card) {
-      this.questMarker.setFillStyle(PALETTE.sand, 0.6);
-      this.questLabel.setText(`${TUTORIAL_MONSTER.name} (캡처 완료)`);
+    const labelY = Math.max(92, monsterY - 92);
+    if (route) {
+      drawOrnateFrame(this, monsterX, labelY, 260, 30, { radius: 8 }).setDepth(4);
+      this.add
+        .text(monsterX, labelY, this.questLabel(), {
+          ...pixelText("body"),
+          color: PALETTE_HEX.ink,
+        })
+        .setOrigin(0.5)
+        .setDepth(4);
     } else {
-      this.questLabel.setText(`첫 의뢰 · ${TUTORIAL_MONSTER.name}`);
-    }
-  }
-
-  private onQuestMarkerClicked() {
-    if (this.dialogGroup) return;
-    this.dismissGuideHint();
-    this.showQuestDialog();
-  }
-
-  private showOnboarding() {
-    if (this.onboardingGroup) return;
-    const { width, height } = this.scale;
-    this.onboardingPage = 0;
-
-    const shade = this.add
-      .rectangle(width / 2, height / 2, width, height, PALETTE.nightBrown, 0.42)
-      .setInteractive();
-    const frame = drawOrnateFrame(this, width / 2, height - 104, 720, 174, {
-      radius: 14,
-    });
-    const speakerFrame = drawOrnateFrame(this, 190, height - 181, 150, 34, {
-      radius: 8,
-      fill: PALETTE.sand,
-    });
-    const speaker = this.add
-      .text(190, height - 181, "버그 연구원 루피", {
-        ...pixelText("body"),
-        color: PALETTE_HEX.maroon,
-      })
-      .setOrigin(0.5);
-
-    this.onboardingBody = this.add
-      .text(140, height - 153, TUTORIAL_ONBOARDING_LINES[0], {
-        ...pixelText("body"),
-        color: INK,
-        wordWrap: { width: 610 },
-        lineSpacing: 5,
-      })
-      .setOrigin(0, 0);
-
-    const pageText = this.add
-      .text(width / 2, height - 30, `1 / ${TUTORIAL_ONBOARDING_LINES.length}`, {
-        ...pixelText("caption"),
-        color: PALETTE_HEX.mutedBrown,
-      })
-      .setOrigin(0.5);
-
-    this.onboardingNextButton = createButton(
-      this,
-      width - 186,
-      height - 52,
-      120,
-      34,
-      "다음  ▶",
-      () => this.advanceOnboarding(pageText)
-    );
-    const skipButton = createButton(this, width - 72, 28, 112, 30, "건너뛰기", () =>
-      this.finishOnboarding()
-    );
-
-    this.onboardingGroup = this.add
-      .container(0, 12, [
-        shade,
-        frame,
-        speakerFrame,
-        speaker,
-        this.onboardingBody,
-        pageText,
-        this.onboardingNextButton,
-        skipButton,
-      ])
-      .setDepth(20)
-      .setAlpha(0);
-
-    this.tweens.add({
-      targets: this.onboardingGroup,
-      alpha: 1,
-      y: 0,
-      duration: 260,
-      ease: "Quad.Out",
-    });
-
-    const advanceWithKeyboard = () => this.advanceOnboarding(pageText);
-    this.input.keyboard?.on("keydown-ENTER", advanceWithKeyboard);
-    this.input.keyboard?.on("keydown-SPACE", advanceWithKeyboard);
-    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
-      this.input.keyboard?.off("keydown-ENTER", advanceWithKeyboard);
-      this.input.keyboard?.off("keydown-SPACE", advanceWithKeyboard);
-    });
-    this.onboardingGroup.setData("keyboardHandler", advanceWithKeyboard);
-    applyPixelFontToScene(this);
-  }
-
-  private advanceOnboarding(pageText: Phaser.GameObjects.Text) {
-    if (!this.onboardingGroup) return;
-    if (this.onboardingPage >= TUTORIAL_ONBOARDING_LINES.length - 1) {
-      this.finishOnboarding();
-      return;
-    }
-
-    this.onboardingPage += 1;
-    this.onboardingBody?.setText(TUTORIAL_ONBOARDING_LINES[this.onboardingPage]);
-    pageText.setText(`${this.onboardingPage + 1} / ${TUTORIAL_ONBOARDING_LINES.length}`);
-
-    if (this.onboardingPage === TUTORIAL_ONBOARDING_LINES.length - 1) {
-      const buttonLabel = this.onboardingNextButton?.list[1] as Phaser.GameObjects.Text | undefined;
-      buttonLabel?.setText("의뢰 확인");
+      this.quest = new QuestMarker(this, () => this.onQuestClicked(), {
+        x: monsterX,
+        y: labelY,
+      });
+      this.refreshQuest();
     }
   }
 
   private finishOnboarding() {
-    if (!this.onboardingGroup) return;
-    this.registry.set(ONBOARDING_SEEN_KEY, true);
-
-    const keyboardHandler = this.onboardingGroup.getData("keyboardHandler") as (() => void) | undefined;
-    if (keyboardHandler) {
-      this.input.keyboard?.off("keydown-ENTER", keyboardHandler);
-      this.input.keyboard?.off("keydown-SPACE", keyboardHandler);
-    }
-
-    const group = this.onboardingGroup;
-    this.onboardingGroup = undefined;
+    this.registry.set(TUTORIAL_ONBOARDING_SEEN_KEY, true);
     this.tweens.add({
-      targets: group,
-      alpha: 0,
-      y: 8,
-      duration: 180,
-      onComplete: () => group.destroy(true),
-    });
-
-    this.tweens.add({
-      targets: [this.mapHud, this.questGroup],
+      targets: [this.hud, this.quest?.group].filter(Boolean),
       alpha: 1,
       duration: 350,
       delay: 100,
       onComplete: () => {
-        this.questHitArea.setInteractive({ useHandCursor: true });
-        this.showGuideHint();
+        this.quest?.setEnabled(true);
+        this.showHint();
       },
     });
   }
 
-  private showGuideHint() {
-    if (this.guideHint || this.getCapturedCard()) return;
-    const { width, height } = this.scale;
-    const arrow = this.add
-      .text(width / 2 + 154, height / 2 + 19, "◀", {
-        ...pixelText("subtitle"),
-        color: PALETTE_HEX.maroon,
-        stroke: PALETTE_HEX.cream,
-        strokeThickness: 3,
-      })
-      .setOrigin(0.5);
-    const instruction = this.add
-      .text(width / 2, height - 28, "빛나는 첫 의뢰 표식을 눌러 보세요", {
-        ...pixelText("body"),
-        color: PALETTE_HEX.cream,
-        backgroundColor: "#2a1d14e6",
-        padding: { x: 12, y: 7 },
-      })
-      .setOrigin(0.5);
-
-    this.guideHint = this.add.container(0, 0, [arrow, instruction]).setDepth(8);
-    this.tweens.add({
-      targets: arrow,
-      x: arrow.x - 8,
-      duration: 520,
-      ease: "Sine.InOut",
-      yoyo: true,
-      repeat: -1,
-    });
-    applyPixelFontToScene(this);
+  private showHint() {
+    if (this.guideHint || !this.activeMonster) return;
+    const activeIndex = this.activeChapter
+      ? currentStageIndex(this.activeChapter, this.captured)
+      : 0;
+    const routePoint = this.activeChapter
+      ? routePointsFor(this.activeChapter)?.[activeIndex]
+      : undefined;
+    this.guideHint = showGuideHint(
+      this,
+      this.activeChapter?.id === "tutorial"
+        ? "빛나는 첫 의뢰 표식을 눌러 보세요"
+        : "루피 또는 현재 몬스터를 눌러 배틀을 시작하세요",
+      routePoint ?? { x: 604, y: 270 }
+    );
   }
 
-  private dismissGuideHint() {
+  private onQuestClicked() {
+    if (this.questDialog || !this.activeChapter || !this.activeMonster) return;
     this.guideHint?.destroy(true);
     this.guideHint = undefined;
-  }
 
-  private showQuestDialog() {
-    const { width, height } = this.scale;
-    const card = this.getCapturedCard();
-    const boxWidth = 560;
-    const boxHeight = 150;
-    const boxCenterY = height - 110;
-
-    const frame = drawOrnateFrame(this, width / 2, boxCenterY, boxWidth, boxHeight, {
-      radius: 14,
-    }).setDepth(10);
-
-    const speaker = this.add
-      .text(width / 2 - boxWidth / 2 + 20, boxCenterY - boxHeight / 2 + 16, `${TUTORIAL_MONSTER.npcName}:`, {
-        ...pixelText("body"),
-        color: PALETTE_HEX.maroon,
-      })
-      .setDepth(11);
-
-    const message = card
-      ? "이미 도감에 등록한 버그예요. 복습 겸 한 번 더 도전해볼까요?"
-      : TUTORIAL_MONSTER.questText;
-
-    const body = this.add
-      .text(width / 2 - boxWidth / 2 + 20, boxCenterY - boxHeight / 2 + 40, message, {
-        ...pixelText("body"),
-        color: INK,
-        wordWrap: { width: boxWidth - 40 },
-      })
-      .setDepth(11);
-
-    const startButton = createButton(
-      this,
-      width / 2 + boxWidth / 2 - 90,
-      boxCenterY + boxHeight / 2 - 24,
-      140,
-      32,
-      "코드 배틀 시작",
-      () => this.startBattle()
-    );
-    startButton.setDepth(11);
-
-    const closeButton = createButton(
-      this,
-      width / 2 - boxWidth / 2 + 60,
-      boxCenterY + boxHeight / 2 - 24,
-      80,
-      32,
-      "닫기",
-      () => this.closeDialog()
-    );
-    closeButton.setDepth(11);
-
-    this.dialogGroup = this.add.container(0, 0, [frame, speaker, body, startButton, closeButton]);
-    applyPixelFontToScene(this);
-  }
-
-  private closeDialog() {
-    this.dialogGroup?.destroy(true);
-    this.dialogGroup = undefined;
-  }
-
-  private startBattle() {
-    this.closeDialog();
-    this.scene.start("code-battle", {
-      monsterId: TUTORIAL_MONSTER.id,
-      npcLine: NPC_PRE_BATTLE_LINE,
+    const chapter = this.activeChapter;
+    const monster = this.activeMonster;
+    this.questDialog = showQuestDialog(this, {
+      speaker: `${chapter.npcName}:`,
+      message: monster.briefing,
+      onStart: () => {
+        this.closeQuestDialog();
+        this.scene.start("code-battle", { monsterId: monster.id });
+      },
+      onClose: () => this.closeQuestDialog(),
     });
+  }
+
+  private closeQuestDialog() {
+    this.questDialog?.destroy(true);
+    this.questDialog = undefined;
   }
 
   private openCodigdex() {
-    this.scene.launch("codigdex", {});
+    this.scene.launch("codigdex", { returnTo: this.scene.key });
     this.scene.pause();
   }
 }

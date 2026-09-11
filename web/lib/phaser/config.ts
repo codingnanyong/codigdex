@@ -6,6 +6,7 @@ import { WorldMapScene } from "./scenes/WorldMapScene";
 import { CodeBattleScene } from "./scenes/CodeBattleScene";
 import { CaptureQuizScene } from "./scenes/CaptureQuizScene";
 import { CodigdexScene } from "./scenes/CodigdexScene";
+import { initializeRegistryPersistence } from "./registryAdapter";
 
 export function createGameConfig(
   parent: HTMLElement
@@ -17,6 +18,9 @@ export function createGameConfig(
     height: 540,
     pixelArt: true,
     backgroundColor: "#f1e4cb",
+    callbacks: {
+      preBoot: (game) => initializeRegistryPersistence(game.registry),
+    },
     scale: {
       mode: Phaser.Scale.FIT,
       autoCenter: Phaser.Scale.CENTER_BOTH,

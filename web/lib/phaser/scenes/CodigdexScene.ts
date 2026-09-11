@@ -1,345 +1,90 @@
 import Phaser from "phaser";
-import { PALETTE, PALETTE_HEX } from "../palette";
-import { createButton, drawOrnateFrame, applyPixelFontToScene } from "../ui";
-import { pixelText } from "../pixelFont";
+import { DEX_MONSTERS } from "@/lib/domain/chapters";
+import { DetailCard } from "../dex/detailCard";
+import { buildDexEntries, type DexEntry } from "../dex/entry";
+import { EntryList } from "../dex/entryList";
+import { PreviewPane } from "../dex/previewPane";
+import { DEX_PANEL, drawDexShell } from "../dex/shell";
+import { preloadMonsterArt } from "../monsterArt";
 import { readDexState } from "../registryAdapter";
-import {
-  CapturedCard,
-  TOTAL_TUTORIAL_MONSTERS,
-  TUTORIAL_MONSTER,
-} from "@/lib/domain/tutorial/content";
+import { addShade, applyPixelFontToScene, createButton } from "../ui";
 
-const CREAM = PALETTE_HEX.cream;
-const SAND = PALETTE_HEX.sand;
-const PANEL_WIDTH = 780;
-const PANEL_HEIGHT = 460;
-const SCREEN_INSET = 16;
-const PREVIEW_SIZE = 176;
-const ROW_HEIGHT = 54;
+const PREVIEW_COLUMN = 240;
 
+interface CodigdexData {
+  /** The scene that launched the dex, resumed when it closes. */
+  returnTo?: string;
+}
+
+/** The dex, launched over a paused map: a Pokédex-style list with a live preview and full cards. */
 export class CodigdexScene extends Phaser.Scene {
-  private detailGroup?: Phaser.GameObjects.Container;
-  private detailOverlay?: Phaser.GameObjects.Rectangle;
+  private returnTo = "world-map";
+  private entries: DexEntry[] = [];
+  private selectedIndex = 0;
+  private preview!: PreviewPane;
+  private list!: EntryList;
+  private detail!: DetailCard;
 
   constructor() {
     super("codigdex");
   }
 
+  init(data?: CodigdexData) {
+    this.returnTo = data?.returnTo ?? "world-map";
+  }
+
   preload() {
-    this.load.image(
-      "loop-bug",
-      "/assets/monsters/loop-bug-v2.png"
-    );
+    preloadMonsterArt(this, DEX_MONSTERS);
   }
 
   create() {
-    const { width, height } = this.scale;
+    addShade(this, 0.7);
+    const screen = drawDexShell(this);
+    const bodyTop = screen.top + 52;
 
-    this.add
-      .rectangle(width / 2, height / 2, width, height, PALETTE.nightBrown, 0.7)
-      .setInteractive();
+    this.entries = buildDexEntries(readDexState(this.registry).cards);
+    this.selectedIndex = Math.max(0, this.entries.findIndex((entry) => entry.card));
 
-    const panelX = width / 2;
-    const panelY = height / 2;
-    const screenWidth = PANEL_WIDTH - SCREEN_INSET * 2;
-    const screenHeight = PANEL_HEIGHT - SCREEN_INSET * 2;
-    const screenLeft = panelX - screenWidth / 2;
-    const screenTop = panelY - screenHeight / 2;
+    this.detail = new DetailCard(this);
+    this.preview = new PreviewPane(this, screen.left + 16 + PREVIEW_COLUMN / 2, bodyTop);
+    this.list = new EntryList(this, this.entries, {
+      left: screen.left + 16 + PREVIEW_COLUMN + 16,
+      right: screen.left + screen.width - 16,
+      top: bodyTop,
+      onHover: (index) => this.select(index),
+      onPick: (index) => this.pick(index),
+    });
+    this.preview.show(this.entries[this.selectedIndex]);
+    this.list.highlight(this.selectedIndex);
 
-    this.drawBezel(panelX, panelY, screenWidth, screenHeight);
-
-    const headerY = screenTop + 22;
-    this.drawHeaderBadges(panelX, headerY);
-    this.add
-      .text(panelX, headerY, "CODIGDEX 도감", {
-        ...pixelText("subtitle"),
-        color: CREAM,
-      })
-      .setOrigin(0.5);
-
-    this.add.rectangle(panelX, screenTop + 42, screenWidth - 24, 1, PALETTE.mutedBrown, 0.6);
-
-    const { cards } = readDexState(this.registry);
-    const card = cards.find((c) => c.id === TUTORIAL_MONSTER.id);
-
-    const bodyTop = screenTop + 52;
-    const bodyBottom = panelY + PANEL_HEIGHT / 2 - SCREEN_INSET - 40;
-    const leftPaneX = screenLeft + 16 + 240 / 2;
-
-    this.renderPreviewPane(leftPaneX, bodyTop, bodyBottom, card);
-    this.renderListPane(screenLeft + 16 + 240 + 16, screenLeft + screenWidth - 16, bodyTop, card);
-
-    createButton(this, panelX, panelY + PANEL_HEIGHT / 2 - SCREEN_INSET - 14, 100, 30, "닫기", () =>
-      this.close()
+    createButton(
+      this,
+      screen.centerX,
+      screen.centerY + DEX_PANEL.height / 2 - DEX_PANEL.inset - 14,
+      100,
+      30,
+      "닫기",
+      () => this.close()
     );
 
     applyPixelFontToScene(this);
   }
 
-  private drawBezel(centerX: number, centerY: number, screenWidth: number, screenHeight: number) {
-    const g = this.add.graphics();
-    const bezelLeft = centerX - PANEL_WIDTH / 2;
-    const bezelTop = centerY - PANEL_HEIGHT / 2;
-
-    g.fillStyle(PALETTE.nightBrown, 0.4);
-    g.fillRoundedRect(bezelLeft + 4, bezelTop + 6, PANEL_WIDTH, PANEL_HEIGHT, 20);
-    g.fillStyle(PALETTE.maroon, 1);
-    g.fillRoundedRect(bezelLeft, bezelTop, PANEL_WIDTH, PANEL_HEIGHT, 20);
-    g.lineStyle(3, PALETTE.ink, 1);
-    g.strokeRoundedRect(bezelLeft, bezelTop, PANEL_WIDTH, PANEL_HEIGHT, 20);
-
-    const screenLeft = centerX - screenWidth / 2;
-    const screenTop = centerY - screenHeight / 2;
-    g.fillStyle(PALETTE.nightBrown, 1);
-    g.fillRoundedRect(screenLeft, screenTop, screenWidth, screenHeight, 12);
-    g.lineStyle(2, PALETTE.ink, 1);
-    g.strokeRoundedRect(screenLeft, screenTop, screenWidth, screenHeight, 12);
+  private select(index: number) {
+    if (index === this.selectedIndex) return;
+    this.selectedIndex = index;
+    this.list.highlight(index);
+    this.preview.show(this.entries[index]);
   }
 
-  private drawHeaderBadges(centerX: number, y: number) {
-    [-92, 92].forEach((offset) => {
-      const ball = this.add.graphics({ x: centerX + offset, y });
-      ball.fillStyle(PALETTE.amber, 1);
-      ball.fillCircle(0, 0, 6);
-      ball.lineStyle(1.5, PALETTE.ink, 1);
-      ball.strokeCircle(0, 0, 6);
-    });
-  }
-
-  private renderPreviewPane(centerX: number, top: number, bottom: number, card?: CapturedCard) {
-    const previewTop = top + 6;
-    const previewCenterY = previewTop + PREVIEW_SIZE / 2;
-
-    this.add
-      .rectangle(centerX, previewCenterY, PREVIEW_SIZE, PREVIEW_SIZE, PALETTE.ink, 1)
-      .setStrokeStyle(2, PALETTE.mutedBrown);
-
-    if (card) {
-      this.add
-        .image(centerX, previewCenterY - 4, "loop-bug")
-        .setDisplaySize(PREVIEW_SIZE - 16, (PREVIEW_SIZE - 16) * (2 / 3));
-    } else {
-      this.add
-        .text(centerX, previewCenterY, "?", {
-          ...pixelText("hero"),
-          color: PALETTE_HEX.mutedBrown,
-        })
-        .setOrigin(0.5);
-    }
-
-    let cursor = previewTop + PREVIEW_SIZE + 16;
-    const infoWidth = PREVIEW_SIZE + 40;
-
-    const dexNumber = this.add
-      .text(centerX, cursor, `No. ${TUTORIAL_MONSTER.dexNumber}`, {
-        ...pixelText("body"),
-        color: SAND,
-      })
-      .setOrigin(0.5, 0);
-    cursor += dexNumber.height + 4;
-
-    const name = this.add
-      .text(centerX, cursor, card ? card.name : "???", {
-        ...pixelText("subtitle"),
-        color: CREAM,
-        fontStyle: "bold",
-      })
-      .setOrigin(0.5, 0);
-    cursor += name.height + 6;
-
-    if (card) {
-      const classification = this.add
-        .text(centerX, cursor, card.classification, {
-          ...pixelText("body"),
-          color: PALETTE_HEX.amber,
-        })
-        .setOrigin(0.5, 0);
-      cursor += classification.height + 6;
-
-      this.add
-        .text(centerX, cursor, card.trait, {
-          ...pixelText("body"),
-          color: SAND,
-          align: "center",
-          wordWrap: { width: infoWidth },
-        })
-        .setOrigin(0.5, 0);
-    } else {
-      this.add
-        .text(centerX, cursor, "아직 관찰되지 않았습니다", {
-          ...pixelText("body"),
-          color: PALETTE_HEX.mutedBrown,
-          align: "center",
-          wordWrap: { width: infoWidth },
-        })
-        .setOrigin(0.5, 0);
-    }
-  }
-
-  private renderListPane(left: number, right: number, top: number, card: CapturedCard | undefined) {
-    const width = right - left;
-    const centerX = left + width / 2;
-
-    const row = this.add
-      .rectangle(centerX, top + ROW_HEIGHT / 2, width, ROW_HEIGHT, PALETTE.ink, 1)
-      .setStrokeStyle(2, PALETTE.amber);
-
-    if (card) {
-      row.setInteractive({ useHandCursor: true });
-      row.on("pointerover", () => row.setFillStyle(PALETTE.wood));
-      row.on("pointerout", () => row.setFillStyle(PALETTE.ink));
-      row.on("pointerup", () => this.openDetail(card));
-    }
-
-    const ballColor = card ? PALETTE.amber : PALETTE.mutedBrown;
-    const ball = this.add.graphics({ x: left + 26, y: top + ROW_HEIGHT / 2 });
-    ball.fillStyle(ballColor, 1);
-    ball.fillCircle(0, 0, 8);
-    ball.lineStyle(2, PALETTE.ink, 1);
-    ball.strokeCircle(0, 0, 8);
-
-    this.add
-      .text(left + 48, top + ROW_HEIGHT / 2, `No.${TUTORIAL_MONSTER.dexNumber}  ${card ? card.name : "???"}`, {
-        ...pixelText("body"),
-        color: card ? CREAM : PALETTE_HEX.mutedBrown,
-      })
-      .setOrigin(0, 0.5);
-
-    const statsY = top + ROW_HEIGHT + 24;
-    this.add
-      .text(centerX, statsY, `등록 ${card ? 1 : 0}  ·  전체 ${TOTAL_TUTORIAL_MONSTERS}`, {
-        ...pixelText("body"),
-        color: SAND,
-      })
-      .setOrigin(0.5, 0);
-  }
-
-  private openDetail(card: CapturedCard) {
-    if (this.detailGroup) return;
-    const { width, height } = this.scale;
-
-    const overlay = this.add
-      .rectangle(width / 2, height / 2, width, height, PALETTE.nightBrown, 0.75)
-      .setInteractive()
-      .setDepth(20);
-
-    const panelWidth = 560;
-    const imageSize = 200;
-    const infoWidth = panelWidth - 120;
-
-    const image = this.add
-      .image(0, imageSize / 2, "loop-bug")
-      .setDisplaySize(imageSize, imageSize * (2 / 3));
-    let cursor = imageSize * (2 / 3) + 24;
-
-    const dexNumber = this.add
-      .text(0, cursor, `No. ${TUTORIAL_MONSTER.dexNumber}`, {
-        ...pixelText("body"),
-        color: PALETTE_HEX.mutedBrown,
-      })
-      .setOrigin(0.5, 0);
-    cursor += dexNumber.height + 4;
-
-    const name = this.add
-      .text(0, cursor, card.name, {
-        ...pixelText("subtitle"),
-        color: PALETTE_HEX.ink,
-        fontStyle: "bold",
-      })
-      .setOrigin(0.5, 0);
-    cursor += name.height + 4;
-
-    const classification = this.add
-      .text(0, cursor, card.classification, {
-        ...pixelText("body"),
-        color: PALETTE_HEX.maroon,
-      })
-      .setOrigin(0.5, 0);
-    cursor += classification.height + 14;
-
-    const description = this.add
-      .text(0, cursor, card.description, {
-        ...pixelText("body"),
-        color: PALETTE_HEX.ink,
-        align: "center",
-        wordWrap: { width: infoWidth },
-      })
-      .setOrigin(0.5, 0);
-    cursor += description.height + 14;
-
-    const snippetBg = this.add
-      .rectangle(0, cursor, infoWidth, 46, PALETTE.nightBrown, 0.9)
-      .setStrokeStyle(2, PALETTE.ink)
-      .setOrigin(0.5, 0);
-    const snippetText = this.add
-      .text(0, cursor + 8, card.snippet, {
-        ...pixelText("body"),
-        color: PALETTE_HEX.sand,
-        align: "center",
-      })
-      .setOrigin(0.5, 0);
-    cursor += 46 + 14;
-
-    const dateLabel = this.add
-      .text(0, cursor, new Date(card.capturedAt).toLocaleDateString("ko-KR"), {
-        ...pixelText("caption"),
-        color: PALETTE_HEX.mutedBrown,
-      })
-      .setOrigin(0.5, 0);
-    cursor += dateLabel.height;
-
-    const panelHeight = Math.max(360, cursor + 90);
-    const shiftY = -panelHeight / 2 + 16;
-    [image, dexNumber, name, classification, description, snippetBg, snippetText, dateLabel].forEach(
-      (el) => {
-        el.y += shiftY;
-      }
-    );
-
-    const frame = drawOrnateFrame(this, 0, 0, panelWidth, panelHeight);
-    const closeButton = createButton(this, 0, panelHeight / 2 - 32, 100, 32, "닫기", () =>
-      this.closeDetail()
-    );
-
-    this.detailGroup = this.add
-      .container(width / 2, height / 2, [
-        frame,
-        image,
-        dexNumber,
-        name,
-        classification,
-        description,
-        snippetBg,
-        snippetText,
-        dateLabel,
-        closeButton,
-      ])
-      .setDepth(21)
-      .setAlpha(0)
-      .setScale(0.9);
-
-    this.tweens.add({
-      targets: this.detailGroup,
-      alpha: 1,
-      scale: 1,
-      duration: 200,
-      ease: "Back.Out",
-    });
-
-    overlay.on("pointerup", () => this.closeDetail());
-    this.detailOverlay = overlay;
-    applyPixelFontToScene(this);
-  }
-
-  private closeDetail() {
-    this.detailOverlay?.destroy();
-    this.detailOverlay = undefined;
-    this.detailGroup?.destroy(true);
-    this.detailGroup = undefined;
+  private pick(index: number) {
+    this.select(index);
+    const { monster, card } = this.entries[index];
+    if (card) this.detail.open(monster, card);
   }
 
   private close() {
     this.scene.stop();
-    this.scene.resume("world-map");
+    this.scene.resume(this.returnTo);
   }
 }

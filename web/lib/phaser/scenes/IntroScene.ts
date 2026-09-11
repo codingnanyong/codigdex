@@ -1,10 +1,12 @@
 import Phaser from "phaser";
+import { playAmbience } from "../ambience";
+import { breathe } from "../ambience/effects";
+import { PALETTE, PALETTE_HEX } from "../palette";
 import { pixelText } from "../pixelFont";
 import { applyPixelFontToScene } from "../ui";
-import { PALETTE, PALETTE_HEX } from "../palette";
+import { hasSavedProgress } from "../registryAdapter";
 
-const ACCENT = 0xe8834f;
-
+/** Title screen: the archive painting, the wordmark, and PRESS START. */
 export class IntroScene extends Phaser.Scene {
   private leaving = false;
 
@@ -13,10 +15,7 @@ export class IntroScene extends Phaser.Scene {
   }
 
   preload() {
-    this.load.image(
-      "codigdex-title-archive",
-      "/assets/wallpapers/codigdex-title-archive-v1.png"
-    );
+    this.load.image("codigdex-title-archive", "/assets/wallpapers/codigdex-title-archive-v1.png");
   }
 
   create() {
@@ -24,24 +23,11 @@ export class IntroScene extends Phaser.Scene {
     const background = this.add
       .image(width / 2, height / 2, "codigdex-title-archive")
       .setDisplaySize(width, height);
-
-    const baseScaleX = background.scaleX;
-    const baseScaleY = background.scaleY;
-
-    this.tweens.add({
-      targets: background,
-      scaleX: baseScaleX * 1.015,
-      scaleY: baseScaleY * 1.015,
-      y: height / 2 - 3,
-      duration: 5_000,
-      ease: "Sine.InOut",
-      yoyo: true,
-      repeat: -1,
-    });
+    breathe(this, background);
+    playAmbience(this, "title-archive");
 
     this.drawTitle();
-    this.createAmbientLights();
-    this.createStartPrompt();
+    this.createStartPrompt(hasSavedProgress(this.registry));
 
     this.input.once("pointerdown", () => this.finishIntro());
     this.input.keyboard?.once("keydown-ENTER", () => this.finishIntro());
@@ -81,7 +67,7 @@ export class IntroScene extends Phaser.Scene {
       .setDepth(5);
   }
 
-  private createStartPrompt() {
+  private createStartPrompt(hasProgress: boolean) {
     const { width } = this.scale;
     const panel = this.add
       .rectangle(width / 2, 197, 270, 66, PALETTE.nightBrown, 0.86)
@@ -89,7 +75,7 @@ export class IntroScene extends Phaser.Scene {
       .setDepth(4);
 
     const prompt = this.add
-      .text(width / 2, 188, "PRESS START", {
+      .text(width / 2, 188, hasProgress ? "이어하기" : "PRESS START", {
         ...pixelText("subtitle"),
         color: PALETTE_HEX.cream,
         letterSpacing: 2,
@@ -113,31 +99,6 @@ export class IntroScene extends Phaser.Scene {
       ease: "Sine.InOut",
       yoyo: true,
       repeat: -1,
-    });
-  }
-
-  private createAmbientLights() {
-    const motes = [
-      [390, 348, 0],
-      [430, 326, 220],
-      [520, 340, 440],
-      [565, 314, 660],
-      [476, 374, 880],
-    ];
-
-    motes.forEach(([x, y, delay]) => {
-      const mote = this.add.circle(x, y, 2, ACCENT, 0.8).setDepth(3);
-      this.tweens.add({
-        targets: mote,
-        y: y - 18,
-        alpha: { from: 0.15, to: 1 },
-        scale: { from: 0.7, to: 1.5 },
-        duration: 1_500,
-        delay,
-        ease: "Sine.InOut",
-        yoyo: true,
-        repeat: -1,
-      });
     });
   }
 

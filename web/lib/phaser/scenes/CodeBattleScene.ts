@@ -1,291 +1,96 @@
 import Phaser from "phaser";
-import { PALETTE, PALETTE_HEX } from "../palette";
+import { findStage } from "@/lib/domain/chapters";
+import type { ChapterDefinition, MonsterDefinition, QuizQuestion } from "@/lib/domain/chapters/types";
+import { drawQuizQuestions, quizCountForLevel } from "@/lib/domain/dex/quiz";
+import { playAmbience } from "../ambience";
+import { AnswerGrid } from "../battle/answerGrid";
+import { drawNpcBanner } from "../battle/banner";
+import { MessagePanel } from "../battle/messagePanel";
+import { Opponent } from "../battle/opponent";
+import { StatusPanel } from "../battle/statusPanel";
+import { preloadMonsterArt } from "../monsterArt";
 import { applyPixelFontToScene } from "../ui";
-import { pixelText } from "../pixelFont";
-import { QuizQuestion, TUTORIAL_MONSTER } from "@/lib/domain/tutorial/content";
-import { drawQuizQuestions, quizCountForLevel } from "@/lib/domain/tutorial/quiz";
 
-const INK = PALETTE_HEX.ink;
-const CORRECT_FLASH = 0x4c8c4a;
-const INCORRECT_FLASH = 0xb23a2e;
-const CELL_IDLE = 0x2a1d14;
-const HP_GREEN = 0x4c8c4a;
-const HP_YELLOW = 0xd9a441;
-const HP_RED = 0xb23a2e;
-const OPTION_LETTERS = ["A", "B", "C", "D"];
-const HP_BAR_WIDTH = 150;
-const HP_BAR_HEIGHT = 10;
-
-function hpColorFor(ratio: number): number {
-  if (ratio > 0.5) return HP_GREEN;
-  if (ratio > 0.2) return HP_YELLOW;
-  return HP_RED;
-}
-
-const STATUS_BOX = { x: 200, y: 118, width: 280, height: 76 };
-const MESSAGE_BOX = { x: 480, y: 288, width: 860, height: 146 };
-const COMMAND_BOX = { x: 480, y: 440, width: 860, height: 150 };
-
-interface CodeBattleData {
+export interface CodeBattleData {
   monsterId: string;
-  npcLine: string;
 }
 
+/** Runs one battle: each correct answer drains HP, and every answer has to land to win. */
 export class CodeBattleScene extends Phaser.Scene {
-  private battleData!: CodeBattleData;
+  private chapter!: ChapterDefinition;
+  private monster!: MonsterDefinition;
   private questions: QuizQuestion[] = [];
   private questionIndex = 0;
   private correctCount = 0;
   private locked = false;
-  private hpBarFill!: Phaser.GameObjects.Rectangle;
-  private answerCells: Phaser.GameObjects.Container[] = [];
-  private questionText!: Phaser.GameObjects.Text;
-  private progressText!: Phaser.GameObjects.Text;
-  private feedbackText!: Phaser.GameObjects.Text;
-  private monsterSprite!: Phaser.GameObjects.Image;
-  private monsterBaseScale = 1;
+  private status!: StatusPanel;
+  private opponent!: Opponent;
+  private message!: MessagePanel;
+  private answers!: AnswerGrid;
 
   constructor() {
     super("code-battle");
   }
 
   init(data: CodeBattleData) {
-    this.battleData = data;
-    this.questions = drawQuizQuestions(
-      TUTORIAL_MONSTER.quizPool,
-      quizCountForLevel(TUTORIAL_MONSTER.level)
-    );
+    const { chapter, monster } = findStage(data.monsterId);
+    this.chapter = chapter;
+    this.monster = monster;
+    this.questions = drawQuizQuestions(monster.quizPool, quizCountForLevel(monster.level));
     this.questionIndex = 0;
     this.correctCount = 0;
     this.locked = false;
-    this.answerCells = [];
   }
 
   preload() {
-    this.load.image("loop-bug", "/assets/monsters/loop-bug-v2.png");
+    preloadMonsterArt(this, [this.monster]);
+    const { arena } = this.chapter;
+    if (arena) this.load.image(arena.textureKey, arena.assetPath);
   }
 
   create() {
-    const { width } = this.scale;
+    const { width, height } = this.scale;
+    const { arena, npcName } = this.chapter;
 
-    this.add
-      .text(width / 2, 12, `${TUTORIAL_MONSTER.npcName}: ${this.battleData.npcLine}`, {
-        ...pixelText("body"),
-        color: INK,
-        backgroundColor: "#f1e4cbcc",
-        padding: { x: 10, y: 5 },
-        wordWrap: { width: width - 80 },
-        align: "center",
-      })
-      .setOrigin(0.5, 0);
+    // Backdrop and its ambience go in first so every battle panel draws on top.
+    if (arena) {
+      this.add.image(width / 2, height / 2, arena.textureKey).setDisplaySize(width, height);
+      playAmbience(this, arena.ambience);
+    }
 
-    this.drawStatusBox();
-
-    this.monsterSprite = this.add
-      .image(700, 148, "loop-bug")
-      .setDisplaySize(190, 127);
-    this.monsterBaseScale = this.monsterSprite.scale;
-
-    this.drawMessageBox();
-    this.drawCommandBox();
+    drawNpcBanner(this, `${npcName}: ${this.monster.preBattleLine}`);
+    this.status = new StatusPanel(this, this.monster);
+    this.opponent = new Opponent(this, this.monster);
+    this.message = new MessagePanel(this);
+    this.answers = new AnswerGrid(this);
 
     this.showQuestion();
     applyPixelFontToScene(this);
   }
 
-  /**
-   * Authentic Game Boy battle-screen boxes are crisp rectangles with a thin
-   * flat border — no rounded corners, no rivets. That's a deliberately
-   * different frame language from the parchment `drawOrnateFrame` used on
-   * the overworld/dex screens; battle stays true to the GBC reference.
-   */
-  private drawGbcBox(x: number, y: number, width: number, height: number, fill: number) {
-    const left = x - width / 2;
-    const top = y - height / 2;
-
-    const g = this.add.graphics();
-    g.fillStyle(PALETTE.nightBrown, 0.3);
-    g.fillRect(left + 3, top + 4, width, height);
-    g.fillStyle(fill, 1);
-    g.fillRect(left, top, width, height);
-    g.lineStyle(2, PALETTE.ink, 1);
-    g.strokeRect(left, top, width, height);
-    return g;
-  }
-
-  private drawStatusBox() {
-    const { x, y, width, height } = STATUS_BOX;
-    const left = x - width / 2;
-    const top = y - height / 2;
-
-    this.drawGbcBox(x, y, width, height, PALETTE.cream);
-
-    this.add
-      .text(left + 16, top + 12, `${TUTORIAL_MONSTER.name}  Lv.${TUTORIAL_MONSTER.level}`, {
-        ...pixelText("body"),
-        color: INK,
-      })
-      .setOrigin(0, 0);
-
-    this.add
-      .text(left + 16, top + 42, "HP", {
-        ...pixelText("caption"),
-        color: INK,
-        fontStyle: "italic",
-      })
-      .setOrigin(0, 0.5);
-
-    this.createHpBar(left + 44, top + 42);
-  }
-
-  private createHpBar(barLeft: number, y: number) {
-    this.add
-      .rectangle(barLeft, y, HP_BAR_WIDTH, HP_BAR_HEIGHT, PALETTE.ink, 1)
-      .setOrigin(0, 0.5);
-
-    this.hpBarFill = this.add
-      .rectangle(barLeft + 1, y, HP_BAR_WIDTH - 2, HP_BAR_HEIGHT - 2, hpColorFor(1), 1)
-      .setOrigin(0, 0.5);
-  }
-
-  private drawMessageBox() {
-    const { x, y, width, height } = MESSAGE_BOX;
-    const left = x - width / 2;
-    const top = y - height / 2;
-
-    this.drawGbcBox(x, y, width, height, PALETTE.cream);
-
-    this.progressText = this.add
-      .text(left + 18, top + 14, "", {
-        ...pixelText("caption"),
-        color: PALETTE_HEX.mutedBrown,
-      })
-      .setOrigin(0, 0);
-
-    // Keep the prompt in its own vertical region so multiline examples never
-    // collide with the bottom-anchored feedback line.
-    this.questionText = this.add
-      .text(x, top + 40, "", {
-        ...pixelText("body"),
-        color: INK,
-        align: "center",
-        wordWrap: { width: width - 90 },
-      })
-      .setOrigin(0.5, 0);
-
-    this.feedbackText = this.add
-      .text(x, top + height - 16, "", {
-        ...pixelText("body"),
-        color: PALETTE_HEX.maroon,
-      })
-      .setOrigin(0.5, 1);
-  }
-
-  private drawCommandBox() {
-    const { x, y, width, height } = COMMAND_BOX;
-    this.drawGbcBox(x, y, width, height, PALETTE.ink);
-  }
-
   private showQuestion() {
-    this.answerCells.forEach((cell) => cell.destroy());
-    this.answerCells = [];
-    this.feedbackText.setText("");
-
     const question = this.questions[this.questionIndex];
-    this.progressText.setText(`Q${this.questionIndex + 1} / ${this.questions.length}`);
-    this.questionText.setText(question.prompt);
-
-    const { x, y, width, height } = COMMAND_BOX;
-    const pad = 28;
-    const cellGap = 20;
-    const cellWidth = (width - pad * 2 - cellGap) / 2;
-    const cellHeight = (height - pad * 2 - cellGap) / 2;
-    const gridLeft = x - width / 2 + pad;
-    const gridTop = y - height / 2 + pad;
-    const colX = [gridLeft + cellWidth / 2, gridLeft + cellWidth + cellGap + cellWidth / 2];
-    const rowY = [gridTop + cellHeight / 2, gridTop + cellHeight + cellGap + cellHeight / 2];
-
-    question.choices.forEach((choice, index) => {
-      const cx = colX[index % 2];
-      const cy = rowY[Math.floor(index / 2)];
-      const cell = this.createAnswerCell(
-        cx,
-        cy,
-        cellWidth,
-        cellHeight,
-        `${OPTION_LETTERS[index]}. ${choice}`,
-        () => this.onAnswer(index === question.answerIndex, cell)
-      );
-      this.answerCells.push(cell);
-    });
+    this.message.showQuestion(this.questionIndex, this.questions.length, question.prompt);
+    this.answers.show(question.choices, (index) => this.onAnswer(index, index === question.answerIndex));
   }
 
-  private createAnswerCell(
-    x: number,
-    y: number,
-    width: number,
-    height: number,
-    label: string,
-    onClick: () => void
-  ): Phaser.GameObjects.Container {
-    const bg = this.add
-      .rectangle(0, 0, width, height, CELL_IDLE, 1)
-      .setStrokeStyle(1, PALETTE.cream, 0.35)
-      .setInteractive({ useHandCursor: true });
-
-    const text = this.add
-      .text(0, 0, label, {
-        ...pixelText("body"),
-        color: PALETTE_HEX.cream,
-      })
-      .setOrigin(0.5);
-
-    const container = this.add.container(x, y, [bg, text]);
-
-    bg.on("pointerover", () => bg.setFillStyle(PALETTE.wood));
-    bg.on("pointerout", () => bg.setFillStyle(CELL_IDLE));
-    bg.on("pointerup", onClick);
-
-    return container;
-  }
-
-  private onAnswer(isCorrect: boolean, cell: Phaser.GameObjects.Container) {
+  private onAnswer(index: number, isCorrect: boolean) {
     if (this.locked) return;
     this.locked = true;
-
-    const bg = cell.list[0] as Phaser.GameObjects.Rectangle;
-    bg.disableInteractive();
-    bg.setFillStyle(isCorrect ? CORRECT_FLASH : INCORRECT_FLASH);
+    this.answers.mark(index, isCorrect);
 
     if (isCorrect) {
       this.correctCount += 1;
-      this.feedbackText.setText("명중! 타격을 줬어요.");
-      this.damageMonster();
+      this.message.say("명중! 타격을 줬어요.");
+      this.status.setHealth((this.questions.length - this.correctCount) / this.questions.length);
+      this.opponent.flinch();
     } else {
-      this.feedbackText.setText("안 통했어요!");
+      this.message.say("안 통했어요!");
     }
 
     this.time.delayedCall(650, () => {
       this.locked = false;
       this.advance();
-    });
-  }
-
-  private damageMonster() {
-    const total = this.questions.length;
-    const remainingRatio = (total - this.correctCount) / total;
-    this.hpBarFill.setFillStyle(hpColorFor(remainingRatio));
-    this.tweens.add({
-      targets: this.hpBarFill,
-      scaleX: remainingRatio,
-      duration: 260,
-      ease: "Cubic.Out",
-    });
-    this.tweens.add({
-      targets: this.monsterSprite,
-      scale: this.monsterBaseScale * 1.15,
-      duration: 120,
-      yoyo: true,
     });
   }
 
@@ -296,26 +101,19 @@ export class CodeBattleScene extends Phaser.Scene {
       return;
     }
 
-    this.answerCells.forEach((cell) => cell.destroy());
-    this.answerCells = [];
-
+    this.answers.clear();
     if (this.correctCount === this.questions.length) {
-      this.feedbackText.setText("무한루프 버그를 물리쳤어요!");
-      this.tweens.add({
-        targets: this.monsterSprite,
-        alpha: 0,
-        duration: 500,
-        onComplete: () => this.finishBattle(),
-      });
+      this.message.say(`${this.monster.name} 격파!`);
+      this.opponent.faint(() => this.finishBattle());
     } else {
-      this.feedbackText.setText("전투 종료! 도감에 결과를 등록할게요.");
+      this.message.say("전투 종료! 결과를 확인할게요.");
       this.time.delayedCall(700, () => this.finishBattle());
     }
   }
 
   private finishBattle() {
     this.scene.start("capture-quiz", {
-      monsterId: this.battleData.monsterId,
+      monsterId: this.monster.id,
       correctCount: this.correctCount,
       total: this.questions.length,
     });
