@@ -41,8 +41,10 @@ export class EntryList {
     const centerX = (options.left + options.right) / 2;
     const statsY = options.top + VISIBLE_ROWS * ROW_STEP + 10;
     const captured = entries.filter((entry) => entry.card).length;
+    const released = entries.filter((entry) => !entry.planned).length;
+    const planned = entries.length - released;
     scene.add
-      .text(centerX, statsY, `등록 ${captured}  ·  전체 ${entries.length}`, {
+      .text(centerX, statsY, `등록 ${captured}/${released}  ·  미발견 ${planned}`, {
         ...pixelText("body"),
         color: PALETTE_HEX.sand,
       })
@@ -111,13 +113,13 @@ export class EntryList {
       row.on("pointerup", () => options.onPick(index));
 
       const ball = scene.add.graphics({ x: options.left + 22, y: rowY });
-      ball.fillStyle(entry.card ? PALETTE.amber : PALETTE.mutedBrown, 1);
+      ball.fillStyle(entry.card ? PALETTE.amber : entry.planned ? PALETTE.nightBrown : PALETTE.mutedBrown, 1);
       ball.fillCircle(0, 0, 7);
       ball.lineStyle(2, PALETTE.ink, 1);
       ball.strokeCircle(0, 0, 7);
 
       const label = scene.add
-        .text(options.left + 42, rowY, `No.${entry.monster.dexNumber}  ${entry.card ? entry.card.name : "???"}`, {
+        .text(options.left + 42, rowY, `No.${entry.dexNumber}  ${entry.card ? entry.card.name : "???"}`, {
           ...pixelText("body"),
           color: entry.card ? PALETTE_HEX.cream : PALETTE_HEX.mutedBrown,
         })

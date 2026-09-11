@@ -1,23 +1,18 @@
 import Phaser from "phaser";
 import { DexState, EMPTY_DEX_STATE } from "@/lib/domain/dex/capture";
 import { DEX_MONSTERS } from "@/lib/domain/chapters";
-import { findJob, JOB_REGISTRY_KEY } from "@/lib/domain/player/jobs";
+import {
+  findJob,
+  findSecondaryJob,
+  JOB_REGISTRY_KEY,
+  SECONDARY_JOB_REGISTRY_KEY,
+} from "@/lib/domain/player/jobs";
+import { createSave, parseSave } from "./save/schema";
 
 const CARDS_KEY = "cards";
 export const TUTORIAL_ONBOARDING_SEEN_KEY = "tutorialOnboardingSeen";
-export const SAVE_STORAGE_KEY = "codigdex:save:v1";
-
-interface StoredCapture {
-  id: string;
-  capturedAt: string;
-}
-
-interface StoredGameState {
-  version: 1;
-  captures: StoredCapture[];
-  selectedJob: string;
-  tutorialOnboardingSeen: boolean;
-}
+export const SAVE_STORAGE_KEY = "codigdex:save:v2";
+export const LEGACY_SAVE_STORAGE_KEY = "codigdex:save:v1";
 
 function browserStorage(): Storage | undefined {
   if (typeof window === "undefined") return undefined;
@@ -32,16 +27,14 @@ function browserStorage(): Storage | undefined {
 export function hydrateRegistry(registry: Phaser.Data.DataManager, storage = browserStorage()) {
   if (!storage) return;
   try {
-    const raw = storage.getItem(SAVE_STORAGE_KEY);
-    if (!raw) return;
-    const save = JSON.parse(raw) as Partial<StoredGameState>;
-    if (save.version !== 1 || !Array.isArray(save.captures)) return;
+    const currentRaw = storage.getItem(SAVE_STORAGE_KEY);
+    const legacyRaw = storage.getItem(LEGACY_SAVE_STORAGE_KEY);
+    const currentSave = currentRaw ? parseSave(currentRaw) : undefined;
+    const save = currentSave ?? (legacyRaw ? parseSave(legacyRaw) : undefined);
+    if (!save) return;
 
     const capturedAtById = new Map(
-      save.captures
-        .filter((entry): entry is StoredCapture =>
-          Boolean(entry && typeof entry.id === "string" && typeof entry.capturedAt === "string")
-        )
+      save.progress.captures
         .map((entry) => [entry.id, entry.capturedAt])
     );
     const cards = DEX_MONSTERS.filter((monster) => capturedAtById.has(monster.id)).map((monster) => ({
@@ -56,8 +49,12 @@ export function hydrateRegistry(registry: Phaser.Data.DataManager, storage = bro
     }));
 
     registry.set(CARDS_KEY, cards);
-    registry.set(JOB_REGISTRY_KEY, findJob(save.selectedJob).id);
-    registry.set(TUTORIAL_ONBOARDING_SEEN_KEY, save.tutorialOnboardingSeen === true);
+    registry.set(JOB_REGISTRY_KEY, findJob(save.player.primaryJobId).id);
+    registry.set(SECONDARY_JOB_REGISTRY_KEY, findSecondaryJob(save.player.secondaryJobId)?.id ?? null);
+    registry.set(TUTORIAL_ONBOARDING_SEEN_KEY, save.ui.tutorialOnboardingSeen);
+
+    // Copy a valid legacy save into the current slot without deleting the fallback.
+    if (!currentSave) persistRegistry(registry, storage);
   } catch {
     // A malformed or unavailable save must never prevent the game from booting.
   }
@@ -66,12 +63,13 @@ export function hydrateRegistry(registry: Phaser.Data.DataManager, storage = bro
 export function persistRegistry(registry: Phaser.Data.DataManager, storage = browserStorage()) {
   if (!storage) return;
   const state = readDexState(registry);
-  const save: StoredGameState = {
-    version: 1,
+  const save = createSave({
     captures: state.cards.map(({ id, capturedAt }) => ({ id, capturedAt })),
-    selectedJob: findJob(registry.get(JOB_REGISTRY_KEY) as string | undefined).id,
+    primaryJobId: findJob(registry.get(JOB_REGISTRY_KEY) as string | undefined).id,
+    secondaryJobId:
+      findSecondaryJob(registry.get(SECONDARY_JOB_REGISTRY_KEY) as string | null | undefined)?.id ?? null,
     tutorialOnboardingSeen: registry.get(TUTORIAL_ONBOARDING_SEEN_KEY) === true,
-  };
+  });
   try {
     storage.setItem(SAVE_STORAGE_KEY, JSON.stringify(save));
   } catch {
@@ -95,11 +93,13 @@ export function hasSavedProgress(registry: Phaser.Data.DataManager): boolean {
 export function resetGameProgress(registry: Phaser.Data.DataManager, storage = browserStorage()) {
   try {
     storage?.removeItem(SAVE_STORAGE_KEY);
+    storage?.removeItem(LEGACY_SAVE_STORAGE_KEY);
   } catch {
     // Registry reset still works when browser storage is unavailable.
   }
   registry.set(CARDS_KEY, EMPTY_DEX_STATE.cards);
   registry.set(JOB_REGISTRY_KEY, "junior");
+  registry.set(SECONDARY_JOB_REGISTRY_KEY, null);
   registry.set(TUTORIAL_ONBOARDING_SEEN_KEY, false);
   persistRegistry(registry, storage);
 }

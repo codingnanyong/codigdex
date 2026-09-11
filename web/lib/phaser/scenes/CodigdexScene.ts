@@ -80,7 +80,7 @@ export class CodigdexScene extends Phaser.Scene {
   private pick(index: number) {
     this.select(index);
     const { monster, card } = this.entries[index];
-    if (card) this.detail.open(monster, card);
+    if (monster && card) this.detail.open(monster, card);
   }
 
   private close() {

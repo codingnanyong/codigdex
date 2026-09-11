@@ -6,6 +6,7 @@ import { WorldMapScene } from "./scenes/WorldMapScene";
 import { CodeBattleScene } from "./scenes/CodeBattleScene";
 import { CaptureQuizScene } from "./scenes/CaptureQuizScene";
 import { CodigdexScene } from "./scenes/CodigdexScene";
+import { CareerRegionScene } from "./scenes/CareerRegionScene";
 import { initializeRegistryPersistence } from "./registryAdapter";
 
 export function createGameConfig(
@@ -31,13 +32,10 @@ export function createGameConfig(
     },
     scene: [
       IntroScene,
-      // JobSelectScene has no entry point yet — nothing calls
-      // scene.start("job-select") until PathMapScene's common-dex nodes
-      // have real content to finish. Registered here so it's ready to
-      // wire in once that content exists.
       JobSelectScene,
       PathMapScene,
       WorldMapScene,
+      CareerRegionScene,
       CodeBattleScene,
       CaptureQuizScene,
       CodigdexScene,

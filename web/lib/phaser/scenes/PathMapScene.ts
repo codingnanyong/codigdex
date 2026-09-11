@@ -10,12 +10,13 @@ import { GIT_CHAPTER } from "@/lib/domain/chapters/git";
 import { LINUX_CHAPTER } from "@/lib/domain/chapters/linux";
 import type { ChapterId } from "@/lib/domain/chapters/types";
 import { capturedIds } from "@/lib/domain/dex/capture";
-import { findJob, JOB_REGISTRY_KEY, type JobId } from "@/lib/domain/player/jobs";
+import { findJob, JOB_REGISTRY_KEY, secondaryJobsFor, type JobId } from "@/lib/domain/player/jobs";
 import { COMMON_TECHNOLOGY_SPECIMENS } from "@/lib/domain/technologySpecimens";
 import { preloadMonsterArt } from "../monsterArt";
+import { PALETTE } from "../palette";
 import { drawConnections } from "../pathMap/connections";
 import { CAREER_NODES, CAREER_PORTRAITS, COMMON_NODES, PROMOTION_NODE, type PathNode } from "../pathMap/layout";
-import { drawPathNode, drawPromotionNode } from "../pathMap/nodes";
+import { drawMysteryCareerNode, drawPathNode, drawPromotionNode } from "../pathMap/nodes";
 import { StagePanel } from "../pathMap/stagePanel";
 import { drawHeader, drawMapSurface, drawSectionLabels } from "../pathMap/surface";
 import { readDexState } from "../registryAdapter";
@@ -79,6 +80,8 @@ export class PathMapScene extends Phaser.Scene {
       }
     }
 
+    if (this.selectedCareerId) this.drawSecondaryCareerMysteries(this.selectedCareerId);
+
     createButton(this, width / 2, height - 27, 140, 32, "돌아가기", () => this.scene.start("world-map"));
     createButton(this, 92, height - 27, 140, 32, "직업 변경", () => this.scene.start("job-select"));
     if (this.captured.size > 0) {
@@ -87,6 +90,32 @@ export class PathMapScene extends Phaser.Scene {
 
     applyPixelFontToScene(this);
     this.openFocusedChapter();
+  }
+
+  private drawSecondaryCareerMysteries(careerId: JobId) {
+    const candidates = secondaryJobsFor(careerId);
+    const centerX = 790;
+    const y = 400;
+    const spacing = 115;
+    const startX = centerX - ((candidates.length - 1) * spacing) / 2;
+    const selectedNode = CAREER_NODES.find((node) => node.id === careerId)!;
+
+    const lines = this.add.graphics();
+    lines.lineStyle(5, PALETTE.ink, 0.8);
+    lines.lineBetween(selectedNode.x, 299, selectedNode.x, 350);
+    lines.lineStyle(2, PALETTE.mutedBrown, 0.75);
+    lines.lineBetween(selectedNode.x, 299, selectedNode.x, 350);
+
+    candidates.forEach((_candidate, index) => {
+      const x = startX + index * spacing;
+      lines.lineStyle(5, PALETTE.ink, 0.8);
+      lines.lineBetween(selectedNode.x, 350, x, y - 27);
+      lines.lineStyle(2, PALETTE.mutedBrown, 0.75);
+      lines.lineBetween(selectedNode.x, 350, x, y - 27);
+      drawMysteryCareerNode(this, x, y, () =>
+        this.notify("??? · 연관된 두 1차 직업 도감을 완성하면 정체가 드러나요.")
+      );
+    });
   }
 
   private statusOf(node: PathNode): ChapterStatus {
@@ -131,11 +160,11 @@ export class PathMapScene extends Phaser.Scene {
     } else if (node.kind === "promotion") {
       this.scene.start("job-select");
     } else {
-      this.notify(
-        isCommonPathComplete(this.captured)
-          ? `${node.label} 전직 완료! 전문 챕터는 준비 중이에요.`
-          : `${node.label} 전직에는 Git과 Linux 클리어가 필요해요.`
-      );
+      if (isCommonPathComplete(this.captured) && node.id === this.selectedCareerId) {
+        this.scene.start("world-map");
+      } else {
+        this.notify(`${node.label} 전직에는 Git과 Linux 클리어가 필요해요.`);
+      }
     }
   }
 
