@@ -1,22 +1,23 @@
 import Phaser from "phaser";
-import { pixelText } from "../pixelFont";
-import { applyPixelFontToScene } from "../ui";
+import { playAmbience } from "../ambience";
+import { breathe } from "../ambience/effects";
 import { PALETTE, PALETTE_HEX } from "../palette";
+import { pixelText } from "../pixelFont";
+import { addShade, applyPixelFontToScene, createButton, drawOrnateFrame } from "../ui";
+import { hasSavedProgress, resetGameProgress } from "../registryAdapter";
 
-const ACCENT = 0xe8834f;
-
+/** Title screen: the archive painting, the wordmark, and PRESS START. */
 export class IntroScene extends Phaser.Scene {
   private leaving = false;
+  private confirmingReset = false;
+  private resetDialog?: Phaser.GameObjects.Container;
 
   constructor() {
     super("intro");
   }
 
   preload() {
-    this.load.image(
-      "codigdex-title-archive",
-      "/assets/wallpapers/codigdex-title-archive-v1.png"
-    );
+    this.load.image("codigdex-title-archive", "/assets/wallpapers/codigdex-title-archive-v1.png");
   }
 
   create() {
@@ -24,26 +25,12 @@ export class IntroScene extends Phaser.Scene {
     const background = this.add
       .image(width / 2, height / 2, "codigdex-title-archive")
       .setDisplaySize(width, height);
-
-    const baseScaleX = background.scaleX;
-    const baseScaleY = background.scaleY;
-
-    this.tweens.add({
-      targets: background,
-      scaleX: baseScaleX * 1.015,
-      scaleY: baseScaleY * 1.015,
-      y: height / 2 - 3,
-      duration: 5_000,
-      ease: "Sine.InOut",
-      yoyo: true,
-      repeat: -1,
-    });
+    breathe(this, background);
+    playAmbience(this, "title-archive");
 
     this.drawTitle();
-    this.createAmbientLights();
-    this.createStartPrompt();
+    this.createStartPrompt(hasSavedProgress(this.registry));
 
-    this.input.once("pointerdown", () => this.finishIntro());
     this.input.keyboard?.once("keydown-ENTER", () => this.finishIntro());
     this.input.keyboard?.once("keydown-SPACE", () => this.finishIntro());
     applyPixelFontToScene(this);
@@ -81,15 +68,17 @@ export class IntroScene extends Phaser.Scene {
       .setDepth(5);
   }
 
-  private createStartPrompt() {
+  private createStartPrompt(hasProgress: boolean) {
     const { width } = this.scale;
     const panel = this.add
       .rectangle(width / 2, 197, 270, 66, PALETTE.nightBrown, 0.86)
       .setStrokeStyle(2, PALETTE.amber, 0.9)
+      .setInteractive({ useHandCursor: true })
       .setDepth(4);
+    panel.on("pointerup", () => this.finishIntro());
 
     const prompt = this.add
-      .text(width / 2, 188, "PRESS START", {
+      .text(width / 2, 188, hasProgress ? "이어하기" : "PRESS START", {
         ...pixelText("subtitle"),
         color: PALETTE_HEX.cream,
         letterSpacing: 2,
@@ -114,35 +103,51 @@ export class IntroScene extends Phaser.Scene {
       yoyo: true,
       repeat: -1,
     });
+
+    if (hasProgress) {
+      createButton(this, width / 2, 264, 132, 34, "새 게임", () => this.showResetConfirmation()).setDepth(5);
+    }
   }
 
-  private createAmbientLights() {
-    const motes = [
-      [390, 348, 0],
-      [430, 326, 220],
-      [520, 340, 440],
-      [565, 314, 660],
-      [476, 374, 880],
-    ];
-
-    motes.forEach(([x, y, delay]) => {
-      const mote = this.add.circle(x, y, 2, ACCENT, 0.8).setDepth(3);
-      this.tweens.add({
-        targets: mote,
-        y: y - 18,
-        alpha: { from: 0.15, to: 1 },
-        scale: { from: 0.7, to: 1.5 },
-        duration: 1_500,
-        delay,
-        ease: "Sine.InOut",
-        yoyo: true,
-        repeat: -1,
-      });
+  private showResetConfirmation() {
+    if (this.resetDialog || this.leaving) return;
+    this.confirmingReset = true;
+    const { width, height } = this.scale;
+    const shade = addShade(this, 0.58, 20);
+    const frame = drawOrnateFrame(this, width / 2, height / 2, 480, 190, { radius: 14 });
+    const title = this.add
+      .text(width / 2, height / 2 - 48, "새 게임을 시작할까요?", {
+        ...pixelText("subtitle"),
+        color: PALETTE_HEX.ink,
+      })
+      .setOrigin(0.5);
+    const body = this.add
+      .text(width / 2, height / 2 - 6, "도감과 챕터 진행 기록이 모두 초기화됩니다.", {
+        ...pixelText("body"),
+        color: PALETTE_HEX.mutedBrown,
+      })
+      .setOrigin(0.5);
+    const cancel = createButton(this, width / 2 - 82, height / 2 + 55, 120, 34, "취소", () => {
+      this.resetDialog?.destroy(true);
+      this.resetDialog = undefined;
+      this.confirmingReset = false;
     });
+    const confirm = createButton(this, width / 2 + 82, height / 2 + 55, 120, 34, "초기화", () => {
+      resetGameProgress(this.registry);
+      this.leaving = true;
+      this.scene.start("world-map");
+    });
+
+    this.resetDialog = this.add
+      .container(0, 0, [shade, frame, title, body, cancel, confirm])
+      .setDepth(20)
+      .setAlpha(0);
+    this.tweens.add({ targets: this.resetDialog, alpha: 1, duration: 180, ease: "Quad.Out" });
+    applyPixelFontToScene(this);
   }
 
   private finishIntro() {
-    if (this.leaving) return;
+    if (this.leaving || this.confirmingReset) return;
     this.leaving = true;
 
     this.cameras.main.fadeOut(450, 24, 15, 8);
