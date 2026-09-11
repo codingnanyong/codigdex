@@ -96,6 +96,8 @@ export function showCapturedPanel(scene: Phaser.Scene, options: CapturedPanelOpt
 
 export interface MissedPanelOptions {
   monster: MonsterDefinition;
+  /** How the battle measured up against the pass line. */
+  resultLine: string;
   npcLine: string;
   onRetry: () => void;
 }
@@ -114,8 +116,16 @@ export function showMissedPanel(scene: Phaser.Scene, options: MissedPanelOptions
     })
     .setOrigin(0.5);
 
+  const resultLine = scene.add
+    .text(0, -44, options.resultLine, {
+      ...pixelText("body"),
+      color: PALETTE_HEX.mutedBrown,
+      align: "center",
+    })
+    .setOrigin(0.5);
+
   const npcLine = scene.add
-    .text(0, -20, options.npcLine, {
+    .text(0, -14, options.npcLine, {
       ...pixelText("body"),
       color: PALETTE_HEX.maroon,
       fontStyle: "bold",
@@ -127,7 +137,7 @@ export function showMissedPanel(scene: Phaser.Scene, options: MissedPanelOptions
   const retry = createButton(scene, 0, MISSED_PANEL.height / 2 - 32, 140, 34, "재도전", options.onRetry);
 
   const panel = scene.add
-    .container(width / 2, height / 2, [frame, title, npcLine, retry])
+    .container(width / 2, height / 2, [frame, title, resultLine, npcLine, retry])
     .setDepth(1);
   popIn(scene, panel, 0.85);
   return panel;

@@ -139,12 +139,19 @@ export function popIn(scene: Phaser.Scene, target: Phaser.GameObjects.Container,
  * Snippets run one to three lines, so the plate is sized to the text. Add the
  * plate to a container before the text so it renders underneath.
  */
-export function addSnippetBlock(scene: Phaser.Scene, y: number, width: number, snippet: string) {
+export function addSnippetBlock(
+  scene: Phaser.Scene,
+  y: number,
+  width: number,
+  snippet: string,
+  options: { align?: "center" | "left" } = {}
+) {
   const text = scene.add
     .text(0, y + 8, snippet, {
       ...pixelText("body"),
       color: PALETTE_HEX.sand,
-      align: "center",
+      // "left" keeps code indentation readable while the block stays centered.
+      align: options.align ?? "center",
     })
     .setOrigin(0.5, 0);
   const height = text.height + 16;

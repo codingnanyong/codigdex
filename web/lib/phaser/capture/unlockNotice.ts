@@ -19,6 +19,6 @@ export function describeUnlock(monsterId: string): { notice: string; focusChapte
         focusChapterId: unlock.chapter.id,
       };
     case "common-path-complete":
-      return { notice: "공통 과정 완료! 전직은 다음 업데이트에서 열려요." };
+      return { notice: "공통 과정 완료! 직업 버튼에서 전직할 수 있어요." };
   }
 }

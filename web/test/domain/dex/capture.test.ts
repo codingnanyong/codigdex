@@ -6,19 +6,29 @@ import {
   applyCapture,
   capturedIds,
   isSuccessfulCapture,
+  requiredCorrectAnswers,
 } from "@/lib/domain/dex/capture";
 
+describe("requiredCorrectAnswers", () => {
+  it("asks for 60% of each level's questions, rounded up", () => {
+    expect([3, 4, 5, 6, 7].map((total) => requiredCorrectAnswers(total))).toEqual([2, 3, 3, 4, 5]);
+  });
+});
+
 describe("isSuccessfulCapture", () => {
-  it("succeeds when every question is answered correctly", () => {
-    expect(isSuccessfulCapture(2, 2)).toBe(true);
+  it("succeeds at the pass line and above", () => {
+    expect(isSuccessfulCapture(2, 3)).toBe(true);
+    expect(isSuccessfulCapture(3, 3)).toBe(true);
+    expect(isSuccessfulCapture(5, 7)).toBe(true);
   });
 
-  it("fails when at least one question is wrong", () => {
-    expect(isSuccessfulCapture(1, 2)).toBe(false);
+  it("fails one answer short of the pass line", () => {
+    expect(isSuccessfulCapture(1, 3)).toBe(false);
+    expect(isSuccessfulCapture(4, 7)).toBe(false);
   });
 
   it("fails when nothing is correct", () => {
-    expect(isSuccessfulCapture(0, 2)).toBe(false);
+    expect(isSuccessfulCapture(0, 3)).toBe(false);
   });
 
   it("fails for a degenerate zero-question quiz", () => {

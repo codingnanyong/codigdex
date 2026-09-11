@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono, Press_Start_2P } from "next/font/google";
 import "./globals.css";
 
@@ -26,6 +26,13 @@ export const metadata: Metadata = {
     icon: "/assets/icons/codigdex-main-icon.png",
     apple: "/assets/icons/codigdex-main-icon.png",
   },
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: "#f1e4cb",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

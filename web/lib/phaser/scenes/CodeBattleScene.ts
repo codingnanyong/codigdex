@@ -1,6 +1,7 @@
 import Phaser from "phaser";
 import { findStage } from "@/lib/domain/chapters";
 import type { ChapterDefinition, MonsterDefinition, QuizQuestion } from "@/lib/domain/chapters/types";
+import { isSuccessfulCapture, requiredCorrectAnswers } from "@/lib/domain/dex/capture";
 import { drawQuizQuestions, quizCountForLevel } from "@/lib/domain/dex/quiz";
 import { playAmbience } from "../ambience";
 import { AnswerGrid } from "../battle/answerGrid";
@@ -15,7 +16,7 @@ export interface CodeBattleData {
   monsterId: string;
 }
 
-/** Runs one battle: each correct answer drains HP, and every answer has to land to win. */
+/** Runs one battle: every question is asked, and landing the pass line of them drains HP to zero. */
 export class CodeBattleScene extends Phaser.Scene {
   private chapter!: ChapterDefinition;
   private monster!: MonsterDefinition;
@@ -70,7 +71,13 @@ export class CodeBattleScene extends Phaser.Scene {
 
   private showQuestion() {
     const question = this.questions[this.questionIndex];
-    this.message.showQuestion(this.questionIndex, this.questions.length, question.prompt);
+    this.message.showQuestion({
+      index: this.questionIndex,
+      total: this.questions.length,
+      correct: this.correctCount,
+      required: requiredCorrectAnswers(this.questions.length),
+      prompt: question.prompt,
+    });
     this.answers.show(question.choices, (index) => this.onAnswer(index, index === question.answerIndex));
   }
 
@@ -82,7 +89,8 @@ export class CodeBattleScene extends Phaser.Scene {
     if (isCorrect) {
       this.correctCount += 1;
       this.message.say("명중! 타격을 줬어요.");
-      this.status.setHealth((this.questions.length - this.correctCount) / this.questions.length);
+      const required = requiredCorrectAnswers(this.questions.length);
+      this.status.setHealth(Math.max(0, required - this.correctCount) / required);
       this.opponent.flinch();
     } else {
       this.message.say("안 통했어요!");
@@ -102,7 +110,7 @@ export class CodeBattleScene extends Phaser.Scene {
     }
 
     this.answers.clear();
-    if (this.correctCount === this.questions.length) {
+    if (isSuccessfulCapture(this.correctCount, this.questions.length)) {
       this.message.say(`${this.monster.name} 격파!`);
       this.opponent.faint(() => this.finishBattle());
     } else {
