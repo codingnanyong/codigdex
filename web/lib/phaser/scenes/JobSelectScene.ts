@@ -17,7 +17,13 @@ import {
 import { PALETTE, PALETTE_HEX } from "../palette";
 import { pixelText } from "../pixelFont";
 import { readDexState } from "../registryAdapter";
-import { applyPixelFontToScene, createButton, drawOrnateFrame, showToast } from "../ui";
+import {
+  applyPixelFontToScene,
+  createButton,
+  drawOrnateFrame,
+  fitTextInside,
+  showToast,
+} from "../ui";
 import {
   careerPathFor,
   completedCareerPathIds,
@@ -237,13 +243,14 @@ export class JobSelectScene extends Phaser.Scene {
       radius: 10,
     }).setAlpha(locked ? 0.5 : 1);
     this.add.image(PRIMARY_X - 108, y, job.textureKey!).setDisplaySize(54, 54).setAlpha(locked ? 0.35 : 1);
-    this.add
+    const name = this.add
       .text(PRIMARY_X - 70, y - 11, job.name, {
         ...pixelText("body"),
         color: PALETTE_HEX.ink,
       })
       .setOrigin(0, 0.5)
       .setAlpha(locked ? 0.45 : 1);
+    fitTextInside(name, 150, 18);
     this.add
       .text(PRIMARY_X - 70, y + 12, job.tagline, {
         ...pixelText("caption"),
@@ -289,7 +296,7 @@ export class JobSelectScene extends Phaser.Scene {
         color: unlocked ? PALETTE_HEX.maroon : PALETTE_HEX.sand,
       })
       .setOrigin(0, 0.5);
-    this.add
+    const name = this.add
       .text(SECONDARY_X + 12, y, unlocked ? job.name : "◆  ???", {
         ...pixelText(unlocked ? "body" : "subtitle"),
         color: unlocked ? PALETTE_HEX.ink : PALETTE_HEX.cream,
@@ -297,6 +304,7 @@ export class JobSelectScene extends Phaser.Scene {
         wordWrap: { width: SECONDARY_WIDTH - 72 },
       })
       .setOrigin(0.5);
+    fitTextInside(name, SECONDARY_WIDTH - 72, 32);
 
     if (selected) {
       this.add

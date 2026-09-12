@@ -2,6 +2,7 @@ import Phaser from "phaser";
 import type { ChapterStatus } from "@/lib/domain/chapters";
 import { PALETTE, PALETTE_HEX } from "../palette";
 import { pixelText } from "../pixelFont";
+import { fitTextInside } from "../ui";
 import {
   CAREER_HEIGHT,
   CAREER_WIDTH,
@@ -54,6 +55,7 @@ export function drawPathNode(scene: Phaser.Scene, node: PathNode, state: PathNod
       color: lit ? PALETTE_HEX.ink : PALETTE_HEX.cream,
     })
     .setOrigin(0, 0.5);
+  fitTextInside(label, width / 2 - textLeft - 28, height - 10);
   const glyph = scene.add
     .text(width / 2 - 16, 0, lit ? "▶" : "◆", {
       ...pixelText("caption"),
@@ -101,6 +103,7 @@ export function drawPromotionNode(
       color: PALETTE_HEX.cream,
     })
     .setOrigin(0.5);
+  fitTextInside(label, PROMOTION_SIZE - 10, 22);
 
   const card = scene.add.container(node.x, node.y, [panel, ring, star, label]);
   makePressable(card, new Phaser.Geom.Rectangle(-half, -half, PROMOTION_SIZE, PROMOTION_SIZE), 1.04, onSelect);
@@ -145,6 +148,7 @@ export function drawSecondaryCareerNode(
       wordWrap: { width: width - 10 },
     })
     .setOrigin(0.5);
+  fitTextInside(label, width - 10, 22);
   const card = scene.add.container(x, y, [panel, eyebrow, label]);
   makePressable(
     card,
