@@ -24,10 +24,13 @@ import {
   isCareerPathComplete,
 } from "../worldMap/careerPaths";
 
-const PRIMARY_X = 238;
-const SECONDARY_X = 730;
+const JUNIOR_X = 105;
+const PRIMARY_X = 390;
+const SECONDARY_X = 800;
+const JUNIOR_WIDTH = 170;
 const PRIMARY_WIDTH = 286;
 const SECONDARY_WIDTH = 222;
+const CAREER_CENTER_Y = 262;
 const ROW_Y = [106, 184, 262, 340, 418] as const;
 
 /** Shows primary paths and reveals tier-two jobs unlocked by completed pairs. */
@@ -38,6 +41,7 @@ export class JobSelectScene extends Phaser.Scene {
   private selectedPathComplete = false;
   private completedJobIds: ReadonlySet<JobId> = new Set();
   private selectedSecondaryJobId?: string;
+  private commonPathComplete = false;
 
   constructor() {
     super("job-select");
@@ -51,6 +55,7 @@ export class JobSelectScene extends Phaser.Scene {
     const { width, height } = this.scale;
     this.toast = undefined;
     this.captured = capturedIds(readDexState(this.registry));
+    this.commonPathComplete = isCommonPathComplete(this.captured);
     this.selectedJobId = findJob(this.registry.get(JOB_REGISTRY_KEY) as string | undefined).id;
     this.selectedPathComplete =
       this.selectedJobId !== "junior" &&
@@ -72,19 +77,26 @@ export class JobSelectScene extends Phaser.Scene {
       })
       .setOrigin(0.5);
     this.add
-      .text(PRIMARY_X, 63, "1차 전직 · CAREER PATH", {
+      .text(JUNIOR_X, 63, "전직 전", {
+        ...pixelText("body"),
+        color: PALETTE_HEX.mutedBrown,
+      })
+      .setOrigin(0.5);
+    this.add
+      .text(PRIMARY_X, 63, "1차 전직", {
         ...pixelText("body"),
         color: PALETTE_HEX.amber,
       })
       .setOrigin(0.5);
     this.add
-      .text(SECONDARY_X, 63, "2차 전직 · PATH PREVIEW", {
+      .text(SECONDARY_X, 63, "2차 전직", {
         ...pixelText("body"),
         color: PALETTE_HEX.mutedBrown,
       })
       .setOrigin(0.5);
 
     this.drawPromotionPaths();
+    this.drawJuniorJob();
     JOB_OPTIONS.forEach((job, index) => {
       const selected = this.selectedJobId === job.id;
       const locked = !canSelectPrimaryJob(this.selectedJobId, job.id, this.selectedPathComplete);
@@ -100,26 +112,90 @@ export class JobSelectScene extends Phaser.Scene {
     const indexByPrimary = new Map(JOB_OPTIONS.map((job, index) => [job.id, index]));
     const lines = this.add.graphics();
 
+    const stroke = (points: Array<[number, number]>, active = false) => {
+      const draw = () => {
+        lines.beginPath();
+        lines.moveTo(points[0][0], points[0][1]);
+        points.slice(1).forEach(([x, y]) => lines.lineTo(x, y));
+        lines.strokePath();
+      };
+      lines.lineStyle(5, PALETTE.ink, 1);
+      draw();
+      lines.lineStyle(2, active ? PALETTE.amber : PALETTE.mutedBrown, active ? 0.9 : 0.68);
+      draw();
+    };
+
+    const primaryBranchX = 220;
+    stroke(
+      [
+        [JUNIOR_X + JUNIOR_WIDTH / 2, CAREER_CENTER_Y],
+        [primaryBranchX, CAREER_CENTER_Y],
+      ],
+      this.commonPathComplete
+    );
+    stroke(
+      [
+        [primaryBranchX, ROW_Y[0]],
+        [primaryBranchX, ROW_Y[ROW_Y.length - 1]],
+      ],
+      this.commonPathComplete
+    );
+    ROW_Y.forEach((y) =>
+      stroke(
+        [
+          [primaryBranchX, y],
+          [PRIMARY_X - PRIMARY_WIDTH / 2, y],
+        ],
+        this.commonPathComplete
+      )
+    );
+
     SECONDARY_JOB_OPTIONS.forEach((secondary, secondaryIndex) => {
       secondary.requires.forEach((primaryId, branchIndex) => {
         const primaryIndex = indexByPrimary.get(primaryId)!;
         const startY = ROW_Y[primaryIndex];
         const endY = ROW_Y[secondaryIndex];
-        const elbowX = 470 + branchIndex * 28;
-        const stroke = () => {
-          lines.beginPath();
-          lines.moveTo(PRIMARY_X + PRIMARY_WIDTH / 2, startY);
-          lines.lineTo(elbowX, startY);
-          lines.lineTo(elbowX, endY);
-          lines.lineTo(SECONDARY_X - SECONDARY_WIDTH / 2, endY);
-          lines.strokePath();
-        };
-        lines.lineStyle(5, PALETTE.ink, 1);
-        stroke();
-        lines.lineStyle(2, PALETTE.mutedBrown, 0.68);
-        stroke();
+        const elbowX = 580 + branchIndex * 30;
+        stroke([
+          [PRIMARY_X + PRIMARY_WIDTH / 2, startY],
+          [elbowX, startY],
+          [elbowX, endY],
+          [SECONDARY_X - SECONDARY_WIDTH / 2, endY],
+        ]);
       });
     });
+  }
+
+  private drawJuniorJob() {
+    const frame = drawOrnateFrame(this, JUNIOR_X, CAREER_CENTER_Y, JUNIOR_WIDTH, 82, {
+      fill: this.selectedJobId === "junior" ? PALETTE.sand : PALETTE.cream,
+      radius: 10,
+    });
+    this.add
+      .text(JUNIOR_X, CAREER_CENTER_Y - 15, "주니어 개발자", {
+        ...pixelText("body"),
+        color: PALETTE_HEX.ink,
+      })
+      .setOrigin(0.5);
+    this.add
+      .text(JUNIOR_X, CAREER_CENTER_Y + 8, "공통 기술 과정", {
+        ...pixelText("caption"),
+        color: PALETTE_HEX.mutedBrown,
+      })
+      .setOrigin(0.5);
+    this.add
+      .text(
+        JUNIOR_X,
+        CAREER_CENTER_Y + 28,
+        this.commonPathComplete ? "CLEAR" : this.selectedJobId === "junior" ? "현재" : "진행 중",
+        {
+          ...pixelText("caption"),
+          color: this.commonPathComplete ? PALETTE_HEX.maroon : PALETTE_HEX.mutedBrown,
+        }
+      )
+      .setOrigin(0.5);
+
+    if (this.commonPathComplete) frame.setAlpha(0.92);
   }
 
   private drawPrimaryJob(job: JobOption, y: number, selected: boolean, locked: boolean) {
@@ -225,9 +301,8 @@ export class JobSelectScene extends Phaser.Scene {
 
   private selectJob(jobId: string) {
     const requestedJobId = jobId as JobId;
-    const commonPathComplete = isCommonPathComplete(this.captured);
     // Before Git and Linux are cleared, choosing a card only previews its path.
-    if (!commonPathComplete) {
+    if (!this.commonPathComplete) {
       this.scene.start("path-map", { careerId: requestedJobId });
       return;
     }
