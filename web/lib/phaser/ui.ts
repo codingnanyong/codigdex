@@ -62,7 +62,6 @@ export function createButton(
       fontSize: options.fontSize ?? body.fontSize,
       color: PALETTE_HEX.cream,
       align: "center",
-      wordWrap: { width: width - 16 },
     })
     .setOrigin(0.5);
   fitTextInside(text, width - 16, height - 10);

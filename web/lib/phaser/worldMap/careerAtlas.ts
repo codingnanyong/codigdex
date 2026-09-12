@@ -69,8 +69,8 @@ function drawRegion(
 ) {
   const { landmark } = region;
   const focus = scene.add
-    .polygon(landmark.x, landmark.y, region.focusPoints, PALETTE.amber, 0.08)
-    .setStrokeStyle(2, PALETTE.amber, 0.8)
+    .polygon(landmark.x, landmark.y, region.focusPoints, PALETTE.amber, 0)
+    .setStrokeStyle(2, PALETTE.amber, 0)
     .setInteractive({ useHandCursor: true })
     .setDepth(4);
   const label = scene.add
@@ -88,7 +88,7 @@ function drawRegion(
     label.setScale(1.04);
   };
   const deactivate = () => {
-    focus.setFillStyle(PALETTE.amber, 0.08).setStrokeStyle(2, PALETTE.amber, 0.8);
+    focus.setFillStyle(PALETTE.amber, 0).setStrokeStyle(2, PALETTE.amber, 0);
     label.setScale(1);
   };
   const select = () => onSelect(region);

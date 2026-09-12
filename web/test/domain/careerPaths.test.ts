@@ -31,6 +31,19 @@ describe("career paths", () => {
       expect(path.regions.every(({ landmark }) => landmark !== undefined)).toBe(true);
       expect(path.regions.every(({ focusPoints }) => focusPoints.length >= 6)).toBe(true);
       expect(
+        path.regions.every(({ landmark, focusPoints }) => {
+          const absolutePoints = focusPoints.map(([x, y]) => [x + landmark.x, y + landmark.y]);
+          const xs = absolutePoints.map(([x]) => x);
+          const ys = absolutePoints.map(([, y]) => y);
+          return (
+            Math.min(...xs) === landmark.x - landmark.width / 2 &&
+            Math.max(...xs) === landmark.x + landmark.width / 2 &&
+            Math.min(...ys) === landmark.y - landmark.height / 2 &&
+            Math.max(...ys) === landmark.y + landmark.height / 2
+          );
+        })
+      ).toBe(true);
+      expect(
         path.regions.every(({ landmark }) =>
           landmark
             ? landmark.x - landmark.width / 2 >= 0 &&
