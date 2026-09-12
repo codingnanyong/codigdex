@@ -19,7 +19,12 @@ export function drawMapSurface(scene: Phaser.Scene) {
   frame.strokeRect(20, 20, width - 40, height - 40);
 }
 
-export function drawHeader(scene: Phaser.Scene, careerName?: string, secondaryCareerName?: string) {
+export function drawHeader(
+  scene: Phaser.Scene,
+  careerName?: string,
+  secondaryCareerName?: string,
+  tertiaryCareerName?: string
+) {
   const { width } = scene.scale;
   const panel = scene.add.graphics();
   panel.fillStyle(PALETTE.ink, 0.95);
@@ -33,8 +38,10 @@ export function drawHeader(scene: Phaser.Scene, careerName?: string, secondaryCa
     .text(
       width / 2,
       34,
-      secondaryCareerName
-        ? `JUNIOR > ${careerName} > ${secondaryCareerName}`
+      tertiaryCareerName
+        ? `${careerName} > ${secondaryCareerName} > ${tertiaryCareerName}`
+        : secondaryCareerName
+          ? `JUNIOR > ${careerName} > ${secondaryCareerName}`
         : careerName
           ? `JUNIOR > ${careerName}`
           : "JUNIOR DEVELOPER PATH",
@@ -47,7 +54,7 @@ export function drawHeader(scene: Phaser.Scene, careerName?: string, secondaryCa
     .setOrigin(0.5);
 
   scene.add
-    .text(width / 2, 56, secondaryCareerName ? "완료한 두 1차 직업이 2차 전직으로 연결됐어요" : careerName ? "선택한 1차 직업의 전문 경로를 완주하세요" : "공통 기술을 익히고 원하는 직업으로 전직하세요", {
+    .text(width / 2, 56, tertiaryCareerName ? "2차 직업 마스터 경로를 완료해 3차 전직을 달성했어요" : secondaryCareerName ? "2차 직업의 마스터 경로를 완주하면 3차 전직이 열려요" : careerName ? "선택한 1차 직업의 전문 경로를 완주하세요" : "공통 기술을 익히고 원하는 직업으로 전직하세요", {
       ...pixelText("body"),
       color: PALETTE_HEX.cream,
     })

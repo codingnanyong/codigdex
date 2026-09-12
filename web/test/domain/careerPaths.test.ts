@@ -8,10 +8,14 @@ import {
 } from "@/lib/phaser/worldMap/careerPaths";
 import {
   canSelectPrimaryJob,
+  completedSecondaryJobIds,
+  isTertiaryJobUnlocked,
   isSecondaryJobUnlocked,
   JOB_OPTIONS,
   SECONDARY_JOB_OPTIONS,
   secondaryJobsFor,
+  TERTIARY_JOB_OPTIONS,
+  tertiaryJobsFor,
   type JobId,
 } from "@/lib/domain/player/jobs";
 
@@ -25,6 +29,7 @@ describe("career paths", () => {
       expect(path.regions.length).toBeGreaterThanOrEqual(5);
       expect(path.regions.every(({ x, y }) => x > 0 && x < 960 && y > 50 && y < 540)).toBe(true);
       expect(path.regions.every(({ landmark }) => landmark !== undefined)).toBe(true);
+      expect(path.regions.every(({ focusPoints }) => focusPoints.length >= 6)).toBe(true);
       expect(
         path.regions.every(({ landmark }) =>
           landmark
@@ -72,6 +77,25 @@ describe("primary job changes", () => {
     const completed = new Set<JobId>(["frontend", "backend"]);
     expect(isSecondaryJobUnlocked(SECONDARY_JOB_OPTIONS[0], completed)).toBe(true);
     expect(isSecondaryJobUnlocked(SECONDARY_JOB_OPTIONS[1], completed)).toBe(false);
+  });
+
+  it("maps each tier-two job to one tier-three mastery path", () => {
+    SECONDARY_JOB_OPTIONS.forEach((secondary) => {
+      const [tertiary] = tertiaryJobsFor(secondary.id);
+      expect(tertiary?.requires).toBe(secondary.id);
+    });
+    expect(TERTIARY_JOB_OPTIONS).toHaveLength(SECONDARY_JOB_OPTIONS.length);
+  });
+
+  it("unlocks tier three only after its tier-two mastery captures are complete", () => {
+    const fullstack = {
+      ...SECONDARY_JOB_OPTIONS[0],
+      masteryCaptureIds: ["fullstack-capstone"],
+    };
+    const completed = completedSecondaryJobIds(new Set(["fullstack-capstone"]), [fullstack]);
+
+    expect(isTertiaryJobUnlocked(TERTIARY_JOB_OPTIONS[0], completed)).toBe(true);
+    expect(isTertiaryJobUnlocked(TERTIARY_JOB_OPTIONS[1], completed)).toBe(false);
   });
 
   it("lists every primary path completed by the captured requirements", () => {

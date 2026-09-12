@@ -3,12 +3,12 @@ import type { JobId } from "@/lib/domain/player/jobs";
 export interface CareerRegion {
   id: string;
   label: string;
-  /** Center and click radius of the painted entry disc. */
+  /** Legacy route-disc center, retained for map composition references. */
   x: number;
   y: number;
-  radius: number;
-  /** The illustrated destination connected to the disc is an entry too. */
+  /** Illustrated destination bounds and its non-rectangular interactive outline. */
   landmark: { x: number; y: number; width: number; height: number };
+  focusPoints: readonly Point[];
 }
 
 export interface CareerPathDefinition {
@@ -24,14 +24,33 @@ export interface CareerPathDefinition {
 type Point = readonly [x: number, y: number];
 type Bounds = readonly [x: number, y: number, width: number, height: number];
 
-const region = (id: string, label: string, [x, y]: Point, [lx, ly, width, height]: Bounds): CareerRegion => ({
-  id,
-  label,
-  x,
-  y,
-  radius: 25,
-  landmark: { x: lx, y: ly, width, height },
-});
+const region = (
+  id: string,
+  label: string,
+  [x, y]: Point,
+  [lx, ly, width, height]: Bounds
+): CareerRegion => {
+  const halfWidth = width / 2;
+  const halfHeight = height / 2;
+  const cut = Math.min(18, width * 0.14, height * 0.18);
+  return {
+    id,
+    label,
+    x,
+    y,
+    landmark: { x: lx, y: ly, width, height },
+    focusPoints: [
+      [-halfWidth + cut, -halfHeight],
+      [halfWidth - cut, -halfHeight],
+      [halfWidth, -halfHeight + cut],
+      [halfWidth, halfHeight - cut],
+      [halfWidth - cut, halfHeight],
+      [-halfWidth + cut, halfHeight],
+      [-halfWidth, halfHeight - cut],
+      [-halfWidth, -halfHeight + cut],
+    ],
+  };
+};
 
 export const CAREER_PATHS: Record<JobId, CareerPathDefinition> = {
   frontend: {

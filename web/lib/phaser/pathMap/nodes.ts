@@ -111,7 +111,13 @@ export function drawSecondaryCareerNode(
   scene: Phaser.Scene,
   x: number,
   y: number,
-  options: { name: string; unlocked: boolean; selected: boolean; onSelect: () => void }
+  options: {
+    name: string;
+    unlocked: boolean;
+    selected: boolean;
+    onSelect: () => void;
+    tierLabel?: "2차 전직" | "3차 전직";
+  }
 ) {
   const width = 104;
   const height = 54;
@@ -126,7 +132,7 @@ export function drawSecondaryCareerNode(
     )
     .setStrokeStyle(2, options.unlocked ? PALETTE.amber : PALETTE.mutedBrown);
   const eyebrow = scene.add
-    .text(0, -13, options.selected ? "2차 전직 · 현재" : "2차 전직", {
+    .text(0, -13, options.selected ? `${options.tierLabel ?? "2차 전직"} · 현재` : options.tierLabel ?? "2차 전직", {
       ...pixelText("caption"),
       color: options.unlocked ? PALETTE_HEX.maroon : PALETTE_HEX.sand,
     })

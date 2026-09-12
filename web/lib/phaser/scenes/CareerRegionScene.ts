@@ -42,12 +42,12 @@ export class CareerRegionScene extends Phaser.Scene {
     const scaledWidth = width * zoom;
     const scaledHeight = height * zoom;
     const backdropX = Phaser.Math.Clamp(
-      width / 2 + (width / 2 - region.x) * zoom,
+      width / 2 + (width / 2 - region.landmark.x) * zoom,
       width - scaledWidth / 2,
       scaledWidth / 2
     );
     const backdropY = Phaser.Math.Clamp(
-      height / 2 + (height / 2 - region.y) * zoom,
+      height / 2 + (height / 2 - region.landmark.y) * zoom,
       height - scaledHeight / 2,
       scaledHeight / 2
     );
