@@ -125,6 +125,24 @@ export class JobSelectScene extends Phaser.Scene {
       draw();
     };
 
+    const strokeCurve = (
+      start: [number, number],
+      end: [number, number],
+      active: boolean
+    ) => {
+      const curve = new Phaser.Curves.CubicBezier(
+        new Phaser.Math.Vector2(...start),
+        new Phaser.Math.Vector2(585, start[1]),
+        new Phaser.Math.Vector2(640, end[1]),
+        new Phaser.Math.Vector2(...end)
+      );
+      const points = curve.getPoints(24);
+      lines.lineStyle(5, PALETTE.ink, 1);
+      lines.strokePoints(points, false);
+      lines.lineStyle(2, active ? PALETTE.amber : PALETTE.mutedBrown, active ? 0.92 : 0.68);
+      lines.strokePoints(points, false);
+    };
+
     const primaryBranchX = 220;
     stroke(
       [
@@ -150,18 +168,33 @@ export class JobSelectScene extends Phaser.Scene {
       )
     );
 
+    const connectionCount = new Map<JobId, number>();
+    SECONDARY_JOB_OPTIONS.forEach((secondary) =>
+      secondary.requires.forEach((jobId) =>
+        connectionCount.set(jobId, (connectionCount.get(jobId) ?? 0) + 1)
+      )
+    );
+    const connectionIndex = new Map<JobId, number>();
+
     SECONDARY_JOB_OPTIONS.forEach((secondary, secondaryIndex) => {
       secondary.requires.forEach((primaryId, branchIndex) => {
         const primaryIndex = indexByPrimary.get(primaryId)!;
-        const startY = ROW_Y[primaryIndex];
-        const endY = ROW_Y[secondaryIndex];
-        const elbowX = 580 + branchIndex * 30;
-        stroke([
+        const portIndex = connectionIndex.get(primaryId) ?? 0;
+        const portCount = connectionCount.get(primaryId) ?? 1;
+        connectionIndex.set(primaryId, portIndex + 1);
+
+        const startY = ROW_Y[primaryIndex] + (portIndex - (portCount - 1) / 2) * 12;
+        const endY = ROW_Y[secondaryIndex] + (branchIndex === 0 ? -9 : 9);
+        const active = this.completedJobIds.has(primaryId);
+        strokeCurve(
           [PRIMARY_X + PRIMARY_WIDTH / 2, startY],
-          [elbowX, startY],
-          [elbowX, endY],
           [SECONDARY_X - SECONDARY_WIDTH / 2, endY],
-        ]);
+          active
+        );
+
+        this.add
+          .circle(SECONDARY_X - SECONDARY_WIDTH / 2, endY, 3, active ? PALETTE.amber : PALETTE.mutedBrown)
+          .setStrokeStyle(1, PALETTE.ink);
       });
     });
   }
