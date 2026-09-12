@@ -19,7 +19,7 @@ export function drawMapSurface(scene: Phaser.Scene) {
   frame.strokeRect(20, 20, width - 40, height - 40);
 }
 
-export function drawHeader(scene: Phaser.Scene, careerName?: string) {
+export function drawHeader(scene: Phaser.Scene, careerName?: string, secondaryCareerName?: string) {
   const { width } = scene.scale;
   const panel = scene.add.graphics();
   panel.fillStyle(PALETTE.ink, 0.95);
@@ -30,15 +30,24 @@ export function drawHeader(scene: Phaser.Scene, careerName?: string) {
   panel.fillRect(170, 18, width - 340, 4);
 
   scene.add
-    .text(width / 2, 34, careerName ? `${careerName} PATH` : "JUNIOR DEVELOPER PATH", {
+    .text(
+      width / 2,
+      34,
+      secondaryCareerName
+        ? `JUNIOR > ${careerName} > ${secondaryCareerName}`
+        : careerName
+          ? `JUNIOR > ${careerName}`
+          : "JUNIOR DEVELOPER PATH",
+      {
       ...pixelText("caption"),
       color: PALETTE_HEX.amber,
       letterSpacing: 2,
-    })
+      }
+    )
     .setOrigin(0.5);
 
   scene.add
-    .text(width / 2, 56, careerName ? "Git과 Linux를 익혀 선택한 직업으로 전직하세요" : "공통 기술을 익히고 원하는 직업으로 전직하세요", {
+    .text(width / 2, 56, secondaryCareerName ? "완료한 두 1차 직업이 2차 전직으로 연결됐어요" : careerName ? "선택한 1차 직업의 전문 경로를 완주하세요" : "공통 기술을 익히고 원하는 직업으로 전직하세요", {
       ...pixelText("body"),
       color: PALETTE_HEX.cream,
     })

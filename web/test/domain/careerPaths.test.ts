@@ -1,6 +1,19 @@
 import { describe, expect, it } from "vitest";
-import { CAREER_PATHS, careerPathFor } from "@/lib/phaser/worldMap/careerPaths";
-import { JOB_OPTIONS, SECONDARY_JOB_OPTIONS, secondaryJobsFor, type JobId } from "@/lib/domain/player/jobs";
+import {
+  CAREER_PATHS,
+  careerPathFor,
+  completedCareerPathIds,
+  isCareerPathComplete,
+  type CareerPathDefinition,
+} from "@/lib/phaser/worldMap/careerPaths";
+import {
+  canSelectPrimaryJob,
+  isSecondaryJobUnlocked,
+  JOB_OPTIONS,
+  SECONDARY_JOB_OPTIONS,
+  secondaryJobsFor,
+  type JobId,
+} from "@/lib/domain/player/jobs";
 
 describe("career paths", () => {
   it("gives every primary job a detailed map with several dex destinations", () => {
@@ -29,5 +42,47 @@ describe("career paths", () => {
     expect(SECONDARY_JOB_OPTIONS.map((job) => job.id)).toContain("fullstack-engineer");
     expect(SECONDARY_JOB_OPTIONS.map((job) => job.id)).toContain("ml-developer");
     expect(secondaryJobsFor("backend").length).toBeGreaterThan(1);
+  });
+});
+
+describe("primary job changes", () => {
+  const path = {
+    ...CAREER_PATHS.frontend,
+    completionCaptureIds: ["html-css-final", "javascript-final"],
+  } satisfies CareerPathDefinition;
+
+  it("derives path completion only when every required chapter capture exists", () => {
+    expect(isCareerPathComplete(path, new Set())).toBe(false);
+    expect(isCareerPathComplete(path, new Set(["html-css-final"]))).toBe(false);
+    expect(isCareerPathComplete(path, new Set(["html-css-final", "javascript-final"]))).toBe(true);
+  });
+
+  it("does not treat a path with no released completion requirements as complete", () => {
+    expect(isCareerPathComplete(CAREER_PATHS.frontend, new Set())).toBe(false);
+  });
+
+  it("locks another primary job until the current path is complete", () => {
+    expect(canSelectPrimaryJob("frontend", "backend", false)).toBe(false);
+    expect(canSelectPrimaryJob("frontend", "frontend", false)).toBe(true);
+    expect(canSelectPrimaryJob("frontend", "backend", true)).toBe(true);
+    expect(canSelectPrimaryJob("junior", "backend", false)).toBe(true);
+  });
+
+  it("unlocks only the tier-two jobs whose two primary paths are complete", () => {
+    const completed = new Set<JobId>(["frontend", "backend"]);
+    expect(isSecondaryJobUnlocked(SECONDARY_JOB_OPTIONS[0], completed)).toBe(true);
+    expect(isSecondaryJobUnlocked(SECONDARY_JOB_OPTIONS[1], completed)).toBe(false);
+  });
+
+  it("lists every primary path completed by the captured requirements", () => {
+    const paths = {
+      ...CAREER_PATHS,
+      frontend: { ...CAREER_PATHS.frontend, completionCaptureIds: ["frontend-final"] },
+      backend: { ...CAREER_PATHS.backend, completionCaptureIds: ["backend-final"] },
+    };
+
+    expect(completedCareerPathIds(new Set(["frontend-final", "backend-final"]), paths)).toEqual(
+      new Set(["frontend", "backend"])
+    );
   });
 });

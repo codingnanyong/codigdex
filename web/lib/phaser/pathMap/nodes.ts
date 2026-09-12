@@ -106,26 +106,46 @@ export function drawPromotionNode(
   makePressable(card, new Phaser.Geom.Rectangle(-half, -half, PROMOTION_SIZE, PROMOTION_SIZE), 1.04, onSelect);
 }
 
-/** A locked silhouette for a future tier-two job; its real name stays hidden. */
-export function drawMysteryCareerNode(
+/** A tier-two node: mystery until both required primary paths are complete. */
+export function drawSecondaryCareerNode(
   scene: Phaser.Scene,
   x: number,
   y: number,
-  onSelect: () => void
+  options: { name: string; unlocked: boolean; selected: boolean; onSelect: () => void }
 ) {
   const width = 104;
   const height = 54;
   const panel = scene.add
-    .rectangle(0, 0, width, height, PALETTE.nightBrown, 0.96)
-    .setStrokeStyle(2, PALETTE.mutedBrown);
+    .rectangle(
+      0,
+      0,
+      width,
+      height,
+      options.selected ? PALETTE.sand : options.unlocked ? PALETTE.cream : PALETTE.nightBrown,
+      0.96
+    )
+    .setStrokeStyle(2, options.unlocked ? PALETTE.amber : PALETTE.mutedBrown);
   const eyebrow = scene.add
-    .text(0, -13, "2차 전직", { ...pixelText("caption"), color: PALETTE_HEX.sand })
+    .text(0, -13, options.selected ? "2차 전직 · 현재" : "2차 전직", {
+      ...pixelText("caption"),
+      color: options.unlocked ? PALETTE_HEX.maroon : PALETTE_HEX.sand,
+    })
     .setOrigin(0.5);
   const label = scene.add
-    .text(0, 11, "◆  ???", { ...pixelText("body"), color: PALETTE_HEX.cream })
+    .text(0, 11, options.unlocked ? options.name : "◆  ???", {
+      ...pixelText("caption"),
+      color: options.unlocked ? PALETTE_HEX.ink : PALETTE_HEX.cream,
+      align: "center",
+      wordWrap: { width: width - 10 },
+    })
     .setOrigin(0.5);
   const card = scene.add.container(x, y, [panel, eyebrow, label]);
-  makePressable(card, new Phaser.Geom.Rectangle(-width / 2, -height / 2, width, height), 1.035, onSelect);
+  makePressable(
+    card,
+    new Phaser.Geom.Rectangle(-width / 2, -height / 2, width, height),
+    1.035,
+    options.onSelect
+  );
   return card;
 }
 

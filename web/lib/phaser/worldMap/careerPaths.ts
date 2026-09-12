@@ -17,6 +17,8 @@ export interface CareerPathDefinition {
   assetPath: string;
   title: string;
   regions: readonly CareerRegion[];
+  /** Final captures that prove every chapter in this primary path is complete. */
+  completionCaptureIds: readonly string[];
 }
 
 type Point = readonly [x: number, y: number];
@@ -37,6 +39,7 @@ export const CAREER_PATHS: Record<JobId, CareerPathDefinition> = {
     textureKey: "world-career-frontend",
     assetPath: "/assets/wallpapers/career-paths/frontend-path-map-v1.png",
     title: "웹 프론트엔드 개발자 경로",
+    completionCaptureIds: [],
     regions: [
       region("html-css", "HTML/CSS", [164, 384], [160, 365, 126, 108]),
       region("javascript", "JavaScript", [339, 265], [390, 202, 118, 100]),
@@ -50,6 +53,7 @@ export const CAREER_PATHS: Record<JobId, CareerPathDefinition> = {
     textureKey: "world-career-backend",
     assetPath: "/assets/wallpapers/career-paths/backend-path-map-v1.png",
     title: "백엔드 개발자 경로",
+    completionCaptureIds: [],
     regions: [
       region("http-api", "HTTP/API", [109, 416], [111, 393, 122, 104]),
       region("server-framework", "서버 프레임워크", [262, 195], [151, 197, 180, 154]),
@@ -64,6 +68,7 @@ export const CAREER_PATHS: Record<JobId, CareerPathDefinition> = {
     textureKey: "world-career-devops",
     assetPath: "/assets/wallpapers/career-paths/devops-path-map-v1.png",
     title: "DevOps 엔지니어 경로",
+    completionCaptureIds: [],
     regions: [
       region("network", "네트워크", [80, 435], [79, 405, 132, 126]),
       region("docker", "Docker", [220, 379], [211, 346, 158, 108]),
@@ -78,6 +83,7 @@ export const CAREER_PATHS: Record<JobId, CareerPathDefinition> = {
     textureKey: "world-career-data-engineer",
     assetPath: "/assets/wallpapers/career-paths/data-engineer-path-map-v1.png",
     title: "데이터 엔지니어 경로",
+    completionCaptureIds: [],
     regions: [
       region("python", "Python", [114, 400], [113, 369, 132, 122]),
       region("sql", "SQL · 데이터 모델링", [229, 203], [252, 169, 176, 126]),
@@ -92,6 +98,7 @@ export const CAREER_PATHS: Record<JobId, CareerPathDefinition> = {
     textureKey: "world-career-data-analyst",
     assetPath: "/assets/wallpapers/career-paths/data-analyst-path-map-v1.png",
     title: "데이터 분석가 경로",
+    completionCaptureIds: [],
     regions: [
       region("sql", "SQL", [272, 412], [122, 376, 104, 106]),
       region("statistics", "기초 통계", [431, 326], [363, 313, 166, 118]),
@@ -104,4 +111,25 @@ export const CAREER_PATHS: Record<JobId, CareerPathDefinition> = {
 
 export function careerPathFor(jobId: JobId): CareerPathDefinition {
   return CAREER_PATHS[jobId];
+}
+
+/** Completion is derived from the dex, so it stays valid across saves and shared chapters. */
+export function isCareerPathComplete(
+  path: CareerPathDefinition,
+  captured: ReadonlySet<string>
+): boolean {
+  const required = path.completionCaptureIds;
+  return required.length > 0 && required.every((id) => captured.has(id));
+}
+
+/** Every completed primary career, derived solely from its required dex captures. */
+export function completedCareerPathIds(
+  captured: ReadonlySet<string>,
+  paths: Readonly<Record<JobId, CareerPathDefinition>> = CAREER_PATHS
+): ReadonlySet<JobId> {
+  return new Set(
+    (Object.keys(paths) as JobId[]).filter((jobId) =>
+      isCareerPathComplete(paths[jobId], captured)
+    )
+  );
 }

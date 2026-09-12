@@ -15,6 +15,12 @@ export interface JobOption {
   guideName: string;
 }
 
+export interface PrimaryJobOption extends JobOption {
+  id: JobId;
+  textureKey: string;
+  assetPath: string;
+}
+
 export interface SecondaryJobOption {
   id: SecondaryJobId;
   /** Kept out of the UI until the unlock condition is met. */
@@ -30,7 +36,7 @@ export const DEFAULT_JOB: JobOption = {
   guideName: "버그 연구원 루피",
 };
 
-export const JOB_OPTIONS: readonly JobOption[] = [
+export const JOB_OPTIONS: readonly PrimaryJobOption[] = [
   {
     id: "frontend",
     name: "웹 프론트엔드 개발자",
@@ -94,6 +100,23 @@ export function findJob(id: string | undefined): JobOption {
 
 export function secondaryJobsFor(jobId: JobId): readonly SecondaryJobOption[] {
   return SECONDARY_JOB_OPTIONS.filter((job) => job.requires.includes(jobId));
+}
+
+/** Tier two opens only after both of its required primary paths are complete. */
+export function isSecondaryJobUnlocked(
+  job: SecondaryJobOption,
+  completedPrimaryJobs: ReadonlySet<JobId>
+): boolean {
+  return job.requires.every((jobId) => completedPrimaryJobs.has(jobId));
+}
+
+/** A player may keep their current job, or change only after finishing its path. */
+export function canSelectPrimaryJob(
+  currentJobId: JobId | "junior",
+  requestedJobId: JobId,
+  currentPathComplete: boolean
+): boolean {
+  return currentJobId === "junior" || currentJobId === requestedJobId || currentPathComplete;
 }
 
 export function findSecondaryJob(id: string | null | undefined): SecondaryJobOption | undefined {

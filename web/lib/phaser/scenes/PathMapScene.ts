@@ -10,17 +10,27 @@ import { GIT_CHAPTER } from "@/lib/domain/chapters/git";
 import { LINUX_CHAPTER } from "@/lib/domain/chapters/linux";
 import type { ChapterId } from "@/lib/domain/chapters/types";
 import { capturedIds } from "@/lib/domain/dex/capture";
-import { findJob, JOB_REGISTRY_KEY, secondaryJobsFor, type JobId } from "@/lib/domain/player/jobs";
+import {
+  findJob,
+  findSecondaryJob,
+  isSecondaryJobUnlocked,
+  JOB_REGISTRY_KEY,
+  SECONDARY_JOB_REGISTRY_KEY,
+  secondaryJobsFor,
+  type JobId,
+  type SecondaryJobOption,
+} from "@/lib/domain/player/jobs";
 import { COMMON_TECHNOLOGY_SPECIMENS } from "@/lib/domain/technologySpecimens";
 import { preloadMonsterArt } from "../monsterArt";
 import { PALETTE } from "../palette";
 import { drawConnections } from "../pathMap/connections";
 import { CAREER_NODES, CAREER_PORTRAITS, COMMON_NODES, PROMOTION_NODE, type PathNode } from "../pathMap/layout";
-import { drawMysteryCareerNode, drawPathNode, drawPromotionNode } from "../pathMap/nodes";
+import { drawPathNode, drawPromotionNode, drawSecondaryCareerNode } from "../pathMap/nodes";
 import { StagePanel } from "../pathMap/stagePanel";
 import { drawHeader, drawMapSurface, drawSectionLabels } from "../pathMap/surface";
 import { readDexState } from "../registryAdapter";
 import { applyPixelFontToScene, createButton, showToast } from "../ui";
+import { completedCareerPathIds } from "../worldMap/careerPaths";
 
 export interface PathMapData {
   /** Opens this chapter's stage panel on arrival, to carry on after a battle. */
@@ -36,6 +46,8 @@ export class PathMapScene extends Phaser.Scene {
   private selectedCareerId?: JobId;
   private toast?: Phaser.GameObjects.Text;
   private stagePanel?: StagePanel;
+  private completedCareerIds: ReadonlySet<JobId> = new Set();
+  private selectedSecondaryJobId?: string;
 
   constructor() {
     super("path-map");
@@ -60,6 +72,14 @@ export class PathMapScene extends Phaser.Scene {
     this.toast = undefined;
     this.stagePanel = undefined;
     this.captured = capturedIds(readDexState(this.registry));
+    this.completedCareerIds = completedCareerPathIds(this.captured);
+    const storedSecondaryJob = findSecondaryJob(
+      this.registry.get(SECONDARY_JOB_REGISTRY_KEY) as string | null | undefined
+    );
+    this.selectedSecondaryJobId =
+      storedSecondaryJob && isSecondaryJobUnlocked(storedSecondaryJob, this.completedCareerIds)
+        ? storedSecondaryJob.id
+        : undefined;
 
     const selectedCareer = CAREER_NODES.find((node) => node.id === this.selectedCareerId);
     const careerNodes = selectedCareer ? [{ ...selectedCareer, y: 272 }] : CAREER_NODES;
@@ -67,7 +87,12 @@ export class PathMapScene extends Phaser.Scene {
     const selectedJob = findJob(this.selectedCareerId);
 
     drawMapSurface(this);
-    drawHeader(this, selectedCareer ? selectedJob.name : undefined);
+    const selectedSecondary = findSecondaryJob(this.selectedSecondaryJobId);
+    const secondaryOnThisPath =
+      selectedSecondary && this.selectedCareerId && selectedSecondary.requires.includes(this.selectedCareerId)
+        ? selectedSecondary
+        : undefined;
+    drawHeader(this, selectedCareer ? selectedJob.name : undefined, secondaryOnThisPath?.name);
     drawSectionLabels(this);
     drawConnections(this, (node) => this.statusOf(node) === "cleared", careerNodes);
 
@@ -106,16 +131,31 @@ export class PathMapScene extends Phaser.Scene {
     lines.lineStyle(2, PALETTE.mutedBrown, 0.75);
     lines.lineBetween(selectedNode.x, 299, selectedNode.x, 350);
 
-    candidates.forEach((_candidate, index) => {
+    candidates.forEach((candidate, index) => {
       const x = startX + index * spacing;
       lines.lineStyle(5, PALETTE.ink, 0.8);
       lines.lineBetween(selectedNode.x, 350, x, y - 27);
       lines.lineStyle(2, PALETTE.mutedBrown, 0.75);
       lines.lineBetween(selectedNode.x, 350, x, y - 27);
-      drawMysteryCareerNode(this, x, y, () =>
-        this.notify("??? · 연관된 두 1차 직업 도감을 완성하면 정체가 드러나요.")
-      );
+      const unlocked = isSecondaryJobUnlocked(candidate, this.completedCareerIds);
+      drawSecondaryCareerNode(this, x, y, {
+        name: candidate.name,
+        unlocked,
+        selected: this.selectedSecondaryJobId === candidate.id,
+        onSelect: () => this.onSecondaryCareerSelected(candidate),
+      });
     });
+  }
+
+  private onSecondaryCareerSelected(job: SecondaryJobOption) {
+    if (!isSecondaryJobUnlocked(job, this.completedCareerIds)) {
+      const requirements = job.requires.map((jobId) => findJob(jobId).name).join(" + ");
+      this.notify(`${requirements} 경로를 모두 완료하면 열려요.`);
+      return;
+    }
+
+    this.registry.set(SECONDARY_JOB_REGISTRY_KEY, job.id);
+    this.scene.restart({ careerId: this.selectedCareerId });
   }
 
   private statusOf(node: PathNode): ChapterStatus {
