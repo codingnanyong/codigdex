@@ -19,12 +19,16 @@ export interface JobOption {
   textureKey?: string;
   assetPath?: string;
   guideName: string;
+  guideTextureKey?: string;
+  guideAssetPath?: string;
 }
 
 export interface PrimaryJobOption extends JobOption {
   id: JobId;
   textureKey: string;
   assetPath: string;
+  guideTextureKey: string;
+  guideAssetPath: string;
 }
 
 export interface SecondaryJobOption {
@@ -58,6 +62,8 @@ export const JOB_OPTIONS: readonly PrimaryJobOption[] = [
     textureKey: "career-frontend",
     assetPath: "/assets/careers/frontend-developer.png",
     guideName: "프론트엔드 선배",
+    guideTextureKey: "npc-frontend-senior",
+    guideAssetPath: "/assets/npcs/frontend-senior-v1.png",
   },
   {
     id: "backend",
@@ -66,6 +72,8 @@ export const JOB_OPTIONS: readonly PrimaryJobOption[] = [
     textureKey: "career-backend",
     assetPath: "/assets/careers/backend-developer.png",
     guideName: "백엔드 선배",
+    guideTextureKey: "npc-backend-senior",
+    guideAssetPath: "/assets/npcs/backend-senior-v1.png",
   },
   {
     id: "devops",
@@ -74,6 +82,8 @@ export const JOB_OPTIONS: readonly PrimaryJobOption[] = [
     textureKey: "career-devops",
     assetPath: "/assets/careers/devops-engineer.png",
     guideName: "DevOps 선배",
+    guideTextureKey: "npc-devops-senior",
+    guideAssetPath: "/assets/npcs/devops-senior-v1.png",
   },
   {
     id: "data-engineer",
@@ -82,6 +92,8 @@ export const JOB_OPTIONS: readonly PrimaryJobOption[] = [
     textureKey: "career-data-engineer",
     assetPath: "/assets/careers/data-engineer.png",
     guideName: "데이터 엔지니어 선배",
+    guideTextureKey: "npc-data-engineer-senior",
+    guideAssetPath: "/assets/npcs/data-engineer-senior-v1.png",
   },
   {
     id: "data-analyst",
@@ -90,6 +102,8 @@ export const JOB_OPTIONS: readonly PrimaryJobOption[] = [
     textureKey: "career-data-analyst",
     assetPath: "/assets/careers/data-analyst.png",
     guideName: "데이터 분석가 선배",
+    guideTextureKey: "npc-data-analyst-senior",
+    guideAssetPath: "/assets/npcs/data-analyst-senior-v1.png",
   },
 ];
 

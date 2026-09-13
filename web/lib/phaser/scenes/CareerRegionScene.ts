@@ -29,6 +29,9 @@ export class CareerRegionScene extends Phaser.Scene {
     const job = findJob(this.careerId);
     this.load.image(path.textureKey, path.assetPath);
     this.load.image(job.textureKey!, job.assetPath!);
+    if (job.guideTextureKey && job.guideAssetPath) {
+      this.load.image(job.guideTextureKey, job.guideAssetPath);
+    }
   }
 
   create() {
@@ -69,7 +72,7 @@ export class CareerRegionScene extends Phaser.Scene {
       .setOrigin(0.5);
     fitTextInside(careerTitle, 390, 16);
 
-    this.drawGuide(job.textureKey!, job.guideName, region);
+    this.drawGuide(job.guideTextureKey ?? job.textureKey!, job.guideName, region);
     createButton(this, 88, height - 28, 136, 34, "상세 지도", () => this.scene.start("world-map"));
     createButton(this, width - 88, height - 28, 136, 34, "Path 보기", () =>
       this.scene.start("path-map", { careerId: this.careerId })

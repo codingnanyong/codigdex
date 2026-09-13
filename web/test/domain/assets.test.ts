@@ -15,7 +15,7 @@ const PUBLIC_DIR = path.resolve(__dirname, "../../public");
  */
 const referencedAssets = [
   "/assets/npcs/lupi-guide-v1.png",
-  ...JOB_OPTIONS.flatMap((job) => job.assetPath ? [job.assetPath] : []),
+  ...JOB_OPTIONS.flatMap((job) => [job.assetPath, job.guideAssetPath]),
   ...Object.values(TECHNOLOGY_SPECIMENS).map((specimen) => specimen.assetPath),
   ...WORLD_BACKDROPS.map((backdrop) => backdrop.assetPath),
   ...CHAPTERS.flatMap((chapter) => [

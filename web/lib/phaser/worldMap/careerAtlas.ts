@@ -20,7 +20,7 @@ export function drawCareerAtlas(scene: Phaser.Scene, options: CareerAtlasOptions
 
   const guideFrame = drawOrnateFrame(scene, 132, 111, 224, 78, { fillAlpha: 0.94, radius: 10 }).setDepth(5);
   const guide = scene.add
-    .image(70, 111, options.job.textureKey!)
+    .image(70, 111, options.job.guideTextureKey ?? options.job.textureKey!)
     .setDisplaySize(72, 72)
     .setDepth(6);
   const guideName = scene.add
