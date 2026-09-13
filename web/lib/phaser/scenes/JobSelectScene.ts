@@ -329,7 +329,7 @@ export class JobSelectScene extends Phaser.Scene {
     });
     this.add
       .text(SECONDARY_X - 74, y, `Ⅱ-${index + 1}`, {
-        ...pixelText("caption"),
+        ...pixelText("micro"),
         color: unlocked ? PALETTE_HEX.maroon : PALETTE_HEX.sand,
       })
       .setOrigin(0, 0.5);
@@ -370,7 +370,7 @@ export class JobSelectScene extends Phaser.Scene {
     });
     this.add
       .text(TERTIARY_X - 69, y, `Ⅲ-${index + 1}`, {
-        ...pixelText("caption"),
+        ...pixelText("micro"),
         color: unlocked ? PALETTE_HEX.maroon : PALETTE_HEX.sand,
       })
       .setOrigin(0, 0.5);

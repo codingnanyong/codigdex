@@ -3,7 +3,7 @@ import type { CareerPathDefinition, CareerRegion } from "./careerPaths";
 import type { JobOption } from "@/lib/domain/player/jobs";
 import { PALETTE, PALETTE_HEX } from "../palette";
 import { pixelText } from "../pixelFont";
-import { drawOrnateFrame } from "../ui";
+import { drawOrnateFrame, fitTextInside } from "../ui";
 
 interface CareerAtlasOptions {
   job: JobOption;
@@ -18,22 +18,23 @@ export function drawCareerAtlas(scene: Phaser.Scene, options: CareerAtlasOptions
     drawRegion(scene, options.path.textureKey, region, index + 1, options.onRegion)
   );
 
-  const guideFrame = drawOrnateFrame(scene, 132, 111, 224, 78, { fillAlpha: 0.94, radius: 10 }).setDepth(5);
+  const guideFrame = drawOrnateFrame(scene, 132, 116, 224, 92, { fillAlpha: 0.94, radius: 10 }).setDepth(5);
   const guide = scene.add
-    .image(70, 111, options.job.guideTextureKey ?? options.job.textureKey!)
-    .setDisplaySize(72, 72)
+    .image(70, 116, options.job.guideTextureKey ?? options.job.textureKey!)
+    .setDisplaySize(82, 82)
     .setDepth(6);
   const guideName = scene.add
-    .text(110, 91, options.job.guideName, {
+    .text(110, 87, options.job.guideName, {
       ...pixelText("caption"),
       color: PALETTE_HEX.maroon,
     })
     .setDepth(6);
+  fitTextInside(guideName, 124, 16);
   const guideLine = scene.add
-    .text(110, 111, "빛나는 지역을 눌러\n도감 수집지를 확인하세요.", {
+    .text(110, 108, "빛나는 지역을 눌러\n수집지를 확인하세요.", {
       ...pixelText("caption"),
       color: PALETTE_HEX.ink,
-      lineSpacing: 3,
+      lineSpacing: 2,
     })
     .setDepth(6);
 
@@ -68,25 +69,16 @@ function drawRegion(
   order: number,
   onSelect: (region: CareerRegion) => void
 ) {
-  const { landmark } = region;
-  const landmarkLeft = landmark.x - landmark.width / 2;
-  const landmarkTop = landmark.y - landmark.height / 2;
-  const absolutePoints = region.focusPoints.map(
-    ([x, y]) => new Phaser.Math.Vector2(x + landmarkLeft, y + landmarkTop)
-  );
+  const { landmark, lift } = region;
   const shadow = scene.add
-    .polygon(landmark.x, landmark.y + 5, region.focusPoints, PALETTE.nightBrown, 1)
+    .polygon(lift.x, lift.y + 5, lift.points, PALETTE.nightBrown, 1)
     .setAlpha(0)
     .setDepth(3);
+  const focusTextureKey = createFocusTexture(scene, textureKey, region);
   const liftedRegion = scene.add
-    .image(0, 0, textureKey)
-    .setOrigin(0)
+    .image(lift.x, lift.y, focusTextureKey)
     .setVisible(false)
     .setDepth(4);
-  const maskShape = scene.make.graphics({ x: 0, y: 0 }, false);
-  maskShape.fillStyle(0xffffff).fillPoints(absolutePoints, true);
-  const mask = maskShape.createGeometryMask();
-  liftedRegion.setMask(mask);
 
   const hitArea = scene.add
     .polygon(landmark.x, landmark.y, region.focusPoints, 0xffffff, 0)
@@ -103,11 +95,11 @@ function drawRegion(
     .setDepth(5);
 
   const activate = () => {
-    scene.tweens.killTweensOf([liftedRegion, maskShape, shadow, label]);
+    scene.tweens.killTweensOf([liftedRegion, shadow, label]);
     liftedRegion.setVisible(true);
     scene.tweens.add({
-      targets: [liftedRegion, maskShape],
-      y: -8,
+      targets: liftedRegion,
+      y: lift.y - 8,
       duration: 150,
       ease: "Cubic.Out",
     });
@@ -126,10 +118,10 @@ function drawRegion(
     });
   };
   const deactivate = () => {
-    scene.tweens.killTweensOf([liftedRegion, maskShape, shadow, label]);
+    scene.tweens.killTweensOf([liftedRegion, shadow, label]);
     scene.tweens.add({
-      targets: [liftedRegion, maskShape],
-      y: 0,
+      targets: liftedRegion,
+      y: lift.y,
       duration: 130,
       ease: "Cubic.In",
       onComplete: () => liftedRegion.setVisible(false),
@@ -148,9 +140,52 @@ function drawRegion(
   hitArea.on("pointerover", activate);
   hitArea.on("pointerout", deactivate);
   hitArea.on("pointerup", select);
-  scene.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
-    mask.destroy();
-    maskShape.destroy();
-  });
   return hitArea;
+}
+
+/**
+ * Bakes one transparent texture per painted object silhouette. The generous
+ * interaction polygon remains separate, so a landmark is easy to target while
+ * only its architecture rises from the wallpaper. Phaser 4 geometry masks
+ * only work in the Canvas renderer; Phaser.AUTO normally chooses WebGL and
+ * would therefore lift the whole wallpaper. A clipped CanvasTexture renders
+ * identically in Canvas and WebGL and makes leaking outside the region bounds
+ * impossible even while it is tweened.
+ */
+function createFocusTexture(
+  scene: Phaser.Scene,
+  wallpaperTextureKey: string,
+  region: CareerRegion
+): string {
+  const focusTextureKey = `${wallpaperTextureKey}-focus-${region.id}`;
+  if (scene.textures.exists(focusTextureKey)) return focusTextureKey;
+
+  const { lift } = region;
+  const width = Math.ceil(lift.width);
+  const height = Math.ceil(lift.height);
+  const texture = scene.textures.createCanvas(focusTextureKey, width, height);
+  if (!texture) throw new Error(`Could not create career focus texture: ${focusTextureKey}`);
+
+  const context = texture.context;
+  context.imageSmoothingEnabled = false;
+  context.save();
+  context.beginPath();
+  context.moveTo(lift.points[0][0], lift.points[0][1]);
+  lift.points.slice(1).forEach(([x, y]) => context.lineTo(x, y));
+  context.closePath();
+  context.clip();
+  context.drawImage(
+    scene.textures.get(wallpaperTextureKey).getSourceImage() as CanvasImageSource,
+    lift.x - lift.width / 2,
+    lift.y - lift.height / 2,
+    width,
+    height,
+    0,
+    0,
+    width,
+    height
+  );
+  context.restore();
+  texture.refresh();
+  return focusTextureKey;
 }

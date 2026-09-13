@@ -17,7 +17,8 @@ describe("pixelText", () => {
   // Galmuri7 only stays sharp at 7px and whole multiples of it, so these
   // exact numbers are the point of the role ladder — not arbitrary sizes.
   const EXPECTED: Record<PixelTextRole, string> = {
-    caption: "7px",
+    micro: "7px",
+    caption: "14px",
     body: "14px",
     subtitle: "21px",
     title: "28px",
@@ -35,12 +36,21 @@ describe("pixelText", () => {
     }
   });
 
-  it("draws body copy in Galmuri14 and every other role in Galmuri7", () => {
+  it("draws readable body and caption copy in Galmuri14", () => {
     expect(fontVariableFor("body")).toBe("--font-pixel-body");
-    for (const role of (Object.keys(EXPECTED) as PixelTextRole[]).filter((role) => role !== "body")) {
+    expect(fontVariableFor("caption")).toBe("--font-pixel-body");
+    for (const role of (Object.keys(EXPECTED) as PixelTextRole[]).filter(
+      (role) => role !== "body" && role !== "caption"
+    )) {
       expect(fontVariableFor(role)).toBe("--font-pixel");
     }
     expect(pixelText("body").fontFamily).toBe(getPixelFontFamily("--font-pixel-body"));
+  });
+
+  it("rasterizes game text at double resolution for scaled canvases", () => {
+    for (const role of Object.keys(EXPECTED) as PixelTextRole[]) {
+      expect(pixelText(role).resolution).toBe(2);
+    }
   });
 });
 

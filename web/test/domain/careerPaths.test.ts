@@ -31,6 +31,7 @@ describe("career paths", () => {
       expect(path.regions.every(({ x, y }) => x > 0 && x < 960 && y > 50 && y < 540)).toBe(true);
       expect(path.regions.every(({ landmark }) => landmark !== undefined)).toBe(true);
       expect(path.regions.every(({ focusPoints }) => focusPoints.length >= 6)).toBe(true);
+      expect(path.regions.every(({ lift }) => lift.points.length >= 8)).toBe(true);
       expect(
         path.regions.every(({ landmark, focusPoints }) => {
           const left = landmark.x - landmark.width / 2;
@@ -43,6 +44,22 @@ describe("career paths", () => {
             Math.max(...xs) === landmark.x + landmark.width / 2 &&
             Math.min(...ys) === landmark.y - landmark.height / 2 &&
             Math.max(...ys) === landmark.y + landmark.height / 2
+          );
+        })
+      ).toBe(true);
+      expect(
+        path.regions.every(({ lift }) => {
+          const xs = lift.points.map(([x]) => x);
+          const ys = lift.points.map(([, y]) => y);
+          return (
+            Math.min(...xs) === 0 &&
+            Math.max(...xs) === lift.width &&
+            Math.min(...ys) === 0 &&
+            Math.max(...ys) === lift.height &&
+            lift.x - lift.width / 2 >= 0 &&
+            lift.x + lift.width / 2 <= 960 &&
+            lift.y - lift.height / 2 >= 0 &&
+            lift.y + lift.height / 2 <= 540
           );
         })
       ).toBe(true);

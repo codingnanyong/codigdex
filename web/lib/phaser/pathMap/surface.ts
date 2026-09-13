@@ -72,13 +72,13 @@ export function drawSectionLabels(scene: Phaser.Scene) {
 function drawSectionLabel(scene: Phaser.Scene, x: number, english: string, korean: string) {
   scene.add
     .text(x, 94, english, {
-      ...pixelText("caption"),
+      ...pixelText("micro"),
       color: PALETTE_HEX.amber,
       letterSpacing: 1,
     })
     .setOrigin(0.5);
   scene.add
-    .text(x, 110, korean, {
+    .text(x, 112, korean, {
       ...pixelText("caption"),
       color: PALETTE_HEX.mutedBrown,
     })

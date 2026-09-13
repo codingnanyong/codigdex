@@ -8,7 +8,8 @@ const FALLBACK = "monospace";
  * body copy starts at 2x. Text picks a role here instead of a raw px size.
  */
 const PIXEL_SIZES = {
-  caption: 7, // 1x — short all-caps labels only
+  micro: 7, // 1x — symbols, numbers and short all-caps labels only
+  caption: 14, // readable Korean labels and secondary information
   body: 14, // 2x
   subtitle: 21, // 3x
   title: 28, // 4x
@@ -27,7 +28,7 @@ const BODY_FONT_VARIABLE = "--font-pixel-body";
  * drawn on its own grid, so it swaps in without moving any layout.
  */
 export function fontVariableFor(role: PixelTextRole): string {
-  return role === "body" ? BODY_FONT_VARIABLE : PIXEL_FONT_VARIABLE;
+  return role === "body" || role === "caption" ? BODY_FONT_VARIABLE : PIXEL_FONT_VARIABLE;
 }
 
 export function getPixelFontFamily(variable: string = PIXEL_FONT_VARIABLE): string {
@@ -36,9 +37,17 @@ export function getPixelFontFamily(variable: string = PIXEL_FONT_VARIABLE): stri
   return value ? `${value}, ${FALLBACK}` : FALLBACK;
 }
 
-/** Font family + size for a text role, sized to stay pixel-sharp. */
-export function pixelText(role: PixelTextRole): { fontFamily: string; fontSize: string } {
-  return { fontFamily: getPixelFontFamily(fontVariableFor(role)), fontSize: `${PIXEL_SIZES[role]}px` };
+/** Font family + size for a text role, sized to stay pixel-sharp and legible when the game canvas shrinks. */
+export function pixelText(
+  role: PixelTextRole
+): { fontFamily: string; fontSize: string; resolution: number } {
+  return {
+    fontFamily: getPixelFontFamily(fontVariableFor(role)),
+    fontSize: `${PIXEL_SIZES[role]}px`,
+    // Phaser rasterizes Text to its own canvas. A 2x source keeps strokes and
+    // Hangul finals distinct when the 960x540 game is scaled down in CSS.
+    resolution: 2,
+  };
 }
 
 export function whenPixelFontReady(callback: () => void) {

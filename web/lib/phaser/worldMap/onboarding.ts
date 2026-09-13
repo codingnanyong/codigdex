@@ -51,7 +51,7 @@ export class OnboardingDialog {
       .setOrigin(0, 0);
     this.pageText = scene.add
       .text(width / 2, height - 30, `1 / ${options.lines.length}`, {
-        ...pixelText("caption"),
+        ...pixelText("micro"),
         color: PALETTE_HEX.mutedBrown,
       })
       .setOrigin(0.5);
