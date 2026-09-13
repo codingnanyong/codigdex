@@ -171,7 +171,7 @@ export class StagePanel {
       items.push(
         this.scene.add
           .text(x, this.stripY + SLOT_RADIUS + 34, "CLEAR", {
-            ...pixelText("caption"),
+            ...pixelText("micro"),
             color: PALETTE_HEX.maroon,
           })
           .setOrigin(0.5)

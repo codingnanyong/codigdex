@@ -25,10 +25,10 @@
      game actually renders. Press Start 2P (--font-pixel-en, from next/font)
      stays reserved for the Latin-only "CODIGDEX" wordmark.
 
-     It's a 7px bitmap face: only 7px and whole multiples of it (14/21/28/42/70)
-     stay sharp, and Latin needs at least 2x before its single-pixel strokes
-     stop antialiasing into grey. Pick sizes through lib/phaser/pixelFont.ts
-     rather than hardcoding them. */
+     Galmuri7 is reserved at 7px for symbols and short English labels. Korean
+     captions and body copy use the native 14px face so compound vowels and
+     final consonants remain distinct when the game canvas is scaled down.
+     Pick sizes through lib/phaser/pixelFont.ts rather than hardcoding them. */
   --font-pixel: "Galmuri7";
   /* 14px body copy uses Galmuri14 instead: same footprint as Galmuri7 at 2x,
      but drawn on a 14px grid, so Hangul finals and compound vowels stay

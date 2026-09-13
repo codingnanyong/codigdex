@@ -3,7 +3,7 @@ import type { CareerPathDefinition, CareerRegion } from "./careerPaths";
 import type { JobOption } from "@/lib/domain/player/jobs";
 import { PALETTE, PALETTE_HEX } from "../palette";
 import { pixelText } from "../pixelFont";
-import { drawOrnateFrame } from "../ui";
+import { drawOrnateFrame, fitTextInside } from "../ui";
 
 interface CareerAtlasOptions {
   job: JobOption;
@@ -18,22 +18,23 @@ export function drawCareerAtlas(scene: Phaser.Scene, options: CareerAtlasOptions
     drawRegion(scene, options.path.textureKey, region, index + 1, options.onRegion)
   );
 
-  const guideFrame = drawOrnateFrame(scene, 132, 111, 224, 78, { fillAlpha: 0.94, radius: 10 }).setDepth(5);
+  const guideFrame = drawOrnateFrame(scene, 132, 116, 224, 92, { fillAlpha: 0.94, radius: 10 }).setDepth(5);
   const guide = scene.add
-    .image(70, 111, options.job.guideTextureKey ?? options.job.textureKey!)
-    .setDisplaySize(72, 72)
+    .image(70, 116, options.job.guideTextureKey ?? options.job.textureKey!)
+    .setDisplaySize(82, 82)
     .setDepth(6);
   const guideName = scene.add
-    .text(110, 91, options.job.guideName, {
+    .text(110, 87, options.job.guideName, {
       ...pixelText("caption"),
       color: PALETTE_HEX.maroon,
     })
     .setDepth(6);
+  fitTextInside(guideName, 124, 16);
   const guideLine = scene.add
-    .text(110, 111, "빛나는 지역을 눌러\n도감 수집지를 확인하세요.", {
+    .text(110, 108, "빛나는 지역을 눌러\n수집지를 확인하세요.", {
       ...pixelText("caption"),
       color: PALETTE_HEX.ink,
-      lineSpacing: 3,
+      lineSpacing: 2,
     })
     .setDepth(6);
 

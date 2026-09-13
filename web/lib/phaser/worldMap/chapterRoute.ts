@@ -63,7 +63,7 @@ export function drawChapterRoute(
       .setDepth(2);
     const glyph = scene.add
       .text(point.x, point.y, cleared ? "✓" : active ? `${index + 1}` : "◆", {
-        ...pixelText("caption"),
+        ...pixelText("micro"),
         color: cleared || active ? PALETTE_HEX.ink : PALETTE_HEX.sand,
       })
       .setOrigin(0.5)
