@@ -1,4 +1,4 @@
-import type Phaser from "phaser";
+import Phaser from "phaser";
 import type { CareerPathDefinition, CareerRegion } from "./careerPaths";
 import type { JobOption } from "@/lib/domain/player/jobs";
 import { PALETTE, PALETTE_HEX } from "../palette";
@@ -14,11 +14,13 @@ interface CareerAtlasOptions {
 
 /** Turns a painted career wallpaper into a navigable atlas. */
 export function drawCareerAtlas(scene: Phaser.Scene, options: CareerAtlasOptions) {
-  options.path.regions.forEach((region, index) => drawRegion(scene, region, index + 1, options.onRegion));
+  options.path.regions.forEach((region, index) =>
+    drawRegion(scene, options.path.textureKey, region, index + 1, options.onRegion)
+  );
 
   const guideFrame = drawOrnateFrame(scene, 132, 111, 224, 78, { fillAlpha: 0.94, radius: 10 }).setDepth(5);
   const guide = scene.add
-    .image(70, 111, options.job.textureKey!)
+    .image(70, 111, options.job.guideTextureKey ?? options.job.textureKey!)
     .setDisplaySize(72, 72)
     .setDepth(6);
   const guideName = scene.add
@@ -61,40 +63,35 @@ export function drawCareerAtlas(scene: Phaser.Scene, options: CareerAtlasOptions
 
 function drawRegion(
   scene: Phaser.Scene,
+  textureKey: string,
   region: CareerRegion,
   order: number,
   onSelect: (region: CareerRegion) => void
 ) {
-  const radius = region.radius;
-  const landmark = region.landmark;
-  const landmarkHitArea = landmark
-    ? scene.add
-        .rectangle(landmark.x, landmark.y, landmark.width, landmark.height, 0xffffff, 0.001)
-        .setStrokeStyle(3, PALETTE.amber, 0)
-        .setInteractive({ useHandCursor: true })
-        .setDepth(3)
-    : undefined;
-  // The painted disc remains visible. This transparent circle makes the
-  // whole disc clickable, while the ring only signals interactivity.
+  const { landmark } = region;
+  const absolutePoints = region.focusPoints.map(
+    ([x, y]) => new Phaser.Math.Vector2(x + landmark.x, y + landmark.y)
+  );
+  const shadow = scene.add
+    .polygon(landmark.x, landmark.y + 5, region.focusPoints, PALETTE.nightBrown, 1)
+    .setAlpha(0)
+    .setDepth(3);
+  const liftedRegion = scene.add
+    .image(0, 0, textureKey)
+    .setOrigin(0)
+    .setVisible(false)
+    .setDepth(4);
+  const maskShape = scene.make.graphics({ x: 0, y: 0 }, false);
+  maskShape.fillStyle(0xffffff).fillPoints(absolutePoints, true);
+  const mask = maskShape.createGeometryMask();
+  liftedRegion.setMask(mask);
+
   const hitArea = scene.add
-    .circle(region.x, region.y, radius + 7, 0xffffff, 0.001)
+    .polygon(landmark.x, landmark.y, region.focusPoints, 0xffffff, 0)
     .setInteractive({ useHandCursor: true })
-    .setDepth(5);
-  const ring = scene.add
-    .circle(region.x, region.y, radius, PALETTE.cream, 0)
-    .setStrokeStyle(3, PALETTE.amber, 0.95)
-    .setDepth(4);
-  const number = scene.add
-    .text(region.x, region.y, String(order), {
-      ...pixelText("caption"),
-      color: PALETTE_HEX.cream,
-      backgroundColor: "#6f2639dd",
-      padding: { x: 4, y: 2 },
-    })
-    .setOrigin(0.5)
-    .setDepth(4);
+    .setDepth(6);
   const label = scene.add
-    .text(region.x, region.y - 29, region.label, {
+    .text(landmark.x, landmark.y - landmark.height / 2 + 10, `${order} · ${region.label}`, {
       ...pixelText("caption"),
       color: PALETTE_HEX.cream,
       backgroundColor: "#2a1d14df",
@@ -104,25 +101,54 @@ function drawRegion(
     .setDepth(5);
 
   const activate = () => {
-    ring.setScale(1.12).setStrokeStyle(4, PALETTE.cream, 1);
-    landmarkHitArea?.setStrokeStyle(3, PALETTE.cream, 0.95);
-    label.setScale(1.04);
+    scene.tweens.killTweensOf([liftedRegion, maskShape, shadow, label]);
+    liftedRegion.setVisible(true);
+    scene.tweens.add({
+      targets: [liftedRegion, maskShape],
+      y: -8,
+      duration: 150,
+      ease: "Cubic.Out",
+    });
+    scene.tweens.add({
+      targets: shadow,
+      alpha: 0.24,
+      duration: 120,
+      ease: "Sine.Out",
+    });
+    scene.tweens.add({
+      targets: label,
+      y: landmark.y - landmark.height / 2 + 4,
+      scale: 1.04,
+      duration: 150,
+      ease: "Cubic.Out",
+    });
   };
   const deactivate = () => {
-    ring.setScale(1).setStrokeStyle(3, PALETTE.amber, 0.95);
-    landmarkHitArea?.setStrokeStyle(3, PALETTE.amber, 0);
-    label.setScale(1);
+    scene.tweens.killTweensOf([liftedRegion, maskShape, shadow, label]);
+    scene.tweens.add({
+      targets: [liftedRegion, maskShape],
+      y: 0,
+      duration: 130,
+      ease: "Cubic.In",
+      onComplete: () => liftedRegion.setVisible(false),
+    });
+    scene.tweens.add({ targets: shadow, alpha: 0, duration: 110 });
+    scene.tweens.add({
+      targets: label,
+      y: landmark.y - landmark.height / 2 + 10,
+      scale: 1,
+      duration: 130,
+      ease: "Cubic.In",
+    });
   };
   const select = () => onSelect(region);
 
-  const entryTargets: Phaser.GameObjects.GameObject[] = [hitArea];
-  if (landmarkHitArea) entryTargets.push(landmarkHitArea);
-  entryTargets.forEach((entry) => {
-    entry.on("pointerover", activate);
-    entry.on("pointerout", deactivate);
-    entry.on("pointerup", select);
+  hitArea.on("pointerover", activate);
+  hitArea.on("pointerout", deactivate);
+  hitArea.on("pointerup", select);
+  scene.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+    mask.destroy();
+    maskShape.destroy();
   });
-  const objects: Phaser.GameObjects.GameObject[] = [ring, number, label, hitArea];
-  if (landmarkHitArea) objects.unshift(landmarkHitArea);
-  return scene.add.container(0, 0, objects);
+  return hitArea;
 }

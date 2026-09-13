@@ -51,6 +51,9 @@ export class WorldMapScene extends Phaser.Scene {
     if (selectedJob.textureKey && selectedJob.assetPath) {
       this.load.image(selectedJob.textureKey, selectedJob.assetPath);
     }
+    if (selectedJob.guideTextureKey && selectedJob.guideAssetPath) {
+      this.load.image(selectedJob.guideTextureKey, selectedJob.guideAssetPath);
+    }
     preloadMonsterArt(this, CHAPTERS.flatMap((chapter) => chapter.stages));
   }
 
