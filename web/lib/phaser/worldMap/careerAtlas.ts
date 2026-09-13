@@ -69,24 +69,15 @@ function drawRegion(
   onSelect: (region: CareerRegion) => void
 ) {
   const { landmark } = region;
-  const landmarkLeft = landmark.x - landmark.width / 2;
-  const landmarkTop = landmark.y - landmark.height / 2;
-  const absolutePoints = region.focusPoints.map(
-    ([x, y]) => new Phaser.Math.Vector2(x + landmarkLeft, y + landmarkTop)
-  );
   const shadow = scene.add
     .polygon(landmark.x, landmark.y + 5, region.focusPoints, PALETTE.nightBrown, 1)
     .setAlpha(0)
     .setDepth(3);
+  const focusTextureKey = createFocusTexture(scene, textureKey, region);
   const liftedRegion = scene.add
-    .image(0, 0, textureKey)
-    .setOrigin(0)
+    .image(landmark.x, landmark.y, focusTextureKey)
     .setVisible(false)
     .setDepth(4);
-  const maskShape = scene.make.graphics({ x: 0, y: 0 }, false);
-  maskShape.fillStyle(0xffffff).fillPoints(absolutePoints, true);
-  const mask = maskShape.createGeometryMask();
-  liftedRegion.setMask(mask);
 
   const hitArea = scene.add
     .polygon(landmark.x, landmark.y, region.focusPoints, 0xffffff, 0)
@@ -103,11 +94,11 @@ function drawRegion(
     .setDepth(5);
 
   const activate = () => {
-    scene.tweens.killTweensOf([liftedRegion, maskShape, shadow, label]);
+    scene.tweens.killTweensOf([liftedRegion, shadow, label]);
     liftedRegion.setVisible(true);
     scene.tweens.add({
-      targets: [liftedRegion, maskShape],
-      y: -8,
+      targets: liftedRegion,
+      y: landmark.y - 8,
       duration: 150,
       ease: "Cubic.Out",
     });
@@ -126,10 +117,10 @@ function drawRegion(
     });
   };
   const deactivate = () => {
-    scene.tweens.killTweensOf([liftedRegion, maskShape, shadow, label]);
+    scene.tweens.killTweensOf([liftedRegion, shadow, label]);
     scene.tweens.add({
-      targets: [liftedRegion, maskShape],
-      y: 0,
+      targets: liftedRegion,
+      y: landmark.y,
       duration: 130,
       ease: "Cubic.In",
       onComplete: () => liftedRegion.setVisible(false),
@@ -148,9 +139,50 @@ function drawRegion(
   hitArea.on("pointerover", activate);
   hitArea.on("pointerout", deactivate);
   hitArea.on("pointerup", select);
-  scene.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
-    mask.destroy();
-    maskShape.destroy();
-  });
   return hitArea;
+}
+
+/**
+ * Bakes one transparent texture per painted landmark. Phaser 4 geometry masks
+ * only work in the Canvas renderer; Phaser.AUTO normally chooses WebGL and
+ * would therefore lift the whole wallpaper. A clipped CanvasTexture renders
+ * identically in Canvas and WebGL and makes leaking outside the region bounds
+ * impossible even while it is tweened.
+ */
+function createFocusTexture(
+  scene: Phaser.Scene,
+  wallpaperTextureKey: string,
+  region: CareerRegion
+): string {
+  const focusTextureKey = `${wallpaperTextureKey}-focus-${region.id}`;
+  if (scene.textures.exists(focusTextureKey)) return focusTextureKey;
+
+  const { landmark, focusPoints } = region;
+  const width = Math.ceil(landmark.width);
+  const height = Math.ceil(landmark.height);
+  const texture = scene.textures.createCanvas(focusTextureKey, width, height);
+  if (!texture) throw new Error(`Could not create career focus texture: ${focusTextureKey}`);
+
+  const context = texture.context;
+  context.imageSmoothingEnabled = false;
+  context.save();
+  context.beginPath();
+  context.moveTo(focusPoints[0][0], focusPoints[0][1]);
+  focusPoints.slice(1).forEach(([x, y]) => context.lineTo(x, y));
+  context.closePath();
+  context.clip();
+  context.drawImage(
+    scene.textures.get(wallpaperTextureKey).getSourceImage() as CanvasImageSource,
+    landmark.x - landmark.width / 2,
+    landmark.y - landmark.height / 2,
+    width,
+    height,
+    0,
+    0,
+    width,
+    height
+  );
+  context.restore();
+  texture.refresh();
+  return focusTextureKey;
 }
