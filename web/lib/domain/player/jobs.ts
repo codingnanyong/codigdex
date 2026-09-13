@@ -46,12 +46,17 @@ export interface TertiaryJobOption {
   requires: SecondaryJobId;
 }
 
+const careerCharacterArt = (careerId: JobId | "junior", role: "player" | "guide") =>
+  `/assets/characters/career-path/${careerId}/${role}-v1.png`;
+
 // Every player starts here. A primary job is selected after the common path.
 export const DEFAULT_JOB: JobOption = {
   id: "junior",
   name: "주니어 개발자",
   tagline: "이제 막 첫 모험을 떠난 개발자",
   guideName: "버그 연구원 루피",
+  guideTextureKey: "npc-lupi-guide",
+  guideAssetPath: careerCharacterArt("junior", "guide"),
 };
 
 export const JOB_OPTIONS: readonly PrimaryJobOption[] = [
@@ -60,50 +65,50 @@ export const JOB_OPTIONS: readonly PrimaryJobOption[] = [
     name: "웹 프론트엔드 개발자",
     tagline: "화면을 그리는 마법사",
     textureKey: "career-frontend",
-    assetPath: "/assets/careers/frontend-developer.png",
+    assetPath: careerCharacterArt("frontend", "player"),
     guideName: "프론트엔드 선배",
     guideTextureKey: "npc-frontend-senior",
-    guideAssetPath: "/assets/npcs/frontend-senior-v1.png",
+    guideAssetPath: careerCharacterArt("frontend", "guide"),
   },
   {
     id: "backend",
     name: "백엔드 개발자",
     tagline: "데이터를 지키는 수호자",
     textureKey: "career-backend",
-    assetPath: "/assets/careers/backend-developer.png",
+    assetPath: careerCharacterArt("backend", "player"),
     guideName: "백엔드 선배",
     guideTextureKey: "npc-backend-senior",
-    guideAssetPath: "/assets/npcs/backend-senior-v1.png",
+    guideAssetPath: careerCharacterArt("backend", "guide"),
   },
   {
     id: "devops",
     name: "DevOps 엔지니어",
     tagline: "배포 흐름을 지키는 자동화 장인",
     textureKey: "career-devops",
-    assetPath: "/assets/careers/devops-engineer.png",
+    assetPath: careerCharacterArt("devops", "player"),
     guideName: "DevOps 선배",
     guideTextureKey: "npc-devops-senior",
-    guideAssetPath: "/assets/npcs/devops-senior-v1.png",
+    guideAssetPath: careerCharacterArt("devops", "guide"),
   },
   {
     id: "data-engineer",
     name: "데이터 엔지니어",
     tagline: "데이터의 길을 만드는 설계자",
     textureKey: "career-data-engineer",
-    assetPath: "/assets/careers/data-engineer.png",
+    assetPath: careerCharacterArt("data-engineer", "player"),
     guideName: "데이터 엔지니어 선배",
     guideTextureKey: "npc-data-engineer-senior",
-    guideAssetPath: "/assets/npcs/data-engineer-senior-v1.png",
+    guideAssetPath: careerCharacterArt("data-engineer", "guide"),
   },
   {
     id: "data-analyst",
     name: "데이터 분석가",
     tagline: "패턴을 읽는 관찰자",
     textureKey: "career-data-analyst",
-    assetPath: "/assets/careers/data-analyst.png",
+    assetPath: careerCharacterArt("data-analyst", "player"),
     guideName: "데이터 분석가 선배",
     guideTextureKey: "npc-data-analyst-senior",
-    guideAssetPath: "/assets/npcs/data-analyst-senior-v1.png",
+    guideAssetPath: careerCharacterArt("data-analyst", "guide"),
   },
 ];
 

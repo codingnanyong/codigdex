@@ -3,7 +3,7 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { CHAPTERS } from "@/lib/domain/chapters";
 import { TECHNOLOGY_SPECIMENS } from "@/lib/domain/technologySpecimens";
-import { JOB_OPTIONS } from "@/lib/domain/player/jobs";
+import { DEFAULT_JOB, JOB_OPTIONS } from "@/lib/domain/player/jobs";
 import { WORLD_BACKDROPS } from "@/lib/phaser/worldMap/progression";
 
 const PUBLIC_DIR = path.resolve(__dirname, "../../public");
@@ -14,7 +14,7 @@ const PUBLIC_DIR = path.resolve(__dirname, "../../public");
  * asset path the domain hands to Phaser has to exist under public/.
  */
 const referencedAssets = [
-  "/assets/npcs/lupi-guide-v1.png",
+  DEFAULT_JOB.guideAssetPath!,
   ...JOB_OPTIONS.flatMap((job) => [job.assetPath, job.guideAssetPath]),
   ...Object.values(TECHNOLOGY_SPECIMENS).map((specimen) => specimen.assetPath),
   ...WORLD_BACKDROPS.map((backdrop) => backdrop.assetPath),
@@ -42,6 +42,16 @@ describe("referenced art", () => {
       for (let level = 1; level <= 5; level += 1) {
         expect(files.some((file) => file.endsWith(`-lv${level}.png`)), `${folder} Lv.${level}`).toBe(true);
       }
+    });
+  });
+
+  it("keeps each career player and guide together in its character folder", () => {
+    expect(DEFAULT_JOB.guideAssetPath).toBe(
+      "/assets/characters/career-path/junior/guide-v1.png"
+    );
+    JOB_OPTIONS.forEach((job) => {
+      expect(job.assetPath).toBe(`/assets/characters/career-path/${job.id}/player-v1.png`);
+      expect(job.guideAssetPath).toBe(`/assets/characters/career-path/${job.id}/guide-v1.png`);
     });
   });
 });

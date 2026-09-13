@@ -92,9 +92,8 @@ web/
 ├─ lib/phaser/worldMap/         월드맵, 상세 진로 지도와 상호작용
 ├─ lib/phaser/save/             버전별 저장 스키마와 마이그레이션
 ├─ public/assets/
-│  ├─ careers/                  직업 초상과 전직 후 NPC
+│  ├─ characters/career-path/   직업별 플레이어·안내자 캐릭터
 │  ├─ monsters/                 챕터별 도감 몬스터
-│  ├─ npcs/                     공통 과정 NPC
 │  └─ wallpapers/career-paths/  직업별 상세 지도
 └─ test/                        도메인·Phaser 테스트
 ```

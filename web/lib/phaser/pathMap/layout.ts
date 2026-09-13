@@ -2,6 +2,7 @@ import { GIT_CHAPTER } from "@/lib/domain/chapters/git";
 import { LINUX_CHAPTER } from "@/lib/domain/chapters/linux";
 import type { ChapterId } from "@/lib/domain/chapters/types";
 import { TECHNOLOGY_SPECIMENS } from "@/lib/domain/technologySpecimens";
+import { JOB_OPTIONS } from "@/lib/domain/player/jobs";
 
 export type PathNodeKind = "common" | "promotion" | "career";
 
@@ -41,13 +42,10 @@ export const CAREER_NODES: readonly PathNode[] = [
 
 export const ALL_NODES: readonly PathNode[] = [...COMMON_NODES, PROMOTION_NODE, ...CAREER_NODES];
 
-export const CAREER_PORTRAITS = [
-  { textureKey: "career-frontend", assetPath: "/assets/careers/frontend-developer.png" },
-  { textureKey: "career-backend", assetPath: "/assets/careers/backend-developer.png" },
-  { textureKey: "career-devops", assetPath: "/assets/careers/devops-engineer.png" },
-  { textureKey: "career-data-engineer", assetPath: "/assets/careers/data-engineer.png" },
-  { textureKey: "career-data-analyst", assetPath: "/assets/careers/data-analyst.png" },
-] as const;
+export const CAREER_PORTRAITS = JOB_OPTIONS.map(({ textureKey, assetPath }) => ({
+  textureKey,
+  assetPath,
+}));
 
 export const COMMON_WIDTH = 164;
 export const COMMON_HEIGHT = 86;
