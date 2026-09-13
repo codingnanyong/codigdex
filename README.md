@@ -40,6 +40,10 @@ Codigdex는 코딩 개념을 읽는 데서 끝나지 않습니다. 코드 배틀
 현재 직업 Path는 웹 프론트엔드, 백엔드, DevOps, 데이터 엔지니어, 데이터 분석가로 구성됩니다. 전직 후에는 공통 과정의 루피 대신 각 직업의 선배 NPC가 길을 안내합니다. 향후 풀스택 엔지니어, ML Developer, 플랫폼 엔지니어/SRE 같은 2차 전직은 처음부터 `???`로 보이되, 관련된 두 1차 직업 도감을 완성해야 정체와 조건이 드러납니다.
 
 <p align="center">
+  <img src="web/public/assets/characters/career-path/career-character-guide-v1.png" width="720" alt="1차 전직 플레이어 캐릭터와 직업별 안내 NPC 가이드">
+</p>
+
+<p align="center">
   <img src="web/public/assets/wallpapers/career-paths/devops-path-map-v1.png" width="720" alt="기술 지역을 따라 이동하는 DevOps 상세 지도">
 </p>
 

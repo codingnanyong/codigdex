@@ -47,7 +47,10 @@ export interface TertiaryJobOption {
 }
 
 const careerCharacterArt = (careerId: JobId | "junior", role: "player" | "guide") =>
-  `/assets/characters/career-path/${careerId}/${role}-v1.png`;
+  `/assets/characters/career-path/${careerId}/${role}-v${role === "player" ? 2 : 1}.png`;
+
+export const CAREER_CHARACTER_GUIDE_ASSET_PATH =
+  "/assets/characters/career-path/career-character-guide-v1.png";
 
 // Every player starts here. A primary job is selected after the common path.
 export const DEFAULT_JOB: JobOption = {

@@ -3,7 +3,11 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { CHAPTERS } from "@/lib/domain/chapters";
 import { TECHNOLOGY_SPECIMENS } from "@/lib/domain/technologySpecimens";
-import { DEFAULT_JOB, JOB_OPTIONS } from "@/lib/domain/player/jobs";
+import {
+  CAREER_CHARACTER_GUIDE_ASSET_PATH,
+  DEFAULT_JOB,
+  JOB_OPTIONS,
+} from "@/lib/domain/player/jobs";
 import { WORLD_BACKDROPS } from "@/lib/phaser/worldMap/progression";
 
 const PUBLIC_DIR = path.resolve(__dirname, "../../public");
@@ -15,6 +19,7 @@ const PUBLIC_DIR = path.resolve(__dirname, "../../public");
  */
 const referencedAssets = [
   DEFAULT_JOB.guideAssetPath!,
+  CAREER_CHARACTER_GUIDE_ASSET_PATH,
   ...JOB_OPTIONS.flatMap((job) => [job.assetPath, job.guideAssetPath]),
   ...Object.values(TECHNOLOGY_SPECIMENS).map((specimen) => specimen.assetPath),
   ...WORLD_BACKDROPS.map((backdrop) => backdrop.assetPath),
@@ -50,7 +55,7 @@ describe("referenced art", () => {
       "/assets/characters/career-path/junior/guide-v1.png"
     );
     JOB_OPTIONS.forEach((job) => {
-      expect(job.assetPath).toBe(`/assets/characters/career-path/${job.id}/player-v1.png`);
+      expect(job.assetPath).toBe(`/assets/characters/career-path/${job.id}/player-v2.png`);
       expect(job.guideAssetPath).toBe(`/assets/characters/career-path/${job.id}/guide-v1.png`);
     });
   });
