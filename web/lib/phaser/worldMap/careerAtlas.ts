@@ -1,4 +1,4 @@
-import type Phaser from "phaser";
+import Phaser from "phaser";
 import type { CareerPathDefinition, CareerRegion } from "./careerPaths";
 import type { JobOption } from "@/lib/domain/player/jobs";
 import { PALETTE, PALETTE_HEX } from "../palette";
@@ -15,7 +15,7 @@ interface CareerAtlasOptions {
 /** Turns a painted career wallpaper into a navigable atlas. */
 export function drawCareerAtlas(scene: Phaser.Scene, options: CareerAtlasOptions) {
   options.path.regions.forEach((region, index) =>
-    drawRegion(scene, region, index + 1, options.onRegion)
+    drawRegion(scene, options.path.textureKey, region, index + 1, options.onRegion)
   );
 
   const guideFrame = drawOrnateFrame(scene, 132, 111, 224, 78, { fillAlpha: 0.94, radius: 10 }).setDepth(5);
@@ -63,16 +63,33 @@ export function drawCareerAtlas(scene: Phaser.Scene, options: CareerAtlasOptions
 
 function drawRegion(
   scene: Phaser.Scene,
+  textureKey: string,
   region: CareerRegion,
   order: number,
   onSelect: (region: CareerRegion) => void
 ) {
   const { landmark } = region;
-  const focus = scene.add
-    .polygon(landmark.x, landmark.y, region.focusPoints, PALETTE.amber, 0)
-    .setStrokeStyle(2, PALETTE.amber, 0)
-    .setInteractive({ useHandCursor: true })
+  const absolutePoints = region.focusPoints.map(
+    ([x, y]) => new Phaser.Math.Vector2(x + landmark.x, y + landmark.y)
+  );
+  const shadow = scene.add
+    .polygon(landmark.x, landmark.y + 5, region.focusPoints, PALETTE.nightBrown, 1)
+    .setAlpha(0)
+    .setDepth(3);
+  const liftedRegion = scene.add
+    .image(0, 0, textureKey)
+    .setOrigin(0)
+    .setVisible(false)
     .setDepth(4);
+  const maskShape = scene.make.graphics({ x: 0, y: 0 }, false);
+  maskShape.fillStyle(0xffffff).fillPoints(absolutePoints, true);
+  const mask = maskShape.createGeometryMask();
+  liftedRegion.setMask(mask);
+
+  const hitArea = scene.add
+    .polygon(landmark.x, landmark.y, region.focusPoints, 0xffffff, 0)
+    .setInteractive({ useHandCursor: true })
+    .setDepth(6);
   const label = scene.add
     .text(landmark.x, landmark.y - landmark.height / 2 + 10, `${order} · ${region.label}`, {
       ...pixelText("caption"),
@@ -84,17 +101,54 @@ function drawRegion(
     .setDepth(5);
 
   const activate = () => {
-    focus.setFillStyle(PALETTE.amber, 0.2).setStrokeStyle(3, PALETTE.cream, 1);
-    label.setScale(1.04);
+    scene.tweens.killTweensOf([liftedRegion, maskShape, shadow, label]);
+    liftedRegion.setVisible(true);
+    scene.tweens.add({
+      targets: [liftedRegion, maskShape],
+      y: -8,
+      duration: 150,
+      ease: "Cubic.Out",
+    });
+    scene.tweens.add({
+      targets: shadow,
+      alpha: 0.24,
+      duration: 120,
+      ease: "Sine.Out",
+    });
+    scene.tweens.add({
+      targets: label,
+      y: landmark.y - landmark.height / 2 + 4,
+      scale: 1.04,
+      duration: 150,
+      ease: "Cubic.Out",
+    });
   };
   const deactivate = () => {
-    focus.setFillStyle(PALETTE.amber, 0).setStrokeStyle(2, PALETTE.amber, 0);
-    label.setScale(1);
+    scene.tweens.killTweensOf([liftedRegion, maskShape, shadow, label]);
+    scene.tweens.add({
+      targets: [liftedRegion, maskShape],
+      y: 0,
+      duration: 130,
+      ease: "Cubic.In",
+      onComplete: () => liftedRegion.setVisible(false),
+    });
+    scene.tweens.add({ targets: shadow, alpha: 0, duration: 110 });
+    scene.tweens.add({
+      targets: label,
+      y: landmark.y - landmark.height / 2 + 10,
+      scale: 1,
+      duration: 130,
+      ease: "Cubic.In",
+    });
   };
   const select = () => onSelect(region);
 
-  focus.on("pointerover", activate);
-  focus.on("pointerout", deactivate);
-  focus.on("pointerup", select);
-  return scene.add.container(0, 0, [focus, label]);
+  hitArea.on("pointerover", activate);
+  hitArea.on("pointerout", deactivate);
+  hitArea.on("pointerup", select);
+  scene.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+    mask.destroy();
+    maskShape.destroy();
+  });
+  return hitArea;
 }
