@@ -45,7 +45,7 @@ export function drawPathNode(scene: Phaser.Scene, node: PathNode, state: PathNod
 
   const eyebrow = scene.add
     .text(textLeft, -13, state.eyebrow, {
-      ...pixelText("caption"),
+      ...pixelText("micro"),
       color: lit ? PALETTE_HEX.maroon : PALETTE_HEX.sand,
     })
     .setOrigin(0, 0.5);
@@ -58,10 +58,11 @@ export function drawPathNode(scene: Phaser.Scene, node: PathNode, state: PathNod
   fitTextInside(label, width / 2 - textLeft - 28, height - 10);
   const glyph = scene.add
     .text(width / 2 - 16, 0, lit ? "▶" : "◆", {
-      ...pixelText("caption"),
+      ...pixelText("micro"),
       color: lit ? PALETTE_HEX.maroon : PALETTE_HEX.mutedBrown,
     })
     .setOrigin(0.5);
+  fitTextInside(eyebrow, width - 8, 14);
 
   const card = scene.add.container(node.x, node.y, [panel, portrait, eyebrow, label, glyph]);
   makePressable(card, new Phaser.Geom.Rectangle(-width / 2, -height / 2, width, height), 1.025, state.onSelect);
@@ -140,6 +141,7 @@ export function drawSecondaryCareerNode(
       color: options.unlocked ? PALETTE_HEX.maroon : PALETTE_HEX.sand,
     })
     .setOrigin(0.5);
+  fitTextInside(eyebrow, width - 8, 14);
   const label = scene.add
     .text(0, 11, options.unlocked ? options.name : "◆  ???", {
       ...pixelText("caption"),
