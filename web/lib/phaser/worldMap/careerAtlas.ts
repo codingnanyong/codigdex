@@ -69,14 +69,14 @@ function drawRegion(
   order: number,
   onSelect: (region: CareerRegion) => void
 ) {
-  const { landmark } = region;
+  const { landmark, lift } = region;
   const shadow = scene.add
-    .polygon(landmark.x, landmark.y + 5, region.focusPoints, PALETTE.nightBrown, 1)
+    .polygon(lift.x, lift.y + 5, lift.points, PALETTE.nightBrown, 1)
     .setAlpha(0)
     .setDepth(3);
   const focusTextureKey = createFocusTexture(scene, textureKey, region);
   const liftedRegion = scene.add
-    .image(landmark.x, landmark.y, focusTextureKey)
+    .image(lift.x, lift.y, focusTextureKey)
     .setVisible(false)
     .setDepth(4);
 
@@ -99,7 +99,7 @@ function drawRegion(
     liftedRegion.setVisible(true);
     scene.tweens.add({
       targets: liftedRegion,
-      y: landmark.y - 8,
+      y: lift.y - 8,
       duration: 150,
       ease: "Cubic.Out",
     });
@@ -121,7 +121,7 @@ function drawRegion(
     scene.tweens.killTweensOf([liftedRegion, shadow, label]);
     scene.tweens.add({
       targets: liftedRegion,
-      y: landmark.y,
+      y: lift.y,
       duration: 130,
       ease: "Cubic.In",
       onComplete: () => liftedRegion.setVisible(false),
@@ -144,7 +144,9 @@ function drawRegion(
 }
 
 /**
- * Bakes one transparent texture per painted landmark. Phaser 4 geometry masks
+ * Bakes one transparent texture per painted object silhouette. The generous
+ * interaction polygon remains separate, so a landmark is easy to target while
+ * only its architecture rises from the wallpaper. Phaser 4 geometry masks
  * only work in the Canvas renderer; Phaser.AUTO normally chooses WebGL and
  * would therefore lift the whole wallpaper. A clipped CanvasTexture renders
  * identically in Canvas and WebGL and makes leaking outside the region bounds
@@ -158,9 +160,9 @@ function createFocusTexture(
   const focusTextureKey = `${wallpaperTextureKey}-focus-${region.id}`;
   if (scene.textures.exists(focusTextureKey)) return focusTextureKey;
 
-  const { landmark, focusPoints } = region;
-  const width = Math.ceil(landmark.width);
-  const height = Math.ceil(landmark.height);
+  const { lift } = region;
+  const width = Math.ceil(lift.width);
+  const height = Math.ceil(lift.height);
   const texture = scene.textures.createCanvas(focusTextureKey, width, height);
   if (!texture) throw new Error(`Could not create career focus texture: ${focusTextureKey}`);
 
@@ -168,14 +170,14 @@ function createFocusTexture(
   context.imageSmoothingEnabled = false;
   context.save();
   context.beginPath();
-  context.moveTo(focusPoints[0][0], focusPoints[0][1]);
-  focusPoints.slice(1).forEach(([x, y]) => context.lineTo(x, y));
+  context.moveTo(lift.points[0][0], lift.points[0][1]);
+  lift.points.slice(1).forEach(([x, y]) => context.lineTo(x, y));
   context.closePath();
   context.clip();
   context.drawImage(
     scene.textures.get(wallpaperTextureKey).getSourceImage() as CanvasImageSource,
-    landmark.x - landmark.width / 2,
-    landmark.y - landmark.height / 2,
+    lift.x - lift.width / 2,
+    lift.y - lift.height / 2,
     width,
     height,
     0,
