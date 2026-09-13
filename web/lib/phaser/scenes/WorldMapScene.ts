@@ -47,9 +47,11 @@ export class WorldMapScene extends Phaser.Scene {
     // The registry is hydrated at boot, so only this visit's backdrop needs downloading.
     const { backdrop, selectedJob } = this.resolveProgress();
     this.load.image(backdrop.textureKey, backdrop.assetPath);
-    this.load.image("npc-lupi-guide", "/assets/npcs/lupi-guide-v1.png");
     if (selectedJob.textureKey && selectedJob.assetPath) {
       this.load.image(selectedJob.textureKey, selectedJob.assetPath);
+    }
+    if (selectedJob.guideTextureKey && selectedJob.guideAssetPath) {
+      this.load.image(selectedJob.guideTextureKey, selectedJob.guideAssetPath);
     }
     preloadMonsterArt(this, CHAPTERS.flatMap((chapter) => chapter.stages));
   }
