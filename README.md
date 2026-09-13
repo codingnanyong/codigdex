@@ -34,10 +34,15 @@ Codigdex는 코딩 개념을 읽는 데서 끝나지 않습니다. 코드 배틀
   → 1차 전직 선택
   → 직업별 상세 지도
   → 기술 지역 → 코드 배틀 → 캡처 퀴즈 → 도감 등록
-  → ??? (두 직업 Path 완성 후 열리는 2차 전직)
+  → 2차 전직 (두 직업 Path 완성)
+  → 3차 전직 (선택한 2차 직업의 마스터 Path 완성)
 ```
 
-현재 직업 Path는 웹 프론트엔드, 백엔드, DevOps, 데이터 엔지니어, 데이터 분석가로 구성됩니다. 전직 후에는 공통 과정의 루피 대신 각 직업의 선배 NPC가 길을 안내합니다. 향후 풀스택 엔지니어, ML Developer, 플랫폼 엔지니어/SRE 같은 2차 전직은 처음부터 `???`로 보이되, 관련된 두 1차 직업 도감을 완성해야 정체와 조건이 드러납니다.
+현재 직업 Path는 웹 프론트엔드, 백엔드, DevOps, 데이터 엔지니어, 데이터 분석가로 구성됩니다. 전직 후에는 공통 과정의 루피 대신 각 직업의 선배 NPC가 길을 안내합니다. 풀스택 엔지니어, ML Developer, 플랫폼 엔지니어/SRE 같은 2차 전직은 처음부터 `???`로 보이되, 관련된 두 1차 직업 도감을 완성해야 정체와 조건이 드러납니다. 각 2차 직업 아래에는 소프트웨어 아키텍트, AI 프로덕트 엔지니어 등 대응하는 3차 마스터 직업이 한 갈래로 이어지며, 2차 마스터 Path를 완주한 뒤 해금됩니다.
+
+<p align="center">
+  <img src="web/public/assets/characters/career-path/career-character-guide-v1.png" width="720" alt="1차 전직 플레이어 캐릭터와 직업별 안내 NPC 가이드">
+</p>
 
 <p align="center">
   <img src="web/public/assets/wallpapers/career-paths/devops-path-map-v1.png" width="720" alt="기술 지역을 따라 이동하는 DevOps 상세 지도">
@@ -51,7 +56,7 @@ Codigdex는 코딩 개념을 읽는 데서 끝나지 않습니다. 코드 배틀
 - 완성도와 챕터 마스터 배지를 보여 주는 Codigdex 화면
 - 5개 1차 직업 선택, 직업별 월페이퍼 지도와 기술 지역 표시
 - 전직에 따라 달라지는 직업별 가이드 NPC
-- `???`로 미리 보이는 2차 전직 슬롯
+- `???`로 미리 보이는 2차·3차 전직 슬롯과 해금 조합
 - 아직 배틀이 없는 전문 기술 몬스터를 `???` 도감 슬롯으로 미리 표시
 - 브라우저 로컬 저장 v2와 기존 v1 저장 데이터 자동 마이그레이션
 - Phaser와 분리된 `lib/domain` 규칙, Vitest 단위·통합 테스트
@@ -92,9 +97,8 @@ web/
 ├─ lib/phaser/worldMap/         월드맵, 상세 진로 지도와 상호작용
 ├─ lib/phaser/save/             버전별 저장 스키마와 마이그레이션
 ├─ public/assets/
-│  ├─ careers/                  직업 초상과 전직 후 NPC
+│  ├─ characters/career-path/   직업별 플레이어·안내자 캐릭터
 │  ├─ monsters/                 챕터별 도감 몬스터
-│  ├─ npcs/                     공통 과정 NPC
 │  └─ wallpapers/career-paths/  직업별 상세 지도
 └─ test/                        도메인·Phaser 테스트
 ```
