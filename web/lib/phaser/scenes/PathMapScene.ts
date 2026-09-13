@@ -209,6 +209,9 @@ export class PathMapScene extends Phaser.Scene {
       return;
     }
 
+    if (this.selectedSecondaryJobId !== job.id) {
+      this.registry.set(TERTIARY_JOB_REGISTRY_KEY, null);
+    }
     this.registry.set(SECONDARY_JOB_REGISTRY_KEY, job.id);
     this.scene.restart({ careerId: this.selectedCareerId });
   }

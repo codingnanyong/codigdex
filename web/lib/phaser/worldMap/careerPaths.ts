@@ -43,7 +43,11 @@ const region = (
     x,
     y,
     landmark: { x: landmarkX, y: landmarkY, width: right - left, height: bottom - top },
-    focusPoints: outline.map(([pointX, pointY]) => [pointX - landmarkX, pointY - landmarkY]),
+    // Phaser Polygon expects points in a top-left local coordinate space when
+    // its Game Object is positioned at the bounds center with the default
+    // 0.5 origin. Keeping points positive also makes its interactive bounds
+    // match the painted landmark exactly.
+    focusPoints: outline.map(([pointX, pointY]) => [pointX - left, pointY - top]),
   };
 };
 
@@ -134,6 +138,18 @@ export function isCareerPathComplete(
 ): boolean {
   const required = path.completionCaptureIds;
   return required.length > 0 && required.every((id) => captured.has(id));
+}
+
+/**
+ * Unreleased paths have no completion captures yet. They must remain absent
+ * from the completed-job set (so tier two stays locked), but they must not
+ * trap a player in the first previewed career forever.
+ */
+export function canLeaveCareerPath(
+  path: CareerPathDefinition,
+  captured: ReadonlySet<string>
+): boolean {
+  return path.completionCaptureIds.length === 0 || isCareerPathComplete(path, captured);
 }
 
 /** Every completed primary career, derived solely from its required dex captures. */

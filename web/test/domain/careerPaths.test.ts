@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   CAREER_PATHS,
+  canLeaveCareerPath,
   careerPathFor,
   completedCareerPathIds,
   isCareerPathComplete,
@@ -32,7 +33,9 @@ describe("career paths", () => {
       expect(path.regions.every(({ focusPoints }) => focusPoints.length >= 6)).toBe(true);
       expect(
         path.regions.every(({ landmark, focusPoints }) => {
-          const absolutePoints = focusPoints.map(([x, y]) => [x + landmark.x, y + landmark.y]);
+          const left = landmark.x - landmark.width / 2;
+          const top = landmark.y - landmark.height / 2;
+          const absolutePoints = focusPoints.map(([x, y]) => [x + left, y + top]);
           const xs = absolutePoints.map(([x]) => x);
           const ys = absolutePoints.map(([, y]) => y);
           return (
@@ -77,6 +80,16 @@ describe("primary job changes", () => {
 
   it("does not treat a path with no released completion requirements as complete", () => {
     expect(isCareerPathComplete(CAREER_PATHS.frontend, new Set())).toBe(false);
+  });
+
+  it("lets players leave an unreleased preview path without marking it complete", () => {
+    expect(canLeaveCareerPath(CAREER_PATHS.frontend, new Set())).toBe(true);
+    expect(completedCareerPathIds(new Set())).not.toContain("frontend");
+  });
+
+  it("requires every capture before leaving a released career path", () => {
+    expect(canLeaveCareerPath(path, new Set(["html-css-final"]))).toBe(false);
+    expect(canLeaveCareerPath(path, new Set(["html-css-final", "javascript-final"]))).toBe(true);
   });
 
   it("locks another primary job until the current path is complete", () => {

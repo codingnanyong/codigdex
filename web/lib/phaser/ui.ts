@@ -36,7 +36,13 @@ export function fitTextInside(
     text.setScale(Math.min(1, widthScale, heightScale));
   };
   fit();
-  whenPixelFontReady(fit);
+  whenPixelFontReady(() => {
+    if (!text.scene) return;
+    // Force Phaser to rebuild the texture with the loaded face before reading
+    // width/height; otherwise fit() can keep measurements from the fallback.
+    text.setFontFamily(text.style.fontFamily);
+    fit();
+  });
   return text;
 }
 

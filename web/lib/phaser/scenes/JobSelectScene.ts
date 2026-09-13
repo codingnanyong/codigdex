@@ -3,16 +3,23 @@ import { isCommonPathComplete } from "@/lib/domain/chapters";
 import { capturedIds } from "@/lib/domain/dex/capture";
 import {
   canSelectPrimaryJob,
+  completedSecondaryJobIds,
   findJob,
   findSecondaryJob,
+  findTertiaryJob,
   isSecondaryJobUnlocked,
+  isTertiaryJobUnlocked,
   JOB_OPTIONS,
   JOB_REGISTRY_KEY,
   SECONDARY_JOB_REGISTRY_KEY,
   SECONDARY_JOB_OPTIONS,
+  TERTIARY_JOB_OPTIONS,
+  TERTIARY_JOB_REGISTRY_KEY,
   type JobId,
   type JobOption,
+  type SecondaryJobId,
   type SecondaryJobOption,
+  type TertiaryJobOption,
 } from "@/lib/domain/player/jobs";
 import { PALETTE, PALETTE_HEX } from "../palette";
 import { pixelText } from "../pixelFont";
@@ -26,27 +33,31 @@ import {
 } from "../ui";
 import {
   careerPathFor,
+  canLeaveCareerPath,
   completedCareerPathIds,
-  isCareerPathComplete,
 } from "../worldMap/careerPaths";
 
-const JUNIOR_X = 105;
-const PRIMARY_X = 390;
-const SECONDARY_X = 800;
-const JUNIOR_WIDTH = 170;
-const PRIMARY_WIDTH = 286;
-const SECONDARY_WIDTH = 222;
+const JUNIOR_X = 68;
+const PRIMARY_X = 245;
+const SECONDARY_X = 565;
+const TERTIARY_X = 850;
+const JUNIOR_WIDTH = 112;
+const PRIMARY_WIDTH = 222;
+const SECONDARY_WIDTH = 180;
+const TERTIARY_WIDTH = 170;
 const CAREER_CENTER_Y = 262;
 const ROW_Y = [106, 184, 262, 340, 418] as const;
 
-/** Shows primary paths and reveals tier-two jobs unlocked by completed pairs. */
+/** Shows the full junior → primary → secondary → tertiary career lineage. */
 export class JobSelectScene extends Phaser.Scene {
   private toast?: Phaser.GameObjects.Text;
   private captured: ReadonlySet<string> = new Set();
   private selectedJobId: JobId | "junior" = "junior";
   private selectedPathComplete = false;
   private completedJobIds: ReadonlySet<JobId> = new Set();
-  private selectedSecondaryJobId?: string;
+  private completedSecondaryJobIds: ReadonlySet<SecondaryJobId> = new Set();
+  private selectedSecondaryJobId?: SecondaryJobId;
+  private selectedTertiaryJobId?: string;
   private commonPathComplete = false;
 
   constructor() {
@@ -65,14 +76,22 @@ export class JobSelectScene extends Phaser.Scene {
     this.selectedJobId = findJob(this.registry.get(JOB_REGISTRY_KEY) as string | undefined).id;
     this.selectedPathComplete =
       this.selectedJobId !== "junior" &&
-      isCareerPathComplete(careerPathFor(this.selectedJobId), this.captured);
+      canLeaveCareerPath(careerPathFor(this.selectedJobId), this.captured);
     this.completedJobIds = completedCareerPathIds(this.captured);
+    this.completedSecondaryJobIds = completedSecondaryJobIds(this.captured);
     const storedSecondaryJob = findSecondaryJob(
       this.registry.get(SECONDARY_JOB_REGISTRY_KEY) as string | null | undefined
     );
     this.selectedSecondaryJobId =
       storedSecondaryJob && isSecondaryJobUnlocked(storedSecondaryJob, this.completedJobIds)
         ? storedSecondaryJob.id
+        : undefined;
+    const storedTertiaryJob = findTertiaryJob(
+      this.registry.get(TERTIARY_JOB_REGISTRY_KEY) as string | null | undefined
+    );
+    this.selectedTertiaryJobId =
+      storedTertiaryJob && isTertiaryJobUnlocked(storedTertiaryJob, this.completedSecondaryJobIds)
+        ? storedTertiaryJob.id
         : undefined;
     this.add.rectangle(width / 2, height / 2, width, height, PALETTE.nightBrown, 1);
 
@@ -100,6 +119,12 @@ export class JobSelectScene extends Phaser.Scene {
         color: PALETTE_HEX.mutedBrown,
       })
       .setOrigin(0.5);
+    this.add
+      .text(TERTIARY_X, 63, "3차 전직", {
+        ...pixelText("body"),
+        color: PALETTE_HEX.mutedBrown,
+      })
+      .setOrigin(0.5);
 
     this.drawPromotionPaths();
     this.drawJuniorJob();
@@ -109,6 +134,7 @@ export class JobSelectScene extends Phaser.Scene {
       this.drawPrimaryJob(job, ROW_Y[index], selected, locked);
     });
     SECONDARY_JOB_OPTIONS.forEach((job, index) => this.drawSecondaryJob(job, index, ROW_Y[index]));
+    TERTIARY_JOB_OPTIONS.forEach((job, index) => this.drawTertiaryJob(job, index, ROW_Y[index]));
 
     createButton(this, width / 2, height - 28, 140, 32, "돌아가기", () => this.scene.start("world-map"));
     applyPixelFontToScene(this);
@@ -138,8 +164,8 @@ export class JobSelectScene extends Phaser.Scene {
     ) => {
       const curve = new Phaser.Curves.CubicBezier(
         new Phaser.Math.Vector2(...start),
-        new Phaser.Math.Vector2(585, start[1]),
-        new Phaser.Math.Vector2(640, end[1]),
+        new Phaser.Math.Vector2(start[0] + (end[0] - start[0]) * 0.42, start[1]),
+        new Phaser.Math.Vector2(start[0] + (end[0] - start[0]) * 0.58, end[1]),
         new Phaser.Math.Vector2(...end)
       );
       const points = curve.getPoints(24);
@@ -149,7 +175,7 @@ export class JobSelectScene extends Phaser.Scene {
       lines.strokePoints(points, false);
     };
 
-    const primaryBranchX = 220;
+    const primaryBranchX = 129;
     stroke(
       [
         [JUNIOR_X + JUNIOR_WIDTH / 2, CAREER_CENTER_Y],
@@ -203,6 +229,15 @@ export class JobSelectScene extends Phaser.Scene {
           .setStrokeStyle(1, PALETTE.ink);
       });
     });
+
+    TERTIARY_JOB_OPTIONS.forEach((tertiary, index) => {
+      const active = this.completedSecondaryJobIds.has(tertiary.requires);
+      strokeCurve(
+        [SECONDARY_X + SECONDARY_WIDTH / 2, ROW_Y[index]],
+        [TERTIARY_X - TERTIARY_WIDTH / 2, ROW_Y[index]],
+        active
+      );
+    });
   }
 
   private drawJuniorJob() {
@@ -210,12 +245,13 @@ export class JobSelectScene extends Phaser.Scene {
       fill: this.selectedJobId === "junior" ? PALETTE.sand : PALETTE.cream,
       radius: 10,
     });
-    this.add
+    const juniorName = this.add
       .text(JUNIOR_X, CAREER_CENTER_Y - 15, "주니어 개발자", {
         ...pixelText("body"),
         color: PALETTE_HEX.ink,
       })
       .setOrigin(0.5);
+    fitTextInside(juniorName, JUNIOR_WIDTH - 12, 18);
     this.add
       .text(JUNIOR_X, CAREER_CENTER_Y + 8, "공통 기술 과정", {
         ...pixelText("caption"),
@@ -242,32 +278,33 @@ export class JobSelectScene extends Phaser.Scene {
       fill: selected ? PALETTE.sand : PALETTE.cream,
       radius: 10,
     }).setAlpha(locked ? 0.5 : 1);
-    this.add.image(PRIMARY_X - 108, y, job.textureKey!).setDisplaySize(54, 54).setAlpha(locked ? 0.35 : 1);
+    this.add.image(PRIMARY_X - 82, y, job.textureKey!).setDisplaySize(50, 50).setAlpha(locked ? 0.35 : 1);
     const name = this.add
-      .text(PRIMARY_X - 70, y - 11, job.name, {
+      .text(PRIMARY_X - 52, y - 11, job.name, {
         ...pixelText("body"),
         color: PALETTE_HEX.ink,
       })
       .setOrigin(0, 0.5)
       .setAlpha(locked ? 0.45 : 1);
-    fitTextInside(name, 150, 18);
-    this.add
-      .text(PRIMARY_X - 70, y + 12, job.tagline, {
+    fitTextInside(name, 110, 18);
+    const tagline = this.add
+      .text(PRIMARY_X - 52, y + 12, job.tagline, {
         ...pixelText("caption"),
         color: PALETTE_HEX.mutedBrown,
       })
       .setOrigin(0, 0.5)
       .setAlpha(locked ? 0.45 : 1);
+    fitTextInside(tagline, 142, 14);
     if (selected) {
       this.add
-        .text(PRIMARY_X + 111, y, "현재", {
+        .text(PRIMARY_X + 91, y - 20, "현재", {
           ...pixelText("caption"),
           color: PALETTE_HEX.maroon,
         })
         .setOrigin(0.5);
     } else if (locked) {
       this.add
-        .text(PRIMARY_X + 111, y, "잠금", {
+        .text(PRIMARY_X + 91, y - 20, "잠금", {
           ...pixelText("caption"),
           color: PALETTE_HEX.mutedBrown,
         })
@@ -291,7 +328,7 @@ export class JobSelectScene extends Phaser.Scene {
       radius: 9,
     });
     this.add
-      .text(SECONDARY_X - 82, y, `Ⅱ-${index + 1}`, {
+      .text(SECONDARY_X - 74, y, `Ⅱ-${index + 1}`, {
         ...pixelText("caption"),
         color: unlocked ? PALETTE_HEX.maroon : PALETTE_HEX.sand,
       })
@@ -301,14 +338,14 @@ export class JobSelectScene extends Phaser.Scene {
         ...pixelText(unlocked ? "body" : "subtitle"),
         color: unlocked ? PALETTE_HEX.ink : PALETTE_HEX.cream,
         align: "center",
-        wordWrap: { width: SECONDARY_WIDTH - 72 },
+        wordWrap: { width: SECONDARY_WIDTH - 58 },
       })
       .setOrigin(0.5);
-    fitTextInside(name, SECONDARY_WIDTH - 72, 32);
+    fitTextInside(name, SECONDARY_WIDTH - 58, 32);
 
     if (selected) {
       this.add
-        .text(SECONDARY_X + 88, y - 17, "현재", {
+        .text(SECONDARY_X + 69, y - 17, "현재", {
           ...pixelText("caption"),
           color: PALETTE_HEX.maroon,
         })
@@ -323,6 +360,47 @@ export class JobSelectScene extends Phaser.Scene {
     hitArea.on("pointerup", () => this.selectSecondaryJob(job));
   }
 
+  private drawTertiaryJob(job: TertiaryJobOption, index: number, y: number) {
+    const unlocked = isTertiaryJobUnlocked(job, this.completedSecondaryJobIds);
+    const selected = this.selectedTertiaryJobId === job.id;
+    const frame = drawOrnateFrame(this, TERTIARY_X, y, TERTIARY_WIDTH, 52, {
+      fill: selected ? PALETTE.sand : unlocked ? PALETTE.cream : PALETTE.wood,
+      fillAlpha: 0.94,
+      radius: 9,
+    });
+    this.add
+      .text(TERTIARY_X - 69, y, `Ⅲ-${index + 1}`, {
+        ...pixelText("caption"),
+        color: unlocked ? PALETTE_HEX.maroon : PALETTE_HEX.sand,
+      })
+      .setOrigin(0, 0.5);
+    const name = this.add
+      .text(TERTIARY_X + 14, y, unlocked ? job.name : "◆  ???", {
+        ...pixelText(unlocked ? "body" : "subtitle"),
+        color: unlocked ? PALETTE_HEX.ink : PALETTE_HEX.cream,
+        align: "center",
+        wordWrap: { width: TERTIARY_WIDTH - 56 },
+      })
+      .setOrigin(0.5);
+    fitTextInside(name, TERTIARY_WIDTH - 56, 32);
+
+    if (selected) {
+      this.add
+        .text(TERTIARY_X + 64, y - 17, "현재", {
+          ...pixelText("caption"),
+          color: PALETTE_HEX.maroon,
+        })
+        .setOrigin(0.5);
+    }
+
+    const hitArea = this.add
+      .rectangle(TERTIARY_X, y, TERTIARY_WIDTH, 52, 0xffffff, 0)
+      .setInteractive({ useHandCursor: true });
+    hitArea.on("pointerover", () => frame.setAlpha(0.78));
+    hitArea.on("pointerout", () => frame.setAlpha(1));
+    hitArea.on("pointerup", () => this.selectTertiaryJob(job));
+  }
+
   private selectSecondaryJob(job: SecondaryJobOption) {
     if (!isSecondaryJobUnlocked(job, this.completedJobIds)) {
       const requirements = job.requires.map((jobId) => findJob(jobId).name).join(" + ");
@@ -330,6 +408,9 @@ export class JobSelectScene extends Phaser.Scene {
       return;
     }
 
+    if (this.selectedSecondaryJobId !== job.id) {
+      this.registry.set(TERTIARY_JOB_REGISTRY_KEY, null);
+    }
     this.registry.set(SECONDARY_JOB_REGISTRY_KEY, job.id);
     const selectedPrimary =
       this.selectedJobId !== "junior" && job.requires.includes(this.selectedJobId)
@@ -338,6 +419,26 @@ export class JobSelectScene extends Phaser.Scene {
     this.scene.start("path-map", {
       careerId: selectedPrimary,
     });
+  }
+
+  private selectTertiaryJob(job: TertiaryJobOption) {
+    if (!isTertiaryJobUnlocked(job, this.completedSecondaryJobIds)) {
+      const required = findSecondaryJob(job.requires);
+      this.toast = showToast(
+        this,
+        `${required?.name ?? "2차 직업"} 마스터 경로를 완료하면 열려요.`,
+        this.toast
+      );
+      return;
+    }
+
+    this.registry.set(TERTIARY_JOB_REGISTRY_KEY, job.id);
+    const requiredSecondary = findSecondaryJob(job.requires);
+    const selectedPrimary =
+      this.selectedJobId !== "junior" && requiredSecondary?.requires.includes(this.selectedJobId)
+        ? this.selectedJobId
+        : requiredSecondary?.requires[0];
+    this.scene.start("path-map", { careerId: selectedPrimary });
   }
 
   private selectJob(jobId: string) {

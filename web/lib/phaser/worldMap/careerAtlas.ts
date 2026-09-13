@@ -69,8 +69,10 @@ function drawRegion(
   onSelect: (region: CareerRegion) => void
 ) {
   const { landmark } = region;
+  const landmarkLeft = landmark.x - landmark.width / 2;
+  const landmarkTop = landmark.y - landmark.height / 2;
   const absolutePoints = region.focusPoints.map(
-    ([x, y]) => new Phaser.Math.Vector2(x + landmark.x, y + landmark.y)
+    ([x, y]) => new Phaser.Math.Vector2(x + landmarkLeft, y + landmarkTop)
   );
   const shadow = scene.add
     .polygon(landmark.x, landmark.y + 5, region.focusPoints, PALETTE.nightBrown, 1)
