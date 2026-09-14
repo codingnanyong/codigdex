@@ -1,6 +1,7 @@
 import Phaser from "phaser";
-import { findJob, type JobId } from "@/lib/domain/player/jobs";
+import { findJob, guideDisplayName, type JobId } from "@/lib/domain/player/jobs";
 import { PALETTE, PALETTE_HEX } from "../palette";
+import { createHomeButton } from "../navigation";
 import { pixelText } from "../pixelFont";
 import { applyPixelFontToScene, createButton, drawOrnateFrame, fitTextInside } from "../ui";
 import { careerPathFor, type CareerRegion } from "../worldMap/careerPaths";
@@ -72,11 +73,12 @@ export class CareerRegionScene extends Phaser.Scene {
       .setOrigin(0.5);
     fitTextInside(careerTitle, 390, 16);
 
-    this.drawGuide(job.guideTextureKey ?? job.textureKey!, job.guideName, region);
+    this.drawGuide(job.guideTextureKey ?? job.textureKey!, guideDisplayName(job), region);
     createButton(this, 88, height - 28, 136, 34, "상세 지도", () => this.scene.start("world-map"));
     createButton(this, width - 88, height - 28, 136, 34, "Path 보기", () =>
       this.scene.start("path-map", { careerId: this.careerId })
     );
+    createHomeButton(this).setDepth(30);
     applyPixelFontToScene(this);
   }
 

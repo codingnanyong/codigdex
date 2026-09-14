@@ -22,6 +22,12 @@ export class IntroScene extends Phaser.Scene {
 
   create() {
     const { width, height } = this.scale;
+    // Phaser reuses scene instances. Reset the previous departure so HOME →
+    // 이어하기 can leave the title a second time.
+    this.leaving = false;
+    this.confirmingReset = false;
+    this.resetDialog = undefined;
+    this.cameras.main.resetFX();
     const background = this.add
       .image(width / 2, height / 2, "codigdex-title-archive")
       .setDisplaySize(width, height);

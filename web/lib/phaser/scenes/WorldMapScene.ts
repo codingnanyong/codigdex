@@ -5,7 +5,14 @@ import {
   TUTORIAL_ONBOARDING_LINES,
 } from "@/lib/domain/chapters/tutorial";
 import type { ChapterDefinition, MonsterDefinition } from "@/lib/domain/chapters/types";
-import { findJob, JOB_REGISTRY_KEY, type JobId } from "@/lib/domain/player/jobs";
+import {
+  findJob,
+  guideDisplayName,
+  JOB_REGISTRY_KEY,
+  OVERWORLD_PLAYER_ASSET_PATH,
+  OVERWORLD_PLAYER_TEXTURE_KEY,
+  type JobId,
+} from "@/lib/domain/player/jobs";
 import { capturedIds } from "@/lib/domain/dex/capture";
 import { playAmbience } from "../ambience";
 import { fitTexture, preloadMonsterArt } from "../monsterArt";
@@ -18,14 +25,29 @@ import {
   TUTORIAL_ONBOARDING_SEEN_KEY,
 } from "../registryAdapter";
 import { applyPixelFontToScene, createButton, drawOrnateFrame, showToast } from "../ui";
+import { createHomeButton } from "../navigation";
 import { drawCareerAtlas } from "../worldMap/careerAtlas";
-import { careerPathFor } from "../worldMap/careerPaths";
+import {
+  careerPathFor,
+  careerTerrainAssetPath,
+  careerTerrainTextureKey,
+} from "../worldMap/careerPaths";
 import { showGuideHint } from "../worldMap/guideHint";
 import { OnboardingDialog } from "../worldMap/onboarding";
 import { showQuestDialog } from "../worldMap/questDialog";
 import { QuestMarker } from "../worldMap/questMarker";
-import { drawChapterRoute, routePointsFor } from "../worldMap/chapterRoute";
-import { selectActiveChapter, selectWorldBackdrop, type WorldBackdrop } from "../worldMap/progression";
+import {
+  drawChapterRoute,
+  routeEntryPointsFor,
+  routePointsFor,
+  routeTravelPointsFor,
+} from "../worldMap/chapterRoute";
+import {
+  selectActiveChapter,
+  selectWorldBackdrop,
+  shouldEnterPrimaryJobSelection,
+  type WorldBackdrop,
+} from "../worldMap/progression";
 
 /** Progress-aware waiting screen: onboarding first, then the current chapter or career landscape. */
 export class WorldMapScene extends Phaser.Scene {
@@ -38,6 +60,9 @@ export class WorldMapScene extends Phaser.Scene {
   private captured: ReadonlySet<string> = new Set();
   private selectedCareerId?: JobId;
   private toast?: Phaser.GameObjects.Text;
+  private tutorialTravel?: () => void;
+  /** Retained across scene restarts so travel only plays after real progress. */
+  private readonly lastRouteIndex = new Map<string, number>();
 
   constructor() {
     super("world-map");
@@ -47,11 +72,18 @@ export class WorldMapScene extends Phaser.Scene {
     // The registry is hydrated at boot, so only this visit's backdrop needs downloading.
     const { backdrop, selectedJob } = this.resolveProgress();
     this.load.image(backdrop.textureKey, backdrop.assetPath);
+    this.load.image(OVERWORLD_PLAYER_TEXTURE_KEY, OVERWORLD_PLAYER_ASSET_PATH);
     if (selectedJob.textureKey && selectedJob.assetPath) {
       this.load.image(selectedJob.textureKey, selectedJob.assetPath);
     }
     if (selectedJob.guideTextureKey && selectedJob.guideAssetPath) {
       this.load.image(selectedJob.guideTextureKey, selectedJob.guideAssetPath);
+    }
+    if (selectedJob.id !== "junior") {
+      const path = careerPathFor(selectedJob.id as JobId);
+      path.regions.forEach((region) => {
+        this.load.image(careerTerrainTextureKey(path, region), careerTerrainAssetPath(path, region));
+      });
     }
     preloadMonsterArt(this, CHAPTERS.flatMap((chapter) => chapter.stages));
   }
@@ -76,9 +108,14 @@ export class WorldMapScene extends Phaser.Scene {
     this.activeMonster = undefined;
     this.selectedCareerId = undefined;
     this.toast = undefined;
+    this.tutorialTravel = undefined;
 
     const { captured, storedJob, selectedJob, backdrop } = this.resolveProgress();
     this.captured = captured;
+    if (shouldEnterPrimaryJobSelection(captured, selectedJob.id)) {
+      this.scene.start("job-select");
+      return;
+    }
     this.activeChapter = selectActiveChapter(this.captured);
     this.activeMonster = this.activeChapter?.stages[currentStageIndex(this.activeChapter, this.captured)];
     this.selectedCareerId = selectedJob.id === "junior" ? undefined : (selectedJob.id as JobId);
@@ -93,6 +130,9 @@ export class WorldMapScene extends Phaser.Scene {
     } else if (this.selectedCareerId) {
       this.createCareerAtlas(this.selectedCareerId);
     }
+    // Atlas labels and hit areas are created after the HUD. Keep navigation
+    // controls in a dedicated top layer so destinations can never cover them.
+    this.hud.setDepth(30);
     applyPixelFontToScene(this);
 
     if (!this.isTutorialCaptured() && this.registry.get(TUTORIAL_ONBOARDING_SEEN_KEY) !== true) {
@@ -109,8 +149,9 @@ export class WorldMapScene extends Phaser.Scene {
       this.time.delayedCall(550, () => {
         inputBlocker.destroy();
         new OnboardingDialog(this, {
-          speaker: "버그 연구원 루피",
+          speaker: guideDisplayName(selectedJob),
           lines: TUTORIAL_ONBOARDING_LINES,
+          portraitTextureKey: selectedJob.guideTextureKey,
           onFinish: () => this.finishOnboarding(),
         });
       });
@@ -126,6 +167,7 @@ export class WorldMapScene extends Phaser.Scene {
       this.activeMonster = undefined;
       this.selectedCareerId = undefined;
       this.toast = undefined;
+      this.tutorialTravel = undefined;
     });
   }
 
@@ -148,9 +190,7 @@ export class WorldMapScene extends Phaser.Scene {
   }
 
   private createHud(backdrop: WorldBackdrop): Phaser.GameObjects.Container {
-    const { width } = this.scale;
-    const storedJob = this.registry.get(JOB_REGISTRY_KEY) as string | undefined;
-    const job = findJob(isCommonPathComplete(this.captured) ? storedJob : undefined);
+    const { width, height } = this.scale;
 
     const chapterFrame = drawOrnateFrame(this, width / 2, 24, 340, 34, { radius: 10 });
     const chapterTitle = this.add
@@ -170,10 +210,21 @@ export class WorldMapScene extends Phaser.Scene {
       chapterFrame,
       chapterTitle,
       chapterHitArea,
-      createButton(this, 101, 34, 170, 36, `${job.name}  ▶`, () => this.scene.start("job-select")),
+      createHomeButton(this),
     ];
     if (this.isTutorialCaptured()) {
-      items.push(createButton(this, width - 70, 26, 120, 32, "Codigdex 도감", () => this.openCodigdex()));
+      const onCareerAtlas = this.selectedCareerId !== undefined;
+      items.push(
+        createButton(
+          this,
+          onCareerAtlas ? width / 2 : width - 70,
+          onCareerAtlas ? height - 24 : 26,
+          120,
+          32,
+          "Codigdex 도감",
+          () => this.openCodigdex()
+        )
+      );
     }
     return this.add.container(0, 0, items);
   }
@@ -207,23 +258,43 @@ export class WorldMapScene extends Phaser.Scene {
     const route = routePointsFor(chapter);
     const point = route?.[activeIndex];
     const monsterX = point?.x ?? 604;
-    const monsterY = point ? point.y - 68 : 270;
+    const monsterY = point ? point.y - 98 : 270;
     const npcSide = monsterX < this.scale.width / 2 ? 1 : -1;
-    const npcTargetX = Phaser.Math.Clamp(monsterX + npcSide * 126, 92, this.scale.width - 92);
-    const npcTargetY = monsterY + 18;
-    const previousPoint = route?.[Math.max(0, activeIndex - 1)];
-    const npcStartX = activeIndex > 0 && previousPoint ? previousPoint.x : npcTargetX;
-    const npcStartY = activeIndex > 0 && previousPoint ? previousPoint.y - 50 : npcTargetY;
+    const npcTargetX = point
+      ? point.x
+      : Phaser.Math.Clamp(monsterX + npcSide * 126, 92, this.scale.width - 92);
+    const npcTargetY = point?.y ?? monsterY + 18;
+    const actorTextureKey = point ? OVERWORLD_PLAYER_TEXTURE_KEY : "npc-lupi-guide";
+    const actorWidth = point ? 41 : 142;
+    const actorHeight = point ? 54 : 142;
+    const shadowOffsetY = point ? 26 : 67;
+    const shadowWidth = point ? 36 : 82;
+    const shadowHeight = point ? 10 : 18;
+    const lastIndex = this.lastRouteIndex.get(chapter.id);
+    const shouldTravel = lastIndex !== undefined && activeIndex === lastIndex + 1;
+    const tutorialEntry =
+      chapter.id === "tutorial" &&
+      this.registry.get(TUTORIAL_ONBOARDING_SEEN_KEY) !== true
+        ? routeEntryPointsFor(chapter)
+        : undefined;
+    this.lastRouteIndex.set(chapter.id, activeIndex);
+    const previousPoint = shouldTravel ? route?.[activeIndex - 1] : undefined;
+    const npcStartX = tutorialEntry?.[0].x ?? previousPoint?.x ?? npcTargetX;
+    const npcStartY = tutorialEntry?.[0].y ?? previousPoint?.y ?? npcTargetY;
 
     drawChapterRoute(this, chapter, this.captured, activeIndex, () => this.onQuestClicked());
 
-    const npcShadow = this.add.ellipse(npcStartX, npcStartY + 67, 82, 18, PALETTE.nightBrown, 0.28).setDepth(2);
-    const npc = this.add
-      .image(npcStartX, npcStartY, "npc-lupi-guide")
-      .setDisplaySize(142, 142)
-      .setDepth(3)
-      .setInteractive({ useHandCursor: true });
-    npc.on("pointerup", () => this.onQuestClicked());
+    const npcShadow = this.add
+      .ellipse(npcStartX, npcStartY + shadowOffsetY, shadowWidth, shadowHeight, PALETTE.nightBrown, 0.28)
+      .setDepth(2);
+    const actor = this.add
+      .image(npcStartX, npcStartY, actorTextureKey)
+      .setDisplaySize(actorWidth, actorHeight)
+      .setFlipX(!point && !shouldTravel && npcTargetX > monsterX)
+      .setDepth(3);
+    if (!point) {
+      actor.setInteractive({ useHandCursor: true }).on("pointerup", () => this.onQuestClicked());
+    }
 
     this.add.ellipse(monsterX, monsterY + 62, 100, 20, PALETTE.nightBrown, 0.28).setDepth(2);
     const monsterFit = fitTexture(this, monster.textureKey, 128, 128);
@@ -234,21 +305,49 @@ export class WorldMapScene extends Phaser.Scene {
       .setInteractive({ useHandCursor: true });
     monsterImage.on("pointerup", () => this.onQuestClicked());
 
-    if (activeIndex > 0 && previousPoint) {
+    const animateTravel = (routeTravelPoints: readonly { x: number; y: number }[]) => {
+      const travelPoints = routeTravelPoints.length > 1
+        ? routeTravelPoints.map(
+            (travelPoint) => new Phaser.Math.Vector2(travelPoint.x, travelPoint.y)
+          )
+        : undefined;
+      const travelCurve = travelPoints ? new Phaser.Curves.Spline(travelPoints) : undefined;
+      const progress = { value: 0 };
+      const travelLength = travelCurve?.getLength() ?? 0;
+      const duration = Phaser.Math.Clamp((travelLength / 240) * 1_000, 900, 3_200);
+      const walkCycles = Math.max(4, Math.round(travelLength / 54));
       this.tweens.add({
-        targets: npc,
-        x: npcTargetX,
-        y: npcTargetY,
-        duration: 900,
-        ease: "Sine.InOut",
+        targets: progress,
+        value: 1,
+        duration,
+        ease: "Linear",
+        onUpdate: () => {
+          const position = travelCurve?.getPointAt(progress.value);
+          if (!position) return;
+          const nextPosition = travelCurve?.getPointAt(Math.min(1, progress.value + 0.002));
+          const step = Math.abs(Math.sin(progress.value * Math.PI * walkCycles));
+          actor.setFlipX(Boolean(nextPosition && nextPosition.x < position.x));
+          actor.setPosition(position.x, position.y - step * 3);
+          npcShadow.setPosition(position.x, position.y + shadowOffsetY);
+          npcShadow.setScale(1 - step * 0.08, 1 - step * 0.04);
+        },
+        onComplete: () => {
+          actor.setPosition(npcTargetX, npcTargetY);
+          actor.setFlipX(false);
+          npcShadow.setPosition(npcTargetX, npcTargetY + shadowOffsetY);
+          npcShadow.setScale(1);
+        },
       });
-      this.tweens.add({
-        targets: npcShadow,
-        x: npcTargetX,
-        y: npcTargetY + 67,
-        duration: 900,
-        ease: "Sine.InOut",
-      });
+    };
+
+    if (shouldTravel && previousPoint) {
+      const travelPoints = routeTravelPointsFor(chapter, activeIndex);
+      if (travelPoints) animateTravel(travelPoints);
+    } else if (tutorialEntry) {
+      this.tutorialTravel = () => {
+        animateTravel(tutorialEntry);
+        this.tutorialTravel = undefined;
+      };
     }
     this.tweens.add({
       targets: monsterImage,
@@ -288,6 +387,7 @@ export class WorldMapScene extends Phaser.Scene {
       delay: 100,
       onComplete: () => {
         this.quest?.setEnabled(true);
+        this.tutorialTravel?.();
         this.showHint();
       },
     });
@@ -315,11 +415,12 @@ export class WorldMapScene extends Phaser.Scene {
     this.guideHint?.destroy(true);
     this.guideHint = undefined;
 
-    const chapter = this.activeChapter;
     const monster = this.activeMonster;
+    const guide = this.resolveProgress().selectedJob;
     this.questDialog = showQuestDialog(this, {
-      speaker: `${chapter.npcName}:`,
+      speaker: `${guideDisplayName(guide)}:`,
       message: monster.briefing,
+      portraitTextureKey: guide.guideTextureKey,
       onStart: () => {
         this.closeQuestDialog();
         this.scene.start("code-battle", { monsterId: monster.id });

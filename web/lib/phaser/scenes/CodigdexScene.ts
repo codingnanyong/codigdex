@@ -1,12 +1,27 @@
 import Phaser from "phaser";
+import {
+  CAREER_CATALOG,
+  careerEmblemTextureKey,
+  type CareerId,
+} from "@/lib/domain/careerDex";
 import { DEX_MONSTERS } from "@/lib/domain/chapters";
+import {
+  findJob,
+  findSecondaryJob,
+  findTertiaryJob,
+  JOB_REGISTRY_KEY,
+  SECONDARY_JOB_REGISTRY_KEY,
+  TERTIARY_JOB_REGISTRY_KEY,
+} from "@/lib/domain/player/jobs";
+import { CareerPanel } from "../dex/careerPanel";
 import { DetailCard } from "../dex/detailCard";
 import { buildDexEntries, type DexEntry } from "../dex/entry";
 import { EntryList } from "../dex/entryList";
 import { PreviewPane } from "../dex/previewPane";
 import { DEX_PANEL, drawDexShell } from "../dex/shell";
 import { preloadMonsterArt } from "../monsterArt";
-import { readDexState } from "../registryAdapter";
+import { createHomeButton } from "../navigation";
+import { readDexState, reconcileCareerDexRegistry } from "../registryAdapter";
 import { addShade, applyPixelFontToScene, createButton } from "../ui";
 
 const PREVIEW_COLUMN = 240;
@@ -24,6 +39,7 @@ export class CodigdexScene extends Phaser.Scene {
   private preview!: PreviewPane;
   private list!: EntryList;
   private detail!: DetailCard;
+  private careerPanel?: CareerPanel;
 
   constructor() {
     super("codigdex");
@@ -35,10 +51,15 @@ export class CodigdexScene extends Phaser.Scene {
 
   preload() {
     preloadMonsterArt(this, DEX_MONSTERS);
+    CAREER_CATALOG.forEach((career) =>
+      this.load.image(careerEmblemTextureKey(career.id), career.emblemAssetPath)
+    );
   }
 
   create() {
-    addShade(this, 0.7);
+    this.scene.bringToTop();
+    this.careerPanel = undefined;
+    addShade(this, 1);
     const screen = drawDexShell(this);
     const bodyTop = screen.top + 52;
 
@@ -59,15 +80,60 @@ export class CodigdexScene extends Phaser.Scene {
 
     createButton(
       this,
-      screen.centerX,
+      screen.centerX + 66,
       screen.centerY + DEX_PANEL.height / 2 - DEX_PANEL.inset - 14,
       100,
       30,
       "닫기",
       () => this.close()
     );
+    createButton(
+      this,
+      screen.centerX - 66,
+      screen.centerY + DEX_PANEL.height / 2 - DEX_PANEL.inset - 14,
+      120,
+      30,
+      "전직 계보",
+      () => this.openCareerLineage()
+    );
+    createHomeButton(this).setDepth(30);
+
+    createButton(this, screen.left + 58, screen.top + 22, 88, 28, "몬스터", () => {
+      this.careerPanel?.destroy();
+      this.careerPanel = undefined;
+    }).setDepth(20);
+    createButton(this, screen.left + 152, screen.top + 22, 88, 28, "직업", () => {
+      this.showCareerPanel(screen, bodyTop);
+    }).setDepth(20);
 
     applyPixelFontToScene(this);
+  }
+
+  private showCareerPanel(screen: ReturnType<typeof drawDexShell>, bodyTop: number) {
+    this.careerPanel?.destroy();
+    const state = reconcileCareerDexRegistry(this.registry);
+    const activeIds = new Set<CareerId>();
+    activeIds.add(findJob(this.registry.get(JOB_REGISTRY_KEY) as string | undefined).id);
+    const secondary = findSecondaryJob(
+      this.registry.get(SECONDARY_JOB_REGISTRY_KEY) as string | null | undefined
+    );
+    const tertiary = findTertiaryJob(
+      this.registry.get(TERTIARY_JOB_REGISTRY_KEY) as string | null | undefined
+    );
+    if (secondary) activeIds.add(secondary.id);
+    if (tertiary) activeIds.add(tertiary.id);
+
+    this.careerPanel = new CareerPanel(
+      this,
+      {
+        left: screen.left + 8,
+        right: screen.left + screen.width - 8,
+        top: bodyTop - 6,
+        bottom: screen.top + screen.height - 48,
+      },
+      state,
+      activeIds
+    );
   }
 
   private select(index: number) {
@@ -86,5 +152,10 @@ export class CodigdexScene extends Phaser.Scene {
   private close() {
     this.scene.stop();
     this.scene.resume(this.returnTo);
+  }
+
+  private openCareerLineage() {
+    this.scene.stop(this.returnTo);
+    this.scene.start("job-select");
   }
 }

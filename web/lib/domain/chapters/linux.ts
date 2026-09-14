@@ -26,7 +26,7 @@ export const LINUX_CHAPTER: ChapterDefinition = {
   stages: [
     {
       id: "linux-shell-scout",
-      dexNumber: "007",
+      dexNumber: "006",
       level: 1,
       name: "셸 탐험가",
       classification: "셸 입문형",
@@ -42,7 +42,7 @@ export const LINUX_CHAPTER: ChapterDefinition = {
     },
     {
       id: "linux-path-file-forager",
-      dexNumber: "008",
+      dexNumber: "007",
       level: 2,
       name: "경로 채집가",
       classification: "파일 탐색형",
@@ -58,7 +58,7 @@ export const LINUX_CHAPTER: ChapterDefinition = {
     },
     {
       id: "linux-permission-guard",
-      dexNumber: "009",
+      dexNumber: "008",
       level: 3,
       name: "권한 수호병",
       classification: "접근 통제형",
@@ -74,7 +74,7 @@ export const LINUX_CHAPTER: ChapterDefinition = {
     },
     {
       id: "linux-pipe-process-engineer",
-      dexNumber: "010",
+      dexNumber: "009",
       level: 4,
       name: "파이프 엔지니어",
       classification: "흐름 제어형",
@@ -90,7 +90,7 @@ export const LINUX_CHAPTER: ChapterDefinition = {
     },
     {
       id: "linux-kernel-guardian",
-      dexNumber: "011",
+      dexNumber: "010",
       level: 5,
       name: "커널 수호자",
       classification: "운영체제 핵심형",

@@ -4,6 +4,7 @@ import { TUTORIAL_MONSTER } from "@/lib/domain/chapters/tutorial";
 import {
   EMPTY_DEX_STATE,
   applyCapture,
+  canStillSucceed,
   capturedIds,
   isSuccessfulCapture,
   requiredCorrectAnswers,
@@ -49,8 +50,27 @@ describe("shouldContinueBattle", () => {
     expect(shouldContinueBattle(2, 4, 5)).toBe(true);
   });
 
+  it("stops as soon as the remaining questions cannot reach the pass line", () => {
+    expect(shouldContinueBattle(0, 2, 3)).toBe(false);
+    expect(shouldContinueBattle(0, 3, 5)).toBe(false);
+    expect(shouldContinueBattle(1, 4, 7)).toBe(false);
+  });
+
   it("stops after the final question even when the pass line is unmet", () => {
     expect(shouldContinueBattle(1, 3, 3)).toBe(false);
+  });
+});
+
+describe("canStillSucceed", () => {
+  it("includes every unanswered question in the best possible result", () => {
+    expect(canStillSucceed(1, 2, 3)).toBe(true);
+    expect(canStillSucceed(0, 2, 3)).toBe(false);
+    expect(canStillSucceed(1, 3, 5)).toBe(true);
+    expect(canStillSucceed(0, 3, 5)).toBe(false);
+  });
+
+  it("rejects a zero-question battle", () => {
+    expect(canStillSucceed(0, 0, 0)).toBe(false);
   });
 });
 

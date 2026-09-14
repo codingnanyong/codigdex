@@ -18,7 +18,7 @@ export const TUTORIAL_CHAPTER: ChapterDefinition = {
   stages: [
     {
       id: "infinite-loop-slime",
-      dexNumber: "001",
+      dexNumber: "000",
       level: 1,
       name: "무한루프 버그",
       classification: "반복 순환형",

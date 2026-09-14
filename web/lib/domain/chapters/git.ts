@@ -26,7 +26,7 @@ export const GIT_CHAPTER: ChapterDefinition = {
   stages: [
     {
       id: "git-sprout",
-      dexNumber: "002",
+      dexNumber: "001",
       level: 1,
       name: "깃새싹",
       classification: "저장소 기초형",
@@ -42,7 +42,7 @@ export const GIT_CHAPTER: ChapterDefinition = {
     },
     {
       id: "git-branch-merge-twins",
-      dexNumber: "003",
+      dexNumber: "002",
       level: 2,
       name: "브랜치 쌍둥이",
       classification: "분기 병합형",
@@ -58,7 +58,7 @@ export const GIT_CHAPTER: ChapterDefinition = {
     },
     {
       id: "git-undo-conflict",
-      dexNumber: "004",
+      dexNumber: "003",
       level: 3,
       name: "충돌 되돌이",
       classification: "충돌 복구형",
@@ -74,7 +74,7 @@ export const GIT_CHAPTER: ChapterDefinition = {
     },
     {
       id: "git-remote-rebase",
-      dexNumber: "005",
+      dexNumber: "004",
       level: 4,
       name: "원격 리베이서",
       classification: "원격 동기화형",
@@ -90,7 +90,7 @@ export const GIT_CHAPTER: ChapterDefinition = {
     },
     {
       id: "git-team-workflow-guardian",
-      dexNumber: "006",
+      dexNumber: "005",
       level: 5,
       name: "워크플로 수호자",
       classification: "협업 수호형",
