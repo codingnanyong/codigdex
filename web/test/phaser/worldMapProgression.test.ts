@@ -2,7 +2,12 @@ import { describe, expect, it } from "vitest";
 import { GIT_CHAPTER } from "@/lib/domain/chapters/git";
 import { LINUX_CHAPTER } from "@/lib/domain/chapters/linux";
 import { TUTORIAL_MONSTER } from "@/lib/domain/chapters/tutorial";
-import { selectActiveChapter, selectWorldBackdrop } from "@/lib/phaser/worldMap/progression";
+import {
+  didUnlockPrimaryJobSelection,
+  selectActiveChapter,
+  selectWorldBackdrop,
+  shouldEnterPrimaryJobSelection,
+} from "@/lib/phaser/worldMap/progression";
 
 const ids = (...groups: Array<{ id: string } | readonly { id: string }[]>) =>
   new Set(groups.flatMap((group) => (Array.isArray(group) ? group : [group])).map((item) => item.id));
@@ -29,5 +34,27 @@ describe("selectActiveChapter", () => {
     expect(selectActiveChapter(ids(TUTORIAL_MONSTER))?.id).toBe("git");
     expect(selectActiveChapter(ids(TUTORIAL_MONSTER, GIT_CHAPTER.stages))?.id).toBe("linux");
     expect(selectActiveChapter(ids(TUTORIAL_MONSTER, GIT_CHAPTER.stages, LINUX_CHAPTER.stages))).toBeUndefined();
+  });
+});
+
+describe("primary job selection transition", () => {
+  const beforeCh02Clear = ids(
+    TUTORIAL_MONSTER,
+    GIT_CHAPTER.stages,
+    LINUX_CHAPTER.stages.slice(0, -1)
+  );
+  const afterCh02Clear = ids(TUTORIAL_MONSTER, GIT_CHAPTER.stages, LINUX_CHAPTER.stages);
+
+  it("opens the promotion screen when the last CH.02 capture completes the common path", () => {
+    expect(didUnlockPrimaryJobSelection(beforeCh02Clear, afterCh02Clear)).toBe(true);
+  });
+
+  it("does not reopen the promotion screen when replaying an already completed capture", () => {
+    expect(didUnlockPrimaryJobSelection(afterCh02Clear, afterCh02Clear)).toBe(false);
+  });
+
+  it("recovers a completed save that still has the junior job", () => {
+    expect(shouldEnterPrimaryJobSelection(afterCh02Clear, "junior")).toBe(true);
+    expect(shouldEnterPrimaryJobSelection(afterCh02Clear, "frontend")).toBe(false);
   });
 });

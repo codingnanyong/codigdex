@@ -1,4 +1,4 @@
-import { isChapterComplete } from "@/lib/domain/chapters";
+import { isChapterComplete, isCommonPathComplete } from "@/lib/domain/chapters";
 import { GIT_CHAPTER } from "@/lib/domain/chapters/git";
 import { LINUX_CHAPTER } from "@/lib/domain/chapters/linux";
 import { TUTORIAL_CHAPTER } from "@/lib/domain/chapters/tutorial";
@@ -52,4 +52,20 @@ export function selectActiveChapter(captured: ReadonlySet<string>): ChapterDefin
   if (!isChapterComplete(GIT_CHAPTER, captured)) return GIT_CHAPTER;
   if (!isChapterComplete(LINUX_CHAPTER, captured)) return LINUX_CHAPTER;
   return undefined;
+}
+
+/** True only for the capture that finishes CH.02 and unlocks the first promotion. */
+export function didUnlockPrimaryJobSelection(
+  before: ReadonlySet<string>,
+  after: ReadonlySet<string>
+): boolean {
+  return !isCommonPathComplete(before) && isCommonPathComplete(after);
+}
+
+/** Recovers completed common-path saves that have not chosen a first job yet. */
+export function shouldEnterPrimaryJobSelection(
+  captured: ReadonlySet<string>,
+  selectedJobId: string
+): boolean {
+  return selectedJobId === "junior" && isCommonPathComplete(captured);
 }

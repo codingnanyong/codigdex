@@ -42,7 +42,12 @@ import {
   routePointsFor,
   routeTravelPointsFor,
 } from "../worldMap/chapterRoute";
-import { selectActiveChapter, selectWorldBackdrop, type WorldBackdrop } from "../worldMap/progression";
+import {
+  selectActiveChapter,
+  selectWorldBackdrop,
+  shouldEnterPrimaryJobSelection,
+  type WorldBackdrop,
+} from "../worldMap/progression";
 
 /** Progress-aware waiting screen: onboarding first, then the current chapter or career landscape. */
 export class WorldMapScene extends Phaser.Scene {
@@ -107,6 +112,10 @@ export class WorldMapScene extends Phaser.Scene {
 
     const { captured, storedJob, selectedJob, backdrop } = this.resolveProgress();
     this.captured = captured;
+    if (shouldEnterPrimaryJobSelection(captured, selectedJob.id)) {
+      this.scene.start("job-select");
+      return;
+    }
     this.activeChapter = selectActiveChapter(this.captured);
     this.activeMonster = this.activeChapter?.stages[currentStageIndex(this.activeChapter, this.captured)];
     this.selectedCareerId = selectedJob.id === "junior" ? undefined : (selectedJob.id as JobId);
