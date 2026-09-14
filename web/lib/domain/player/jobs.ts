@@ -18,6 +18,8 @@ export interface JobOption {
   tagline: string;
   textureKey?: string;
   assetPath?: string;
+  overworldTextureKey: string;
+  overworldAssetPath: string;
   guideTitle: string;
   guideName: string;
   guideTextureKey?: string;
@@ -54,6 +56,9 @@ export interface TertiaryJobOption {
 const careerCharacterArt = (careerId: JobId | "junior", role: "player" | "guide") =>
   `/assets/characters/career-path/${careerId}/${role}-v${role === "player" ? 2 : 1}.png`;
 
+const careerOverworldArt = (careerId: JobId) =>
+  `/assets/characters/career-path/${careerId}/overworld-v1.png`;
+
 export const CAREER_CHARACTER_GUIDE_ASSET_PATH =
   "/assets/characters/career-path/career-character-guide-v2.png";
 export const OVERWORLD_PLAYER_TEXTURE_KEY = "player-overworld";
@@ -67,6 +72,8 @@ export const DEFAULT_JOB: JobOption = {
   tagline: "이제 막 첫 모험을 떠난 개발자",
   textureKey: "career-junior",
   assetPath: careerCharacterArt("junior", "player"),
+  overworldTextureKey: OVERWORLD_PLAYER_TEXTURE_KEY,
+  overworldAssetPath: OVERWORLD_PLAYER_ASSET_PATH,
   guideTitle: "버그 연구원",
   guideName: "루피",
   guideTextureKey: "npc-lupi-guide",
@@ -80,6 +87,8 @@ export const JOB_OPTIONS: readonly PrimaryJobOption[] = [
     tagline: "화면을 그리는 마법사",
     textureKey: "career-frontend",
     assetPath: careerCharacterArt("frontend", "player"),
+    overworldTextureKey: "player-overworld-frontend",
+    overworldAssetPath: careerOverworldArt("frontend"),
     guideTitle: "UI 연금술사",
     guideName: "미나",
     guideTextureKey: "npc-frontend-senior",
@@ -91,6 +100,8 @@ export const JOB_OPTIONS: readonly PrimaryJobOption[] = [
     tagline: "데이터를 지키는 수호자",
     textureKey: "career-backend",
     assetPath: careerCharacterArt("backend", "player"),
+    overworldTextureKey: "player-overworld-backend",
+    overworldAssetPath: careerOverworldArt("backend"),
     guideTitle: "서버 수호자",
     guideName: "태오",
     guideTextureKey: "npc-backend-senior",
@@ -102,6 +113,8 @@ export const JOB_OPTIONS: readonly PrimaryJobOption[] = [
     tagline: "배포 흐름을 지키는 자동화 장인",
     textureKey: "career-devops",
     assetPath: careerCharacterArt("devops", "player"),
+    overworldTextureKey: "player-overworld-devops",
+    overworldAssetPath: careerOverworldArt("devops"),
     guideTitle: "자동화 장인",
     guideName: "도윤",
     guideTextureKey: "npc-devops-senior",
@@ -113,6 +126,8 @@ export const JOB_OPTIONS: readonly PrimaryJobOption[] = [
     tagline: "데이터의 길을 만드는 설계자",
     textureKey: "career-data-engineer",
     assetPath: careerCharacterArt("data-engineer", "player"),
+    overworldTextureKey: "player-overworld-data-engineer",
+    overworldAssetPath: careerOverworldArt("data-engineer"),
     guideTitle: "파이프라인 설계자",
     guideName: "하나",
     guideTextureKey: "npc-data-engineer-senior",
@@ -124,6 +139,8 @@ export const JOB_OPTIONS: readonly PrimaryJobOption[] = [
     tagline: "패턴을 읽는 관찰자",
     textureKey: "career-data-analyst",
     assetPath: careerCharacterArt("data-analyst", "player"),
+    overworldTextureKey: "player-overworld-data-analyst",
+    overworldAssetPath: careerOverworldArt("data-analyst"),
     guideTitle: "인사이트 탐정",
     guideName: "이안",
     guideTextureKey: "npc-data-analyst-senior",

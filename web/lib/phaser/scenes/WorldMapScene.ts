@@ -9,8 +9,6 @@ import {
   findJob,
   guideDisplayName,
   JOB_REGISTRY_KEY,
-  OVERWORLD_PLAYER_ASSET_PATH,
-  OVERWORLD_PLAYER_TEXTURE_KEY,
   type JobId,
 } from "@/lib/domain/player/jobs";
 import { capturedIds } from "@/lib/domain/dex/capture";
@@ -72,7 +70,7 @@ export class WorldMapScene extends Phaser.Scene {
     // The registry is hydrated at boot, so only this visit's backdrop needs downloading.
     const { backdrop, selectedJob } = this.resolveProgress();
     this.load.image(backdrop.textureKey, backdrop.assetPath);
-    this.load.image(OVERWORLD_PLAYER_TEXTURE_KEY, OVERWORLD_PLAYER_ASSET_PATH);
+    this.load.image(selectedJob.overworldTextureKey, selectedJob.overworldAssetPath);
     if (selectedJob.textureKey && selectedJob.assetPath) {
       this.load.image(selectedJob.textureKey, selectedJob.assetPath);
     }
@@ -264,7 +262,8 @@ export class WorldMapScene extends Phaser.Scene {
       ? point.x
       : Phaser.Math.Clamp(monsterX + npcSide * 126, 92, this.scale.width - 92);
     const npcTargetY = point?.y ?? monsterY + 18;
-    const actorTextureKey = point ? OVERWORLD_PLAYER_TEXTURE_KEY : "npc-lupi-guide";
+    const selectedJob = this.resolveProgress().selectedJob;
+    const actorTextureKey = point ? selectedJob.overworldTextureKey : "npc-lupi-guide";
     const actorWidth = point ? 41 : 142;
     const actorHeight = point ? 54 : 142;
     const shadowOffsetY = point ? 26 : 67;

@@ -26,10 +26,11 @@ const PUBLIC_DIR = path.resolve(__dirname, "../../public");
 const referencedAssets = [
   DEFAULT_JOB.assetPath!,
   DEFAULT_JOB.guideAssetPath!,
+  DEFAULT_JOB.overworldAssetPath,
   CAREER_CHARACTER_GUIDE_ASSET_PATH,
   OVERWORLD_PLAYER_ASSET_PATH,
   ...Object.values(CAREER_EMBLEMS),
-  ...JOB_OPTIONS.flatMap((job) => [job.assetPath, job.guideAssetPath]),
+  ...JOB_OPTIONS.flatMap((job) => [job.assetPath, job.guideAssetPath, job.overworldAssetPath]),
   ...Object.values(TECHNOLOGY_SPECIMENS).map((specimen) => specimen.assetPath),
   ...WORLD_BACKDROPS.map((backdrop) => backdrop.assetPath),
   ...Object.values(CAREER_PATHS).flatMap((careerPath) =>
@@ -73,6 +74,9 @@ describe("referenced art", () => {
     JOB_OPTIONS.forEach((job) => {
       expect(job.assetPath).toBe(`/assets/characters/career-path/${job.id}/player-v2.png`);
       expect(job.guideAssetPath).toBe(`/assets/characters/career-path/${job.id}/guide-v1.png`);
+      expect(job.overworldAssetPath).toBe(
+        `/assets/characters/career-path/${job.id}/overworld-v1.png`
+      );
     });
   });
 

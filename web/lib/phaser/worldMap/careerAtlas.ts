@@ -53,6 +53,42 @@ export function drawCareerAtlas(scene: Phaser.Scene, options: CareerAtlasOptions
     .setDepth(9);
   fitTextInside(guideLine, 190, 16);
 
+  const playerFrame = drawOrnateFrame(scene, 404, 501, 188, 64, {
+    fill: PALETTE.cream,
+    fillAlpha: 0.97,
+    radius: 10,
+  }).setDepth(8);
+  const playerShadow = scene.add
+    .ellipse(347, 520, 34, 8, PALETTE.nightBrown, 0.24)
+    .setDepth(8);
+  const player = scene.add
+    .image(347, 493, options.job.overworldTextureKey)
+    .setDisplaySize(41, 54)
+    .setDepth(9);
+  const playerRole = scene.add
+    .text(379, 482, "MY PLAYER", {
+      ...pixelText("micro"),
+      color: PALETTE_HEX.cream,
+      backgroundColor: PALETTE_HEX.maroon,
+      padding: { x: 5, y: 3 },
+    })
+    .setDepth(9);
+  const playerJob = scene.add
+    .text(379, 505, options.job.name, {
+      ...pixelText("caption"),
+      color: PALETTE_HEX.ink,
+    })
+    .setDepth(9);
+  fitTextInside(playerJob, 112, 15);
+  scene.tweens.add({
+    targets: player,
+    y: 490,
+    duration: 620,
+    ease: "Sine.InOut",
+    yoyo: true,
+    repeat: -1,
+  });
+
   const mysteryFrame = drawOrnateFrame(scene, 858, 466, 168, 76, {
     fill: PALETTE.nightBrown,
     fillAlpha: 0.92,
@@ -79,6 +115,11 @@ export function drawCareerAtlas(scene: Phaser.Scene, options: CareerAtlasOptions
     ...guide,
     guideName,
     guideLine,
+    playerFrame,
+    playerShadow,
+    player,
+    playerRole,
+    playerJob,
     mysteryFrame,
     mysteryTitle,
     mystery,
