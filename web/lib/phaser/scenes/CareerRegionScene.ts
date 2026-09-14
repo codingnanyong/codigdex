@@ -5,6 +5,7 @@ import { createHomeButton } from "../navigation";
 import { pixelText } from "../pixelFont";
 import { applyPixelFontToScene, createButton, drawOrnateFrame, fitTextInside } from "../ui";
 import { careerPathFor, type CareerRegion } from "../worldMap/careerPaths";
+import { createDialogPortrait } from "../worldMap/dialogPortrait";
 
 interface CareerRegionData {
   careerId: JobId;
@@ -85,7 +86,15 @@ export class CareerRegionScene extends Phaser.Scene {
   private drawGuide(textureKey: string, guideName: string, region: CareerRegion) {
     const { width, height } = this.scale;
     drawOrnateFrame(this, width / 2, height - 112, 590, 118, { fillAlpha: 0.96, radius: 14 });
-    this.add.image(width / 2 - 230, height - 112, textureKey).setDisplaySize(102, 102);
+    createDialogPortrait(this, textureKey, width / 2 - 230, height - 117, 106, 118);
+    this.add
+      .text(width / 2 - 230, height - 68, "GUIDE NPC", {
+        ...pixelText("micro"),
+        color: PALETTE_HEX.cream,
+        backgroundColor: PALETTE_HEX.maroon,
+        padding: { x: 5, y: 3 },
+      })
+      .setOrigin(0.5);
     this.add.text(width / 2 - 165, height - 148, guideName, {
       ...pixelText("body"),
       color: PALETTE_HEX.maroon,

@@ -10,6 +10,7 @@ import {
   findJob,
   findSecondaryJob,
   findTertiaryJob,
+  guideDisplayName,
   isSecondaryJobUnlocked,
   isTertiaryJobUnlocked,
   JOB_OPTIONS,
@@ -40,6 +41,7 @@ import {
   fitTextInside,
   showToast,
 } from "../ui";
+import { createDialogPortrait } from "../worldMap/dialogPortrait";
 const JUNIOR_X = 68;
 const PRIMARY_X = 245;
 const SECONDARY_X = 565;
@@ -69,7 +71,12 @@ export class JobSelectScene extends Phaser.Scene {
   }
 
   preload() {
-    JOB_OPTIONS.forEach((job) => this.load.image(job.textureKey!, job.assetPath!));
+    JOB_OPTIONS.forEach((job) => {
+      this.load.image(job.textureKey!, job.assetPath!);
+      if (job.guideTextureKey && job.guideAssetPath) {
+        this.load.image(job.guideTextureKey, job.guideAssetPath);
+      }
+    });
   }
 
   create() {
@@ -482,19 +489,56 @@ export class JobSelectScene extends Phaser.Scene {
 
     const { width, height } = this.scale;
     const shade = addShade(this, 0.62, 20);
-    const frame = drawOrnateFrame(this, width / 2, height / 2, 520, 210, { radius: 14 });
+    const frame = drawOrnateFrame(this, width / 2, height / 2, 690, 310, { radius: 14 });
     const title = this.add
-      .text(width / 2, height / 2 - 57, `${job.name} 선택을 확정할까요?`, {
+      .text(width / 2, height / 2 - 126, `${job.name} 선택을 확정할까요?`, {
         ...pixelText("subtitle"),
         color: PALETTE_HEX.ink,
       })
       .setOrigin(0.5);
-    fitTextInside(title, 470, 24);
+    fitTextInside(title, 620, 24);
+    const playerX = width / 2 - 248;
+    const guideX = width / 2 + 248;
+    const roleY = height / 2 - 16;
+    const playerFrame = drawOrnateFrame(this, playerX, roleY, 150, 190, {
+      fill: PALETTE.cream,
+      radius: 10,
+    });
+    const guideFrame = drawOrnateFrame(this, guideX, roleY, 150, 190, {
+      fill: PALETTE.wood,
+      radius: 10,
+    });
+    const player = this.add.image(playerX, roleY - 9, job.textureKey!).setDisplaySize(132, 150);
+    const guidePortrait = createDialogPortrait(
+      this,
+      job.guideTextureKey ?? job.textureKey!,
+      guideX,
+      roleY - 10,
+      130,
+      148
+    );
+    const playerLabel = this.add
+      .text(playerX, roleY + 76, "내 전직 캐릭터", {
+        ...pixelText("caption"),
+        color: PALETTE_HEX.cream,
+        backgroundColor: PALETTE_HEX.maroon,
+        padding: { x: 7, y: 4 },
+      })
+      .setOrigin(0.5);
+    const guideLabel = this.add
+      .text(guideX, roleY + 76, `GUIDE NPC · ${guideDisplayName(job)}`, {
+        ...pixelText("caption"),
+        color: PALETTE_HEX.cream,
+        backgroundColor: PALETTE_HEX.ink,
+        padding: { x: 7, y: 4 },
+      })
+      .setOrigin(0.5);
+    fitTextInside(guideLabel, 140, 15);
     const body = this.add
       .text(
         width / 2,
-        height / 2 - 5,
-        "선택한 직업의 모든 챕터를 완료하기 전까지\n다른 직업으로 이동할 수 없어요.",
+        height / 2 - 35,
+        "왼쪽은 내가 조작할 전직 캐릭터,\n오른쪽은 여정을 안내할 선배 NPC예요.\n\n직업 Path를 완료하기 전까지\n다른 직업으로 이동할 수 없어요.",
         {
           ...pixelText("body"),
           color: PALETTE_HEX.mutedBrown,
@@ -503,14 +547,14 @@ export class JobSelectScene extends Phaser.Scene {
         }
       )
       .setOrigin(0.5);
-    const cancel = createButton(this, width / 2 - 88, height / 2 + 64, 128, 34, "취소", () => {
+    const cancel = createButton(this, width / 2 - 88, height / 2 + 123, 128, 34, "취소", () => {
       this.promotionDialog?.destroy(true);
       this.promotionDialog = undefined;
     });
     const confirm = createButton(
       this,
       width / 2 + 88,
-      height / 2 + 64,
+      height / 2 + 123,
       128,
       34,
       "전직하기",
@@ -522,7 +566,20 @@ export class JobSelectScene extends Phaser.Scene {
     );
 
     this.promotionDialog = this.add
-      .container(0, 0, [shade, frame, title, body, cancel, confirm])
+      .container(0, 0, [
+        shade,
+        frame,
+        title,
+        playerFrame,
+        guideFrame,
+        player,
+        ...guidePortrait,
+        playerLabel,
+        guideLabel,
+        body,
+        cancel,
+        confirm,
+      ])
       .setDepth(20)
       .setAlpha(0);
     this.tweens.add({

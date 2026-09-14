@@ -8,6 +8,7 @@ import { guideDisplayName, type JobOption } from "@/lib/domain/player/jobs";
 import { PALETTE, PALETTE_HEX } from "../palette";
 import { pixelText } from "../pixelFont";
 import { drawOrnateFrame, fitTextInside } from "../ui";
+import { createDialogPortrait } from "./dialogPortrait";
 
 interface CareerAtlasOptions {
   job: JobOption;
@@ -27,10 +28,15 @@ export function drawCareerAtlas(scene: Phaser.Scene, options: CareerAtlasOptions
   // Keep guidance in a dedicated bottom dock. Region labels live over the
   // upper/middle map, so the guide must never compete with a destination.
   const guideFrame = drawOrnateFrame(scene, 154, 501, 284, 64, { fillAlpha: 0.97, radius: 10 }).setDepth(8);
-  const guide = scene.add
-    .image(54, 501, options.job.guideTextureKey ?? options.job.textureKey!)
-    .setDisplaySize(54, 54)
-    .setDepth(9);
+  const guide = createDialogPortrait(
+    scene,
+    options.job.guideTextureKey ?? options.job.textureKey!,
+    54,
+    494,
+    64,
+    72
+  );
+  guide.forEach((portrait) => portrait.setDepth(9));
   const guideName = scene.add
     .text(88, 480, guideDisplayName(options.job), {
       ...pixelText("caption"),
@@ -68,7 +74,16 @@ export function drawCareerAtlas(scene: Phaser.Scene, options: CareerAtlasOptions
   mysteryHitArea.on("pointerout", () => mysteryFrame.setAlpha(1));
   mysteryHitArea.on("pointerup", options.onMystery);
 
-  return scene.add.container(0, 0, [guideFrame, guide, guideName, guideLine, mysteryFrame, mysteryTitle, mystery, mysteryHitArea]);
+  return scene.add.container(0, 0, [
+    guideFrame,
+    ...guide,
+    guideName,
+    guideLine,
+    mysteryFrame,
+    mysteryTitle,
+    mystery,
+    mysteryHitArea,
+  ]);
 }
 
 function drawRegion(

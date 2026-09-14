@@ -55,7 +55,7 @@ const careerCharacterArt = (careerId: JobId | "junior", role: "player" | "guide"
   `/assets/characters/career-path/${careerId}/${role}-v${role === "player" ? 2 : 1}.png`;
 
 export const CAREER_CHARACTER_GUIDE_ASSET_PATH =
-  "/assets/characters/career-path/career-character-guide-v1.png";
+  "/assets/characters/career-path/career-character-guide-v2.png";
 export const OVERWORLD_PLAYER_TEXTURE_KEY = "player-overworld";
 export const OVERWORLD_PLAYER_ASSET_PATH =
   "/assets/characters/player/overworld-player-v1.png";

@@ -1,6 +1,12 @@
-# Codigdex
+<!-- markdownlint-disable MD033 MD041 -->
+<p align="center">
+  <img src="web/public/assets/icons/codigdex-main-icon.png" width="120" alt="Codigdex 게임 아이콘">
+</p>
 
-버그 몬스터를 물리치고, 캡처 퀴즈를 통과해 나만의 코딩 도감을 완성하는 픽셀 아트 교육 게임
+<h1 align="center">Codigdex</h1>
+
+<p align="center">버그 몬스터를 물리치고, 캡처 퀴즈를 통과해 나만의 코딩 도감을 완성하는 픽셀 아트 교육 게임</p>
+<!-- markdownlint-enable MD033 MD041 -->
 
 [![CI](https://github.com/codingnanyong/codigdex/actions/workflows/ci.yml/badge.svg)](https://github.com/codingnanyong/codigdex/actions/workflows/ci.yml)
 [![PR policy](https://github.com/codingnanyong/codigdex/actions/workflows/pr-policy.yml/badge.svg)](https://github.com/codingnanyong/codigdex/actions/workflows/pr-policy.yml)
@@ -32,11 +38,9 @@ Codigdex는 코딩 개념을 읽는 데서 끝나지 않습니다. 코드 배틀
 
 직업 도감은 사람 캐릭터를 반복해서 보여 주는 대신 주니어부터 3차 직업까지 16종의 고유 심볼을 수집합니다. 플레이어 전신 캐릭터는 필드 이동에, 가이드 NPC의 상반신 초상화는 대화 연출에 사용해 역할을 구분했습니다.
 
-![1차 전직 플레이어 캐릭터와 직업별 안내 NPC 가이드](web/public/assets/characters/career-path/career-character-guide-v1.png)
+![주니어부터 3차 전직까지 구분한 플레이어 캐릭터와 가이드 NPC 아카이브](web/public/assets/characters/career-path/career-character-guide-v2.png)
 
-![DevOps 직업을 나타내는 수집형 심볼](web/public/assets/career-emblems/devops-v1.png)
-
-![기술 지역을 따라 이동하는 DevOps 상세 지도](web/public/assets/wallpapers/career-paths/devops-path-map-v3.png)
+![주니어부터 3차 전직까지 한눈에 보는 직업 심볼 아카이브](web/public/assets/career-emblems/career-emblem-archive-v1.png)
 
 ## 현재 구현
 

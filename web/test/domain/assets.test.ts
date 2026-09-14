@@ -75,4 +75,10 @@ describe("referenced art", () => {
       expect(job.guideAssetPath).toBe(`/assets/characters/career-path/${job.id}/guide-v1.png`);
     });
   });
+
+  it("keeps the README career-emblem archive in the published assets", () => {
+    expect(
+      existsSync(path.join(PUBLIC_DIR, "assets/career-emblems/career-emblem-archive-v1.png"))
+    ).toBe(true);
+  });
 });
