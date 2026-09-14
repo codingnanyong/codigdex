@@ -1,11 +1,18 @@
 import Phaser from "phaser";
 import { findStage } from "@/lib/domain/chapters";
 import type { ChapterDefinition, MonsterDefinition } from "@/lib/domain/chapters/types";
-import { applyCapture, isSuccessfulCapture, requiredCorrectAnswers } from "@/lib/domain/dex/capture";
+import {
+  applyCapture,
+  capturedIds,
+  isSuccessfulCapture,
+  requiredCorrectAnswers,
+} from "@/lib/domain/dex/capture";
 import { showCapturedPanel, showMissedPanel } from "../capture/resultPanels";
+import { createHomeButton } from "../navigation";
 import { describeUnlock } from "../capture/unlockNotice";
 import { readDexState, writeDexState } from "../registryAdapter";
 import { addShade, applyPixelFontToScene } from "../ui";
+import { didUnlockPrimaryJobSelection } from "../worldMap/progression";
 
 export interface CaptureResultData {
   monsterId: string;
@@ -19,6 +26,7 @@ export class CaptureQuizScene extends Phaser.Scene {
   private monster!: MonsterDefinition;
   private correctCount = 0;
   private total = 0;
+  private nextScene: "world-map" | "job-select" = "world-map";
 
   constructor() {
     super("capture-quiz");
@@ -30,10 +38,12 @@ export class CaptureQuizScene extends Phaser.Scene {
     this.monster = monster;
     this.correctCount = data.correctCount;
     this.total = data.total;
+    this.nextScene = "world-map";
   }
 
   create() {
     addShade(this, 0.55);
+    createHomeButton(this).setDepth(30);
 
     if (isSuccessfulCapture(this.correctCount, this.total)) {
       this.showCaptured();
@@ -56,7 +66,7 @@ export class CaptureQuizScene extends Phaser.Scene {
       // Carry on where the player is headed: the newly opened stage or
       // chapter, or straight back into this chapter after a replay.
       onConfirm: () => {
-        this.scene.start("world-map");
+        this.scene.start(this.nextScene);
       },
     });
   }
@@ -75,6 +85,9 @@ export class CaptureQuizScene extends Phaser.Scene {
   private registerCapture(): boolean {
     const before = readDexState(this.registry);
     const after = applyCapture(before, this.monster);
+    this.nextScene = didUnlockPrimaryJobSelection(capturedIds(before), capturedIds(after))
+      ? "job-select"
+      : "world-map";
     writeDexState(this.registry, after);
     return after !== before;
   }

@@ -126,9 +126,9 @@ describe("lookup", () => {
 });
 
 describe("dex entries", () => {
-  it("numbers every monster 001, 002, ... in play order", () => {
+  it("numbers the tutorial 000 and regular monsters 001, 002, ... in play order", () => {
     expect(DEX_MONSTERS.map((monster) => monster.dexNumber)).toEqual(
-      DEX_MONSTERS.map((_, index) => String(index + 1).padStart(3, "0"))
+      DEX_MONSTERS.map((_, index) => String(index).padStart(3, "0"))
     );
     expect(DEX_MONSTERS).toEqual(CHAPTERS.flatMap((chapter) => chapter.stages));
     expect(new Set(DEX_MONSTERS.map((monster) => monster.id)).size).toBe(DEX_MONSTERS.length);

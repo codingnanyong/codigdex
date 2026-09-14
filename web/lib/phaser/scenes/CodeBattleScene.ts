@@ -14,6 +14,7 @@ import { MessagePanel } from "../battle/messagePanel";
 import { Opponent } from "../battle/opponent";
 import { StatusPanel } from "../battle/statusPanel";
 import { preloadMonsterArt } from "../monsterArt";
+import { createHomeButton } from "../navigation";
 import { applyPixelFontToScene } from "../ui";
 
 export interface CodeBattleData {
@@ -68,6 +69,7 @@ export class CodeBattleScene extends Phaser.Scene {
     this.opponent = new Opponent(this, this.monster);
     this.message = new MessagePanel(this);
     this.answers = new AnswerGrid(this);
+    createHomeButton(this).setDepth(30);
 
     this.showQuestion();
     applyPixelFontToScene(this);
@@ -118,7 +120,11 @@ export class CodeBattleScene extends Phaser.Scene {
       this.message.say(`${this.monster.name} 격파!`);
       this.opponent.faint(() => this.finishBattle());
     } else {
-      this.message.say("전투 종료! 결과를 확인할게요.");
+      this.message.say(
+        this.questionIndex < this.questions.length
+          ? "목표 달성 불가! 전투에 실패했어요."
+          : "전투 종료! 결과를 확인할게요."
+      );
       this.time.delayedCall(700, () => this.finishBattle());
     }
   }
