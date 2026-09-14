@@ -1,5 +1,9 @@
 import Phaser from "phaser";
 import {
+  masteredPrimaryJobIds,
+  masteredSecondaryJobIds,
+} from "@/lib/domain/careerDex";
+import {
   chapterStatus,
   chapterTitle,
   getChapter,
@@ -11,7 +15,6 @@ import { LINUX_CHAPTER } from "@/lib/domain/chapters/linux";
 import type { ChapterId } from "@/lib/domain/chapters/types";
 import { capturedIds } from "@/lib/domain/dex/capture";
 import {
-  completedSecondaryJobIds,
   findJob,
   findSecondaryJob,
   findTertiaryJob,
@@ -29,15 +32,19 @@ import {
 } from "@/lib/domain/player/jobs";
 import { COMMON_TECHNOLOGY_SPECIMENS } from "@/lib/domain/technologySpecimens";
 import { preloadMonsterArt } from "../monsterArt";
+import { createHomeButton } from "../navigation";
 import { PALETTE } from "../palette";
 import { drawConnections } from "../pathMap/connections";
 import { CAREER_NODES, CAREER_PORTRAITS, COMMON_NODES, PROMOTION_NODE, type PathNode } from "../pathMap/layout";
 import { drawPathNode, drawPromotionNode, drawSecondaryCareerNode } from "../pathMap/nodes";
 import { StagePanel } from "../pathMap/stagePanel";
 import { drawHeader, drawMapSurface, drawSectionLabels } from "../pathMap/surface";
-import { readDexState } from "../registryAdapter";
+import {
+  activateCareerInRegistry,
+  readDexState,
+  reconcileCareerDexRegistry,
+} from "../registryAdapter";
 import { applyPixelFontToScene, createButton, showToast } from "../ui";
-import { completedCareerPathIds } from "../worldMap/careerPaths";
 
 export interface PathMapData {
   /** Opens this chapter's stage panel on arrival, to carry on after a battle. */
@@ -81,8 +88,9 @@ export class PathMapScene extends Phaser.Scene {
     this.toast = undefined;
     this.stagePanel = undefined;
     this.captured = capturedIds(readDexState(this.registry));
-    this.completedCareerIds = completedCareerPathIds(this.captured);
-    this.completedSecondaryIds = completedSecondaryJobIds(this.captured);
+    const careerDex = reconcileCareerDexRegistry(this.registry);
+    this.completedCareerIds = masteredPrimaryJobIds(careerDex);
+    this.completedSecondaryIds = masteredSecondaryJobIds(careerDex);
     const storedSecondaryJob = findSecondaryJob(
       this.registry.get(SECONDARY_JOB_REGISTRY_KEY) as string | null | undefined
     );
@@ -136,6 +144,7 @@ export class PathMapScene extends Phaser.Scene {
 
     createButton(this, width / 2, height - 27, 140, 32, "돌아가기", () => this.scene.start("world-map"));
     createButton(this, 92, height - 27, 140, 32, "직업 변경", () => this.scene.start("job-select"));
+    createHomeButton(this).setDepth(30);
     if (this.captured.size > 0) {
       createButton(this, width - 92, 47, 120, 32, "Codigdex 도감", () => this.openCodigdex());
     }
@@ -212,6 +221,7 @@ export class PathMapScene extends Phaser.Scene {
     if (this.selectedSecondaryJobId !== job.id) {
       this.registry.set(TERTIARY_JOB_REGISTRY_KEY, null);
     }
+    activateCareerInRegistry(this.registry, job.id);
     this.registry.set(SECONDARY_JOB_REGISTRY_KEY, job.id);
     this.scene.restart({ careerId: this.selectedCareerId });
   }
@@ -223,6 +233,7 @@ export class PathMapScene extends Phaser.Scene {
       return;
     }
 
+    activateCareerInRegistry(this.registry, job.id);
     this.registry.set(TERTIARY_JOB_REGISTRY_KEY, job.id);
     this.scene.restart({ careerId: this.selectedCareerId });
   }

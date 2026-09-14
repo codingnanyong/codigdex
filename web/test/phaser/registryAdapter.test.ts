@@ -11,6 +11,8 @@ import {
   hydrateRegistry,
   LEGACY_SAVE_STORAGE_KEY,
   persistRegistry,
+  PREVIOUS_SAVE_STORAGE_KEY,
+  readCareerDexState,
   readDexState,
   resetGameProgress,
   SAVE_STORAGE_KEY,
@@ -114,7 +116,7 @@ describe("hydrateRegistry", () => {
     expect(unknown.get(TUTORIAL_ONBOARDING_SEEN_KEY)).toBe(false);
   });
 
-  it("migrates the legacy storage slot into the nested v2 save", () => {
+  it("migrates the legacy storage slot into the career-aware v3 save", () => {
     const storage = memoryStorage({
       [LEGACY_SAVE_STORAGE_KEY]: JSON.stringify({
         version: 1,
@@ -128,10 +130,49 @@ describe("hydrateRegistry", () => {
     hydrateRegistry(registry, storage);
 
     expect(JSON.parse(storage.getItem(SAVE_STORAGE_KEY)!)).toEqual({
-      version: 2,
-      progress: { captures: [{ id: first.id, capturedAt: "2026-09-01T00:00:00.000Z" }] },
+      version: 3,
+      progress: {
+        captures: [{ id: first.id, capturedAt: "2026-09-01T00:00:00.000Z" }],
+        careers: [
+          {
+            id: "junior",
+            unlockedAt: "2026-09-01T00:00:00.000Z",
+            masteredAt: "2026-09-01T00:00:00.000Z",
+          },
+          {
+            id: "frontend",
+            unlockedAt: "2026-09-01T00:00:00.000Z",
+            selectedAt: "2026-09-01T00:00:00.000Z",
+          },
+        ],
+      },
       player: { primaryJobId: "frontend", secondaryJobId: null, tertiaryJobId: null },
       ui: { tutorialOnboardingSeen: true },
+    });
+  });
+
+  it("migrates a nested v2 save from its previous storage slot", () => {
+    const storage = memoryStorage({
+      [PREVIOUS_SAVE_STORAGE_KEY]: JSON.stringify({
+        version: 2,
+        progress: { captures: [{ id: first.id, capturedAt: "2026-09-01T00:00:00.000Z" }] },
+        player: { primaryJobId: "devops", secondaryJobId: null, tertiaryJobId: null },
+        ui: { tutorialOnboardingSeen: true },
+      }),
+    });
+    const registry = fakeRegistry();
+
+    hydrateRegistry(registry, storage);
+
+    expect(JSON.parse(storage.getItem(SAVE_STORAGE_KEY)!)).toMatchObject({
+      version: 3,
+      progress: {
+        careers: [
+          { id: "junior", masteredAt: "2026-09-01T00:00:00.000Z" },
+          { id: "devops", selectedAt: "2026-09-01T00:00:00.000Z" },
+        ],
+      },
+      player: { primaryJobId: "devops" },
     });
   });
 
@@ -172,8 +213,22 @@ describe("persistRegistry", () => {
     persistRegistry(source, storage);
 
     expect(JSON.parse(storage.getItem(SAVE_STORAGE_KEY)!)).toEqual({
-      version: 2,
-      progress: { captures: [{ id: first.id, capturedAt: "2026-09-01T00:00:00.000Z" }] },
+      version: 3,
+      progress: {
+        captures: [{ id: first.id, capturedAt: "2026-09-01T00:00:00.000Z" }],
+        careers: [
+          {
+            id: "junior",
+            unlockedAt: "2026-09-01T00:00:00.000Z",
+            masteredAt: "2026-09-01T00:00:00.000Z",
+          },
+          {
+            id: "backend",
+            unlockedAt: "2026-09-01T00:00:00.000Z",
+            selectedAt: "2026-09-01T00:00:00.000Z",
+          },
+        ],
+      },
       player: { primaryJobId: "backend", secondaryJobId: null, tertiaryJobId: null },
       ui: { tutorialOnboardingSeen: true },
     });
@@ -181,6 +236,7 @@ describe("persistRegistry", () => {
     const restored = fakeRegistry();
     hydrateRegistry(restored, storage);
     expect(readDexState(restored)).toEqual(readDexState(source));
+    expect(readCareerDexState(restored)).toEqual(readCareerDexState(source));
     expect(restored.get(JOB_REGISTRY_KEY)).toBe("backend");
     expect(restored.get(TUTORIAL_ONBOARDING_SEEN_KEY)).toBe(true);
   });
@@ -208,10 +264,11 @@ describe("resetGameProgress", () => {
     expect(registry.get(SECONDARY_JOB_REGISTRY_KEY)).toBeNull();
     expect(registry.get(TERTIARY_JOB_REGISTRY_KEY)).toBeNull();
     expect(registry.get(TUTORIAL_ONBOARDING_SEEN_KEY)).toBe(false);
+    expect(readCareerDexState(registry).careers).toEqual([]);
     expect(hasSavedProgress(registry)).toBe(false);
     expect(JSON.parse(storage.getItem(SAVE_STORAGE_KEY)!)).toEqual({
-      version: 2,
-      progress: { captures: [] },
+      version: 3,
+      progress: { captures: [], careers: [] },
       player: { primaryJobId: "junior", secondaryJobId: null, tertiaryJobId: null },
       ui: { tutorialOnboardingSeen: false },
     });
@@ -233,5 +290,17 @@ describe("hasSavedProgress", () => {
   it("is true once a card is captured or the tutorial onboarding was seen", () => {
     expect(hasSavedProgress(fakeRegistry({ cards: [{ id: first.id }] }))).toBe(true);
     expect(hasSavedProgress(fakeRegistry({ [TUTORIAL_ONBOARDING_SEEN_KEY]: true }))).toBe(true);
+    expect(
+      hasSavedProgress(
+        fakeRegistry({
+          careerDex: {
+            careers: [
+              { id: "junior", unlockedAt: "2026-09-14T00:00:00.000Z" },
+              { id: "frontend", unlockedAt: "2026-09-14T00:00:00.000Z" },
+            ],
+          },
+        })
+      )
+    ).toBe(true);
   });
 });

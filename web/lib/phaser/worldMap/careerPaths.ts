@@ -29,6 +29,14 @@ export interface CareerPathDefinition {
   completionCaptureIds: readonly string[];
 }
 
+export function careerTerrainTextureKey(path: CareerPathDefinition, region: CareerRegion): string {
+  return `${path.textureKey}-${region.id}-terrain`;
+}
+
+export function careerTerrainAssetPath(path: CareerPathDefinition, region: CareerRegion): string {
+  return `/assets/wallpapers/career-paths/${path.jobId}-${region.id}-terrain-v3.png`;
+}
+
 export type Point = readonly [x: number, y: number];
 
 const region = (
@@ -79,8 +87,8 @@ const region = (
 export const CAREER_PATHS: Record<JobId, CareerPathDefinition> = {
   frontend: {
     jobId: "frontend",
-    textureKey: "world-career-frontend",
-    assetPath: "/assets/wallpapers/career-paths/frontend-path-map-v1.png",
+    textureKey: "world-career-frontend-v3",
+    assetPath: "/assets/wallpapers/career-paths/frontend-path-map-v3.png",
     title: "웹 프론트엔드 개발자 경로",
     completionCaptureIds: [],
     regions: [
@@ -93,8 +101,8 @@ export const CAREER_PATHS: Record<JobId, CareerPathDefinition> = {
   },
   backend: {
     jobId: "backend",
-    textureKey: "world-career-backend",
-    assetPath: "/assets/wallpapers/career-paths/backend-path-map-v1.png",
+    textureKey: "world-career-backend-v3",
+    assetPath: "/assets/wallpapers/career-paths/backend-path-map-v3.png",
     title: "백엔드 개발자 경로",
     completionCaptureIds: [],
     regions: [
@@ -108,8 +116,8 @@ export const CAREER_PATHS: Record<JobId, CareerPathDefinition> = {
   },
   devops: {
     jobId: "devops",
-    textureKey: "world-career-devops",
-    assetPath: "/assets/wallpapers/career-paths/devops-path-map-v1.png",
+    textureKey: "world-career-devops-v3",
+    assetPath: "/assets/wallpapers/career-paths/devops-path-map-v3.png",
     title: "DevOps 엔지니어 경로",
     completionCaptureIds: [],
     regions: [
@@ -123,8 +131,8 @@ export const CAREER_PATHS: Record<JobId, CareerPathDefinition> = {
   },
   "data-engineer": {
     jobId: "data-engineer",
-    textureKey: "world-career-data-engineer",
-    assetPath: "/assets/wallpapers/career-paths/data-engineer-path-map-v1.png",
+    textureKey: "world-career-data-engineer-v3",
+    assetPath: "/assets/wallpapers/career-paths/data-engineer-path-map-v3.png",
     title: "데이터 엔지니어 경로",
     completionCaptureIds: [],
     regions: [
@@ -138,8 +146,8 @@ export const CAREER_PATHS: Record<JobId, CareerPathDefinition> = {
   },
   "data-analyst": {
     jobId: "data-analyst",
-    textureKey: "world-career-data-analyst",
-    assetPath: "/assets/wallpapers/career-paths/data-analyst-path-map-v1.png",
+    textureKey: "world-career-data-analyst-v3",
+    assetPath: "/assets/wallpapers/career-paths/data-analyst-path-map-v3.png",
     title: "데이터 분석가 경로",
     completionCaptureIds: [],
     regions: [
@@ -165,16 +173,12 @@ export function isCareerPathComplete(
   return required.length > 0 && required.every((id) => captured.has(id));
 }
 
-/**
- * Unreleased paths have no completion captures yet. They must remain absent
- * from the completed-job set (so tier two stays locked), but they must not
- * trap a player in the first previewed career forever.
- */
+/** A selected career remains binding until every released requirement is complete. */
 export function canLeaveCareerPath(
   path: CareerPathDefinition,
   captured: ReadonlySet<string>
 ): boolean {
-  return path.completionCaptureIds.length === 0 || isCareerPathComplete(path, captured);
+  return isCareerPathComplete(path, captured);
 }
 
 /** Every completed primary career, derived solely from its required dex captures. */

@@ -1,39 +1,83 @@
 import type Phaser from "phaser";
-import { PALETTE_HEX } from "../palette";
+import { PALETTE, PALETTE_HEX } from "../palette";
 import { pixelText } from "../pixelFont";
-import { applyPixelFontToScene, createButton, drawOrnateFrame } from "../ui";
+import { applyPixelFontToScene, createButton } from "../ui";
+import { createDialogPortrait } from "./dialogPortrait";
 
-const BOX = { width: 560, height: 150 };
+const BOX_HEIGHT = 132;
 
 export interface QuestDialogOptions {
   speaker: string;
   message: string;
+  portraitTextureKey?: string;
   onStart: () => void;
   onClose: () => void;
 }
 
-/** The guide's quest pitch along the bottom of the map, with start and close buttons. */
-export function showQuestDialog(scene: Phaser.Scene, options: QuestDialogOptions): Phaser.GameObjects.Container {
+/** A cinematic bottom dialog bar for the guide's quest pitch. */
+export function showQuestDialog(
+  scene: Phaser.Scene,
+  options: QuestDialogOptions
+): Phaser.GameObjects.Container {
   const { width, height } = scene.scale;
-  const centerY = height - 110;
-  const left = width / 2 - BOX.width / 2;
-  const top = centerY - BOX.height / 2;
-  const buttonY = centerY + BOX.height / 2 - 24;
+  const centerY = height - BOX_HEIGHT / 2;
+  const top = height - BOX_HEIGHT;
+  const textLeft = options.portraitTextureKey ? 270 : 30;
+  const buttonY = height - 24;
 
-  const frame = drawOrnateFrame(scene, width / 2, centerY, BOX.width, BOX.height, { radius: 14 });
-  const speaker = scene.add.text(left + 20, top + 16, options.speaker, {
+  const shadow = scene.add.rectangle(
+    width / 2,
+    centerY - 5,
+    width,
+    BOX_HEIGHT + 10,
+    PALETTE.ink,
+    0.45
+  );
+  const frame = scene.add
+    .rectangle(width / 2, centerY, width, BOX_HEIGHT, PALETTE.nightBrown, 0.94)
+    .setStrokeStyle(3, PALETTE.ink);
+  const topLine = scene.add.rectangle(width / 2, top + 2, width, 3, PALETTE.amber, 0.9);
+  const portrait = options.portraitTextureKey
+    ? createDialogPortrait(scene, options.portraitTextureKey, 130, height - 108, 194, 204)
+    : [];
+  const namePlate = options.portraitTextureKey
+    ? scene.add
+        .rectangle(142, height - 27, 184, 32, PALETTE.maroon, 0.98)
+        .setStrokeStyle(2, PALETTE.amber, 0.9)
+    : undefined;
+  const speaker = scene.add
+    .text(
+      options.portraitTextureKey ? 142 : textLeft,
+      options.portraitTextureKey ? height - 27 : top + 18,
+      options.speaker,
+      {
+        ...pixelText("body"),
+        color: options.portraitTextureKey ? PALETTE_HEX.cream : PALETTE_HEX.amber,
+      }
+    )
+    .setOrigin(options.portraitTextureKey ? 0.5 : 0, options.portraitTextureKey ? 0.5 : 0);
+  const body = scene.add.text(textLeft, top + 25, options.message, {
     ...pixelText("body"),
-    color: PALETTE_HEX.maroon,
+    color: PALETTE_HEX.cream,
+    wordWrap: { width: width - textLeft - 28 },
+    lineSpacing: 5,
   });
-  const body = scene.add.text(left + 20, top + 40, options.message, {
-    ...pixelText("body"),
-    color: PALETTE_HEX.ink,
-    wordWrap: { width: BOX.width - 40 },
-  });
-  const startButton = createButton(scene, width / 2 + BOX.width / 2 - 90, buttonY, 140, 32, "코드 배틀 시작", options.onStart);
-  const closeButton = createButton(scene, left + 60, buttonY, 80, 32, "닫기", options.onClose);
+  const startButton = createButton(
+    scene,
+    width - 88,
+    buttonY,
+    152,
+    30,
+    "전투 시작  ▶",
+    options.onStart
+  );
+  const closeButton = createButton(scene, width - 218, buttonY, 88, 30, "닫기", options.onClose);
 
-  const dialog = scene.add.container(0, 0, [frame, speaker, body, startButton, closeButton]).setDepth(10);
+  const items: Phaser.GameObjects.GameObject[] = [shadow, frame, topLine, ...portrait];
+  if (namePlate) items.push(namePlate);
+  items.push(speaker, body, startButton, closeButton);
+
+  const dialog = scene.add.container(0, 0, items).setDepth(10);
   applyPixelFontToScene(scene);
   return dialog;
 }

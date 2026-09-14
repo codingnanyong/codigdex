@@ -3,6 +3,7 @@ import { findStage } from "@/lib/domain/chapters";
 import type { ChapterDefinition, MonsterDefinition } from "@/lib/domain/chapters/types";
 import { applyCapture, isSuccessfulCapture, requiredCorrectAnswers } from "@/lib/domain/dex/capture";
 import { showCapturedPanel, showMissedPanel } from "../capture/resultPanels";
+import { createHomeButton } from "../navigation";
 import { describeUnlock } from "../capture/unlockNotice";
 import { readDexState, writeDexState } from "../registryAdapter";
 import { addShade, applyPixelFontToScene } from "../ui";
@@ -34,6 +35,7 @@ export class CaptureQuizScene extends Phaser.Scene {
 
   create() {
     addShade(this, 0.55);
+    createHomeButton(this).setDepth(30);
 
     if (isSuccessfulCapture(this.correctCount, this.total)) {
       this.showCaptured();

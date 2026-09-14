@@ -1,20 +1,12 @@
-<p align="center">
-  <img src="web/public/assets/icons/codigdex-main-icon.png" width="120" alt="Codigdex 로고">
-</p>
+# Codigdex
 
-<h1 align="center">Codigdex</h1>
+버그 몬스터를 물리치고, 캡처 퀴즈를 통과해 나만의 코딩 도감을 완성하는 픽셀 아트 교육 게임
 
-<p align="center">
-  버그 몬스터를 물리치고, 캡처 퀴즈를 통과해 나만의 코딩 도감을 완성하는 픽셀 아트 교육 게임
-</p>
-
-<p align="center">
-  <a href="https://github.com/codingnanyong/codigdex/actions/workflows/ci.yml"><img src="https://github.com/codingnanyong/codigdex/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
-  <a href="https://github.com/codingnanyong/codigdex/actions/workflows/pr-policy.yml"><img src="https://github.com/codingnanyong/codigdex/actions/workflows/pr-policy.yml/badge.svg" alt="PR policy"></a>
-  <a href="https://github.com/codingnanyong/codigdex/actions/workflows/claude-review.yml"><img src="https://github.com/codingnanyong/codigdex/actions/workflows/claude-review.yml/badge.svg" alt="Claude Code Review"></a>
-  <a href="https://codigdex.vercel.app"><img src="https://img.shields.io/badge/demo-codigdex.vercel.app-black?logo=vercel&logoColor=white" alt="Live demo"></a>
-  <a href="LICENSE"><img src="https://img.shields.io/github/license/codingnanyong/codigdex" alt="License"></a>
-</p>
+[![CI](https://github.com/codingnanyong/codigdex/actions/workflows/ci.yml/badge.svg)](https://github.com/codingnanyong/codigdex/actions/workflows/ci.yml)
+[![PR policy](https://github.com/codingnanyong/codigdex/actions/workflows/pr-policy.yml/badge.svg)](https://github.com/codingnanyong/codigdex/actions/workflows/pr-policy.yml)
+[![Claude Code Review](https://github.com/codingnanyong/codigdex/actions/workflows/claude-review.yml/badge.svg)](https://github.com/codingnanyong/codigdex/actions/workflows/claude-review.yml)
+[![Live demo](https://img.shields.io/badge/demo-codigdex.vercel.app-black?logo=vercel&logoColor=white)](https://codigdex.vercel.app)
+[![License](https://img.shields.io/github/license/codingnanyong/codigdex)](LICENSE)
 
 ## Codigdex란?
 
@@ -22,9 +14,7 @@ Codigdex는 코딩 개념을 읽는 데서 끝나지 않습니다. 코드 배틀
 
 플레이어는 서버 구름 위 픽셀 마을 `Codeville`의 주니어 개발자로 시작합니다. 튜토리얼과 Git·Linux 공통 과정을 마친 뒤 원하는 직업으로 전직하고, 직업별 상세 지도에서 기술 지역을 돌며 도감을 확장합니다.
 
-<p align="center">
-  <img src="web/public/assets/wallpapers/codigdex-field-guide-wallpaper-v3.png" width="720" alt="필드 가이드를 든 주니어 개발자와 버그 몬스터 지역">
-</p>
+![필드 가이드를 든 주니어 개발자와 버그 몬스터 지역](web/public/assets/wallpapers/codigdex-field-guide-wallpaper-v3.png)
 
 ## 게임 진행 구조
 
@@ -40,13 +30,9 @@ Codigdex는 코딩 개념을 읽는 데서 끝나지 않습니다. 코드 배틀
 
 현재 직업 Path는 웹 프론트엔드, 백엔드, DevOps, 데이터 엔지니어, 데이터 분석가로 구성됩니다. 전직 후에는 공통 과정의 루피 대신 각 직업의 선배 NPC가 길을 안내합니다. 풀스택 엔지니어, ML Developer, 플랫폼 엔지니어/SRE 같은 2차 전직은 처음부터 `???`로 보이되, 관련된 두 1차 직업 도감을 완성해야 정체와 조건이 드러납니다. 각 2차 직업 아래에는 소프트웨어 아키텍트, AI 프로덕트 엔지니어 등 대응하는 3차 마스터 직업이 한 갈래로 이어지며, 2차 마스터 Path를 완주한 뒤 해금됩니다.
 
-<p align="center">
-  <img src="web/public/assets/characters/career-path/career-character-guide-v1.png" width="720" alt="1차 전직 플레이어 캐릭터와 직업별 안내 NPC 가이드">
-</p>
+![1차 전직 플레이어 캐릭터와 직업별 안내 NPC 가이드](web/public/assets/characters/career-path/career-character-guide-v1.png)
 
-<p align="center">
-  <img src="web/public/assets/wallpapers/career-paths/devops-path-map-v1.png" width="720" alt="기술 지역을 따라 이동하는 DevOps 상세 지도">
-</p>
+![기술 지역을 따라 이동하는 DevOps 상세 지도](web/public/assets/wallpapers/career-paths/devops-path-map-v2.png)
 
 ## 현재 구현
 
@@ -58,7 +44,9 @@ Codigdex는 코딩 개념을 읽는 데서 끝나지 않습니다. 코드 배틀
 - 전직에 따라 달라지는 직업별 가이드 NPC
 - `???`로 미리 보이는 2차·3차 전직 슬롯과 해금 조합
 - 아직 배틀이 없는 전문 기술 몬스터를 `???` 도감 슬롯으로 미리 표시
-- 브라우저 로컬 저장 v2와 기존 v1 저장 데이터 자동 마이그레이션
+- 몬스터/직업 탭을 갖춘 Codigdex와 직업별 잠금·현재·마스터 기록
+- 주요 게임 화면에서 저장 상태를 유지한 채 타이틀로 돌아가는 Home 내비게이션
+- 브라우저 로컬 저장 v3와 기존 v1·v2 저장 데이터 자동 마이그레이션
 - Phaser와 분리된 `lib/domain` 규칙, Vitest 단위·통합 테스트
 
 직업별 전문 챕터의 몬스터 아트와 지도는 준비되어 있으며, 각 지역의 배틀·퀴즈 콘텐츠는 순차 연결 중입니다. 상세 커리큘럼과 2차 전직 해금 원칙은 [직업 전직 Path 설계](docs/CAREER_PATH_DESIGN.md)를 참고하세요.
@@ -103,7 +91,7 @@ web/
 └─ test/                        도메인·Phaser 테스트
 ```
 
-저장 데이터는 `progress`, `player`, `ui` 영역을 분리합니다. 도감 카드에는 몬스터 ID와 포획 시각만 저장하고 표시 정보는 현재 챕터 정의에서 다시 구성하므로, 콘텐츠가 바뀌어도 오래된 저장 데이터가 화면을 오염시키지 않습니다. 미래 몬스터의 `???` 슬롯은 현재 도감 완성률에서 제외하며, 2차 전직 해금 여부 역시 별도 플래그가 아니라 포획 기록에서 계산하도록 확장할 예정입니다.
+저장 데이터는 `progress`, `player`, `ui` 영역을 분리합니다. `progress`에는 몬스터 포획 기록과 직업 도감의 해금·선택·마스터 이력을 저장하고, 표시 정보는 현재 카탈로그 정의에서 다시 구성합니다. 직업 완료는 포획 조건으로 검증한 뒤 영구 마스터 이력으로 등록되며, 2차·3차 전직 계보는 이 기록을 기준으로 해금됩니다.
 
 ## 문서
 
@@ -117,8 +105,7 @@ web/
 
 기능 브랜치는 `feat/<slug>` 형식을 사용하고 `develop`으로 Draft PR을 엽니다. 저장소 자동화가 Linear `COD-n` 이슈와 GitHub 미러 이슈를 생성·연결하며, 모든 PR은 해당 이슈 쌍과 CI 검증을 통과해야 합니다. 자세한 흐름과 수동 복구 절차는 [AGENTS.md의 PR 정책](AGENTS.md#pr--issue-policy)을 확인하세요.
 
-<details>
-<summary>새 저장소 자동화 설정 체크리스트</summary>
+### 새 저장소 자동화 설정 체크리스트
 
 이 프로젝트를 템플릿으로 사용하는 새 저장소에서는 다음 항목을 한 번만 설정합니다.
 
@@ -130,8 +117,6 @@ web/
 6. `develop`과 `main`의 브랜치 보호 규칙에서 `validate-flow`, `review` 검사를 요구하도록 설정합니다.
 
 설정 후에는 `feat/<slug>` push 시 Linear/GitHub 이슈 쌍과 Draft PR 생성, PR 정책 검사, 리뷰, merge 알림이 자동으로 실행됩니다.
-
-</details>
 
 ## 라이선스
 

@@ -20,9 +20,19 @@ export function isSuccessfulCapture(correct: number, total: number): boolean {
   return total > 0 && correct >= requiredCorrectAnswers(total);
 }
 
-/** Keep asking questions only while the pass line is still unmet and questions remain. */
+/** Whether perfect answers on every remaining question can still reach the pass line. */
+export function canStillSucceed(correct: number, answered: number, total: number): boolean {
+  const remaining = Math.max(0, total - answered);
+  return total > 0 && correct + remaining >= requiredCorrectAnswers(total);
+}
+
+/** Keep asking only while neither success nor failure has become certain. */
 export function shouldContinueBattle(correct: number, answered: number, total: number): boolean {
-  return answered < total && !isSuccessfulCapture(correct, total);
+  return (
+    answered < total &&
+    !isSuccessfulCapture(correct, total) &&
+    canStillSucceed(correct, answered, total)
+  );
 }
 
 export function capturedIds(state: DexState): Set<string> {

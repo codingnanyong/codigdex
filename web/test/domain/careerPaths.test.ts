@@ -99,8 +99,8 @@ describe("primary job changes", () => {
     expect(isCareerPathComplete(CAREER_PATHS.frontend, new Set())).toBe(false);
   });
 
-  it("lets players leave an unreleased preview path without marking it complete", () => {
-    expect(canLeaveCareerPath(CAREER_PATHS.frontend, new Set())).toBe(true);
+  it("keeps a selected unreleased path locked until completion requirements exist", () => {
+    expect(canLeaveCareerPath(CAREER_PATHS.frontend, new Set())).toBe(false);
     expect(completedCareerPathIds(new Set())).not.toContain("frontend");
   });
 

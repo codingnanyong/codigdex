@@ -19,7 +19,7 @@ describe("selectWorldBackdrop", () => {
 
   it("uses the chosen career map after the common path", () => {
     const captured = ids(TUTORIAL_MONSTER, GIT_CHAPTER.stages, LINUX_CHAPTER.stages);
-    expect(selectWorldBackdrop(captured, "devops").textureKey).toBe("world-career-devops");
+    expect(selectWorldBackdrop(captured, "devops").textureKey).toBe("world-career-devops-v3");
   });
 });
 

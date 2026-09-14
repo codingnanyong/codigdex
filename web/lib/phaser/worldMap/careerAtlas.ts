@@ -1,6 +1,10 @@
 import Phaser from "phaser";
-import type { CareerPathDefinition, CareerRegion } from "./careerPaths";
-import type { JobOption } from "@/lib/domain/player/jobs";
+import {
+  careerTerrainTextureKey,
+  type CareerPathDefinition,
+  type CareerRegion,
+} from "./careerPaths";
+import { guideDisplayName, type JobOption } from "@/lib/domain/player/jobs";
 import { PALETTE, PALETTE_HEX } from "../palette";
 import { pixelText } from "../pixelFont";
 import { drawOrnateFrame, fitTextInside } from "../ui";
@@ -12,31 +16,36 @@ interface CareerAtlasOptions {
   onMystery: () => void;
 }
 
+const terrainCenters = new Map<string, { x: number; y: number }>();
+
 /** Turns a painted career wallpaper into a navigable atlas. */
 export function drawCareerAtlas(scene: Phaser.Scene, options: CareerAtlasOptions) {
   options.path.regions.forEach((region, index) =>
-    drawRegion(scene, options.path.textureKey, region, index + 1, options.onRegion)
+    drawRegion(scene, options.path, region, index + 1, options.onRegion)
   );
 
-  const guideFrame = drawOrnateFrame(scene, 132, 116, 224, 92, { fillAlpha: 0.94, radius: 10 }).setDepth(5);
+  // Keep guidance in a dedicated bottom dock. Region labels live over the
+  // upper/middle map, so the guide must never compete with a destination.
+  const guideFrame = drawOrnateFrame(scene, 154, 501, 284, 64, { fillAlpha: 0.97, radius: 10 }).setDepth(8);
   const guide = scene.add
-    .image(70, 116, options.job.guideTextureKey ?? options.job.textureKey!)
-    .setDisplaySize(82, 82)
-    .setDepth(6);
+    .image(54, 501, options.job.guideTextureKey ?? options.job.textureKey!)
+    .setDisplaySize(54, 54)
+    .setDepth(9);
   const guideName = scene.add
-    .text(110, 87, options.job.guideName, {
+    .text(88, 480, guideDisplayName(options.job), {
       ...pixelText("caption"),
       color: PALETTE_HEX.maroon,
     })
-    .setDepth(6);
-  fitTextInside(guideName, 124, 16);
+    .setDepth(9);
+  fitTextInside(guideName, 184, 16);
   const guideLine = scene.add
-    .text(110, 108, "빛나는 지역을 눌러\n수집지를 확인하세요.", {
+    .text(88, 502, "빛나는 지역을 눌러 수집지를 확인하세요.", {
       ...pixelText("caption"),
       color: PALETTE_HEX.ink,
       lineSpacing: 2,
     })
-    .setDepth(6);
+    .setDepth(9);
+  fitTextInside(guideLine, 190, 16);
 
   const mysteryFrame = drawOrnateFrame(scene, 858, 466, 168, 76, {
     fill: PALETTE.nightBrown,
@@ -64,73 +73,104 @@ export function drawCareerAtlas(scene: Phaser.Scene, options: CareerAtlasOptions
 
 function drawRegion(
   scene: Phaser.Scene,
-  textureKey: string,
+  path: CareerPathDefinition,
   region: CareerRegion,
   order: number,
   onSelect: (region: CareerRegion) => void
 ) {
-  const { landmark, lift } = region;
+  const { width, height } = scene.scale;
+  const { landmark } = region;
+  const terrainTextureKey = careerTerrainTextureKey(path, region);
+  const labelCenter = findTerrainCenter(scene, terrainTextureKey, landmark);
   const shadow = scene.add
-    .polygon(lift.x, lift.y + 5, lift.points, PALETTE.nightBrown, 1)
+    .image(width / 2, height / 2 + 5, terrainTextureKey)
+    .setTint(PALETTE.nightBrown)
     .setAlpha(0)
+    .setVisible(false)
     .setDepth(3);
-  const focusTextureKey = createFocusTexture(scene, textureKey, region);
   const liftedRegion = scene.add
-    .image(lift.x, lift.y, focusTextureKey)
+    .image(width / 2, height / 2, terrainTextureKey)
+    .setAlpha(0)
     .setVisible(false)
     .setDepth(4);
 
   const hitArea = scene.add
-    .polygon(landmark.x, landmark.y, region.focusPoints, 0xffffff, 0)
-    .setInteractive({ useHandCursor: true })
+    .image(width / 2, height / 2, terrainTextureKey)
+    .setAlpha(0.001)
+    .setInteractive({ useHandCursor: true, pixelPerfect: true, alphaTolerance: 16 })
     .setDepth(6);
   const label = scene.add
-    .text(landmark.x, landmark.y - landmark.height / 2 + 10, `${order} · ${region.label}`, {
-      ...pixelText("caption"),
+    .text(labelCenter.x, labelCenter.y + 6, `${order} · ${region.label}`, {
+      ...pixelText("subtitle"),
       color: PALETTE_HEX.cream,
-      backgroundColor: "#2a1d14df",
-      padding: { x: 6, y: 3 },
+      backgroundColor: "#2a1d14eb",
+      stroke: PALETTE_HEX.ink,
+      strokeThickness: 3,
+      padding: { x: 10, y: 6 },
+      shadow: {
+        offsetX: 3,
+        offsetY: 3,
+        color: PALETTE_HEX.maroon,
+        blur: 0,
+        stroke: true,
+        fill: true,
+      },
     })
     .setOrigin(0.5)
+    .setAlpha(0)
+    .setScale(0.96)
     .setDepth(5);
 
   const activate = () => {
-    scene.tweens.killTweensOf([liftedRegion, shadow, label]);
+    scene.tweens.killTweensOf([shadow, liftedRegion, label]);
+    shadow.setVisible(true);
     liftedRegion.setVisible(true);
     scene.tweens.add({
+      targets: shadow,
+      alpha: 0.32,
+      y: height / 2 + 8,
+      duration: 140,
+      ease: "Cubic.Out",
+    });
+    scene.tweens.add({
       targets: liftedRegion,
-      y: lift.y - 8,
+      alpha: 1,
+      y: height / 2 - 9,
       duration: 150,
       ease: "Cubic.Out",
     });
     scene.tweens.add({
-      targets: shadow,
-      alpha: 0.24,
-      duration: 120,
-      ease: "Sine.Out",
-    });
-    scene.tweens.add({
       targets: label,
-      y: landmark.y - landmark.height / 2 + 4,
-      scale: 1.04,
+      alpha: 1,
+      y: labelCenter.y,
+      scale: 1,
       duration: 150,
       ease: "Cubic.Out",
     });
   };
   const deactivate = () => {
-    scene.tweens.killTweensOf([liftedRegion, shadow, label]);
+    scene.tweens.killTweensOf([shadow, liftedRegion, label]);
+    scene.tweens.add({
+      targets: shadow,
+      alpha: 0,
+      y: height / 2 + 5,
+      duration: 120,
+      ease: "Cubic.In",
+      onComplete: () => shadow.setVisible(false),
+    });
     scene.tweens.add({
       targets: liftedRegion,
-      y: lift.y,
+      alpha: 0,
+      y: height / 2,
       duration: 130,
       ease: "Cubic.In",
       onComplete: () => liftedRegion.setVisible(false),
     });
-    scene.tweens.add({ targets: shadow, alpha: 0, duration: 110 });
     scene.tweens.add({
       targets: label,
-      y: landmark.y - landmark.height / 2 + 10,
-      scale: 1,
+      alpha: 0,
+      y: labelCenter.y + 6,
+      scale: 0.96,
       duration: 130,
       ease: "Cubic.In",
     });
@@ -143,49 +183,49 @@ function drawRegion(
   return hitArea;
 }
 
-/**
- * Bakes one transparent texture per painted object silhouette. The generous
- * interaction polygon remains separate, so a landmark is easy to target while
- * only its architecture rises from the wallpaper. Phaser 4 geometry masks
- * only work in the Canvas renderer; Phaser.AUTO normally chooses WebGL and
- * would therefore lift the whole wallpaper. A clipped CanvasTexture renders
- * identically in Canvas and WebGL and makes leaking outside the region bounds
- * impossible even while it is tweened.
- */
-function createFocusTexture(
+/** Centers hover labels on the visible v3 terrain instead of legacy map geometry. */
+function findTerrainCenter(
   scene: Phaser.Scene,
-  wallpaperTextureKey: string,
-  region: CareerRegion
-): string {
-  const focusTextureKey = `${wallpaperTextureKey}-focus-${region.id}`;
-  if (scene.textures.exists(focusTextureKey)) return focusTextureKey;
+  textureKey: string,
+  fallback: { x: number; y: number }
+): { x: number; y: number } {
+  const cached = terrainCenters.get(textureKey);
+  if (cached) return cached;
+  if (typeof document === "undefined") return fallback;
 
-  const { lift } = region;
-  const width = Math.ceil(lift.width);
-  const height = Math.ceil(lift.height);
-  const texture = scene.textures.createCanvas(focusTextureKey, width, height);
-  if (!texture) throw new Error(`Could not create career focus texture: ${focusTextureKey}`);
+  try {
+    const source = scene.textures.get(textureKey).getSourceImage() as CanvasImageSource & {
+      width: number;
+      height: number;
+    };
+    const canvas = document.createElement("canvas");
+    canvas.width = source.width;
+    canvas.height = source.height;
+    const context = canvas.getContext("2d", { willReadFrequently: true });
+    if (!context) return fallback;
 
-  const context = texture.context;
-  context.imageSmoothingEnabled = false;
-  context.save();
-  context.beginPath();
-  context.moveTo(lift.points[0][0], lift.points[0][1]);
-  lift.points.slice(1).forEach(([x, y]) => context.lineTo(x, y));
-  context.closePath();
-  context.clip();
-  context.drawImage(
-    scene.textures.get(wallpaperTextureKey).getSourceImage() as CanvasImageSource,
-    lift.x - lift.width / 2,
-    lift.y - lift.height / 2,
-    width,
-    height,
-    0,
-    0,
-    width,
-    height
-  );
-  context.restore();
-  texture.refresh();
-  return focusTextureKey;
+    context.drawImage(source, 0, 0);
+    const pixels = context.getImageData(0, 0, canvas.width, canvas.height).data;
+    let left = canvas.width;
+    let right = -1;
+    let top = canvas.height;
+    let bottom = -1;
+
+    for (let y = 0; y < canvas.height; y += 1) {
+      for (let x = 0; x < canvas.width; x += 1) {
+        if (pixels[(y * canvas.width + x) * 4 + 3] < 16) continue;
+        left = Math.min(left, x);
+        right = Math.max(right, x);
+        top = Math.min(top, y);
+        bottom = Math.max(bottom, y);
+      }
+    }
+
+    if (right < left || bottom < top) return fallback;
+    const center = { x: (left + right) / 2, y: (top + bottom) / 2 };
+    terrainCenters.set(textureKey, center);
+    return center;
+  } catch {
+    return fallback;
+  }
 }

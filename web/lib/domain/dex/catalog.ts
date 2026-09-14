@@ -17,7 +17,7 @@ export interface PlannedDexSlot {
 
 export type DexCatalogSlot = ReleasedDexSlot | PlannedDexSlot;
 
-const firstPlannedNumber = DEX_MONSTERS.length + 1;
+const firstPlannedNumber = Math.max(...DEX_MONSTERS.map(({ dexNumber }) => Number(dexNumber))) + 1;
 
 export const PLANNED_DEX_SLOTS: readonly PlannedDexSlot[] = Object.values(TECHNOLOGY_SPECIMENS)
   .filter((specimen) => specimen.role === "future")

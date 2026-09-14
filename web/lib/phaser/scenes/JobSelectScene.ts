@@ -1,9 +1,12 @@
 import Phaser from "phaser";
 import { isCommonPathComplete } from "@/lib/domain/chapters";
+import {
+  masteredPrimaryJobIds,
+  masteredSecondaryJobIds,
+} from "@/lib/domain/careerDex";
 import { capturedIds } from "@/lib/domain/dex/capture";
 import {
   canSelectPrimaryJob,
-  completedSecondaryJobIds,
   findJob,
   findSecondaryJob,
   findTertiaryJob,
@@ -22,21 +25,21 @@ import {
   type TertiaryJobOption,
 } from "@/lib/domain/player/jobs";
 import { PALETTE, PALETTE_HEX } from "../palette";
+import { createHomeButton } from "../navigation";
 import { pixelText } from "../pixelFont";
-import { readDexState } from "../registryAdapter";
 import {
+  activateCareerInRegistry,
+  readDexState,
+  reconcileCareerDexRegistry,
+} from "../registryAdapter";
+import {
+  addShade,
   applyPixelFontToScene,
   createButton,
   drawOrnateFrame,
   fitTextInside,
   showToast,
 } from "../ui";
-import {
-  careerPathFor,
-  canLeaveCareerPath,
-  completedCareerPathIds,
-} from "../worldMap/careerPaths";
-
 const JUNIOR_X = 68;
 const PRIMARY_X = 245;
 const SECONDARY_X = 565;
@@ -51,6 +54,7 @@ const ROW_Y = [106, 184, 262, 340, 418] as const;
 /** Shows the full junior → primary → secondary → tertiary career lineage. */
 export class JobSelectScene extends Phaser.Scene {
   private toast?: Phaser.GameObjects.Text;
+  private promotionDialog?: Phaser.GameObjects.Container;
   private captured: ReadonlySet<string> = new Set();
   private selectedJobId: JobId | "junior" = "junior";
   private selectedPathComplete = false;
@@ -71,14 +75,15 @@ export class JobSelectScene extends Phaser.Scene {
   create() {
     const { width, height } = this.scale;
     this.toast = undefined;
+    this.promotionDialog = undefined;
     this.captured = capturedIds(readDexState(this.registry));
     this.commonPathComplete = isCommonPathComplete(this.captured);
     this.selectedJobId = findJob(this.registry.get(JOB_REGISTRY_KEY) as string | undefined).id;
+    const careerDex = reconcileCareerDexRegistry(this.registry);
+    this.completedJobIds = masteredPrimaryJobIds(careerDex);
+    this.completedSecondaryJobIds = masteredSecondaryJobIds(careerDex);
     this.selectedPathComplete =
-      this.selectedJobId !== "junior" &&
-      canLeaveCareerPath(careerPathFor(this.selectedJobId), this.captured);
-    this.completedJobIds = completedCareerPathIds(this.captured);
-    this.completedSecondaryJobIds = completedSecondaryJobIds(this.captured);
+      this.selectedJobId !== "junior" && this.completedJobIds.has(this.selectedJobId);
     const storedSecondaryJob = findSecondaryJob(
       this.registry.get(SECONDARY_JOB_REGISTRY_KEY) as string | null | undefined
     );
@@ -137,6 +142,7 @@ export class JobSelectScene extends Phaser.Scene {
     TERTIARY_JOB_OPTIONS.forEach((job, index) => this.drawTertiaryJob(job, index, ROW_Y[index]));
 
     createButton(this, width / 2, height - 28, 140, 32, "돌아가기", () => this.scene.start("world-map"));
+    createHomeButton(this).setDepth(30);
     applyPixelFontToScene(this);
   }
 
@@ -411,6 +417,7 @@ export class JobSelectScene extends Phaser.Scene {
     if (this.selectedSecondaryJobId !== job.id) {
       this.registry.set(TERTIARY_JOB_REGISTRY_KEY, null);
     }
+    activateCareerInRegistry(this.registry, job.id);
     this.registry.set(SECONDARY_JOB_REGISTRY_KEY, job.id);
     const selectedPrimary =
       this.selectedJobId !== "junior" && job.requires.includes(this.selectedJobId)
@@ -432,6 +439,7 @@ export class JobSelectScene extends Phaser.Scene {
       return;
     }
 
+    activateCareerInRegistry(this.registry, job.id);
     this.registry.set(TERTIARY_JOB_REGISTRY_KEY, job.id);
     const requiredSecondary = findSecondaryJob(job.requires);
     const selectedPrimary =
@@ -459,7 +467,70 @@ export class JobSelectScene extends Phaser.Scene {
       return;
     }
 
+    if (this.selectedJobId === "junior") {
+      this.showPrimaryJobConfirmation(findJob(requestedJobId));
+      return;
+    }
+
+    activateCareerInRegistry(this.registry, requestedJobId);
     this.registry.set(JOB_REGISTRY_KEY, requestedJobId);
     this.scene.start("path-map", { careerId: requestedJobId });
+  }
+
+  private showPrimaryJobConfirmation(job: JobOption) {
+    if (this.promotionDialog) return;
+
+    const { width, height } = this.scale;
+    const shade = addShade(this, 0.62, 20);
+    const frame = drawOrnateFrame(this, width / 2, height / 2, 520, 210, { radius: 14 });
+    const title = this.add
+      .text(width / 2, height / 2 - 57, `${job.name} 선택을 확정할까요?`, {
+        ...pixelText("subtitle"),
+        color: PALETTE_HEX.ink,
+      })
+      .setOrigin(0.5);
+    fitTextInside(title, 470, 24);
+    const body = this.add
+      .text(
+        width / 2,
+        height / 2 - 5,
+        "선택한 직업의 모든 챕터를 완료하기 전까지\n다른 직업으로 이동할 수 없어요.",
+        {
+          ...pixelText("body"),
+          color: PALETTE_HEX.mutedBrown,
+          align: "center",
+          lineSpacing: 8,
+        }
+      )
+      .setOrigin(0.5);
+    const cancel = createButton(this, width / 2 - 88, height / 2 + 64, 128, 34, "취소", () => {
+      this.promotionDialog?.destroy(true);
+      this.promotionDialog = undefined;
+    });
+    const confirm = createButton(
+      this,
+      width / 2 + 88,
+      height / 2 + 64,
+      128,
+      34,
+      "전직하기",
+      () => {
+        activateCareerInRegistry(this.registry, job.id);
+        this.registry.set(JOB_REGISTRY_KEY, job.id);
+        this.scene.start("path-map", { careerId: job.id });
+      }
+    );
+
+    this.promotionDialog = this.add
+      .container(0, 0, [shade, frame, title, body, cancel, confirm])
+      .setDepth(20)
+      .setAlpha(0);
+    this.tweens.add({
+      targets: this.promotionDialog,
+      alpha: 1,
+      duration: 180,
+      ease: "Quad.Out",
+    });
+    applyPixelFontToScene(this);
   }
 }
