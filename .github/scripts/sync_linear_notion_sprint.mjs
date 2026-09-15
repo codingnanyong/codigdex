@@ -41,9 +41,15 @@ export function statusForCycle({ progress, startsAt, endsAt }, now = new Date())
   return "In Progress";
 }
 
-export async function fetchCurrentLinearCycle({ apiKey, teamKey, projectName, now = new Date() }) {
+export async function fetchCurrentLinearCycle({
+  apiKey,
+  teamKey,
+  projectName,
+  projectSlug,
+  now = new Date(),
+}) {
   const cyclesQuery = `
-    query CurrentTeamCycles($teamKey: String!) {
+    query CurrentTeamCycles($teamKey: String!, $projectName: String!) {
       teams(first: 1, filter: { key: { eq: $teamKey } }) {
         nodes {
           cycles(first: 50) {
@@ -56,12 +62,18 @@ export async function fetchCurrentLinearCycle({ apiKey, teamKey, projectName, no
           }
         }
       }
+      projects(first: 2, filter: { name: { eq: $projectName } }) {
+        nodes { id name slugId url }
+      }
     }
   `;
   const cyclesPayload = await requestJson(LINEAR_API_URL, {
     method: "POST",
     headers: { Authorization: apiKey, "Content-Type": "application/json" },
-    body: JSON.stringify({ query: cyclesQuery, variables: { teamKey } }),
+    body: JSON.stringify({
+      query: cyclesQuery,
+      variables: { teamKey, projectName },
+    }),
   });
   if (cyclesPayload.errors?.length) {
     throw new Error(`Linear API: ${JSON.stringify(cyclesPayload.errors)}`);
@@ -73,10 +85,27 @@ export async function fetchCurrentLinearCycle({ apiKey, teamKey, projectName, no
   );
   if (!current) throw new Error(`No current Linear cycle found for team ${teamKey}`);
 
+  const projects = cyclesPayload.data?.projects?.nodes ?? [];
+  if (projects.length !== 1) {
+    throw new Error(`Expected one Linear project named ${projectName}, found ${projects.length}`);
+  }
+  const project = projects[0];
+  if (project.name !== projectName) {
+    throw new Error(
+      `Linear project mismatch: slug ${projectSlug} resolves to ${project.name}, expected ${projectName}`
+    );
+  }
+  const projectPathSlug = new URL(project.url).pathname.split("/").filter(Boolean).at(-1);
+  if (project.slugId !== projectSlug && projectPathSlug !== projectSlug) {
+    throw new Error(
+      `Linear project mismatch: ${projectName} uses slug ${projectPathSlug} (${project.slugId}), expected ${projectSlug}`
+    );
+  }
+
   const issuesQuery = `
-    query CycleIssues($cycleId: String!, $projectName: String!) {
+    query CycleIssues($cycleId: String!, $projectId: ID!) {
       cycle(id: $cycleId) {
-        issues(first: 250, filter: { project: { name: { eq: $projectName } } }) {
+        issues(first: 250, filter: { project: { id: { eq: $projectId } } }) {
           nodes { id state { type } }
           pageInfo { hasNextPage }
         }
@@ -88,7 +117,7 @@ export async function fetchCurrentLinearCycle({ apiKey, teamKey, projectName, no
     headers: { Authorization: apiKey, "Content-Type": "application/json" },
     body: JSON.stringify({
       query: issuesQuery,
-      variables: { cycleId: current.id, projectName },
+      variables: { cycleId: current.id, projectId: project.id },
     }),
   });
   if (issuesPayload.errors?.length) {
@@ -100,7 +129,7 @@ export async function fetchCurrentLinearCycle({ apiKey, teamKey, projectName, no
   if (issues.pageInfo?.hasNextPage) {
     throw new Error(`Linear cycle ${current.number} has more than 250 project issues`);
   }
-  return { ...current, issues };
+  return { ...current, issues, project };
 }
 
 async function findNotionSprintPage({
@@ -109,10 +138,9 @@ async function findNotionSprintPage({
   workspaceSlug,
   teamKey,
   cycleNumber,
-  projectSlug,
+  projectUrl,
 }) {
   const cycleUrl = `https://linear.app/${workspaceSlug}/team/${teamKey}/cycle/${cycleNumber}`;
-  const projectUrl = `https://linear.app/${workspaceSlug}/project/${projectSlug}`;
   const payload = await requestJson(`${NOTION_API_URL}/data_sources/${dataSourceId}/query`, {
     method: "POST",
     headers: {
@@ -179,6 +207,7 @@ export async function syncSprintProgress(env = process.env, now = new Date()) {
     apiKey: linearApiKey,
     teamKey,
     projectName,
+    projectSlug,
     now,
   });
   const progress = calculateCycleProgress(cycle.issues.nodes);
@@ -189,7 +218,7 @@ export async function syncSprintProgress(env = process.env, now = new Date()) {
     workspaceSlug,
     teamKey,
     cycleNumber: cycle.number,
-    projectSlug,
+    projectUrl: cycle.project.url,
   });
   if (!sprint) {
     const result = { cycle: cycle.number, status, ...progress, skipped: true };
