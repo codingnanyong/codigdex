@@ -1,6 +1,5 @@
-import fs from "node:fs";
-import path from "node:path";
 import { describe, expect, it } from "vitest";
+import { isAssetKey } from "@codigdex/game-assets/manifest";
 import {
   CAREER_REGION_MONSTERS,
   monstersForCareerRegion,
@@ -9,8 +8,6 @@ import { findStage, stageStatus } from "@codigdex/game-content/domain/chapters";
 import { buildDexEntries } from "@/lib/phaser/dex/entry";
 import { applyCapture, EMPTY_DEX_STATE } from "@codigdex/game-core/domain/dex/capture";
 import { CAREER_PATHS } from "@/lib/phaser/worldMap/careerPaths";
-
-const PUBLIC_DIR = path.resolve(process.cwd(), "public");
 
 describe("career-region monster checkpoints", () => {
   it("matches five ordered monsters to every career map", () => {
@@ -25,7 +22,7 @@ describe("career-region monster checkpoints", () => {
 
   it("points every checkpoint at an existing individual monster image", () => {
     Object.values(CAREER_REGION_MONSTERS).flat().forEach((monster) => {
-      expect(fs.existsSync(path.join(PUBLIC_DIR, monster.assetPath)), monster.assetPath).toBe(true);
+      expect(isAssetKey(monster.assetKey), monster.assetKey).toBe(true);
     });
   });
 

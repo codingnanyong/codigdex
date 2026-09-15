@@ -2,7 +2,7 @@ import { text } from "@codigdex/game-core/i18n/locale";
 import type { ChapterDefinition } from "@codigdex/game-core/domain/chapters/types";
 import { GIT_STAGE_QUIZZES } from "./quizzes/git";
 
-const ART = "/assets/monsters/ch01.git";
+const ART = "monsters/ch01.git";
 
 /**
  * Five stages, each its own dex entry and topic, climbing Lv.1 to Lv.5.
@@ -23,7 +23,7 @@ export const GIT_CHAPTER: ChapterDefinition = {
   ),
   arena: {
     textureKey: "arena-git",
-    assetPath: "/assets/wallpapers/git-battle-arena-v1.png",
+    assetKey: "wallpapers/git-battle-arena-v1.png",
     ambience: "git-field",
   },
   retryScene: "world-map",
@@ -41,7 +41,7 @@ export const GIT_CHAPTER: ChapterDefinition = {
       ),
       snippet: text('git init\ngit add .\ngit commit -m "첫 커밋"', 'git init\ngit add .\ngit commit -m "First commit"'),
       textureKey: "git-sprout",
-      assetPath: `${ART}/git-sprout-lv1.png`,
+      assetKey: `${ART}/git-sprout-lv1.png`,
       briefing: text(
         "기록의 들판 입구에 깃새싹이 돋아났어! 저장소를 만들고 첫 커밋을 남기는 법부터 보여 주자.",
         "A Git Sprout popped up at the entrance to the Field of Records! Show it how to create a repository and make a first commit."
@@ -65,7 +65,7 @@ export const GIT_CHAPTER: ChapterDefinition = {
       ),
       snippet: text("git switch -c feature\ngit switch main\ngit merge feature", "git switch -c feature\ngit switch main\ngit merge feature"),
       textureKey: "git-branch-merge-twins",
-      assetPath: `${ART}/branch-merge-twins-lv2.png`,
+      assetKey: `${ART}/branch-merge-twins-lv2.png`,
       briefing: text(
         "브랜치 쌍둥이가 줄기를 둘로 찢어 놨어! 갈라진 가지를 다시 하나로 합쳐 줘.",
         "The Branch Twins tore the stem in two! Merge the split branches back into one."
@@ -92,7 +92,7 @@ export const GIT_CHAPTER: ChapterDefinition = {
         "git merge --abort\ngit restore --staged app.js\ngit revert HEAD"
       ),
       textureKey: "git-undo-conflict",
-      assetPath: `${ART}/undo-conflict-lv3.png`,
+      assetKey: `${ART}/undo-conflict-lv3.png`,
       briefing: text(
         "가지끼리 부딪쳐서 충돌 되돌이가 번개를 뿜고 있어! 충돌을 풀고 잘못된 변경을 되돌려 줘.",
         "The branches collided and the Conflict Rewinder is throwing lightning! Resolve the conflict and undo the bad changes."
@@ -119,7 +119,7 @@ export const GIT_CHAPTER: ChapterDefinition = {
         "git fetch origin\ngit rebase origin/main\ngit push --force-with-lease"
       ),
       textureKey: "git-remote-rebase",
-      assetPath: `${ART}/remote-rebase-lv4.png`,
+      assetKey: `${ART}/remote-rebase-lv4.png`,
       briefing: text(
         "원격 리베이서가 멀리 떨어진 가지들을 제멋대로 줄 세우고 있어! 원격과 이력을 맞춰 줘.",
         "The Remote Rebaser is lining up faraway branches however it likes! Sync the history with the remote."
@@ -146,7 +146,7 @@ export const GIT_CHAPTER: ChapterDefinition = {
         "git switch -c feat/login\ngit push -u origin feat/login\n# open PR, review, merge"
       ),
       textureKey: "git-team-workflow-guardian",
-      assetPath: `${ART}/team-workflow-guardian-lv5.png`,
+      assetKey: `${ART}/team-workflow-guardian-lv5.png`,
       briefing: text(
         "기록의 들판의 주인, 워크플로 수호자가 나타났어! 팀과 함께 일하는 법을 증명해야 인정받을 수 있어.",
         "The master of the Field of Records, the Workflow Guardian, has appeared! Prove you can work with a team to earn its respect."

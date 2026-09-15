@@ -181,7 +181,7 @@ Career roadmaps, promotion requirements, shared technologies and the save format
 
 ## 9. Visual style guide
 
-The game runs at 960×540. Region wallpapers and battle arenas are painted at the same 960×540, monster and career character illustrations are 256×256, and the field player that walks the world map is a 96×128 sprite. The reference visual is `web/public/assets/wallpapers/codigdex-field-guide-wallpaper-v3.png` ("a junior developer holding a field guide, with bug monster regions"), using a limited warm cream/maroon palette. The battle screen contrasts with the field screens through Game Boy Color–style panels and a pixel font.
+The game runs at 960×540. Region wallpapers and battle arenas are painted at the same 960×540, monster and career character illustrations are 256×256, and the field player that walks the world map is a 96×128 sprite. The reference visual is `packages/game-assets/files/wallpapers/codigdex-field-guide-wallpaper-v3.png` ("a junior developer holding a field guide, with bug monster regions"), using a limited warm cream/maroon palette. The battle screen contrasts with the field screens through Game Boy Color–style panels and a pixel font.
 
 Each region layers an ambience effect: Loop Forest (`loop-forest`), Field of Records (`git-field`), Shell Cave (`linux-cave`), and the title archive (`title-archive`).
 

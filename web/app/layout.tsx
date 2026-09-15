@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono, Press_Start_2P } from "next/font/google";
+import { assetUrl } from "@/lib/assets";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -23,8 +24,8 @@ export const metadata: Metadata = {
   description:
     "Pixel-art coding education game with a Pokédex-style collection mechanic.",
   icons: {
-    icon: "/assets/icons/codigdex-main-icon.png",
-    apple: "/assets/icons/codigdex-main-icon.png",
+    icon: assetUrl("icons/codigdex-main-icon.png"),
+    apple: assetUrl("icons/codigdex-main-icon.png"),
   },
 };
 

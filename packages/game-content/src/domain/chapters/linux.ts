@@ -2,7 +2,7 @@ import { text } from "@codigdex/game-core/i18n/locale";
 import type { ChapterDefinition } from "@codigdex/game-core/domain/chapters/types";
 import { LINUX_STAGE_QUIZZES } from "./quizzes/linux";
 
-const ART = "/assets/monsters/ch02.linux";
+const ART = "monsters/ch02.linux";
 
 /**
  * Five stages from the shell down to the kernel, each its own dex entry and
@@ -23,7 +23,7 @@ export const LINUX_CHAPTER: ChapterDefinition = {
   ),
   arena: {
     textureKey: "arena-linux",
-    assetPath: "/assets/wallpapers/linux-battle-arena-v1.png",
+    assetKey: "wallpapers/linux-battle-arena-v1.png",
     ambience: "linux-cave",
   },
   retryScene: "world-map",
@@ -41,7 +41,7 @@ export const LINUX_CHAPTER: ChapterDefinition = {
       ),
       snippet: text("pwd\nls -a\ncd ~/project", "pwd\nls -a\ncd ~/project"),
       textureKey: "linux-shell-scout",
-      assetPath: `${ART}/shell-scout-lv1.png`,
+      assetKey: `${ART}/shell-scout-lv1.png`,
       briefing: text(
         "셸 동굴 입구에서 셸 탐험가가 휴대 터미널을 두드리고 있어! 기본 명령으로 말을 걸어 보자.",
         "A Shell Scout is tapping on a pocket terminal at the mouth of the Shell Cave! Say hello with some basic commands."
@@ -62,7 +62,7 @@ export const LINUX_CHAPTER: ChapterDefinition = {
       ),
       snippet: text('mkdir notes\ncp todo.txt notes/\nfind . -name "*.log"', 'mkdir notes\ncp todo.txt notes/\nfind . -name "*.log"'),
       textureKey: "linux-path-file-forager",
-      assetPath: `${ART}/path-file-forager-lv2.png`,
+      assetKey: `${ART}/path-file-forager-lv2.png`,
       briefing: text(
         "경로 채집가가 동굴 곳곳의 파일을 몰래 옮기고 있어! 경로를 읽고 파일을 제자리로 돌려놔 줘.",
         "The Path Forager is sneaking files all around the cave! Read the paths and put the files back where they belong."
@@ -86,7 +86,7 @@ export const LINUX_CHAPTER: ChapterDefinition = {
       ),
       snippet: text("ls -l run.sh\nchmod 755 run.sh\nsudo chown lupi run.sh", "ls -l run.sh\nchmod 755 run.sh\nsudo chown lupi run.sh"),
       textureKey: "linux-permission-guard",
-      assetPath: `${ART}/permission-guard-lv3.png`,
+      assetKey: `${ART}/permission-guard-lv3.png`,
       briefing: text(
         "권한 수호병이 열쇠를 쥐고 길을 막았어! 누가 무엇을 할 수 있는지 증명해야 지나갈 수 있어.",
         "The Permission Guard is blocking the way with its key! Prove who can do what, and it will let you pass."
@@ -107,7 +107,7 @@ export const LINUX_CHAPTER: ChapterDefinition = {
       ),
       snippet: text("ps aux | grep node\nkill 1234\nnpm run dev > dev.log &", "ps aux | grep node\nkill 1234\nnpm run dev > dev.log &"),
       textureKey: "linux-pipe-process-engineer",
-      assetPath: `${ART}/pipe-process-engineer-lv4.png`,
+      assetKey: `${ART}/pipe-process-engineer-lv4.png`,
       briefing: text(
         "파이프 엔지니어가 뒤엉킨 파이프로 프로세스를 폭주시키고 있어! 출력의 흐름을 바로잡아 줘.",
         "The Pipe Engineer is sending processes haywire with tangled pipes! Straighten out where the output flows."
@@ -131,7 +131,7 @@ export const LINUX_CHAPTER: ChapterDefinition = {
       ),
       snippet: text("uname -r\nfree -h\nsystemctl status nginx", "uname -r\nfree -h\nsystemctl status nginx"),
       textureKey: "linux-kernel-guardian",
-      assetPath: `${ART}/kernel-guardian-lv5.png`,
+      assetKey: `${ART}/kernel-guardian-lv5.png`,
       briefing: text(
         "셸 동굴의 가장 깊은 곳에서 커널 수호자가 깨어났어! 운영체제의 핵심을 이해했는지 보여 줘.",
         "The Kernel Guardian has awoken in the deepest part of the Shell Cave! Show that you understand the heart of the operating system."

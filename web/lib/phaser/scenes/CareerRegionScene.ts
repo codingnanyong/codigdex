@@ -5,6 +5,7 @@ import {
 } from "@codigdex/game-content/domain/careerRegionMonsters";
 import { findJob, guideDisplayName, type JobId } from "@codigdex/game-content/domain/player/jobs";
 import { capturedIds } from "@codigdex/game-core/domain/dex/capture";
+import { assetUrl } from "../../assets";
 import { PALETTE, PALETTE_HEX } from "../palette";
 import { lt, t } from "../i18n";
 import { createHomeButton } from "../navigation";
@@ -17,7 +18,7 @@ import {
   careerCheckpointLayout,
 } from "../worldMap/careerCheckpointLayout";
 import {
-  careerChapterWallpaperAssetPath,
+  careerChapterWallpaperAssetKey,
   careerChapterWallpaperTextureKey,
   careerPathFor,
   type CareerRegion,
@@ -49,14 +50,14 @@ export class CareerRegionScene extends Phaser.Scene {
     const region = path.regions.find((candidate) => candidate.id === this.regionId) ?? path.regions[0];
     this.load.image(
       careerChapterWallpaperTextureKey(path, region),
-      careerChapterWallpaperAssetPath(path, region)
+      assetUrl(careerChapterWallpaperAssetKey(path, region))
     );
-    this.load.image(job.textureKey!, job.assetPath!);
-    if (job.guideTextureKey && job.guideAssetPath) {
-      this.load.image(job.guideTextureKey, job.guideAssetPath);
+    this.load.image(job.textureKey!, assetUrl(job.assetKey!));
+    if (job.guideTextureKey && job.guideAssetKey) {
+      this.load.image(job.guideTextureKey, assetUrl(job.guideAssetKey));
     }
     monstersForCareerRegion(region.id).forEach((monster) => {
-      this.load.image(monster.textureKey, monster.assetPath);
+      this.load.image(monster.textureKey, assetUrl(monster.assetKey));
     });
   }
 
@@ -204,7 +205,7 @@ export class CareerRegionScene extends Phaser.Scene {
       },
       arena: {
         textureKey: careerChapterWallpaperTextureKey(path, region),
-        assetPath: careerChapterWallpaperAssetPath(path, region),
+        assetKey: careerChapterWallpaperAssetKey(path, region),
       },
     });
   }

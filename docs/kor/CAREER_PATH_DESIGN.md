@@ -215,7 +215,7 @@ Codigdex의 `직업` 탭은 주니어부터 3차 직업까지 16종을 `JOB.000`
 | 데이터 엔지니어 | 6 | 6 | 없음 |
 | 데이터 분석가 | 5 | 5 | 없음 |
 
-현재 기술 구역 28개는 모두 일치하는 대표 개체를 갖는다. 기술 개체는 22종(공통 2 + 전문 20)이며, `web/public/assets/monsters/ch01.git/`부터 `ch22.bi-tools/`까지 챕터 폴더마다 표본(specimen)과 Lv.1~Lv.5 진화 세트, 진화 시트를 둔다. 전체 준비 현황은 `web/public/assets/monsters/all-monster-evolution-guide-v1.png`에서 한눈에 확인할 수 있다. 튜토리얼의 루프 버그(`ch00.tutorial`)는 진화하지 않는 단일 단계 개체이므로 나머지 칸을 `N/A`로 표시한다. 폴더별 표본과 진화 세트가 모두 있는지는 `web/test/domain/assets.test.ts`가 검사한다.
+현재 기술 구역 28개는 모두 일치하는 대표 개체를 갖는다. 기술 개체는 22종(공통 2 + 전문 20)이며, `packages/game-assets/files/monsters/ch01.git/`부터 `ch22.bi-tools/`까지 챕터 폴더마다 표본(specimen)과 Lv.1~Lv.5 진화 세트, 진화 시트를 둔다. 전체 준비 현황은 `packages/game-assets/files/monsters/all-monster-evolution-guide-v1.png`에서 한눈에 확인할 수 있다. 튜토리얼의 루프 버그(`ch00.tutorial`)는 진화하지 않는 단일 단계 개체이므로 나머지 칸을 `N/A`로 표시한다. 폴더별 표본과 진화 세트가 모두 있는지는 `web/test/domain/assets.test.ts`가 검사한다.
 
 기술 이름을 로고처럼 붙이는 대신, 기술의 대표 개념을 도감에서 기억할 수 있는 생물 실루엣으로 바꾼다. 기존 블로그의 Git 개체를 시각적 기준점으로 삼아 굵은 어두운 외곽선, 따뜻한 크림색, Git 오렌지 포인트, 작은 흰색 눈을 공통 문법으로 사용한다.
 

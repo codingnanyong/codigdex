@@ -1,0 +1,18 @@
+{
+  "name": "@codigdex/game-assets",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./manifest": "./src/manifest.ts",
+    "./files/*": "./files/*",
+    "./package.json": "./package.json"
+  },
+  "scripts": {
+    "generate": "node scripts/generate-manifest.mjs",
+    "typecheck": "node scripts/generate-manifest.mjs --check && tsc --noEmit -p tsconfig.json"
+  },
+  "devDependencies": {
+    "typescript": "^5"
+  }
+}

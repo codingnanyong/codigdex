@@ -5,6 +5,9 @@
 # production
 /build
 
+# synced from @codigdex/game-assets by scripts/sync-assets.mjs
+/public/assets/
+
 # misc
 *.tsbuildinfo
 next-env.d.ts

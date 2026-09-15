@@ -19,21 +19,21 @@ export interface JobOption {
   name: LocalizedText;
   tagline: LocalizedText;
   textureKey?: string;
-  assetPath?: string;
+  assetKey?: string;
   overworldTextureKey: string;
-  overworldAssetPath: string;
+  overworldAssetKey: string;
   guideTitle: LocalizedText;
   guideName: LocalizedText;
   guideTextureKey?: string;
-  guideAssetPath?: string;
+  guideAssetKey?: string;
 }
 
 export interface PrimaryJobOption extends JobOption {
   id: JobId;
   textureKey: string;
-  assetPath: string;
+  assetKey: string;
   guideTextureKey: string;
-  guideAssetPath: string;
+  guideAssetKey: string;
 }
 
 export interface SecondaryJobOption {
@@ -56,16 +56,16 @@ export interface TertiaryJobOption {
 }
 
 const careerCharacterArt = (careerId: JobId | "junior", role: "player" | "guide") =>
-  `/assets/characters/career-path/${careerId}/${role}-v${role === "player" ? 2 : 1}.png`;
+  `characters/career-path/${careerId}/${role}-v${role === "player" ? 2 : 1}.png`;
 
 const careerOverworldArt = (careerId: JobId) =>
-  `/assets/characters/player/overworld-player-${careerId}-v1.png`;
+  `characters/player/overworld-player-${careerId}-v1.png`;
 
-export const CAREER_CHARACTER_GUIDE_ASSET_PATH =
-  "/assets/characters/career-path/career-character-guide-v2.png";
+export const CAREER_CHARACTER_GUIDE_ASSET_KEY =
+  "characters/career-path/career-character-guide-v2.png";
 export const OVERWORLD_PLAYER_TEXTURE_KEY = "player-overworld";
-export const OVERWORLD_PLAYER_ASSET_PATH =
-  "/assets/characters/player/overworld-player-v1.png";
+export const OVERWORLD_PLAYER_ASSET_KEY =
+  "characters/player/overworld-player-v1.png";
 
 // Every player starts here. A primary job is selected after the common path.
 export const DEFAULT_JOB: JobOption = {
@@ -73,13 +73,13 @@ export const DEFAULT_JOB: JobOption = {
   name: text("주니어 개발자", "Junior Developer"),
   tagline: text("이제 막 첫 모험을 떠난 개발자", "A developer setting out on their first adventure"),
   textureKey: "career-junior",
-  assetPath: careerCharacterArt("junior", "player"),
+  assetKey: careerCharacterArt("junior", "player"),
   overworldTextureKey: OVERWORLD_PLAYER_TEXTURE_KEY,
-  overworldAssetPath: OVERWORLD_PLAYER_ASSET_PATH,
+  overworldAssetKey: OVERWORLD_PLAYER_ASSET_KEY,
   guideTitle: text("버그 연구원", "Bug Researcher"),
   guideName: text("루피", "Lupi"),
   guideTextureKey: "npc-lupi-guide",
-  guideAssetPath: careerCharacterArt("junior", "guide"),
+  guideAssetKey: careerCharacterArt("junior", "guide"),
 };
 
 export const JOB_OPTIONS: readonly PrimaryJobOption[] = [
@@ -88,65 +88,65 @@ export const JOB_OPTIONS: readonly PrimaryJobOption[] = [
     name: text("웹 프론트엔드 개발자", "Web Frontend Developer"),
     tagline: text("화면을 그리는 마법사", "A wizard who paints the screen"),
     textureKey: "career-frontend",
-    assetPath: careerCharacterArt("frontend", "player"),
+    assetKey: careerCharacterArt("frontend", "player"),
     overworldTextureKey: "player-overworld-frontend",
-    overworldAssetPath: careerOverworldArt("frontend"),
+    overworldAssetKey: careerOverworldArt("frontend"),
     guideTitle: text("UI 연금술사", "UI Alchemist"),
     guideName: text("미나", "Mina"),
     guideTextureKey: "npc-frontend-senior",
-    guideAssetPath: careerCharacterArt("frontend", "guide"),
+    guideAssetKey: careerCharacterArt("frontend", "guide"),
   },
   {
     id: "backend",
     name: text("백엔드 개발자", "Backend Developer"),
     tagline: text("데이터를 지키는 수호자", "A guardian who protects the data"),
     textureKey: "career-backend",
-    assetPath: careerCharacterArt("backend", "player"),
+    assetKey: careerCharacterArt("backend", "player"),
     overworldTextureKey: "player-overworld-backend",
-    overworldAssetPath: careerOverworldArt("backend"),
+    overworldAssetKey: careerOverworldArt("backend"),
     guideTitle: text("서버 수호자", "Server Guardian"),
     guideName: text("태오", "Taeo"),
     guideTextureKey: "npc-backend-senior",
-    guideAssetPath: careerCharacterArt("backend", "guide"),
+    guideAssetKey: careerCharacterArt("backend", "guide"),
   },
   {
     id: "devops",
     name: text("DevOps 엔지니어", "DevOps Engineer"),
     tagline: text("배포 흐름을 지키는 자동화 장인", "An automation artisan who keeps releases flowing"),
     textureKey: "career-devops",
-    assetPath: careerCharacterArt("devops", "player"),
+    assetKey: careerCharacterArt("devops", "player"),
     overworldTextureKey: "player-overworld-devops",
-    overworldAssetPath: careerOverworldArt("devops"),
+    overworldAssetKey: careerOverworldArt("devops"),
     guideTitle: text("자동화 장인", "Automation Artisan"),
     guideName: text("도윤", "Doyun"),
     guideTextureKey: "npc-devops-senior",
-    guideAssetPath: careerCharacterArt("devops", "guide"),
+    guideAssetKey: careerCharacterArt("devops", "guide"),
   },
   {
     id: "data-engineer",
     name: text("데이터 엔지니어", "Data Engineer"),
     tagline: text("데이터의 길을 만드는 설계자", "An architect who builds roads for data"),
     textureKey: "career-data-engineer",
-    assetPath: careerCharacterArt("data-engineer", "player"),
+    assetKey: careerCharacterArt("data-engineer", "player"),
     overworldTextureKey: "player-overworld-data-engineer",
-    overworldAssetPath: careerOverworldArt("data-engineer"),
+    overworldAssetKey: careerOverworldArt("data-engineer"),
     guideTitle: text("파이프라인 설계자", "Pipeline Architect"),
     guideName: text("하나", "Hana"),
     guideTextureKey: "npc-data-engineer-senior",
-    guideAssetPath: careerCharacterArt("data-engineer", "guide"),
+    guideAssetKey: careerCharacterArt("data-engineer", "guide"),
   },
   {
     id: "data-analyst",
     name: text("데이터 분석가", "Data Analyst"),
     tagline: text("패턴을 읽는 관찰자", "An observer who reads patterns"),
     textureKey: "career-data-analyst",
-    assetPath: careerCharacterArt("data-analyst", "player"),
+    assetKey: careerCharacterArt("data-analyst", "player"),
     overworldTextureKey: "player-overworld-data-analyst",
-    overworldAssetPath: careerOverworldArt("data-analyst"),
+    overworldAssetKey: careerOverworldArt("data-analyst"),
     guideTitle: text("인사이트 탐정", "Insight Detective"),
     guideName: text("이안", "Ian"),
     guideTextureKey: "npc-data-analyst-senior",
-    guideAssetPath: careerCharacterArt("data-analyst", "guide"),
+    guideAssetKey: careerCharacterArt("data-analyst", "guide"),
   },
 ];
 

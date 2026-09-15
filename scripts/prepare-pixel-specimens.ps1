@@ -126,6 +126,37 @@ public static class CodigdexSpriteProcessor
         }
     }
 
+    private static void RemoveForeignEdgeFragments(Bitmap bitmap)
+    {
+        var seen = new bool[bitmap.Width, bitmap.Height];
+        var components = new List<List<Point>>();
+        for (int y = 0; y < bitmap.Height; y++)
+        for (int x = 0; x < bitmap.Width; x++)
+        {
+            if (seen[x, y] || bitmap.GetPixel(x, y).A == 0) continue;
+            components.Add(CollectComponent(bitmap, seen, new Point(x, y), false));
+        }
+
+        int largest = -1;
+        int largestSize = -1;
+        for (int index = 0; index < components.Count; index++)
+        {
+            if (components[index].Count <= largestSize) continue;
+            largest = index;
+            largestSize = components[index].Count;
+        }
+
+        for (int index = 0; index < components.Count; index++)
+        {
+            if (index == largest) continue;
+            bool touchesEdge = components[index].Exists(point =>
+                point.X == 0 || point.Y == 0 ||
+                point.X == bitmap.Width - 1 || point.Y == bitmap.Height - 1);
+            if (touchesEdge)
+                foreach (Point point in components[index]) bitmap.SetPixel(point.X, point.Y, Color.Transparent);
+        }
+    }
+
     private static Rectangle AlphaBounds(Bitmap bitmap)
     {
         int left = bitmap.Width, top = bitmap.Height, right = -1, bottom = -1;
@@ -154,6 +185,10 @@ public static class CodigdexSpriteProcessor
                 using (var cell = sheet.Clone(cellRect, PixelFormat.Format32bppArgb))
                 {
                     RemoveGeneratedBackground(cell);
+                    // Generated sheets occasionally let a neighbouring sprite
+                    // cross a grid line. Drop only detached edge fragments;
+                    // the largest component is always the specimen itself.
+                    RemoveForeignEdgeFragments(cell);
                     RemoveSpeckles(cell, 24);
                     Rectangle bounds = AlphaBounds(cell);
                     using (var output = new Bitmap(192, 192, PixelFormat.Format32bppArgb))
@@ -168,7 +203,8 @@ public static class CodigdexSpriteProcessor
                         int height = Math.Max(1, (int)Math.Round(bounds.Height * scale));
                         var destination = new Rectangle((192 - width) / 2, (192 - height) / 2, width, height);
                         graphics.DrawImage(cell, destination, bounds, GraphicsUnit.Pixel);
-                        output.Save(System.IO.Path.Combine(outputDirectory, names[index] + ".png"), ImageFormat.Png);
+                        if (!names[index].StartsWith("_"))
+                            output.Save(System.IO.Path.Combine(outputDirectory, names[index] + ".png"), ImageFormat.Png);
                     }
                 }
             }

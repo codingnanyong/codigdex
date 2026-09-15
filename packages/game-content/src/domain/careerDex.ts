@@ -19,7 +19,7 @@ export interface CareerCatalogEntry {
   tier: CareerTier;
   name: LocalizedText;
   tagline: LocalizedText;
-  emblemAssetPath: string;
+  emblemAssetKey: string;
   guideName?: LocalizedText;
   requires: readonly CareerId[];
 }
@@ -38,22 +38,22 @@ export interface CareerDexState {
 export const EMPTY_CAREER_DEX_STATE: CareerDexState = { careers: [] };
 
 export const CAREER_EMBLEMS: Readonly<Record<CareerId, string>> = {
-  junior: "/assets/career-emblems/junior-v1.png",
-  frontend: "/assets/career-emblems/frontend-v1.png",
-  backend: "/assets/career-emblems/backend-v1.png",
-  devops: "/assets/career-emblems/devops-v1.png",
-  "data-engineer": "/assets/career-emblems/data-engineer-v1.png",
-  "data-analyst": "/assets/career-emblems/data-analyst-v1.png",
-  "fullstack-engineer": "/assets/career-emblems/fullstack-engineer-v1.png",
-  "platform-engineer": "/assets/career-emblems/platform-engineer-v1.png",
-  "ml-developer": "/assets/career-emblems/ml-developer-v1.png",
-  "mlops-engineer": "/assets/career-emblems/mlops-engineer-v1.png",
-  "analytics-engineer": "/assets/career-emblems/analytics-engineer-v1.png",
-  "software-architect": "/assets/career-emblems/software-architect-v1.png",
-  "cloud-platform-architect": "/assets/career-emblems/cloud-platform-architect-v1.png",
-  "ai-product-engineer": "/assets/career-emblems/ai-product-engineer-v1.png",
-  "ai-platform-architect": "/assets/career-emblems/ai-platform-architect-v1.png",
-  "data-architect": "/assets/career-emblems/data-architect-v1.png",
+  junior: "career-emblems/junior-v1.png",
+  frontend: "career-emblems/frontend-v1.png",
+  backend: "career-emblems/backend-v1.png",
+  devops: "career-emblems/devops-v1.png",
+  "data-engineer": "career-emblems/data-engineer-v1.png",
+  "data-analyst": "career-emblems/data-analyst-v1.png",
+  "fullstack-engineer": "career-emblems/fullstack-engineer-v1.png",
+  "platform-engineer": "career-emblems/platform-engineer-v1.png",
+  "ml-developer": "career-emblems/ml-developer-v1.png",
+  "mlops-engineer": "career-emblems/mlops-engineer-v1.png",
+  "analytics-engineer": "career-emblems/analytics-engineer-v1.png",
+  "software-architect": "career-emblems/software-architect-v1.png",
+  "cloud-platform-architect": "career-emblems/cloud-platform-architect-v1.png",
+  "ai-product-engineer": "career-emblems/ai-product-engineer-v1.png",
+  "ai-platform-architect": "career-emblems/ai-platform-architect-v1.png",
+  "data-architect": "career-emblems/data-architect-v1.png",
 };
 
 export const careerEmblemTextureKey = (id: CareerId) => `career-emblem-${id}`;
@@ -64,7 +64,7 @@ export const CAREER_CATALOG: readonly CareerCatalogEntry[] = [
     tier: 0,
     name: DEFAULT_JOB.name,
     tagline: DEFAULT_JOB.tagline,
-    emblemAssetPath: CAREER_EMBLEMS.junior,
+    emblemAssetKey: CAREER_EMBLEMS.junior,
     guideName: guideDisplayName(DEFAULT_JOB),
     requires: [],
   },
@@ -73,7 +73,7 @@ export const CAREER_CATALOG: readonly CareerCatalogEntry[] = [
     tier: 1 as const,
     name: job.name,
     tagline: job.tagline,
-    emblemAssetPath: CAREER_EMBLEMS[job.id],
+    emblemAssetKey: CAREER_EMBLEMS[job.id],
     guideName: guideDisplayName(job),
     requires: ["junior"] as const,
   })),
@@ -82,7 +82,7 @@ export const CAREER_CATALOG: readonly CareerCatalogEntry[] = [
     tier: 2 as const,
     name: job.name,
     tagline: text("두 전문 경로를 잇는 상위 직업", "A higher career that bridges two specialist paths"),
-    emblemAssetPath: CAREER_EMBLEMS[job.id],
+    emblemAssetKey: CAREER_EMBLEMS[job.id],
     guideName: guideDisplayName(job),
     requires: job.requires,
   })),
@@ -91,7 +91,7 @@ export const CAREER_CATALOG: readonly CareerCatalogEntry[] = [
     tier: 3 as const,
     name: job.name,
     tagline: text("2차 직업을 완성한 마스터 직업", "A master career earned by completing a tier 2 career"),
-    emblemAssetPath: CAREER_EMBLEMS[job.id],
+    emblemAssetKey: CAREER_EMBLEMS[job.id],
     guideName: guideDisplayName(job),
     requires: [job.requires],
   })),
