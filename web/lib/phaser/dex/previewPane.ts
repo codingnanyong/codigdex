@@ -7,7 +7,6 @@ import { applyPixelFontToScene, fitTextInside } from "../ui";
 import type { DexEntry } from "./entry";
 
 const PREVIEW_SIZE = 176;
-const PREVIEW_ART_INSET = 14;
 
 /** The left side of the dex: the selected entry's portrait and summary, or "???" before capture. */
 export class PreviewPane {
@@ -37,7 +36,7 @@ export class PreviewPane {
     ];
 
     if (card && monster && scene.textures.exists(monster.textureKey)) {
-      const fit = fitTexture(scene, monster.textureKey, PREVIEW_SIZE, PREVIEW_SIZE, PREVIEW_ART_INSET);
+      const fit = fitTexture(scene, monster.textureKey, PREVIEW_SIZE - 16, PREVIEW_SIZE - 16);
       items.push(scene.add.image(centerX, previewCenterY, monster.textureKey).setScale(fit.scale));
     } else {
       items.push(
