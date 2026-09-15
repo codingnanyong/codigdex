@@ -16,6 +16,8 @@ npm run lint
 
 ## Vercel
 
-Keep the project's **Root Directory** at the repository root so Vercel can use
-the root lockfile and resolve the shared workspaces. Use `npm run build:web` as
-the build command.
+Set the project's **Root Directory** to `web` and keep **Include source files
+outside of the Root Directory in the Build Step** enabled. Vercel can then
+resolve the root npm workspace and its shared packages while treating this
+folder as the single deployable application. Keep the build command at the
+framework default (`npm run build`); `prebuild` synchronizes game assets first.

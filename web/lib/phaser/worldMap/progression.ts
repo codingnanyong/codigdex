@@ -9,28 +9,28 @@ import { text, type LocalizedText } from "@codigdex/game-core/i18n/locale";
 
 export interface WorldBackdrop {
   textureKey: string;
-  assetPath: string;
+  assetKey: string;
   title: LocalizedText;
   ambience?: AmbienceId;
 }
 
 const TUTORIAL_BACKDROP: WorldBackdrop = {
   textureKey: "world-tutorial",
-  assetPath: "/assets/wallpapers/tutorial-loop-forest-v1.png",
+  assetKey: "wallpapers/tutorial-loop-forest-v1.png",
   title: text("튜토리얼 · 반복문의 숲", "Tutorial · Loop Forest"),
   ambience: "loop-forest",
 };
 
 const GIT_BACKDROP: WorldBackdrop = {
   textureKey: "world-git",
-  assetPath: "/assets/wallpapers/git-battle-arena-v1.png",
+  assetKey: "wallpapers/git-battle-arena-v1.png",
   title: text("CH.01 · Git 기록의 들판", "CH.01 · Git Field of Records"),
   ambience: "git-field",
 };
 
 const LINUX_BACKDROP: WorldBackdrop = {
   textureKey: "world-linux",
-  assetPath: "/assets/wallpapers/linux-battle-arena-v1.png",
+  assetKey: "wallpapers/linux-battle-arena-v1.png",
   title: text("CH.02 · Linux 셸 동굴", "CH.02 · Linux Shell Cave"),
   ambience: "linux-cave",
 };

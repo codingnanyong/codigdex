@@ -1,8 +1,9 @@
 import type Phaser from "phaser";
+import { assetUrl } from "../assets";
 import type { MonsterDefinition } from "@codigdex/game-core/domain/chapters/types";
 
 export function preloadMonsterArt(scene: Phaser.Scene, monsters: readonly MonsterDefinition[]) {
-  monsters.forEach(({ textureKey, assetPath }) => scene.load.image(textureKey, assetPath));
+  monsters.forEach(({ textureKey, assetKey }) => scene.load.image(textureKey, assetUrl(assetKey)));
 }
 
 /**

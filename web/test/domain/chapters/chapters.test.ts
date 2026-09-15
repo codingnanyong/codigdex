@@ -142,7 +142,7 @@ describe("dex entries", () => {
   });
 
   it("gives every stage its own battle sprite", () => {
-    const sprites = DEX_MONSTERS.map((monster) => monster.assetPath);
+    const sprites = DEX_MONSTERS.map((monster) => monster.assetKey);
     expect(new Set(sprites).size).toBe(sprites.length);
   });
 });

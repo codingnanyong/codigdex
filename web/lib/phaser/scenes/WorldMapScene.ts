@@ -10,6 +10,7 @@ import {
   type JobId,
   type JobOption,
 } from "@codigdex/game-content/domain/player/jobs";
+import { assetUrl } from "../../assets";
 import { playAmbience } from "../ambience";
 import { lt, t } from "../i18n";
 import { preloadMonsterArt } from "../monsterArt";
@@ -23,7 +24,7 @@ import { drawCareerAtlas } from "../worldMap/careerAtlas";
 import { routePointsFor } from "../worldMap/chapterRoute";
 import {
   careerPathFor,
-  careerTerrainAssetPath,
+  careerTerrainAssetKey,
   careerTerrainTextureKey,
 } from "../worldMap/careerPaths";
 import { showGuideHint } from "../worldMap/guideHint";
@@ -61,18 +62,18 @@ export class WorldMapScene extends Phaser.Scene {
 
   preload() {
     const { backdrop, selectedJob } = this.resolveProgress();
-    this.load.image(backdrop.textureKey, backdrop.assetPath);
-    this.load.image(selectedJob.overworldTextureKey, selectedJob.overworldAssetPath);
-    if (selectedJob.textureKey && selectedJob.assetPath) {
-      this.load.image(selectedJob.textureKey, selectedJob.assetPath);
+    this.load.image(backdrop.textureKey, assetUrl(backdrop.assetKey));
+    this.load.image(selectedJob.overworldTextureKey, assetUrl(selectedJob.overworldAssetKey));
+    if (selectedJob.textureKey && selectedJob.assetKey) {
+      this.load.image(selectedJob.textureKey, assetUrl(selectedJob.assetKey));
     }
-    if (selectedJob.guideTextureKey && selectedJob.guideAssetPath) {
-      this.load.image(selectedJob.guideTextureKey, selectedJob.guideAssetPath);
+    if (selectedJob.guideTextureKey && selectedJob.guideAssetKey) {
+      this.load.image(selectedJob.guideTextureKey, assetUrl(selectedJob.guideAssetKey));
     }
     if (selectedJob.id !== "junior") {
       const path = careerPathFor(selectedJob.id as JobId);
       path.regions.forEach((region) => {
-        this.load.image(careerTerrainTextureKey(path, region), careerTerrainAssetPath(path, region));
+        this.load.image(careerTerrainTextureKey(path, region), assetUrl(careerTerrainAssetKey(path, region)));
       });
     }
     preloadMonsterArt(this, CHAPTERS.flatMap((chapter) => chapter.stages));

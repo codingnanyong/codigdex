@@ -43,7 +43,7 @@ export const TUTORIAL_CHAPTER: ChapterDefinition = {
       ),
       snippet: text("for i in range(5):\n    물_긷기()", "for i in range(5):\n    draw_water()"),
       textureKey: "loop-bug",
-      assetPath: "/assets/monsters/ch00.tutorial/loop-bug-v2.png",
+      assetKey: "monsters/ch00.tutorial/loop-bug-v2.png",
       briefing: text(
         "무한루프 버그가 우물가를 계속 맴돌고 있어요. 물리치고 도감에 등록해주세요!",
         "The Infinite Loop Bug keeps circling the well. Defeat it and register it in your dex!"

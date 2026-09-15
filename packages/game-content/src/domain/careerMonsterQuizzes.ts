@@ -159,8 +159,20 @@ export const CAREER_QUIZ_PROFILES: Readonly<Record<string, TechnologyQuizProfile
   ] },
 };
 
-const pickOther = <T>(items: readonly T[], focus: number, offset: number): T[] =>
-  [1, 2, 3].map((step) => items[(focus + step + offset) % items.length]);
+const pickOther = <T>(items: readonly T[], focus: number, offset: number): T[] => {
+  const candidates = items.filter((_, index) => index !== focus);
+  return [0, 1, 2].map((step) => candidates[(offset + step) % candidates.length]);
+};
+
+const placeCorrectChoice = <T>(
+  correct: T,
+  distractors: readonly T[],
+  answerIndex: number
+): readonly T[] => {
+  const choices = [...distractors];
+  choices.splice(answerIndex, 0, correct);
+  return choices;
+};
 
 export function buildCareerMonsterQuiz(
   technologyId: string,
@@ -170,11 +182,9 @@ export function buildCareerMonsterQuiz(
   const profile = CAREER_QUIZ_PROFILES[technologyId];
   if (!profile) return [];
   const focus = profile.concepts[levelIndex % profile.concepts.length];
-  const otherTerms = pickOther(profile.concepts, levelIndex, 0).map((item) => item.term);
-  const termChoices = [focus.term, ...otherTerms];
   const technology = profile.name;
 
-  const prompts = [
+  const termPrompts = [
     text(`다음 설명에 맞는 ${technology.ko} 개념은?\n${focus.definition.ko}`, `Which ${technology.en} concept matches this description?\n${focus.definition.en}`),
     text(`다음 의미를 가진 용어는?\n${focus.definition.ko}`, `Which term has this meaning?\n${focus.definition.en}`),
     text(`${monsterName}이 지키는 핵심 개념을 고르세요.\n${focus.definition.ko}`, `Choose the core concept guarded by ${monsterName}.\n${focus.definition.en}`),
@@ -183,13 +193,45 @@ export function buildCareerMonsterQuiz(
     text(`다음 설명에서 강조하는 핵심 용어는?\n${focus.definition.ko}`, `Which key term is emphasized here?\n${focus.definition.en}`),
     text(`LV.${levelIndex + 1} 체크포인트의 설명과 연결되는 용어는?`, `Which term matches the LV.${levelIndex + 1} checkpoint description?`),
     text(`${technology.ko} 코드 리뷰에서 다음 설명과 연결할 용어는?\n${focus.definition.ko}`, `Which ${technology.en} term belongs with this review note?\n${focus.definition.en}`),
+    text(`동료가 다음 개념을 설명했습니다. 알맞은 용어는?\n${focus.definition.ko}`, `A teammate gave this explanation. Which term is correct?\n${focus.definition.en}`),
+    text(`${technology.ko} 도감에서 다음 설명으로 검색할 항목은?\n${focus.definition.ko}`, `Which ${technology.en} dex entry matches this description?\n${focus.definition.en}`),
   ];
 
-  return prompts.map((prompt) => ({
-    prompt,
-    choices: termChoices,
-    answerIndex: 0,
-  }));
+  const definitionPrompts = [
+    text(`${focus.term.ko}의 올바른 설명은?`, `Which description correctly defines ${focus.term.en}?`),
+    text(`${technology.ko}에서 ${focus.term.ko}이(가) 하는 역할은?`, `What role does ${focus.term.en} have in ${technology.en}?`),
+    text(`${focus.term.ko}을(를) 가장 정확히 설명한 문장을 고르세요.`, `Choose the most accurate description of ${focus.term.en}.`),
+    text(`${monsterName}이 알려 주는 ${focus.term.ko} 지식은?`, `What does ${monsterName} teach about ${focus.term.en}?`),
+    text(`실무에서 ${focus.term.ko}을(를) 사용할 때 기억할 핵심은?`, `What should you remember when using ${focus.term.en} in practice?`),
+    text(`${focus.term.ko}에 대한 코드 리뷰 설명으로 알맞은 것은?`, `Which code review note correctly describes ${focus.term.en}?`),
+    text(`LV.${levelIndex + 1}의 핵심 용어 ${focus.term.ko}과(와) 연결되는 설명은?`, `Which description belongs to the LV.${levelIndex + 1} term ${focus.term.en}?`),
+    text(`${technology.ko} 학습 카드에서 ${focus.term.ko} 아래에 적을 설명은?`, `Which description belongs under ${focus.term.en} on a ${technology.en} study card?`),
+    text(`다음 중 ${focus.term.ko}의 의미로 맞는 것은?`, `Which option gives the meaning of ${focus.term.en}?`),
+    text(`${focus.term.ko}을(를) 처음 배우는 동료에게 알려 줄 설명은?`, `Which explanation would you give a teammate learning ${focus.term.en}?`),
+  ];
+
+  const termQuestions = termPrompts.map((prompt, index) => {
+    const answerIndex = index % 4;
+    const distractors = pickOther(profile.concepts, levelIndex, index).map((item) => item.term);
+    return {
+      prompt,
+      choices: placeCorrectChoice(focus.term, distractors, answerIndex),
+      answerIndex,
+    } satisfies QuizQuestion;
+  });
+  const definitionQuestions = definitionPrompts.map((prompt, index) => {
+    const answerIndex = (index + 2) % 4;
+    const distractors = pickOther(profile.concepts, levelIndex, index).map(
+      (item) => item.definition
+    );
+    return {
+      prompt,
+      choices: placeCorrectChoice(focus.definition, distractors, answerIndex),
+      answerIndex,
+    } satisfies QuizQuestion;
+  });
+
+  return [...termQuestions, ...definitionQuestions];
 }
 
 export function careerQuizProfile(technologyId: string): TechnologyQuizProfile {

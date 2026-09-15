@@ -7,6 +7,7 @@ import {
   shouldContinueBattle,
 } from "@codigdex/game-core/domain/dex/capture";
 import { drawQuizQuestions, quizCountForLevel } from "@codigdex/game-core/domain/dex/quiz";
+import { assetUrl } from "../../assets";
 import { playAmbience } from "../ambience";
 import { AnswerGrid } from "../battle/answerGrid";
 import { drawNpcBanner } from "../battle/banner";
@@ -57,7 +58,7 @@ export class CodeBattleScene extends Phaser.Scene {
 
   preload() {
     preloadMonsterArt(this, [this.monster]);
-    if (this.battleArena) this.load.image(this.battleArena.textureKey, this.battleArena.assetPath);
+    if (this.battleArena) this.load.image(this.battleArena.textureKey, assetUrl(this.battleArena.assetKey));
   }
 
   create() {

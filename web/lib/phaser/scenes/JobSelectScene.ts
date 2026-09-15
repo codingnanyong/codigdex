@@ -22,6 +22,7 @@ import {
   type SecondaryJobOption,
   type TertiaryJobOption,
 } from "@codigdex/game-content/domain/player/jobs";
+import { assetUrl } from "../../assets";
 import { lt, t } from "../i18n";
 import { drawCareerTree } from "../jobSelect/careerTree";
 import { createPromotionDialog } from "../jobSelect/promotionDialog";
@@ -54,9 +55,9 @@ export class JobSelectScene extends Phaser.Scene {
 
   preload() {
     JOB_OPTIONS.forEach((job) => {
-      this.load.image(job.textureKey!, job.assetPath!);
-      if (job.guideTextureKey && job.guideAssetPath) {
-        this.load.image(job.guideTextureKey, job.guideAssetPath);
+      this.load.image(job.textureKey!, assetUrl(job.assetKey!));
+      if (job.guideTextureKey && job.guideAssetKey) {
+        this.load.image(job.guideTextureKey, assetUrl(job.guideAssetKey));
       }
     });
   }

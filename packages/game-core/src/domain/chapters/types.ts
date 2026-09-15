@@ -35,7 +35,7 @@ export interface MonsterDefinition {
   description: LocalizedText;
   snippet: LocalizedText;
   textureKey: string;
-  assetPath: string;
+  assetKey: string;
   /** What the guide says about this stage before the battle starts. */
   briefing: LocalizedText;
   /** Banner line across the top of this monster's battle. */
@@ -55,7 +55,7 @@ export interface ChapterDefinition {
   successLine: LocalizedText;
   retryLine: LocalizedText;
   /** Battle backdrop. A chapter without one fights on the plain battle screen. */
-  arena?: { textureKey: string; assetPath: string; ambience?: AmbienceId };
+  arena?: { textureKey: string; assetKey: string; ambience?: AmbienceId };
   /** Where a failed capture sends the player to try again. */
   retryScene: "world-map" | "path-map" | "career-region";
   /** Monsters in unlock order: each opens once the one before it is captured. */
