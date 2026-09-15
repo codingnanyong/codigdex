@@ -21,3 +21,8 @@ export function buildDexEntries(cards: readonly CapturedCard[]): DexEntry[] {
       : { dexNumber: slot.dexNumber, planned: true }
   );
 }
+
+/** Art needed when the dex first opens; undiscovered rows render as question marks. */
+export function registeredDexMonsters(entries: readonly DexEntry[]): MonsterDefinition[] {
+  return entries.flatMap(({ monster, card }) => (monster && card ? [monster] : []));
+}
