@@ -11,7 +11,7 @@ const sourceRoot = path.join(path.dirname(require.resolve("@codigdex/game-assets
 const targetRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../public/assets");
 
 async function listFiles(root, directory = root) {
-  const entries = await readdir(directory, { withFileTypes: true }).catch(() => []);
+  const entries = await readdir(directory, { withFileTypes: true });
   const files = [];
   for (const entry of entries) {
     const entryPath = path.join(directory, entry.name);
@@ -39,7 +39,12 @@ for (const file of sourceFiles) {
   copied += 1;
 }
 
-for (const file of await listFiles(targetRoot)) {
+const targetFiles = await listFiles(targetRoot).catch((error) => {
+  if (error?.code === "ENOENT") return [];
+  throw error;
+});
+
+for (const file of targetFiles) {
   if (wanted.has(file)) continue;
   await rm(path.join(targetRoot, file));
   removed += 1;

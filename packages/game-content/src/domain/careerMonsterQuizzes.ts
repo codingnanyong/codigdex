@@ -159,8 +159,10 @@ export const CAREER_QUIZ_PROFILES: Readonly<Record<string, TechnologyQuizProfile
   ] },
 };
 
-const pickOther = <T>(items: readonly T[], focus: number, offset: number): T[] =>
-  [1, 2, 3].map((step) => items[(focus + step + offset) % items.length]);
+const pickOther = <T>(items: readonly T[], focus: number, offset: number): T[] => {
+  const candidates = items.filter((_, index) => index !== focus);
+  return [0, 1, 2].map((step) => candidates[(offset + step) % candidates.length]);
+};
 
 const placeCorrectChoice = <T>(
   correct: T,
@@ -180,9 +182,6 @@ export function buildCareerMonsterQuiz(
   const profile = CAREER_QUIZ_PROFILES[technologyId];
   if (!profile) return [];
   const focus = profile.concepts[levelIndex % profile.concepts.length];
-  const otherConcepts = pickOther(profile.concepts, levelIndex, 0);
-  const otherTerms = otherConcepts.map((item) => item.term);
-  const otherDefinitions = otherConcepts.map((item) => item.definition);
   const technology = profile.name;
 
   const termPrompts = [
@@ -213,17 +212,21 @@ export function buildCareerMonsterQuiz(
 
   const termQuestions = termPrompts.map((prompt, index) => {
     const answerIndex = index % 4;
+    const distractors = pickOther(profile.concepts, levelIndex, index).map((item) => item.term);
     return {
       prompt,
-      choices: placeCorrectChoice(focus.term, otherTerms, answerIndex),
+      choices: placeCorrectChoice(focus.term, distractors, answerIndex),
       answerIndex,
     } satisfies QuizQuestion;
   });
   const definitionQuestions = definitionPrompts.map((prompt, index) => {
     const answerIndex = (index + 2) % 4;
+    const distractors = pickOther(profile.concepts, levelIndex, index).map(
+      (item) => item.definition
+    );
     return {
       prompt,
-      choices: placeCorrectChoice(focus.definition, otherDefinitions, answerIndex),
+      choices: placeCorrectChoice(focus.definition, distractors, answerIndex),
       answerIndex,
     } satisfies QuizQuestion;
   });

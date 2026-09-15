@@ -62,6 +62,13 @@ describe("career-region monster checkpoints", () => {
       expect(new Set(monster.quizPool.map((question) => question.answerIndex))).toEqual(
         new Set([0, 1, 2, 3])
       );
+      const choiceSets = monster.quizPool.map((question) =>
+        question.choices
+          .map((choice) => choice.en)
+          .sort()
+          .join("|")
+      );
+      expect(new Set(choiceSets).size, `${monster.id} distractor sets`).toBeGreaterThan(1);
       quizSignatures.add(monster.quizPool.map((question) => question.prompt.en).join("|"));
     });
 
