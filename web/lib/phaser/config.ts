@@ -7,7 +7,9 @@ import { CodeBattleScene } from "./scenes/CodeBattleScene";
 import { CaptureQuizScene } from "./scenes/CaptureQuizScene";
 import { CodigdexScene } from "./scenes/CodigdexScene";
 import { CareerRegionScene } from "./scenes/CareerRegionScene";
-import { initializeRegistryPersistence } from "./registryAdapter";
+import { SettingsScene } from "./scenes/SettingsScene";
+import { announceLocale } from "./i18n";
+import { initializeRegistryPersistence, readLocale } from "./registryAdapter";
 
 export function createGameConfig(
   parent: HTMLElement
@@ -20,7 +22,10 @@ export function createGameConfig(
     pixelArt: true,
     backgroundColor: "#f1e4cb",
     callbacks: {
-      preBoot: (game) => initializeRegistryPersistence(game.registry),
+      preBoot: (game) => {
+        initializeRegistryPersistence(game.registry);
+        announceLocale(readLocale(game.registry));
+      },
     },
     scale: {
       // The page sizes the container to the viewport at 16:9 (globals.css);
@@ -39,6 +44,7 @@ export function createGameConfig(
       CodeBattleScene,
       CaptureQuizScene,
       CodigdexScene,
+      SettingsScene,
     ],
   };
 }

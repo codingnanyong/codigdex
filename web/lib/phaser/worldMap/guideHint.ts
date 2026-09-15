@@ -1,4 +1,5 @@
 import type Phaser from "phaser";
+import { t } from "../i18n";
 import { PALETTE_HEX } from "../palette";
 import { pixelText } from "../pixelFont";
 import { applyPixelFontToScene } from "../ui";
@@ -6,7 +7,7 @@ import { applyPixelFontToScene } from "../ui";
 /** A bobbing arrow pointing at the quest pin, plus an instruction along the bottom. */
 export function showGuideHint(
   scene: Phaser.Scene,
-  message = "빛나는 의뢰 표식을 눌러 보세요",
+  message = t(scene, "world.hintQuestMarker"),
   target?: { x: number; y: number }
 ): Phaser.GameObjects.Container {
   const { width, height } = scene.scale;

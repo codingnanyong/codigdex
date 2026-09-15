@@ -42,9 +42,8 @@ describe("drawQuizQuestions", () => {
 
     for (const question of drawQuizQuestions(POOL, POOL.length)) {
       expect(question.choices[question.answerIndex]).toBe(original.get(question.prompt));
-      expect([...question.choices].sort()).toEqual(
-        [...POOL.find((q) => q.prompt === question.prompt)!.choices].sort()
-      );
+      const byKorean = (choices: readonly { ko: string }[]) => choices.map((choice) => choice.ko).sort();
+      expect(byKorean(question.choices)).toEqual(byKorean(POOL.find((q) => q.prompt === question.prompt)!.choices));
     }
   });
 

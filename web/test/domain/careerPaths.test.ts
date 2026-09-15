@@ -19,6 +19,7 @@ import {
   tertiaryJobsFor,
   type JobId,
 } from "@/lib/domain/player/jobs";
+import { monstersForCareerRegion } from "@/lib/domain/careerRegionMonsters";
 
 describe("career paths", () => {
   it("gives every primary job a detailed map with several dex destinations", () => {
@@ -95,13 +96,16 @@ describe("primary job changes", () => {
     expect(isCareerPathComplete(path, new Set(["html-css-final", "javascript-final"]))).toBe(true);
   });
 
-  it("does not treat a path with no released completion requirements as complete", () => {
-    expect(isCareerPathComplete(CAREER_PATHS.frontend, new Set())).toBe(false);
-  });
-
-  it("keeps a selected unreleased path locked until completion requirements exist", () => {
-    expect(canLeaveCareerPath(CAREER_PATHS.frontend, new Set())).toBe(false);
-    expect(completedCareerPathIds(new Set())).not.toContain("frontend");
+  it("derives released path requirements from each region's final checkpoint", () => {
+    Object.values(CAREER_PATHS).forEach((careerPath) => {
+      expect(careerPath.completionCaptureIds).toEqual(
+        careerPath.regions.map((careerRegion) =>
+          monstersForCareerRegion(careerRegion.id).at(-1)?.id
+        )
+      );
+      expect(isCareerPathComplete(careerPath, new Set(careerPath.completionCaptureIds))).toBe(true);
+      expect(canLeaveCareerPath(careerPath, new Set(careerPath.completionCaptureIds))).toBe(true);
+    });
   });
 
   it("requires every capture before leaving a released career path", () => {

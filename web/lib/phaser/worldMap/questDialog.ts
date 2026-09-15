@@ -1,4 +1,5 @@
 import type Phaser from "phaser";
+import { t } from "../i18n";
 import { PALETTE, PALETTE_HEX } from "../palette";
 import { pixelText } from "../pixelFont";
 import { applyPixelFontToScene, createButton } from "../ui";
@@ -68,10 +69,10 @@ export function showQuestDialog(
     buttonY,
     152,
     30,
-    "전투 시작  ▶",
+    t(scene, "world.startBattle"),
     options.onStart
   );
-  const closeButton = createButton(scene, width - 218, buttonY, 88, 30, "닫기", options.onClose);
+  const closeButton = createButton(scene, width - 218, buttonY, 88, 30, t(scene, "common.close"), options.onClose);
 
   const items: Phaser.GameObjects.GameObject[] = [shadow, frame, topLine, ...portrait];
   if (namePlate) items.push(namePlate);

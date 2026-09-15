@@ -9,7 +9,7 @@ Codigdex Game is a pixel-art educational game that teaches programming/coding co
 Every PR into `develop` is gated by CI (`.github/workflows/pr-policy.yml`) that requires a mirrored Linear/GitHub issue pair. The normal path is automated — do not do the old manual dance of pre-creating a Linear issue, then a GitHub issue, then baking the id into the branch name; that's exactly the flow that used to get skipped or done out of order:
 
 1. Create a branch named `feat/<slug>` (no id prefix needed) and push it to `origin`.
-2. `.github/workflows/prepare-feature-pr.yml` finds or creates a Linear issue in team `COD` (project set by the `LINEAR_PROJECT_SLUG`/`LINEAR_PROJECT_NAME` repo variables — see README setup checklist), finds or creates the matching GitHub mirror issue, and opens a Draft PR into `develop` with both closing references already filled in.
+2. `.github/workflows/prepare-feature-pr.yml` finds or creates a Linear issue in team `COD` (project set by the `LINEAR_PROJECT_SLUG`/`LINEAR_PROJECT_NAME` repo variables — see the setup checklist in `docs/eng/GIT_WORKFLOW.md`), finds or creates the matching GitHub mirror issue, and opens a Draft PR into `develop` with both closing references already filled in.
 3. `.github/workflows/pr-policy.yml` only validates the branch flow and issue pair on every PR event — it never creates or edits anything.
 4. `main` only accepts PRs from `develop`. If this project cuts versioned releases, uncomment `validate-release` in `pr-policy.yml` and adapt it (see `codingnanyong/busan-competition-2026` for a working example); otherwise leave `main` PRs release-gate-free.
 

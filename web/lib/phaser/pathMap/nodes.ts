@@ -1,5 +1,6 @@
 import Phaser from "phaser";
 import type { ChapterStatus } from "@/lib/domain/chapters";
+import { lt, t } from "../i18n";
 import { PALETTE, PALETTE_HEX } from "../palette";
 import { pixelText } from "../pixelFont";
 import { fitTextInside } from "../ui";
@@ -50,7 +51,7 @@ export function drawPathNode(scene: Phaser.Scene, node: PathNode, state: PathNod
     })
     .setOrigin(0, 0.5);
   const label = scene.add
-    .text(textLeft, 10, node.label, {
+    .text(textLeft, 10, lt(scene, node.label), {
       ...pixelText("body"),
       color: lit ? PALETTE_HEX.ink : PALETTE_HEX.cream,
     })
@@ -99,7 +100,7 @@ export function drawPromotionNode(
     })
     .setOrigin(0.5);
   const label = scene.add
-    .text(0, 20, node.label, {
+    .text(0, 20, lt(scene, node.label), {
       ...pixelText("body"),
       color: PALETTE_HEX.cream,
     })
@@ -120,7 +121,8 @@ export function drawSecondaryCareerNode(
     unlocked: boolean;
     selected: boolean;
     onSelect: () => void;
-    tierLabel?: "2차 전직" | "3차 전직";
+    /** Defaults to the tier-two label. */
+    tierLabel?: string;
   }
 ) {
   const width = 104;
@@ -136,7 +138,7 @@ export function drawSecondaryCareerNode(
     )
     .setStrokeStyle(2, options.unlocked ? PALETTE.amber : PALETTE.mutedBrown);
   const eyebrow = scene.add
-    .text(0, -13, options.selected ? `${options.tierLabel ?? "2차 전직"} · 현재` : options.tierLabel ?? "2차 전직", {
+    .text(0, -13, options.selected ? t(scene, "path.tierCurrent", { tier: options.tierLabel ?? t(scene, "path.tier2") }) : options.tierLabel ?? t(scene, "path.tier2"), {
       ...pixelText("caption"),
       color: options.unlocked ? PALETTE_HEX.maroon : PALETTE_HEX.sand,
     })

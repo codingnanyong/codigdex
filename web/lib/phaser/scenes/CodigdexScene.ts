@@ -15,6 +15,7 @@ import {
 } from "@/lib/domain/player/jobs";
 import { CareerPanel } from "../dex/careerPanel";
 import { DetailCard } from "../dex/detailCard";
+import { t } from "../i18n";
 import { buildDexEntries, type DexEntry } from "../dex/entry";
 import { EntryList } from "../dex/entryList";
 import { PreviewPane } from "../dex/previewPane";
@@ -84,7 +85,7 @@ export class CodigdexScene extends Phaser.Scene {
       screen.centerY + DEX_PANEL.height / 2 - DEX_PANEL.inset - 14,
       100,
       30,
-      "닫기",
+      t(this, "common.close"),
       () => this.close()
     );
     createButton(
@@ -93,16 +94,16 @@ export class CodigdexScene extends Phaser.Scene {
       screen.centerY + DEX_PANEL.height / 2 - DEX_PANEL.inset - 14,
       120,
       30,
-      "전직 계보",
+      t(this, "dex.lineage"),
       () => this.openCareerLineage()
     );
     createHomeButton(this).setDepth(30);
 
-    createButton(this, screen.left + 58, screen.top + 22, 88, 28, "몬스터", () => {
+    createButton(this, screen.left + 58, screen.top + 22, 88, 28, t(this, "dex.tabMonsters"), () => {
       this.careerPanel?.destroy();
       this.careerPanel = undefined;
     }).setDepth(20);
-    createButton(this, screen.left + 152, screen.top + 22, 88, 28, "직업", () => {
+    createButton(this, screen.left + 152, screen.top + 22, 88, 28, t(this, "dex.tabCareers"), () => {
       this.showCareerPanel(screen, bodyTop);
     }).setDepth(20);
 

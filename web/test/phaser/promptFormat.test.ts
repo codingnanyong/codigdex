@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { CHAPTERS } from "@/lib/domain/chapters";
+import { LOCALES } from "@/lib/i18n/locale";
 import { formatPrompt } from "@/lib/phaser/battle/promptFormat";
 
 describe("formatPrompt", () => {
@@ -18,11 +19,13 @@ describe("formatPrompt", () => {
     });
   });
 
-  it("never leaves a backtick in any chapter's quiz prompt", () => {
+  it("never leaves a backtick in any chapter's quiz prompt, in either language", () => {
     const prompts = CHAPTERS.flatMap((chapter) =>
-      chapter.stages.flatMap((stage) => stage.quizPool.map((question) => question.prompt))
+      chapter.stages.flatMap((stage) =>
+        stage.quizPool.flatMap((question) => LOCALES.map((locale) => question.prompt[locale]))
+      )
     );
-    expect(prompts.length).toBeGreaterThan(200);
+    expect(prompts.length).toBeGreaterThan(400);
     for (const prompt of prompts) {
       const { code, text } = formatPrompt(prompt);
       expect([...code, text].join("\n")).not.toContain("`");

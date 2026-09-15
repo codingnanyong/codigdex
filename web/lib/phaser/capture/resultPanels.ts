@@ -1,5 +1,6 @@
 import type Phaser from "phaser";
 import type { MonsterDefinition } from "@/lib/domain/chapters/types";
+import { lt, t } from "../i18n";
 import { PALETTE_HEX } from "../palette";
 import { pixelText } from "../pixelFont";
 import { addSnippetBlock, createButton, drawOrnateFrame, popIn } from "../ui";
@@ -28,7 +29,7 @@ export function showCapturedPanel(scene: Phaser.Scene, options: CapturedPanelOpt
   // can be sized to whatever this monster's copy needs, then shift it into place.
   let cursor = 0;
   const title = scene.add
-    .text(0, cursor, `"${monster.name}" ${options.isNewEntry ? "도감 등록 완료!" : "복습 완료!"}`, {
+    .text(0, cursor, t(scene, options.isNewEntry ? "capture.registered" : "capture.reviewed", { name: lt(scene, monster.name) }), {
       ...pixelText("subtitle"),
       color: PALETTE_HEX.ink,
       align: "center",
@@ -37,7 +38,7 @@ export function showCapturedPanel(scene: Phaser.Scene, options: CapturedPanelOpt
   cursor += title.height + 14;
 
   const description = scene.add
-    .text(0, cursor, monster.description, {
+    .text(0, cursor, lt(scene, monster.description), {
       ...pixelText("body"),
       color: PALETTE_HEX.ink,
       align: "center",
@@ -46,7 +47,7 @@ export function showCapturedPanel(scene: Phaser.Scene, options: CapturedPanelOpt
     .setOrigin(0.5, 0);
   cursor += description.height + 14;
 
-  const snippet = addSnippetBlock(scene, cursor, CAPTURED_PANEL.width - 140, monster.snippet);
+  const snippet = addSnippetBlock(scene, cursor, CAPTURED_PANEL.width - 140, lt(scene, monster.snippet));
   cursor += snippet.height + 16;
 
   const npcLine = scene.add
@@ -85,7 +86,7 @@ export function showCapturedPanel(scene: Phaser.Scene, options: CapturedPanelOpt
   });
 
   const frame = drawOrnateFrame(scene, 0, 0, CAPTURED_PANEL.width, panelHeight);
-  const confirm = createButton(scene, 0, panelHeight / 2 - 32, 120, 34, "확인", options.onConfirm);
+  const confirm = createButton(scene, 0, panelHeight / 2 - 32, 120, 34, t(scene, "common.confirm"), options.onConfirm);
 
   const panel = scene.add
     .container(width / 2, height / 2, [frame, ...content, confirm])
@@ -109,7 +110,7 @@ export function showMissedPanel(scene: Phaser.Scene, options: MissedPanelOptions
   const frame = drawOrnateFrame(scene, 0, 0, MISSED_PANEL.width, MISSED_PANEL.height);
 
   const title = scene.add
-    .text(0, -MISSED_PANEL.height / 2 + 40, `"${options.monster.name}" 캡처 실패`, {
+    .text(0, -MISSED_PANEL.height / 2 + 40, t(scene, "capture.failed", { name: lt(scene, options.monster.name) }), {
       ...pixelText("subtitle"),
       color: PALETTE_HEX.ink,
       align: "center",
@@ -134,7 +135,7 @@ export function showMissedPanel(scene: Phaser.Scene, options: MissedPanelOptions
     })
     .setOrigin(0.5, 0);
 
-  const retry = createButton(scene, 0, MISSED_PANEL.height / 2 - 32, 140, 34, "재도전", options.onRetry);
+  const retry = createButton(scene, 0, MISSED_PANEL.height / 2 - 32, 140, 34, t(scene, "capture.retry"), options.onRetry);
 
   const panel = scene.add
     .container(width / 2, height / 2, [frame, title, resultLine, npcLine, retry])

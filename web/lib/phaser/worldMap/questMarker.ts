@@ -1,4 +1,5 @@
 import type Phaser from "phaser";
+import { t } from "../i18n";
 import { PALETTE, PALETTE_HEX } from "../palette";
 import { pixelText } from "../pixelFont";
 import { drawOrnateFrame } from "../ui";
@@ -52,7 +53,7 @@ export class QuestMarker {
     if (!this.isAlive()) return;
     if (captured) {
       this.pin.setFillStyle(PALETTE.sand, 0.6);
-      this.label.setText(`${label} (캡처 완료)`);
+      this.label.setText(t(this.label.scene, "world.questCaptured", { label }));
     } else {
       this.label.setText(label);
     }

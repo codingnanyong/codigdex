@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import { t } from "../i18n";
 import { PALETTE, PALETTE_HEX } from "../palette";
 import { pixelText } from "../pixelFont";
 import { applyPixelFontToScene, createButton } from "../ui";
@@ -81,7 +82,7 @@ export class OnboardingDialog {
       .setOrigin(1, 0.5)
       .setInteractive({ useHandCursor: true })
       .on("pointerup", () => this.advance());
-    const skipButton = createButton(scene, width - 72, 28, 112, 30, "건너뛰기", () => this.finish());
+    const skipButton = createButton(scene, width - 72, 28, 112, 30, t(scene, "world.onboardingSkip"), () => this.finish());
 
     this.group = scene.add
       .container(0, 12, [
@@ -118,7 +119,7 @@ export class OnboardingDialog {
     this.page += 1;
     this.body.setText(lines[this.page]);
     this.pageText.setText(`${this.page + 1} / ${lines.length}`);
-    if (this.page === lines.length - 1) this.nextButton.setText("확인  ▶");
+    if (this.page === lines.length - 1) this.nextButton.setText(t(this.scene, "world.onboardingDone"));
   }
 
   private finish() {

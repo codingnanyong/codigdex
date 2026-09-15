@@ -10,7 +10,7 @@ import {
   type CareerId,
 } from "@/lib/domain/careerDex";
 import { capturedIds, DexState, EMPTY_DEX_STATE } from "@/lib/domain/dex/capture";
-import { DEX_MONSTERS } from "@/lib/domain/chapters";
+import { CAPTURABLE_MONSTERS } from "@/lib/domain/chapters";
 import {
   completedSecondaryJobIds,
   findJob,
@@ -20,15 +20,28 @@ import {
   SECONDARY_JOB_REGISTRY_KEY,
   TERTIARY_JOB_REGISTRY_KEY,
 } from "@/lib/domain/player/jobs";
+import { DEFAULT_LOCALE, detectLocale, isLocale, type Locale } from "@/lib/i18n/locale";
 import { createSave, parseSave } from "./save/schema";
 import { completedCareerPathIds } from "./worldMap/careerPaths";
 
 const CARDS_KEY = "cards";
 const CAREER_DEX_KEY = "careerDex";
 export const TUTORIAL_ONBOARDING_SEEN_KEY = "tutorialOnboardingSeen";
+export const LOCALE_REGISTRY_KEY = "locale";
 export const SAVE_STORAGE_KEY = "codigdex:save:v3";
 export const PREVIOUS_SAVE_STORAGE_KEY = "codigdex:save:v2";
 export const LEGACY_SAVE_STORAGE_KEY = "codigdex:save:v1";
+
+function preferredLanguages(): readonly string[] | undefined {
+  if (typeof navigator === "undefined") return undefined;
+  return navigator.languages?.length ? navigator.languages : [navigator.language];
+}
+
+/** The interface language. Falls back to the default when the registry holds nothing valid. */
+export function readLocale(registry: Phaser.Data.DataManager): Locale {
+  const value = registry.get(LOCALE_REGISTRY_KEY);
+  return isLocale(value) ? value : DEFAULT_LOCALE;
+}
 
 function browserStorage(): Storage | undefined {
   if (typeof window === "undefined") return undefined;
@@ -40,7 +53,13 @@ function browserStorage(): Storage | undefined {
 }
 
 /** Restores saved ids against today's monster definitions, so content edits don't stale the dex. */
-export function hydrateRegistry(registry: Phaser.Data.DataManager, storage = browserStorage()) {
+export function hydrateRegistry(
+  registry: Phaser.Data.DataManager,
+  storage = browserStorage(),
+  browserLanguages = preferredLanguages()
+) {
+  // A first visit has no saved language, so start in the browser's language.
+  registry.set(LOCALE_REGISTRY_KEY, detectLocale(browserLanguages));
   if (!storage) return;
   try {
     const currentRaw = storage.getItem(SAVE_STORAGE_KEY);
@@ -55,7 +74,7 @@ export function hydrateRegistry(registry: Phaser.Data.DataManager, storage = bro
       save.progress.captures
         .map((entry) => [entry.id, entry.capturedAt])
     );
-    const cards = DEX_MONSTERS.filter((monster) => capturedAtById.has(monster.id)).map((monster) => ({
+    const cards = CAPTURABLE_MONSTERS.filter((monster) => capturedAtById.has(monster.id)).map((monster) => ({
       id: monster.id,
       dexNumber: monster.dexNumber,
       name: monster.name,
@@ -79,6 +98,7 @@ export function hydrateRegistry(registry: Phaser.Data.DataManager, storage = bro
     registry.set(SECONDARY_JOB_REGISTRY_KEY, findSecondaryJob(save.player.secondaryJobId)?.id ?? null);
     registry.set(TERTIARY_JOB_REGISTRY_KEY, findTertiaryJob(save.player.tertiaryJobId)?.id ?? null);
     registry.set(TUTORIAL_ONBOARDING_SEEN_KEY, save.ui.tutorialOnboardingSeen);
+    if (save.ui.locale) registry.set(LOCALE_REGISTRY_KEY, save.ui.locale);
 
     // Copy a valid legacy save into the current slot without deleting the fallback.
     if (!currentSave) persistRegistry(registry, storage);
@@ -99,6 +119,7 @@ export function persistRegistry(registry: Phaser.Data.DataManager, storage = bro
     tertiaryJobId:
       findTertiaryJob(registry.get(TERTIARY_JOB_REGISTRY_KEY) as string | null | undefined)?.id ?? null,
     tutorialOnboardingSeen: registry.get(TUTORIAL_ONBOARDING_SEEN_KEY) === true,
+    locale: readLocale(registry),
   });
   try {
     storage.setItem(SAVE_STORAGE_KEY, JSON.stringify(save));

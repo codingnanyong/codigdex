@@ -1,5 +1,6 @@
 import type Phaser from "phaser";
 import { fitTexture } from "../monsterArt";
+import { lt, t } from "../i18n";
 import { PALETTE, PALETTE_HEX } from "../palette";
 import { pixelText } from "../pixelFont";
 import { applyPixelFontToScene } from "../ui";
@@ -53,13 +54,13 @@ export class PreviewPane {
     };
 
     addLine(`No. ${dexNumber}`, { ...pixelText("body"), color: PALETTE_HEX.sand }, 4);
-    addLine(card ? card.name : "???", { ...pixelText("subtitle"), color: PALETTE_HEX.cream, fontStyle: "bold" }, 6);
+    addLine(card ? lt(scene, card.name) : "???", { ...pixelText("subtitle"), color: PALETTE_HEX.cream, fontStyle: "bold" }, 6);
     if (card) {
-      addLine(card.classification, { ...pixelText("body"), color: PALETTE_HEX.amber }, 6);
-      addLine(card.trait, { ...pixelText("body"), color: PALETTE_HEX.sand, align: "center", wordWrap: { width: infoWidth } }, 0);
+      addLine(lt(scene, card.classification), { ...pixelText("body"), color: PALETTE_HEX.amber }, 6);
+      addLine(lt(scene, card.trait), { ...pixelText("body"), color: PALETTE_HEX.sand, align: "center", wordWrap: { width: infoWidth } }, 0);
     } else {
       addLine(
-        planned ? "아직 발견되지 않은 지역입니다" : "아직 관찰되지 않았습니다",
+        t(scene, planned ? "dex.undiscoveredRegion" : "dex.unobserved"),
         { ...pixelText("body"), color: PALETTE_HEX.mutedBrown, align: "center", wordWrap: { width: infoWidth } },
         0
       );

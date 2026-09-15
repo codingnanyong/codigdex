@@ -1,6 +1,8 @@
+import { text, type LocalizedText } from "@/lib/i18n/locale";
+
 export interface TechnologySpecimen {
   id: string;
-  name: string;
+  name: LocalizedText;
   textureKey: string;
   assetPath: string;
   role: "common" | "future";
@@ -13,7 +15,7 @@ const art = (chapterFolder: string, file: string) => `/assets/monsters/${chapter
 export const TECHNOLOGY_SPECIMENS = {
   git: {
     id: "git",
-    name: "Git",
+    name: text("Git", "Git"),
     textureKey: "tech-git",
     assetPath: art("ch01.git", "git-specimen.png"),
     role: "common",
@@ -21,7 +23,7 @@ export const TECHNOLOGY_SPECIMENS = {
   },
   linux: {
     id: "linux",
-    name: "Linux",
+    name: text("Linux", "Linux"),
     textureKey: "tech-linux",
     assetPath: art("ch02.linux", "linux-specimen.png"),
     role: "common",
@@ -29,7 +31,7 @@ export const TECHNOLOGY_SPECIMENS = {
   },
   htmlCss: {
     id: "html-css",
-    name: "HTML/CSS",
+    name: text("HTML/CSS", "HTML/CSS"),
     textureKey: "tech-html-css",
     assetPath: art("ch03.html-css", "html-css-specimen.png"),
     role: "future",
@@ -37,7 +39,7 @@ export const TECHNOLOGY_SPECIMENS = {
   },
   javascript: {
     id: "javascript",
-    name: "JavaScript",
+    name: text("JavaScript", "JavaScript"),
     textureKey: "tech-javascript",
     assetPath: art("ch04.javascript", "javascript-specimen.png"),
     role: "future",
@@ -45,7 +47,7 @@ export const TECHNOLOGY_SPECIMENS = {
   },
   httpApi: {
     id: "http-api",
-    name: "HTTP/API",
+    name: text("HTTP/API", "HTTP/API"),
     textureKey: "tech-http-api",
     assetPath: art("ch05.http-api", "http-api-specimen.png"),
     role: "future",
@@ -53,7 +55,7 @@ export const TECHNOLOGY_SPECIMENS = {
   },
   python: {
     id: "python",
-    name: "Python",
+    name: text("Python", "Python"),
     textureKey: "tech-python",
     assetPath: art("ch06.python", "python-specimen.png"),
     role: "future",
@@ -61,7 +63,7 @@ export const TECHNOLOGY_SPECIMENS = {
   },
   sql: {
     id: "sql",
-    name: "SQL",
+    name: text("SQL", "SQL"),
     textureKey: "tech-sql",
     assetPath: art("ch07.sql", "sql-specimen.png"),
     role: "future",
@@ -69,7 +71,7 @@ export const TECHNOLOGY_SPECIMENS = {
   },
   network: {
     id: "network",
-    name: "네트워크",
+    name: text("네트워크", "Networking"),
     textureKey: "tech-network",
     assetPath: art("ch08.network", "network-specimen.png"),
     role: "future",
@@ -77,7 +79,7 @@ export const TECHNOLOGY_SPECIMENS = {
   },
   testing: {
     id: "testing",
-    name: "테스트",
+    name: text("테스트", "Testing"),
     textureKey: "tech-testing",
     assetPath: art("ch09.testing", "testing-specimen.png"),
     role: "future",
@@ -85,7 +87,7 @@ export const TECHNOLOGY_SPECIMENS = {
   },
   securityAuth: {
     id: "security-auth",
-    name: "보안/인증",
+    name: text("보안/인증", "Security/Auth"),
     textureKey: "tech-security-auth",
     assetPath: art("ch10.security-auth", "security-auth-specimen.png"),
     role: "future",
@@ -93,7 +95,7 @@ export const TECHNOLOGY_SPECIMENS = {
   },
   docker: {
     id: "docker",
-    name: "Docker",
+    name: text("Docker", "Docker"),
     textureKey: "tech-docker",
     assetPath: art("ch11.docker", "docker-specimen.png"),
     role: "future",
@@ -101,7 +103,7 @@ export const TECHNOLOGY_SPECIMENS = {
   },
   cicd: {
     id: "cicd",
-    name: "CI/CD",
+    name: text("CI/CD", "CI/CD"),
     textureKey: "tech-cicd",
     assetPath: art("ch12.cicd", "cicd-specimen.png"),
     role: "future",
@@ -109,7 +111,7 @@ export const TECHNOLOGY_SPECIMENS = {
   },
   kubernetes: {
     id: "kubernetes",
-    name: "Kubernetes",
+    name: text("Kubernetes", "Kubernetes"),
     textureKey: "tech-kubernetes",
     assetPath: art("ch13.kubernetes", "kubernetes-specimen.png"),
     role: "future",
@@ -117,7 +119,7 @@ export const TECHNOLOGY_SPECIMENS = {
   },
   cloudIac: {
     id: "cloud-iac",
-    name: "Cloud/IaC",
+    name: text("Cloud/IaC", "Cloud/IaC"),
     textureKey: "tech-cloud-iac",
     assetPath: art("ch14.cloud-iac", "cloud-iac-specimen.png"),
     role: "future",
@@ -125,7 +127,7 @@ export const TECHNOLOGY_SPECIMENS = {
   },
   monitoring: {
     id: "monitoring",
-    name: "모니터링",
+    name: text("모니터링", "Monitoring"),
     textureKey: "tech-monitoring",
     assetPath: art("ch15.monitoring", "monitoring-specimen-v2.png"),
     role: "future",
@@ -133,7 +135,7 @@ export const TECHNOLOGY_SPECIMENS = {
   },
   react: {
     id: "react",
-    name: "React",
+    name: text("React", "React"),
     textureKey: "tech-react",
     assetPath: art("ch16.react", "react-specimen.png"),
     role: "future",
@@ -141,7 +143,7 @@ export const TECHNOLOGY_SPECIMENS = {
   },
   serverFramework: {
     id: "server-framework",
-    name: "서버 프레임워크",
+    name: text("서버 프레임워크", "Server framework"),
     textureKey: "tech-server-framework",
     assetPath: art("ch17.server-framework", "server-framework-specimen.png"),
     role: "future",
@@ -149,7 +151,7 @@ export const TECHNOLOGY_SPECIMENS = {
   },
   dataPipeline: {
     id: "data-pipeline",
-    name: "데이터 파이프라인",
+    name: text("데이터 파이프라인", "Data pipelines"),
     textureKey: "tech-data-pipeline",
     assetPath: art("ch18.data-pipeline", "data-pipeline-specimen.png"),
     role: "future",
@@ -157,7 +159,7 @@ export const TECHNOLOGY_SPECIMENS = {
   },
   orchestration: {
     id: "orchestration",
-    name: "워크플로 오케스트레이션",
+    name: text("워크플로 오케스트레이션", "Workflow orchestration"),
     textureKey: "tech-orchestration",
     assetPath: art("ch19.orchestration", "workflow-orchestration-specimen.png"),
     role: "future",
@@ -165,7 +167,7 @@ export const TECHNOLOGY_SPECIMENS = {
   },
   statistics: {
     id: "statistics",
-    name: "기초 통계",
+    name: text("기초 통계", "Basic statistics"),
     textureKey: "tech-statistics",
     assetPath: art("ch20.statistics", "statistics-specimen.png"),
     role: "future",
@@ -173,7 +175,7 @@ export const TECHNOLOGY_SPECIMENS = {
   },
   visualization: {
     id: "visualization",
-    name: "데이터 시각화",
+    name: text("데이터 시각화", "Data visualization"),
     textureKey: "tech-visualization",
     assetPath: art("ch21.visualization", "visualization-specimen.png"),
     role: "future",
@@ -181,7 +183,7 @@ export const TECHNOLOGY_SPECIMENS = {
   },
   biTools: {
     id: "bi-tools",
-    name: "BI 도구",
+    name: text("BI 도구", "BI tools"),
     textureKey: "tech-bi-tools",
     assetPath: art("ch22.bi-tools", "bi-tools-specimen.png"),
     role: "future",

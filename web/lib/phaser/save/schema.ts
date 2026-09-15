@@ -1,3 +1,5 @@
+import { isLocale, type Locale } from "@/lib/i18n/locale";
+
 export interface StoredCapture {
   id: string;
   capturedAt: string;
@@ -30,6 +32,8 @@ export interface StoredGameStateV3 {
   };
   ui: {
     tutorialOnboardingSeen: boolean;
+    /** Chosen in settings; absent until the player (or their browser) picks one. */
+    locale?: Locale;
   };
 }
 
@@ -40,6 +44,7 @@ export interface SaveSnapshot {
   secondaryJobId: string | null;
   tertiaryJobId: string | null;
   tutorialOnboardingSeen: boolean;
+  locale?: Locale;
 }
 
 export function createSave(snapshot: SaveSnapshot): StoredGameStateV3 {
@@ -51,7 +56,10 @@ export function createSave(snapshot: SaveSnapshot): StoredGameStateV3 {
       secondaryJobId: snapshot.secondaryJobId,
       tertiaryJobId: snapshot.tertiaryJobId,
     },
-    ui: { tutorialOnboardingSeen: snapshot.tutorialOnboardingSeen },
+    ui: {
+      tutorialOnboardingSeen: snapshot.tutorialOnboardingSeen,
+      ...(snapshot.locale ? { locale: snapshot.locale } : {}),
+    },
   };
 }
 
@@ -79,6 +87,7 @@ export function parseSave(raw: string): StoredGameStateV3 | undefined {
     secondaryJobId: typeof value.player.secondaryJobId === "string" ? value.player.secondaryJobId : null,
     tertiaryJobId: typeof value.player.tertiaryJobId === "string" ? value.player.tertiaryJobId : null,
     tutorialOnboardingSeen: value.ui.tutorialOnboardingSeen === true,
+    locale: isLocale(value.ui.locale) ? value.ui.locale : undefined,
   });
 }
 

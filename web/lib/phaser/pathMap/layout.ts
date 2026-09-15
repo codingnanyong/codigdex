@@ -3,6 +3,7 @@ import { LINUX_CHAPTER } from "@/lib/domain/chapters/linux";
 import type { ChapterId } from "@/lib/domain/chapters/types";
 import { TECHNOLOGY_SPECIMENS } from "@/lib/domain/technologySpecimens";
 import { JOB_OPTIONS } from "@/lib/domain/player/jobs";
+import { same, text, type LocalizedText } from "@/lib/i18n/locale";
 
 export type PathNodeKind = "common" | "promotion" | "career";
 
@@ -10,7 +11,7 @@ export interface PathNode {
   id: string;
   x: number;
   y: number;
-  label: string;
+  label: LocalizedText;
   eyebrow: string;
   spriteKey?: string;
   kind: PathNodeKind;
@@ -19,25 +20,25 @@ export interface PathNode {
 }
 
 export const COMMON_NODES: readonly PathNode[] = [
-  { id: "git", chapterId: GIT_CHAPTER.id, x: 115, y: 272, label: "Git", eyebrow: GIT_CHAPTER.label, spriteKey: TECHNOLOGY_SPECIMENS.git.textureKey, kind: "common" },
-  { id: "terminal", chapterId: LINUX_CHAPTER.id, x: 300, y: 272, label: "터미널\nLinux", eyebrow: LINUX_CHAPTER.label, spriteKey: TECHNOLOGY_SPECIMENS.linux.textureKey, kind: "common" },
+  { id: "git", chapterId: GIT_CHAPTER.id, x: 115, y: 272, label: same("Git"), eyebrow: GIT_CHAPTER.label, spriteKey: TECHNOLOGY_SPECIMENS.git.textureKey, kind: "common" },
+  { id: "terminal", chapterId: LINUX_CHAPTER.id, x: 300, y: 272, label: text("터미널\nLinux", "Terminal\nLinux"), eyebrow: LINUX_CHAPTER.label, spriteKey: TECHNOLOGY_SPECIMENS.linux.textureKey, kind: "common" },
 ];
 
 export const PROMOTION_NODE: PathNode = {
   id: "promotion",
   x: 490,
   y: 272,
-  label: "전직",
+  label: text("전직", "Promote"),
   eyebrow: "PATH SELECT",
   kind: "promotion",
 };
 
 export const CAREER_NODES: readonly PathNode[] = [
-  { id: "frontend", x: 790, y: 132, label: "웹 프론트엔드 개발자", eyebrow: "WEB", spriteKey: "career-frontend", kind: "career" },
-  { id: "backend", x: 790, y: 202, label: "백엔드 개발자", eyebrow: "SERVER", spriteKey: "career-backend", kind: "career" },
-  { id: "devops", x: 790, y: 272, label: "DevOps 엔지니어", eyebrow: "INFRA", spriteKey: "career-devops", kind: "career" },
-  { id: "data-engineer", x: 790, y: 342, label: "데이터 엔지니어", eyebrow: "DATA", spriteKey: "career-data-engineer", kind: "career" },
-  { id: "data-analyst", x: 790, y: 412, label: "데이터 분석가", eyebrow: "ANALYTICS", spriteKey: "career-data-analyst", kind: "career" },
+  { id: "frontend", x: 790, y: 132, label: text("웹 프론트엔드 개발자", "Web Frontend Developer"), eyebrow: "WEB", spriteKey: "career-frontend", kind: "career" },
+  { id: "backend", x: 790, y: 202, label: text("백엔드 개발자", "Backend Developer"), eyebrow: "SERVER", spriteKey: "career-backend", kind: "career" },
+  { id: "devops", x: 790, y: 272, label: text("DevOps 엔지니어", "DevOps Engineer"), eyebrow: "INFRA", spriteKey: "career-devops", kind: "career" },
+  { id: "data-engineer", x: 790, y: 342, label: text("데이터 엔지니어", "Data Engineer"), eyebrow: "DATA", spriteKey: "career-data-engineer", kind: "career" },
+  { id: "data-analyst", x: 790, y: 412, label: text("데이터 분석가", "Data Analyst"), eyebrow: "ANALYTICS", spriteKey: "career-data-analyst", kind: "career" },
 ];
 
 export const ALL_NODES: readonly PathNode[] = [...COMMON_NODES, PROMOTION_NODE, ...CAREER_NODES];

@@ -1,7 +1,9 @@
 import Phaser from "phaser";
 import { playAmbience } from "../ambience";
 import { breathe } from "../ambience/effects";
+import { t } from "../i18n";
 import { PALETTE, PALETTE_HEX } from "../palette";
+import { createSettingsButton } from "../settings/settingsButton";
 import { pixelText } from "../pixelFont";
 import { addShade, applyPixelFontToScene, createButton, drawOrnateFrame } from "../ui";
 import { hasSavedProgress, resetGameProgress } from "../registryAdapter";
@@ -23,7 +25,7 @@ export class IntroScene extends Phaser.Scene {
   create() {
     const { width, height } = this.scale;
     // Phaser reuses scene instances. Reset the previous departure so HOME →
-    // 이어하기 can leave the title a second time.
+    // Continue can leave the title a second time.
     this.leaving = false;
     this.confirmingReset = false;
     this.resetDialog = undefined;
@@ -36,6 +38,7 @@ export class IntroScene extends Phaser.Scene {
 
     this.drawTitle();
     this.createStartPrompt(hasSavedProgress(this.registry));
+    createSettingsButton(this, 26, 26).setDepth(10);
 
     this.input.keyboard?.once("keydown-ENTER", () => this.finishIntro());
     this.input.keyboard?.once("keydown-SPACE", () => this.finishIntro());
@@ -65,7 +68,7 @@ export class IntroScene extends Phaser.Scene {
       .setDepth(5);
 
     this.add
-      .text(width / 2, 135, "CODE ARCHIVE ADVENTURE", {
+      .text(width / 2, 135, t(this, "intro.subtitle"), {
         ...pixelText("body"),
         color: PALETTE_HEX.sand,
         letterSpacing: 3,
@@ -84,7 +87,7 @@ export class IntroScene extends Phaser.Scene {
     panel.on("pointerup", () => this.finishIntro());
 
     const prompt = this.add
-      .text(width / 2, 188, hasProgress ? "이어하기" : "PRESS START", {
+      .text(width / 2, 188, t(this, hasProgress ? "intro.continue" : "intro.start"), {
         ...pixelText("subtitle"),
         color: PALETTE_HEX.cream,
         letterSpacing: 2,
@@ -93,7 +96,7 @@ export class IntroScene extends Phaser.Scene {
       .setDepth(5);
 
     this.add
-      .text(width / 2, 216, "클릭하거나 ENTER를 누르세요", {
+      .text(width / 2, 216, t(this, "intro.hint"), {
         ...pixelText("caption"),
         color: PALETTE_HEX.sand,
       })
@@ -111,7 +114,7 @@ export class IntroScene extends Phaser.Scene {
     });
 
     if (hasProgress) {
-      createButton(this, width / 2, 264, 132, 34, "새 게임", () => this.showResetConfirmation()).setDepth(5);
+      createButton(this, width / 2, 264, 132, 34, t(this, "intro.newGame"), () => this.showResetConfirmation()).setDepth(5);
     }
   }
 
@@ -122,23 +125,23 @@ export class IntroScene extends Phaser.Scene {
     const shade = addShade(this, 0.58, 20);
     const frame = drawOrnateFrame(this, width / 2, height / 2, 480, 190, { radius: 14 });
     const title = this.add
-      .text(width / 2, height / 2 - 48, "새 게임을 시작할까요?", {
+      .text(width / 2, height / 2 - 48, t(this, "intro.resetTitle"), {
         ...pixelText("subtitle"),
         color: PALETTE_HEX.ink,
       })
       .setOrigin(0.5);
     const body = this.add
-      .text(width / 2, height / 2 - 6, "도감과 챕터 진행 기록이 모두 초기화됩니다.", {
+      .text(width / 2, height / 2 - 6, t(this, "intro.resetBody"), {
         ...pixelText("body"),
         color: PALETTE_HEX.mutedBrown,
       })
       .setOrigin(0.5);
-    const cancel = createButton(this, width / 2 - 82, height / 2 + 55, 120, 34, "취소", () => {
+    const cancel = createButton(this, width / 2 - 82, height / 2 + 55, 120, 34, t(this, "common.cancel"), () => {
       this.resetDialog?.destroy(true);
       this.resetDialog = undefined;
       this.confirmingReset = false;
     });
-    const confirm = createButton(this, width / 2 + 82, height / 2 + 55, 120, 34, "초기화", () => {
+    const confirm = createButton(this, width / 2 + 82, height / 2 + 55, 120, 34, t(this, "intro.resetConfirm"), () => {
       resetGameProgress(this.registry);
       this.leaving = true;
       this.scene.start("world-map");

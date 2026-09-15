@@ -3,6 +3,7 @@ import { chapterTitle, currentStageIndex, stageStatus } from "@/lib/domain/chapt
 import type { ChapterDefinition } from "@/lib/domain/chapters/types";
 import { requiredCorrectAnswers } from "@/lib/domain/dex/capture";
 import { quizCountForLevel } from "@/lib/domain/dex/quiz";
+import { lt, sceneLocale, t } from "../i18n";
 import { fitTexture } from "../monsterArt";
 import { PALETTE, PALETTE_HEX } from "../palette";
 import { pixelText } from "../pixelFont";
@@ -67,13 +68,13 @@ export class StagePanel {
 
     const frame = drawOrnateFrame(scene, 0, 0, PANEL.width, PANEL.height);
     const heading = scene.add
-      .text(left, top + 28, `${chapter.label} · ${chapterTitle(chapter)}`, {
+      .text(left, top + 28, `${chapter.label} · ${chapterTitle(chapter, sceneLocale(scene))}`, {
         ...pixelText("body"),
         color: PALETTE_HEX.maroon,
       })
       .setOrigin(0, 0.5);
     const progress = scene.add
-      .text(-left, top + 28, `포획 ${capturedCount} / ${stageCount}`, {
+      .text(-left, top + 28, t(scene, "path.captureCount", { captured: capturedCount, total: stageCount }), {
         ...pixelText("body"),
         color: PALETTE_HEX.mutedBrown,
       })
@@ -103,7 +104,7 @@ export class StagePanel {
 
     const buttonY = PANEL.height / 2 - 32;
     const startX = PANEL.width / 2 - 30 - START_WIDTH / 2;
-    this.startButton = createButton(scene, startX, buttonY, START_WIDTH, 34, "코드 배틀 시작", () => {
+    this.startButton = createButton(scene, startX, buttonY, START_WIDTH, 34, t(scene, "path.startBattle"), () => {
       if (this.selectedMonsterId) options.onStart(this.selectedMonsterId);
     });
     const closeButton = createButton(
@@ -112,7 +113,7 @@ export class StagePanel {
       buttonY,
       CLOSE_WIDTH,
       34,
-      "닫기",
+      t(scene, "common.close"),
       options.onClose
     );
 
@@ -187,15 +188,18 @@ export class StagePanel {
 
     this.selectedMonsterId = locked ? undefined : monster.id;
     this.selectionRing.setPosition(this.slotXs[index], this.stripY);
-    this.title.setText(`${locked ? "???" : monster.name}  Lv.${monster.level}`);
+    this.title.setText(`${locked ? "???" : lt(this.scene, monster.name)}  Lv.${monster.level}`);
     this.briefing.setText(
-      locked ? "앞 단계를 먼저 포획하면 모습을 드러내요." : `${this.chapter.npcName}: ${monster.briefing}`
+      locked
+        ? t(this.scene, "path.stageLocked")
+        : `${lt(this.scene, this.chapter.npcName)}: ${lt(this.scene, monster.briefing)}`
     );
     const questionCount = quizCountForLevel(monster.level);
     this.rule.setText(
       locked
         ? ""
-        : `문제 ${questionCount}개 · ${requiredCorrectAnswers(questionCount)}개 이상 맞히면 도감 등록${status === "cleared" ? " · 복습" : ""}`
+        : t(this.scene, "path.stageRule", { count: questionCount, required: requiredCorrectAnswers(questionCount) }) +
+          (status === "cleared" ? t(this.scene, "path.stageReview") : "")
     );
     setButtonEnabled(this.startButton, !locked);
   }
