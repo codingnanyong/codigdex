@@ -16,6 +16,6 @@ npm run lint
 
 ## Vercel
 
-Keep the project's **Root Directory** at the repository root so Vercel can use
-the root lockfile and resolve the shared workspaces. Use `npm run build:web` as
-the build command.
+Set the project's **Root Directory** to `web` and enable **Include source files
+outside of the Root Directory** so Vercel can resolve the root lockfile and
+shared workspaces. Use `npm run build` as the build command.
