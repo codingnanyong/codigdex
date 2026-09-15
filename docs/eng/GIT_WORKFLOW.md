@@ -64,9 +64,9 @@ One-time repository configuration:
 
 1. Create a Notion internal integration with read and update-content capabilities, then share the Sprint Tracker data source with it.
 2. Add its token as the Actions secret `NOTION_API_KEY`.
-3. Set `LINEAR_TEAM_KEY`, `LINEAR_WORKSPACE_SLUG`, and `NOTION_SPRINT_DATA_SOURCE_ID` as Actions variables. `LINEAR_PROJECT_NAME` is shared with feature-PR automation.
+3. Set `LINEAR_TEAM_KEY`, `LINEAR_WORKSPACE_SLUG`, and `NOTION_SPRINT_DATA_SOURCE_ID` as Actions variables. `LINEAR_PROJECT_NAME` and `LINEAR_PROJECT_SLUG` are shared with feature-PR automation.
 4. Run **Sync Linear sprint progress to Notion** manually once to verify the connection. Without `NOTION_API_KEY`, the workflow safely skips the remote update while still testing its calculations.
 
-Each Sprint Tracker row must contain its Linear cycle URL in the `Linear Cycle` property, for example `https://linear.app/codingnanyong/team/COD/cycle/2`.
+Each Sprint Tracker row must contain its Linear cycle URL in `Linear Cycle` and project URL in `Linear Project`. The pair uniquely identifies the row when multiple projects share one team cycle.
 
 See [AGENTS.md](../../AGENTS.md#pr--issue-policy) for the full policy and procedure.

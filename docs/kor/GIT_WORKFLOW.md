@@ -63,9 +63,9 @@ feat/<slug> ── push ──> Linear 이슈 + GitHub 미러 이슈
 
 1. 읽기 및 콘텐츠 수정 권한을 가진 Notion 내부 통합을 만들고 Sprint Tracker 데이터 소스를 통합에 공유합니다.
 2. 통합 토큰을 Actions secret `NOTION_API_KEY`로 등록합니다.
-3. Actions variables에 `LINEAR_TEAM_KEY`, `LINEAR_WORKSPACE_SLUG`, `NOTION_SPRINT_DATA_SOURCE_ID`를 등록합니다. `LINEAR_PROJECT_NAME`은 기능 PR 자동화와 함께 사용합니다.
+3. Actions variables에 `LINEAR_TEAM_KEY`, `LINEAR_WORKSPACE_SLUG`, `NOTION_SPRINT_DATA_SOURCE_ID`를 등록합니다. `LINEAR_PROJECT_NAME`과 `LINEAR_PROJECT_SLUG`는 기능 PR 자동화와 함께 사용합니다.
 4. **Sync Linear sprint progress to Notion** 워크플로를 한 번 수동 실행해 연결을 확인합니다. `NOTION_API_KEY`가 없으면 원격 갱신만 안전하게 건너뛰고 계산 테스트는 계속 실행합니다.
 
-Sprint Tracker의 각 행에는 해당 Linear 사이클 URL을 `Linear Cycle` 속성에 입력해야 합니다. 예: `https://linear.app/codingnanyong/team/COD/cycle/2`
+Sprint Tracker의 각 행에는 Linear 사이클 URL을 `Linear Cycle`, 프로젝트 URL을 `Linear Project` 속성에 입력해야 합니다. 두 URL의 조합으로 같은 팀 사이클을 사용하는 여러 프로젝트를 구분합니다.
 
 자세한 정책과 절차는 [AGENTS.md](../../AGENTS.md#pr--issue-policy)를 참고하세요.

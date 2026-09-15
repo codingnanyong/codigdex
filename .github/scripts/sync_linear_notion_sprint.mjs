@@ -109,8 +109,10 @@ async function findNotionSprintPage({
   workspaceSlug,
   teamKey,
   cycleNumber,
+  projectSlug,
 }) {
   const cycleUrl = `https://linear.app/${workspaceSlug}/team/${teamKey}/cycle/${cycleNumber}`;
+  const projectUrl = `https://linear.app/${workspaceSlug}/project/${projectSlug}`;
   const payload = await requestJson(`${NOTION_API_URL}/data_sources/${dataSourceId}/query`, {
     method: "POST",
     headers: {
@@ -119,16 +121,25 @@ async function findNotionSprintPage({
       "Notion-Version": NOTION_VERSION,
     },
     body: JSON.stringify({
-      filter: { property: "Linear Cycle", url: { equals: cycleUrl } },
+      filter: {
+        and: [
+          { property: "Linear Cycle", url: { equals: cycleUrl } },
+          { property: "Linear Project", url: { equals: projectUrl } },
+        ],
+      },
       page_size: 2,
     }),
   });
   if (payload.results.length === 0) {
-    console.warn(`::warning::No Notion sprint found for ${cycleUrl}; skipping update`);
+    console.warn(
+      `::warning::No Notion sprint found for cycle ${cycleUrl} and project ${projectUrl}; skipping update`
+    );
     return null;
   }
   if (payload.results.length > 1) {
-    throw new Error(`Expected one Notion sprint for ${cycleUrl}, found ${payload.results.length}`);
+    throw new Error(
+      `Expected one Notion sprint for cycle ${cycleUrl} and project ${projectUrl}, found ${payload.results.length}`
+    );
   }
   return { pageId: payload.results[0].id, cycleUrl };
 }
@@ -157,6 +168,7 @@ export async function syncSprintProgress(env = process.env, now = new Date()) {
   const notionApiKey = requireValue(env.NOTION_API_KEY, "NOTION_API_KEY");
   const teamKey = requireValue(env.LINEAR_TEAM_KEY, "LINEAR_TEAM_KEY");
   const projectName = requireValue(env.LINEAR_PROJECT_NAME, "LINEAR_PROJECT_NAME");
+  const projectSlug = requireValue(env.LINEAR_PROJECT_SLUG, "LINEAR_PROJECT_SLUG");
   const workspaceSlug = requireValue(env.LINEAR_WORKSPACE_SLUG, "LINEAR_WORKSPACE_SLUG");
   const dataSourceId = requireValue(
     env.NOTION_SPRINT_DATA_SOURCE_ID,
@@ -177,6 +189,7 @@ export async function syncSprintProgress(env = process.env, now = new Date()) {
     workspaceSlug,
     teamKey,
     cycleNumber: cycle.number,
+    projectSlug,
   });
   if (!sprint) {
     const result = { cycle: cycle.number, status, ...progress, skipped: true };
