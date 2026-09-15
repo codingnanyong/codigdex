@@ -1,3 +1,4 @@
+import { text, type LocalizedText } from "@/lib/i18n/locale";
 import {
   DEFAULT_JOB,
   guideDisplayName,
@@ -16,10 +17,10 @@ export type CareerStatus = "locked" | "unlocked" | "active" | "mastered";
 export interface CareerCatalogEntry {
   id: CareerId;
   tier: CareerTier;
-  name: string;
-  tagline: string;
+  name: LocalizedText;
+  tagline: LocalizedText;
   emblemAssetPath: string;
-  guideName?: string;
+  guideName?: LocalizedText;
   requires: readonly CareerId[];
 }
 
@@ -80,7 +81,7 @@ export const CAREER_CATALOG: readonly CareerCatalogEntry[] = [
     id: job.id,
     tier: 2 as const,
     name: job.name,
-    tagline: "두 전문 경로를 잇는 상위 직업",
+    tagline: text("두 전문 경로를 잇는 상위 직업", "A higher career that bridges two specialist paths"),
     emblemAssetPath: CAREER_EMBLEMS[job.id],
     guideName: guideDisplayName(job),
     requires: job.requires,
@@ -89,7 +90,7 @@ export const CAREER_CATALOG: readonly CareerCatalogEntry[] = [
     id: job.id,
     tier: 3 as const,
     name: job.name,
-    tagline: "2차 직업을 완성한 마스터 직업",
+    tagline: text("2차 직업을 완성한 마스터 직업", "A master career earned by completing a tier 2 career"),
     emblemAssetPath: CAREER_EMBLEMS[job.id],
     guideName: guideDisplayName(job),
     requires: [job.requires],

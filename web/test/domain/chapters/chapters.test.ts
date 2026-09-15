@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   CHAPTERS,
+  ALL_CHAPTERS,
   DEX_MONSTERS,
   chapterStatus,
   chapterTitle,
@@ -17,6 +18,7 @@ import { LINUX_CHAPTER } from "@/lib/domain/chapters/linux";
 import { TUTORIAL_CHAPTER, TUTORIAL_MONSTER } from "@/lib/domain/chapters/tutorial";
 import type { ChapterId, MonsterDefinition } from "@/lib/domain/chapters/types";
 import { quizCountForLevel } from "@/lib/domain/dex/quiz";
+import { LOCALES } from "@/lib/i18n/locale";
 
 const GIT = GIT_CHAPTER.stages;
 const LINUX = LINUX_CHAPTER.stages;
@@ -121,7 +123,8 @@ describe("lookup", () => {
   });
 
   it("titles a chapter by name and place", () => {
-    expect(chapterTitle(TUTORIAL_CHAPTER)).toBe("튜토리얼 · 반복문의 숲");
+    expect(chapterTitle(TUTORIAL_CHAPTER, "ko")).toBe("튜토리얼 · 반복문의 숲");
+    expect(chapterTitle(TUTORIAL_CHAPTER, "en")).toBe("Tutorial · Loop Forest");
   });
 });
 
@@ -130,7 +133,7 @@ describe("dex entries", () => {
     expect(DEX_MONSTERS.map((monster) => monster.dexNumber)).toEqual(
       DEX_MONSTERS.map((_, index) => String(index).padStart(3, "0"))
     );
-    expect(DEX_MONSTERS).toEqual(CHAPTERS.flatMap((chapter) => chapter.stages));
+    expect(DEX_MONSTERS).toEqual(ALL_CHAPTERS.flatMap((chapter) => chapter.stages));
     expect(new Set(DEX_MONSTERS.map((monster) => monster.id)).size).toBe(DEX_MONSTERS.length);
   });
 
@@ -153,14 +156,14 @@ describe.each(CHAPTERS.map((chapter) => [chapter.id, chapter] as const))("%s cha
     );
   });
 
-  it("never repeats a prompt across its stages", () => {
-    const prompts = chapter.stages.flatMap((monster) => monster.quizPool.map((question) => question.prompt));
+  it.each(LOCALES)("never repeats a %s prompt across its stages", (locale) => {
+    const prompts = chapter.stages.flatMap((monster) => monster.quizPool.map((question) => question.prompt[locale]));
     expect(new Set(prompts).size).toBe(prompts.length);
   });
 });
 
 describe.each(
-  CHAPTERS.flatMap((chapter) => chapter.stages.map((monster) => [`${chapter.id} / ${monster.name}`, monster] as const))
+  CHAPTERS.flatMap((chapter) => chapter.stages.map((monster) => [`${chapter.id} / ${monster.name.en}`, monster] as const))
 )("%s quiz pool", (_label, monster) => {
   const pool = monster.quizPool;
 
@@ -169,10 +172,10 @@ describe.each(
     expect(pool.length).toBeGreaterThan(quizCountForLevel(monster.level));
   });
 
-  it("gives every question four distinct choices with the answer among them", () => {
+  it.each(LOCALES)("gives every question four distinct %s choices with the answer among them", (locale) => {
     for (const question of pool) {
       expect(question.choices).toHaveLength(4);
-      expect(new Set(question.choices).size).toBe(4);
+      expect(new Set(question.choices.map((choice) => choice[locale])).size).toBe(4);
       expect(question.choices[question.answerIndex]).toBeDefined();
     }
   });

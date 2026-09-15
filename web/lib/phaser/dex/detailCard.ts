@@ -1,6 +1,8 @@
 import type Phaser from "phaser";
 import type { CapturedCard, MonsterDefinition } from "@/lib/domain/chapters/types";
 import { fitTexture } from "../monsterArt";
+import { formatDate } from "@/lib/i18n/locale";
+import { lt, sceneLocale, t } from "../i18n";
 import { PALETTE_HEX } from "../palette";
 import { pixelText } from "../pixelFont";
 import {
@@ -49,19 +51,19 @@ export class DetailCard {
     };
 
     addLine(`No. ${card.dexNumber}`, { ...pixelText("body"), color: PALETTE_HEX.mutedBrown }, 4);
-    addLine(card.name, { ...pixelText("subtitle"), color: PALETTE_HEX.ink, fontStyle: "bold" }, 4);
-    addLine(card.classification, { ...pixelText("body"), color: PALETTE_HEX.maroon }, 12);
+    addLine(lt(scene, card.name), { ...pixelText("subtitle"), color: PALETTE_HEX.ink, fontStyle: "bold" }, 4);
+    addLine(lt(scene, card.classification), { ...pixelText("body"), color: PALETTE_HEX.maroon }, 12);
     addLine(
-      card.description,
+      lt(scene, card.description),
       { ...pixelText("body"), color: PALETTE_HEX.ink, align: "center", wordWrap: { width: infoWidth } },
       12
     );
 
-    const snippet = addSnippetBlock(scene, cursor, infoWidth, card.snippet);
+    const snippet = addSnippetBlock(scene, cursor, infoWidth, lt(scene, card.snippet));
     content.push(snippet.plate, snippet.text);
     cursor += snippet.height + 12;
 
-    addLine(new Date(card.capturedAt).toLocaleDateString("ko-KR"), {
+    addLine(formatDate(card.capturedAt, sceneLocale(scene)), {
       ...pixelText("caption"),
       color: PALETTE_HEX.mutedBrown,
     }, 0);
@@ -73,7 +75,7 @@ export class DetailCard {
     });
 
     const frame = drawOrnateFrame(scene, 0, 0, PANEL_WIDTH, panelHeight);
-    const closeButton = createButton(scene, 0, panelHeight / 2 - 32, 100, 32, "닫기", () => this.close());
+    const closeButton = createButton(scene, 0, panelHeight / 2 - 32, 100, 32, t(scene, "common.close"), () => this.close());
 
     this.group = scene.add
       .container(width / 2, height / 2, [frame, ...content, closeButton])

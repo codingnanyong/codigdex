@@ -1,6 +1,13 @@
-# Codigdex
+<!-- markdownlint-disable MD033 MD041 -->
+<p align="center">
+  <img src="web/public/assets/icons/codigdex-main-icon.png" width="120" alt="Codigdex 게임 아이콘">
+</p>
 
-버그 몬스터를 물리치고, 캡처 퀴즈를 통과해 나만의 코딩 도감을 완성하는 픽셀 아트 교육 게임
+<h1 align="center">Codigdex</h1>
+
+<p align="center">버그 몬스터를 물리치고, 나만의 코딩 도감을 완성하는 픽셀 아트 교육 게임</p>
+<p align="center"><b>한국어</b> · <a href="README.en.md">English</a></p>
+<!-- markdownlint-enable MD033 MD041 -->
 
 [![CI](https://github.com/codingnanyong/codigdex/actions/workflows/ci.yml/badge.svg)](https://github.com/codingnanyong/codigdex/actions/workflows/ci.yml)
 [![PR policy](https://github.com/codingnanyong/codigdex/actions/workflows/pr-policy.yml/badge.svg)](https://github.com/codingnanyong/codigdex/actions/workflows/pr-policy.yml)
@@ -10,56 +17,55 @@
 
 ## Codigdex란?
 
-Codigdex는 코딩 개념을 읽는 데서 끝나지 않습니다. 코드 배틀에서 버그 몬스터를 쓰러뜨리고 짧은 캡처 퀴즈로 이해도를 확인하면, 결과에 따라 브론즈·실버·골드 카드가 개인 도감에 등록됩니다. 낮은 등급의 카드도 다시 도전해 골드로 성장시킬 수 있습니다.
+서버 구름 위 픽셀 마을 **코드빌(Codeville)** 에는 코드 속 개념이 버그 몬스터가 되어 돌아다닙니다. 막 첫 모험을 떠난 주니어 개발자가 되어 몬스터와 맞서고, 그 개념을 정말 이해했는지 증명해 나만의 도감 **Codigdex**를 채워 보세요.
 
-플레이어는 서버 구름 위 픽셀 마을 `Codeville`의 주니어 개발자로 시작합니다. 튜토리얼과 Git·Linux 공통 과정을 마친 뒤 원하는 직업으로 전직하고, 직업별 상세 지도에서 기술 지역을 돌며 도감을 확장합니다.
+읽고 넘어가는 공부 대신, 한 마리씩 잡아서 모으는 코딩 공부입니다.
 
 ![필드 가이드를 든 주니어 개발자와 버그 몬스터 지역](web/public/assets/wallpapers/codigdex-field-guide-wallpaper-v3.png)
 
-## 게임 진행 구조
+## 이렇게 플레이해요
+
+1. **의뢰 받기** — 안내 NPC가 지역에 나타난 버그 몬스터를 알려 줍니다.
+2. **문제 배틀** — 몬스터가 내는 코딩 문제를 풀어 공격합니다. 문제를 맞힐수록 몬스터가 약해져요.
+3. **도감 등록** — 60% 이상 맞히면 몬스터를 포획해 도감에 카드로 남깁니다. 실패해도 잃는 건 없고, 다시 도전하면 새로운 문제가 나옵니다.
+4. **다음 지역으로** — 한 단계를 잡으면 더 강한 몬스터가, 챕터를 끝내면 새 지역이 열립니다.
+
+## 모험의 흐름
 
 ```text
-튜토리얼
-  → 주니어 공통 Path (Git → Linux)
-  → 1차 전직 선택
-  → 직업별 상세 지도
-  → 기술 지역 → 코드 배틀 → 캡처 퀴즈 → 도감 등록
-  → 2차 전직 (두 직업 Path 완성)
-  → 3차 전직 (선택한 2차 직업의 마스터 Path 완성)
+튜토리얼 · 반복문의 숲
+  → CH.01 Git · 기록의 들판
+  → CH.02 Linux · 셸 동굴
+  → 1차 전직: 웹 프론트엔드 · 백엔드 · DevOps · 데이터 엔지니어 · 데이터 분석가
+  → 2차 전직: 두 직업을 잇는 하이브리드 직업
+  → 3차 전직: 마스터 직업
 ```
 
-현재 직업 Path는 웹 프론트엔드, 백엔드, DevOps, 데이터 엔지니어, 데이터 분석가로 구성됩니다. 전직 후에는 공통 과정의 루피 대신 각 직업의 선배 NPC가 길을 안내합니다. 풀스택 엔지니어, ML Developer, 플랫폼 엔지니어/SRE 같은 2차 전직은 처음부터 `???`로 보이되, 관련된 두 1차 직업 도감을 완성해야 정체와 조건이 드러납니다. 각 2차 직업 아래에는 소프트웨어 아키텍트, AI 프로덕트 엔지니어 등 대응하는 3차 마스터 직업이 한 갈래로 이어지며, 2차 마스터 Path를 완주한 뒤 해금됩니다.
+모든 개발자가 알아야 할 Git과 Linux를 먼저 익힌 뒤, 원하는 직업을 골라 그 직업만의 지도를 탐험합니다. 직업마다 길을 안내하는 선배 NPC가 있고, 풀스택 엔지니어나 ML Developer 같은 상위 직업은 `???`로 가려진 채 여러분이 두 직업의 길을 모두 걸어오기를 기다립니다.
 
-![1차 전직 플레이어 캐릭터와 직업별 안내 NPC 가이드](web/public/assets/characters/career-path/career-character-guide-v1.png)
+![주니어부터 3차 전직까지의 플레이어 캐릭터와 가이드 NPC](web/public/assets/characters/career-path/career-character-guide-v2.png)
 
-![기술 지역을 따라 이동하는 DevOps 상세 지도](web/public/assets/wallpapers/career-paths/devops-path-map-v2.png)
+## 모으는 재미
 
-## 현재 구현
+- **몬스터 도감** — 반복문 버그부터 깃새싹, 커널 수호자까지. 기술마다 Lv.1에서 Lv.5로 진화하는 몬스터가 있습니다. 아직 발견하지 못한 몬스터는 `???`로 남아 있어요.
+- **직업 도감** — 주니어 개발자부터 3차 마스터 직업까지 16종의 직업 심볼을 모읍니다. 처음 전직한 날과 마스터한 날이 기록됩니다.
 
-- 튜토리얼, CH.01 Git, CH.02 Linux의 퀘스트 → 배틀 → 퀴즈 → 포획 루프
-- 챕터마다 Lv.1~Lv.5로 이어지는 몬스터와 순차 해금
-- 정답률에 따른 브론즈·실버·골드 카드와 골드 재도전
-- 완성도와 챕터 마스터 배지를 보여 주는 Codigdex 화면
-- 5개 1차 직업 선택, 직업별 월페이퍼 지도와 기술 지역 표시
-- 전직에 따라 달라지는 직업별 가이드 NPC
-- `???`로 미리 보이는 2차·3차 전직 슬롯과 해금 조합
-- 아직 배틀이 없는 전문 기술 몬스터를 `???` 도감 슬롯으로 미리 표시
-- 몬스터/직업 탭을 갖춘 Codigdex와 직업별 잠금·현재·마스터 기록
-- 주요 게임 화면에서 저장 상태를 유지한 채 타이틀로 돌아가는 Home 내비게이션
-- 브라우저 로컬 저장 v3와 기존 v1·v2 저장 데이터 자동 마이그레이션
-- Phaser와 분리된 `lib/domain` 규칙, Vitest 단위·통합 테스트
+![주니어부터 3차 전직까지의 직업 심볼](web/public/assets/career-emblems/career-emblem-archive-v1.png)
 
-직업별 전문 챕터의 몬스터 아트와 지도는 준비되어 있으며, 각 지역의 배틀·퀴즈 콘텐츠는 순차 연결 중입니다. 상세 커리큘럼과 2차 전직 해금 원칙은 [직업 전직 Path 설계](docs/CAREER_PATH_DESIGN.md)를 참고하세요.
+## 지금 플레이할 수 있는 것
 
-## 기술 스택
+- 튜토리얼, Git, Linux 챕터의 몬스터 11종 수집
+- 5개 1차 직업 전직과 직업별 지도 탐험
+- 몬스터 도감과 직업 도감
+- 설정에서 한국어·영어 전환
 
-- Next.js 16, React 19
-- Phaser 4
-- TypeScript
-- Vitest
-- Vercel
+직업별 전문 챕터(HTML/CSS, Docker, SQL 등)는 지도와 몬스터가 준비되어 있고, 배틀을 순서대로 여는 중입니다. 진행 상황은 브라우저에 자동 저장됩니다.
 
-## 시작하기
+👉 **[codigdex.vercel.app](https://codigdex.vercel.app)에서 바로 플레이하기**
+
+## 로컬에서 실행하기
+
+Next.js, Phaser, TypeScript로 만들었습니다.
 
 ```bash
 cd web
@@ -67,56 +73,18 @@ npm install
 npm run dev
 ```
 
-브라우저에서 [http://localhost:3001](http://localhost:3001)을 엽니다.
-
-```bash
-npm run test
-npm run lint
-npm run build
-```
-
-## 프로젝트 구조
-
-```text
-web/
-├─ app/                         Next.js 진입점
-├─ lib/domain/                  챕터, 도감, 직업과 진로 규칙
-├─ lib/phaser/scenes/           Phaser 화면
-├─ lib/phaser/worldMap/         월드맵, 상세 진로 지도와 상호작용
-├─ lib/phaser/save/             버전별 저장 스키마와 마이그레이션
-├─ public/assets/
-│  ├─ characters/career-path/   직업별 플레이어·안내자 캐릭터
-│  ├─ monsters/                 챕터별 도감 몬스터
-│  └─ wallpapers/career-paths/  직업별 상세 지도
-└─ test/                        도메인·Phaser 테스트
-```
-
-저장 데이터는 `progress`, `player`, `ui` 영역을 분리합니다. `progress`에는 몬스터 포획 기록과 직업 도감의 해금·선택·마스터 이력을 저장하고, 표시 정보는 현재 카탈로그 정의에서 다시 구성합니다. 직업 완료는 포획 조건으로 검증한 뒤 영구 마스터 이력으로 등록되며, 2차·3차 전직 계보는 이 기록을 기준으로 해금됩니다.
+브라우저에서 [http://localhost:3001](http://localhost:3001)을 엽니다. 테스트는 `npm run test`로 실행합니다.
 
 ## 문서
 
-- [게임 디자인](docs/GAME_DESIGN.md)
-- [직업 전직 Path 설계](docs/CAREER_PATH_DESIGN.md)
-- [프로젝트 및 PR 정책](AGENTS.md)
-- [Git 작업 흐름 (한국어)](docs/kor/GIT_WORKFLOW.md) / [Git workflow (English)](docs/eng/GIT_WORKFLOW.md)
-- [기여 가이드](CONTRIBUTING.md)
+- [게임 기획서](docs/kor/GAME_DESIGN.md) — 게임 규칙, 화면, 비주얼 가이드
+- [직업 전직 Path 설계](docs/kor/CAREER_PATH_DESIGN.md) — 커리큘럼, 전직 조건, 저장 구조
+- [Git 작업 흐름](docs/kor/GIT_WORKFLOW.md) — 브랜치 전략, PR·이슈 자동화
+- [기여 가이드](CONTRIBUTING.md) · [프로젝트 및 PR 정책](AGENTS.md)
 
 ## 기여
 
-기능 브랜치는 `feat/<slug>` 형식을 사용하고 `develop`으로 Draft PR을 엽니다. 저장소 자동화가 Linear `COD-n` 이슈와 GitHub 미러 이슈를 생성·연결하며, 모든 PR은 해당 이슈 쌍과 CI 검증을 통과해야 합니다. 자세한 흐름과 수동 복구 절차는 [AGENTS.md의 PR 정책](AGENTS.md#pr--issue-policy)을 확인하세요.
-
-### 새 저장소 자동화 설정 체크리스트
-
-이 프로젝트를 템플릿으로 사용하는 새 저장소에서는 다음 항목을 한 번만 설정합니다.
-
-1. `develop` 브랜치를 만들고 기본 PR 대상으로 사용합니다.
-2. Claude GitHub App을 설치합니다.
-3. Actions secrets에 `CLAUDE_CODE_OAUTH_TOKEN`(또는 `ANTHROPIC_API_KEY`), `SLACK_WEBHOOK_URL`, `LINEAR_API_KEY`, `GH_PAT`을 등록합니다.
-4. `GH_PAT`은 해당 저장소의 Contents 읽기, Issues 쓰기, Pull requests 쓰기 권한을 가진 fine-grained PAT를 사용합니다.
-5. Actions variables에 `LINEAR_PROJECT_SLUG`, `LINEAR_PROJECT_NAME`을 등록합니다.
-6. `develop`과 `main`의 브랜치 보호 규칙에서 `validate-flow`, `review` 검사를 요구하도록 설정합니다.
-
-설정 후에는 `feat/<slug>` push 시 Linear/GitHub 이슈 쌍과 Draft PR 생성, PR 정책 검사, 리뷰, merge 알림이 자동으로 실행됩니다.
+개인이 만들고 검토하는 프로젝트라 외부 Pull Request는 받지 않지만, 버그나 틀린 설명을 발견하면 Issue로 알려 주세요. 자세한 내용은 [기여 가이드](CONTRIBUTING.md)를 참고하세요.
 
 ## 라이선스
 

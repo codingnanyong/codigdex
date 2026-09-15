@@ -13,6 +13,7 @@ import {
 import { WORLD_BACKDROPS } from "@/lib/phaser/worldMap/progression";
 import {
   CAREER_PATHS,
+  careerChapterWallpaperAssetPath,
   careerTerrainAssetPath,
 } from "@/lib/phaser/worldMap/careerPaths";
 
@@ -26,14 +27,18 @@ const PUBLIC_DIR = path.resolve(__dirname, "../../public");
 const referencedAssets = [
   DEFAULT_JOB.assetPath!,
   DEFAULT_JOB.guideAssetPath!,
+  DEFAULT_JOB.overworldAssetPath,
   CAREER_CHARACTER_GUIDE_ASSET_PATH,
   OVERWORLD_PLAYER_ASSET_PATH,
   ...Object.values(CAREER_EMBLEMS),
-  ...JOB_OPTIONS.flatMap((job) => [job.assetPath, job.guideAssetPath]),
+  ...JOB_OPTIONS.flatMap((job) => [job.assetPath, job.guideAssetPath, job.overworldAssetPath]),
   ...Object.values(TECHNOLOGY_SPECIMENS).map((specimen) => specimen.assetPath),
   ...WORLD_BACKDROPS.map((backdrop) => backdrop.assetPath),
   ...Object.values(CAREER_PATHS).flatMap((careerPath) =>
-    careerPath.regions.map((region) => careerTerrainAssetPath(careerPath, region))
+    careerPath.regions.flatMap((region) => [
+      careerTerrainAssetPath(careerPath, region),
+      careerChapterWallpaperAssetPath(careerPath, region),
+    ])
   ),
   ...CHAPTERS.flatMap((chapter) => [
     ...chapter.stages.map((monster) => monster.assetPath),
@@ -62,7 +67,7 @@ describe("referenced art", () => {
     });
   });
 
-  it("keeps each career player and guide together in its character folder", () => {
+  it("keeps portraits in career folders and movable sprites in the player folder", () => {
     expect(DEFAULT_JOB.assetPath).toBe(
       "/assets/characters/career-path/junior/player-v2.png"
     );
@@ -73,6 +78,26 @@ describe("referenced art", () => {
     JOB_OPTIONS.forEach((job) => {
       expect(job.assetPath).toBe(`/assets/characters/career-path/${job.id}/player-v2.png`);
       expect(job.guideAssetPath).toBe(`/assets/characters/career-path/${job.id}/guide-v1.png`);
+      expect(job.overworldAssetPath).toBe(
+        `/assets/characters/player/overworld-player-${job.id}-v1.png`
+      );
     });
+  });
+
+  it("keeps the README career-emblem archive in the published assets", () => {
+    expect(
+      existsSync(path.join(PUBLIC_DIR, "assets/career-emblems/career-emblem-archive-v1.png"))
+    ).toBe(true);
+  });
+
+  it("gives every primary-career chapter its own wallpaper", () => {
+    const wallpapers = Object.values(CAREER_PATHS).flatMap((careerPath) =>
+      careerPath.regions.map((region) =>
+        careerChapterWallpaperAssetPath(careerPath, region)
+      )
+    );
+
+    expect(wallpapers).toHaveLength(28);
+    expect(new Set(wallpapers)).toHaveLength(28);
   });
 });

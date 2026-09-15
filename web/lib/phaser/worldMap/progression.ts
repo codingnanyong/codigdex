@@ -5,32 +5,33 @@ import { TUTORIAL_CHAPTER } from "@/lib/domain/chapters/tutorial";
 import type { AmbienceId, ChapterDefinition } from "@/lib/domain/chapters/types";
 import { CAREER_PATHS } from "./careerPaths";
 import type { JobId } from "@/lib/domain/player/jobs";
+import { text, type LocalizedText } from "@/lib/i18n/locale";
 
 export interface WorldBackdrop {
   textureKey: string;
   assetPath: string;
-  title: string;
+  title: LocalizedText;
   ambience?: AmbienceId;
 }
 
 const TUTORIAL_BACKDROP: WorldBackdrop = {
   textureKey: "world-tutorial",
   assetPath: "/assets/wallpapers/tutorial-loop-forest-v1.png",
-  title: "튜토리얼 · 반복문의 숲",
+  title: text("튜토리얼 · 반복문의 숲", "Tutorial · Loop Forest"),
   ambience: "loop-forest",
 };
 
 const GIT_BACKDROP: WorldBackdrop = {
   textureKey: "world-git",
   assetPath: "/assets/wallpapers/git-battle-arena-v1.png",
-  title: "CH.01 · Git 기록의 들판",
+  title: text("CH.01 · Git 기록의 들판", "CH.01 · Git Field of Records"),
   ambience: "git-field",
 };
 
 const LINUX_BACKDROP: WorldBackdrop = {
   textureKey: "world-linux",
   assetPath: "/assets/wallpapers/linux-battle-arena-v1.png",
-  title: "CH.02 · Linux 셸 동굴",
+  title: text("CH.02 · Linux 셸 동굴", "CH.02 · Linux Shell Cave"),
   ambience: "linux-cave",
 };
 

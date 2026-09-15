@@ -1,6 +1,8 @@
+import type { Locale } from "@/lib/i18n/locale";
 import { GIT_CHAPTER } from "./git";
 import { LINUX_CHAPTER } from "./linux";
 import { TUTORIAL_CHAPTER } from "./tutorial";
+import { CAREER_CHAPTERS } from "./career";
 import type { ChapterDefinition, ChapterId, MonsterDefinition } from "./types";
 
 export type ChapterStatus = "locked" | "available" | "cleared";
@@ -8,21 +10,29 @@ export type ChapterStatus = "locked" | "available" | "cleared";
 export type Unlock =
   | { kind: "stage"; chapter: ChapterDefinition; monster: MonsterDefinition }
   | { kind: "chapter"; chapter: ChapterDefinition }
-  | { kind: "common-path-complete" };
+  | { kind: "common-path-complete" }
+  | { kind: "career-region-complete"; chapter: ChapterDefinition };
 
 /** Play order. Each chapter's `requires` points at the one before it. */
 export const CHAPTERS: readonly ChapterDefinition[] = [TUTORIAL_CHAPTER, GIT_CHAPTER, LINUX_CHAPTER];
+export const ALL_CHAPTERS: readonly ChapterDefinition[] = [...CHAPTERS, ...CAREER_CHAPTERS];
 
 /** The junior common path a player clears before choosing a job. */
 const COMMON_PATH: readonly ChapterId[] = ["git", "linux"];
 
-/** Every dex entry, in dex-number order. */
-export const DEX_MONSTERS: readonly MonsterDefinition[] = CHAPTERS.flatMap(
+/** The junior common-path entries, kept separate for progression checks. */
+export const COMMON_MONSTERS: readonly MonsterDefinition[] = CHAPTERS.flatMap(
   (chapter) => chapter.stages
 ).sort((a, b) => a.dexNumber.localeCompare(b.dexNumber));
 
+/** Every released monster that can be captured and displayed in the dex. */
+export const DEX_MONSTERS: readonly MonsterDefinition[] = ALL_CHAPTERS.flatMap(
+  (chapter) => chapter.stages
+).sort((a, b) => a.dexNumber.localeCompare(b.dexNumber));
+export const CAPTURABLE_MONSTERS = DEX_MONSTERS;
+
 export function getChapter(id: ChapterId): ChapterDefinition {
-  const chapter = CHAPTERS.find((candidate) => candidate.id === id);
+  const chapter = ALL_CHAPTERS.find((candidate) => candidate.id === id);
   if (!chapter) throw new Error(`Unknown chapter: ${id}`);
   return chapter;
 }
@@ -32,15 +42,15 @@ export function findStage(monsterId: string): {
   monster: MonsterDefinition;
   index: number;
 } {
-  for (const chapter of CHAPTERS) {
+  for (const chapter of ALL_CHAPTERS) {
     const index = chapter.stages.findIndex((stage) => stage.id === monsterId);
     if (index !== -1) return { chapter, monster: chapter.stages[index], index };
   }
   throw new Error(`Unknown monster: ${monsterId}`);
 }
 
-export function chapterTitle(chapter: ChapterDefinition): string {
-  return `${chapter.name} · ${chapter.place}`;
+export function chapterTitle(chapter: ChapterDefinition, locale: Locale): string {
+  return `${chapter.name[locale]} · ${chapter.place[locale]}`;
 }
 
 export function isChapterComplete(chapter: ChapterDefinition, capturedIds: ReadonlySet<string>): boolean {
@@ -79,7 +89,10 @@ export function unlockAfter(monsterId: string): Unlock {
   if (nextStage) return { kind: "stage", chapter, monster: nextStage };
 
   const nextChapter = CHAPTERS[CHAPTERS.indexOf(chapter) + 1];
-  return nextChapter ? { kind: "chapter", chapter: nextChapter } : { kind: "common-path-complete" };
+  if (CHAPTERS.includes(chapter)) {
+    return nextChapter ? { kind: "chapter", chapter: nextChapter } : { kind: "common-path-complete" };
+  }
+  return { kind: "career-region-complete", chapter };
 }
 
 export function isCommonPathComplete(capturedIds: ReadonlySet<string>): boolean {

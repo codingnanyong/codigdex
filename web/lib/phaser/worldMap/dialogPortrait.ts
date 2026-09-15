@@ -8,7 +8,7 @@ export function createDialogPortrait(
   y: number,
   width = 176,
   height = 184
-): Phaser.GameObjects.GameObject[] {
+): Phaser.GameObjects.Image[] {
   const source = scene.textures.get(textureKey).getSourceImage() as {
     width: number;
     height: number;

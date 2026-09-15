@@ -10,6 +10,7 @@ import {
 import { showCapturedPanel, showMissedPanel } from "../capture/resultPanels";
 import { createHomeButton } from "../navigation";
 import { describeUnlock } from "../capture/unlockNotice";
+import { lt, sceneLocale, t } from "../i18n";
 import { readDexState, writeDexState } from "../registryAdapter";
 import { addShade, applyPixelFontToScene } from "../ui";
 import { didUnlockPrimaryJobSelection } from "../worldMap/progression";
@@ -18,15 +19,16 @@ export interface CaptureResultData {
   monsterId: string;
   correctCount: number;
   total: number;
+  returnTo?: { scene: "world-map" | "career-region"; data?: Record<string, unknown> };
 }
 
-/** Settles a finished battle: a perfect run registers the card, anything less offers a retry. */
+/** Settles a finished battle: reaching the pass line registers the card, anything less offers a retry. */
 export class CaptureQuizScene extends Phaser.Scene {
   private chapter!: ChapterDefinition;
   private monster!: MonsterDefinition;
   private correctCount = 0;
   private total = 0;
-  private nextScene: "world-map" | "job-select" = "world-map";
+  private nextTarget: { scene: "world-map" | "job-select" | "career-region"; data?: Record<string, unknown> } = { scene: "world-map" };
 
   constructor() {
     super("capture-quiz");
@@ -38,7 +40,7 @@ export class CaptureQuizScene extends Phaser.Scene {
     this.monster = monster;
     this.correctCount = data.correctCount;
     this.total = data.total;
-    this.nextScene = "world-map";
+    this.nextTarget = data.returnTo ?? { scene: "world-map" };
   }
 
   create() {
@@ -56,17 +58,17 @@ export class CaptureQuizScene extends Phaser.Scene {
   private showCaptured() {
     const { chapter, monster } = this;
     const isNewEntry = this.registerCapture();
-    const unlock = describeUnlock(monster.id);
+    const unlock = describeUnlock(monster.id, sceneLocale(this));
 
     showCapturedPanel(this, {
       monster,
-      npcLine: `${chapter.npcName}: ${chapter.successLine}`,
+      npcLine: `${lt(this, chapter.npcName)}: ${lt(this, chapter.successLine)}`,
       isNewEntry,
       unlockNotice: isNewEntry ? unlock.notice : undefined,
       // Carry on where the player is headed: the newly opened stage or
       // chapter, or straight back into this chapter after a replay.
       onConfirm: () => {
-        this.scene.start(this.nextScene);
+        this.scene.start(this.nextTarget.scene, this.nextTarget.data);
       },
     });
   }
@@ -75,9 +77,13 @@ export class CaptureQuizScene extends Phaser.Scene {
     const { chapter, monster } = this;
     showMissedPanel(this, {
       monster,
-      resultLine: `정답 ${this.correctCount} / ${this.total} · ${requiredCorrectAnswers(this.total)}개 이상 맞히면 포획돼요`,
-      npcLine: `${chapter.npcName}: ${chapter.retryLine}`,
-      onRetry: () => this.scene.start("world-map"),
+      resultLine: t(this, "capture.resultLine", {
+        correct: this.correctCount,
+        total: this.total,
+        required: requiredCorrectAnswers(this.total),
+      }),
+      npcLine: `${lt(this, chapter.npcName)}: ${lt(this, chapter.retryLine)}`,
+      onRetry: () => this.scene.start(this.nextTarget.scene, this.nextTarget.data),
     });
   }
 
@@ -85,9 +91,9 @@ export class CaptureQuizScene extends Phaser.Scene {
   private registerCapture(): boolean {
     const before = readDexState(this.registry);
     const after = applyCapture(before, this.monster);
-    this.nextScene = didUnlockPrimaryJobSelection(capturedIds(before), capturedIds(after))
-      ? "job-select"
-      : "world-map";
+    if (didUnlockPrimaryJobSelection(capturedIds(before), capturedIds(after))) {
+      this.nextTarget = { scene: "job-select" };
+    }
     writeDexState(this.registry, after);
     return after !== before;
   }

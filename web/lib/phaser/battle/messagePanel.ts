@@ -1,4 +1,5 @@
 import type Phaser from "phaser";
+import { t } from "../i18n";
 import { PALETTE, PALETTE_HEX } from "../palette";
 import { pixelText } from "../pixelFont";
 import { addSnippetBlock } from "../ui";
@@ -52,7 +53,7 @@ export class MessagePanel {
   }
 
   showQuestion({ index, total, correct, required, prompt }: QuestionView) {
-    this.progress.setText(`Q${index + 1} / ${total}  ·  정답 ${correct}  ·  목표 ${required}개`);
+    this.progress.setText(t(this.scene, "battle.progress", { index: index + 1, total, correct, required }));
     this.feedback.setText("");
     this.prompt?.destroy();
 
