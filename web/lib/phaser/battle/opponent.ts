@@ -1,5 +1,5 @@
 import type Phaser from "phaser";
-import type { MonsterDefinition } from "@/lib/domain/chapters/types";
+import type { MonsterDefinition } from "@codigdex/game-core/domain/chapters/types";
 import { fitTexture } from "../monsterArt";
 import { PALETTE } from "../palette";
 import { MONSTER_SPOT } from "./layout";

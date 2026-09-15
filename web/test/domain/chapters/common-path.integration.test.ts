@@ -5,19 +5,19 @@ import {
   chapterStatus,
   isCommonPathComplete,
   stageStatus,
-} from "@/lib/domain/chapters";
-import { GIT_CHAPTER } from "@/lib/domain/chapters/git";
-import { LINUX_CHAPTER } from "@/lib/domain/chapters/linux";
-import { TUTORIAL_MONSTER } from "@/lib/domain/chapters/tutorial";
-import type { MonsterDefinition } from "@/lib/domain/chapters/types";
+} from "@codigdex/game-content/domain/chapters";
+import { GIT_CHAPTER } from "@codigdex/game-content/domain/chapters/git";
+import { LINUX_CHAPTER } from "@codigdex/game-content/domain/chapters/linux";
+import { TUTORIAL_MONSTER } from "@codigdex/game-content/domain/chapters/tutorial";
+import type { MonsterDefinition } from "@codigdex/game-core/domain/chapters/types";
 import {
   EMPTY_DEX_STATE,
   applyCapture,
   capturedIds,
   isSuccessfulCapture,
   requiredCorrectAnswers,
-} from "@/lib/domain/dex/capture";
-import { drawQuizQuestions, quizCountForLevel } from "@/lib/domain/dex/quiz";
+} from "@codigdex/game-core/domain/dex/capture";
+import { drawQuizQuestions, quizCountForLevel } from "@codigdex/game-core/domain/dex/quiz";
 
 const drawBattle = (monster: MonsterDefinition) =>
   drawQuizQuestions(monster.quizPool, quizCountForLevel(monster.level));

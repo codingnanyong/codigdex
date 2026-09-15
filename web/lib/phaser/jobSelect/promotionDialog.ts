@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { guideDisplayName, type PrimaryJobOption } from "@/lib/domain/player/jobs";
+import { guideDisplayName, type PrimaryJobOption } from "@codigdex/game-content/domain/player/jobs";
 import { lt, t } from "../i18n";
 import { PALETTE, PALETTE_HEX } from "../palette";
 import { pixelText } from "../pixelFont";

@@ -1,11 +1,11 @@
-import { isChapterComplete, isCommonPathComplete } from "@/lib/domain/chapters";
-import { GIT_CHAPTER } from "@/lib/domain/chapters/git";
-import { LINUX_CHAPTER } from "@/lib/domain/chapters/linux";
-import { TUTORIAL_CHAPTER } from "@/lib/domain/chapters/tutorial";
-import type { AmbienceId, ChapterDefinition } from "@/lib/domain/chapters/types";
+import { isChapterComplete, isCommonPathComplete } from "@codigdex/game-content/domain/chapters";
+import { GIT_CHAPTER } from "@codigdex/game-content/domain/chapters/git";
+import { LINUX_CHAPTER } from "@codigdex/game-content/domain/chapters/linux";
+import { TUTORIAL_CHAPTER } from "@codigdex/game-content/domain/chapters/tutorial";
+import type { AmbienceId, ChapterDefinition } from "@codigdex/game-core/domain/chapters/types";
 import { CAREER_PATHS } from "./careerPaths";
-import type { JobId } from "@/lib/domain/player/jobs";
-import { text, type LocalizedText } from "@/lib/i18n/locale";
+import type { JobId } from "@codigdex/game-content/domain/player/jobs";
+import { text, type LocalizedText } from "@codigdex/game-core/i18n/locale";
 
 export interface WorldBackdrop {
   textureKey: string;

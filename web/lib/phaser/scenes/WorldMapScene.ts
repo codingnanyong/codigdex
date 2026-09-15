@@ -1,15 +1,15 @@
 import Phaser from "phaser";
-import { CHAPTERS, currentStageIndex, isCommonPathComplete } from "@/lib/domain/chapters";
-import { TUTORIAL_MONSTER, TUTORIAL_ONBOARDING_LINES } from "@/lib/domain/chapters/tutorial";
-import type { ChapterDefinition, MonsterDefinition } from "@/lib/domain/chapters/types";
-import { capturedIds } from "@/lib/domain/dex/capture";
+import { CHAPTERS, currentStageIndex, isCommonPathComplete } from "@codigdex/game-content/domain/chapters";
+import { TUTORIAL_MONSTER, TUTORIAL_ONBOARDING_LINES } from "@codigdex/game-content/domain/chapters/tutorial";
+import type { ChapterDefinition, MonsterDefinition } from "@codigdex/game-core/domain/chapters/types";
+import { capturedIds } from "@codigdex/game-core/domain/dex/capture";
 import {
   findJob,
   guideDisplayName,
   JOB_REGISTRY_KEY,
   type JobId,
   type JobOption,
-} from "@/lib/domain/player/jobs";
+} from "@codigdex/game-content/domain/player/jobs";
 import { playAmbience } from "../ambience";
 import { lt, t } from "../i18n";
 import { preloadMonsterArt } from "../monsterArt";

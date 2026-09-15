@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { GIT_CHAPTER } from "@/lib/domain/chapters/git";
-import { LINUX_CHAPTER } from "@/lib/domain/chapters/linux";
-import { TUTORIAL_MONSTER } from "@/lib/domain/chapters/tutorial";
+import { GIT_CHAPTER } from "@codigdex/game-content/domain/chapters/git";
+import { LINUX_CHAPTER } from "@codigdex/game-content/domain/chapters/linux";
+import { TUTORIAL_MONSTER } from "@codigdex/game-content/domain/chapters/tutorial";
 import {
   didUnlockPrimaryJobSelection,
   selectActiveChapter,

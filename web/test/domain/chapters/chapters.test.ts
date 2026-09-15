@@ -12,13 +12,13 @@ import {
   isCommonPathComplete,
   stageStatus,
   unlockAfter,
-} from "@/lib/domain/chapters";
-import { GIT_CHAPTER } from "@/lib/domain/chapters/git";
-import { LINUX_CHAPTER } from "@/lib/domain/chapters/linux";
-import { TUTORIAL_CHAPTER, TUTORIAL_MONSTER } from "@/lib/domain/chapters/tutorial";
-import type { ChapterId, MonsterDefinition } from "@/lib/domain/chapters/types";
-import { quizCountForLevel } from "@/lib/domain/dex/quiz";
-import { LOCALES } from "@/lib/i18n/locale";
+} from "@codigdex/game-content/domain/chapters";
+import { GIT_CHAPTER } from "@codigdex/game-content/domain/chapters/git";
+import { LINUX_CHAPTER } from "@codigdex/game-content/domain/chapters/linux";
+import { TUTORIAL_CHAPTER, TUTORIAL_MONSTER } from "@codigdex/game-content/domain/chapters/tutorial";
+import type { ChapterId, MonsterDefinition } from "@codigdex/game-core/domain/chapters/types";
+import { quizCountForLevel } from "@codigdex/game-core/domain/dex/quiz";
+import { LOCALES } from "@codigdex/game-core/i18n/locale";
 
 const GIT = GIT_CHAPTER.stages;
 const LINUX = LINUX_CHAPTER.stages;

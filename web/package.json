@@ -1,5 +1,5 @@
 {
-  "name": "codigdex-game",
+  "name": "@codigdex/web",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -11,6 +11,9 @@
     "test:watch": "vitest"
   },
   "dependencies": {
+    "@codigdex/game-content": "*",
+    "@codigdex/game-core": "*",
+    "@codigdex/game-i18n": "*",
     "next": "16.3.4",
     "phaser": "^4.2.1",
     "react": "19.2.8",

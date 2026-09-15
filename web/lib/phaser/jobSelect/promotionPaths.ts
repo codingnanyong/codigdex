@@ -5,7 +5,7 @@ import {
   TERTIARY_JOB_OPTIONS,
   type JobId,
   type SecondaryJobId,
-} from "@/lib/domain/player/jobs";
+} from "@codigdex/game-content/domain/player/jobs";
 import { PALETTE } from "../palette";
 import { JOB_SELECT_LAYOUT as LAYOUT } from "./layout";
 

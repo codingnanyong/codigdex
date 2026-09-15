@@ -12,7 +12,7 @@ import {
   type SecondaryJobId,
   type SecondaryJobOption,
   type TertiaryJobOption,
-} from "@/lib/domain/player/jobs";
+} from "@codigdex/game-content/domain/player/jobs";
 import { lt, t } from "../i18n";
 import { PALETTE, PALETTE_HEX } from "../palette";
 import { pixelText } from "../pixelFont";

@@ -2,18 +2,18 @@ import Phaser from "phaser";
 import {
   masteredPrimaryJobIds,
   masteredSecondaryJobIds,
-} from "@/lib/domain/careerDex";
+} from "@codigdex/game-content/domain/careerDex";
 import {
   chapterStatus,
   chapterTitle,
   getChapter,
   isCommonPathComplete,
   type ChapterStatus,
-} from "@/lib/domain/chapters";
-import { GIT_CHAPTER } from "@/lib/domain/chapters/git";
-import { LINUX_CHAPTER } from "@/lib/domain/chapters/linux";
-import type { ChapterId } from "@/lib/domain/chapters/types";
-import { capturedIds } from "@/lib/domain/dex/capture";
+} from "@codigdex/game-content/domain/chapters";
+import { GIT_CHAPTER } from "@codigdex/game-content/domain/chapters/git";
+import { LINUX_CHAPTER } from "@codigdex/game-content/domain/chapters/linux";
+import type { ChapterId } from "@codigdex/game-core/domain/chapters/types";
+import { capturedIds } from "@codigdex/game-core/domain/dex/capture";
 import {
   findJob,
   findSecondaryJob,
@@ -29,8 +29,8 @@ import {
   type SecondaryJobOption,
   type SecondaryJobId,
   type TertiaryJobOption,
-} from "@/lib/domain/player/jobs";
-import { COMMON_TECHNOLOGY_SPECIMENS } from "@/lib/domain/technologySpecimens";
+} from "@codigdex/game-content/domain/player/jobs";
+import { COMMON_TECHNOLOGY_SPECIMENS } from "@codigdex/game-content/domain/technologySpecimens";
 import { lt, sceneLocale, t } from "../i18n";
 import { preloadMonsterArt } from "../monsterArt";
 import { createSettingsButton } from "../settings/settingsButton";

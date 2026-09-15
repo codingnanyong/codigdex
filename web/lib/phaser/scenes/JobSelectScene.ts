@@ -1,10 +1,10 @@
 import Phaser from "phaser";
-import { isCommonPathComplete } from "@/lib/domain/chapters";
+import { isCommonPathComplete } from "@codigdex/game-content/domain/chapters";
 import {
   masteredPrimaryJobIds,
   masteredSecondaryJobIds,
-} from "@/lib/domain/careerDex";
-import { capturedIds } from "@/lib/domain/dex/capture";
+} from "@codigdex/game-content/domain/careerDex";
+import { capturedIds } from "@codigdex/game-core/domain/dex/capture";
 import {
   canSelectPrimaryJob,
   findJob,
@@ -21,7 +21,7 @@ import {
   type SecondaryJobId,
   type SecondaryJobOption,
   type TertiaryJobOption,
-} from "@/lib/domain/player/jobs";
+} from "@codigdex/game-content/domain/player/jobs";
 import { lt, t } from "../i18n";
 import { drawCareerTree } from "../jobSelect/careerTree";
 import { createPromotionDialog } from "../jobSelect/promotionDialog";

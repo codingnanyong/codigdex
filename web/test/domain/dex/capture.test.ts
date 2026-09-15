@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { GIT_CHAPTER } from "@/lib/domain/chapters/git";
-import { TUTORIAL_MONSTER } from "@/lib/domain/chapters/tutorial";
+import { GIT_CHAPTER } from "@codigdex/game-content/domain/chapters/git";
+import { TUTORIAL_MONSTER } from "@codigdex/game-content/domain/chapters/tutorial";
 import {
   EMPTY_DEX_STATE,
   applyCapture,
@@ -9,7 +9,7 @@ import {
   isSuccessfulCapture,
   requiredCorrectAnswers,
   shouldContinueBattle,
-} from "@/lib/domain/dex/capture";
+} from "@codigdex/game-core/domain/dex/capture";
 
 describe("requiredCorrectAnswers", () => {
   it("asks for 60% of each level's questions, rounded up", () => {

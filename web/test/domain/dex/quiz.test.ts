@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { TUTORIAL_MONSTER } from "@/lib/domain/chapters/tutorial";
-import { drawQuizQuestions, quizCountForLevel } from "@/lib/domain/dex/quiz";
+import { TUTORIAL_MONSTER } from "@codigdex/game-content/domain/chapters/tutorial";
+import { drawQuizQuestions, quizCountForLevel } from "@codigdex/game-core/domain/dex/quiz";
 
 const POOL = TUTORIAL_MONSTER.quizPool;
 const BATTLE_COUNT = quizCountForLevel(TUTORIAL_MONSTER.level);

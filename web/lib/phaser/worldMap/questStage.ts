@@ -1,7 +1,7 @@
 import Phaser from "phaser";
-import type { ChapterDefinition, MonsterDefinition } from "@/lib/domain/chapters/types";
-import type { JobOption } from "@/lib/domain/player/jobs";
-import { currentStageIndex } from "@/lib/domain/chapters";
+import type { ChapterDefinition, MonsterDefinition } from "@codigdex/game-core/domain/chapters/types";
+import type { JobOption } from "@codigdex/game-content/domain/player/jobs";
+import { currentStageIndex } from "@codigdex/game-content/domain/chapters";
 import { fitTexture } from "../monsterArt";
 import { PALETTE, PALETTE_HEX } from "../palette";
 import { pixelText } from "../pixelFont";
