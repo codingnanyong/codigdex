@@ -82,14 +82,14 @@ After promotion, each career's v3 wallpaper detail map lays out its technology r
 | Data Engineer | Pipeline Architect Hana (파이프라인 설계자 하나) | Python → SQL · Data modeling → Data pipelines → Docker → Orchestration → Monitoring | 6 |
 | Data Analyst | Insight Detective Ian (인사이트 탐정 이안) | SQL → Basic statistics → Data visualization → BI tools → Python for analysis | 5 |
 
-Regions are defined in `web/lib/phaser/worldMap/careerPaths.ts`. All 28 technology regions have their maps and monster art ready; battle and question content is **(planned)**.
+Regions are defined in `web/lib/phaser/worldMap/careerPaths.ts`. All 28 technology regions are playable. Each region has five ordered monsters, and each monster has a bilingual 20-question pool.
 
 ### Map depth and navigation
 
-The Path screen and the play regions are different screens. The Path map is a roadmap showing the common path and promotion relationships; picking a tier 1 career turns the world map into that career's **detail map**. Tapping a technology region on the detail map opens a zoomed-in **technology region screen**, where the guide NPC introduces the collecting ground. The link from a technology region to monster battles will be added with the specialist chapter content **(planned)**.
+The Path screen and the play regions are different screens. The Path map is a roadmap showing the common path and promotion relationships; picking a tier 1 career turns the world map into that career's **detail map**. Tapping an available technology region on the detail map opens a zoomed-in **technology region screen**, where five monster checkpoints lead into the standard battle and capture flow.
 
 ```text
-Path map → career detail map → technology region → battle/capture (planned)
+Path map → career detail map → technology region → battle/capture
 ```
 
 Each career wallpaper already paints the routes and landmarks. Instead of numbered discs, the UI adds invisible hit areas fitted to each building's or island's real outline, plus an `order · technology` label. Hovering a region lifts only a transparent texture cut from the wallpaper along that region's outline (`<career>-<region>-terrain-v3.png`), adds a shadow beneath it, and shows the region name in the middle of the map. The hit area (`focusPoints`) is deliberately generous, while the lifted silhouette (`lift`) is defined separately to hug the building's outline. No rectangle or polygon outline is drawn, and the wallpaper itself never moves. The bottom of the map shows the guide NPC, the current career's field character (`MY PLAYER`), and the tier 2 `◆ ???` slot.
@@ -122,7 +122,7 @@ Career paths are not five fully separate lines. They form a crossing tree where 
 | Networking | Backend, DevOps |
 | Monitoring | DevOps, Data Engineer |
 
-The `paths` field in the technology specimen definitions (`web/lib/domain/technologySpecimens.ts`) already records wider links than this. For example, testing and CI/CD are linked to Frontend, Backend and DevOps, and Cloud · IaC and Kubernetes to Backend, DevOps and Data Engineer. Use that list as the reference when adding regions to a map.
+The `paths` field in the technology specimen definitions (`packages/game-content/src/domain/technologySpecimens.ts`) records wider links than this. For example, testing and CI/CD are linked to Frontend, Backend and DevOps, and Cloud · IaC and Kubernetes to Backend, DevOps and Data Engineer. Use that list as the reference when adding regions to a map.
 
 Captures go into one dex regardless of career, so a player who captured a shared technology first keeps that card after promoting into another career. This avoids forcing players to relearn and gives them a reason to explore other roles.
 
@@ -131,7 +131,7 @@ Captures go into one dex regardless of career, so a player who captured a shared
 - As a junior, the player can pick any of the five tier 1 careers.
 - Once a tier 1 career is picked, the player cannot switch to another tier 1 career until that career's path is complete (MASTER). Other careers show as `locked` on the lineage screen, and tapping one explains that the current career's chapters must all be completed first.
 - Path completion is computed by checking that every capture in the career's final capture list (`completionCaptureIds`) is in the dex. An empty list never counts as complete.
-- Every tier 1 career currently has an empty `completionCaptureIds`, so **the first career choice stays fixed until specialist chapters ship.** A second tier 1 career and tier 2 promotion only open for real once that content is released.
+- Each tier 1 career derives `completionCaptureIds` from its released regions. Completing every checkpoint records that career as MASTER and allows the player to select another tier 1 path.
 
 ## Tier 2 promotion (hybrid careers)
 
@@ -183,7 +183,7 @@ The screen shows locked · available · current · MASTER states and a `register
 
 ## Save format
 
-The browser save lives in a single `localStorage` slot, `codigdex:save:v3`. Instead of piling frequently changing screen state into one flat object, it is split into `progress`, `player` and `ui`. The schema and migrations are in `web/lib/phaser/save/schema.ts`.
+The browser save lives in a single `localStorage` slot, `codigdex:save:v3`. Instead of piling frequently changing screen state into one flat object, it is split into `progress`, `player` and `ui`. The platform-neutral schema and migrations are in `packages/game-core/src/save/schema.ts`.
 
 ```ts
 {
