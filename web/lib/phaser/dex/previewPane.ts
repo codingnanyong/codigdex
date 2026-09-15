@@ -3,7 +3,7 @@ import { fitTexture } from "../monsterArt";
 import { lt, t } from "../i18n";
 import { PALETTE, PALETTE_HEX } from "../palette";
 import { pixelText } from "../pixelFont";
-import { applyPixelFontToScene } from "../ui";
+import { applyPixelFontToScene, fitTextInside } from "../ui";
 import type { DexEntry } from "./entry";
 
 const PREVIEW_SIZE = 176;
@@ -35,7 +35,7 @@ export class PreviewPane {
         .setStrokeStyle(2, PALETTE.mutedBrown),
     ];
 
-    if (card && monster) {
+    if (card && monster && scene.textures.exists(monster.textureKey)) {
       const fit = fitTexture(scene, monster.textureKey, PREVIEW_SIZE - 16, PREVIEW_SIZE - 16);
       items.push(scene.add.image(centerX, previewCenterY, monster.textureKey).setScale(fit.scale));
     } else {
@@ -51,18 +51,35 @@ export class PreviewPane {
       const line = scene.add.text(centerX, cursor, text, style).setOrigin(0.5, 0);
       items.push(line);
       cursor += line.height + gap;
+      return line;
     };
 
     addLine(`No. ${dexNumber}`, { ...pixelText("body"), color: PALETTE_HEX.sand }, 4);
-    addLine(card ? lt(scene, card.name) : "???", { ...pixelText("subtitle"), color: PALETTE_HEX.cream, fontStyle: "bold" }, 6);
+    fitTextInside(
+      addLine(card ? lt(scene, card.name) : "???", { ...pixelText("subtitle"), color: PALETTE_HEX.cream, fontStyle: "bold" }, 6),
+      infoWidth,
+      42
+    );
     if (card) {
-      addLine(lt(scene, card.classification), { ...pixelText("body"), color: PALETTE_HEX.amber }, 6);
-      addLine(lt(scene, card.trait), { ...pixelText("body"), color: PALETTE_HEX.sand, align: "center", wordWrap: { width: infoWidth } }, 0);
+      fitTextInside(
+        addLine(lt(scene, card.classification), { ...pixelText("body"), color: PALETTE_HEX.amber }, 6),
+        infoWidth,
+        28
+      );
+      fitTextInside(
+        addLine(lt(scene, card.trait), { ...pixelText("body"), color: PALETTE_HEX.sand, align: "center", wordWrap: { width: infoWidth } }, 0),
+        infoWidth,
+        56
+      );
     } else {
-      addLine(
-        t(scene, planned ? "dex.undiscoveredRegion" : "dex.unobserved"),
-        { ...pixelText("body"), color: PALETTE_HEX.mutedBrown, align: "center", wordWrap: { width: infoWidth } },
-        0
+      fitTextInside(
+        addLine(
+          t(scene, planned ? "dex.undiscoveredRegion" : "dex.unobserved"),
+          { ...pixelText("body"), color: PALETTE_HEX.mutedBrown, align: "center", wordWrap: { width: infoWidth } },
+          0
+        ),
+        infoWidth,
+        56
       );
     }
 

@@ -62,16 +62,23 @@ body {
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
 }
 
-/* The game container grows with the viewport at 16:9, leaving room for the
-   page header (--game-chrome). Phaser's FIT mode then scales the canvas into it. */
-:root {
-  --game-chrome: 8rem;
+/* Keep the game inside the visible viewport. `min-height` alone lets a 16:9
+   canvas make the flex page taller than a short browser window, which hides
+   the bottom of modal screens such as the Codigdex. */
+.game-page {
+  height: 100vh;
+  height: 100dvh;
+  min-height: 0;
+  overflow: hidden;
 }
 
+/* Give Phaser the page's actual remaining rectangle. Its FIT scale mode keeps
+   the 16:9 canvas contained and centered; CSS does not need to guess the
+   header height or perform unsupported aspect-ratio arithmetic. */
 .pixel-canvas {
-  width: min(100%, calc((100vh - var(--game-chrome)) * 16 / 9));
-  width: min(100%, calc((100dvh - var(--game-chrome)) * 16 / 9));
-  aspect-ratio: 16 / 9;
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
 }
 
 /* The game renders into a 960x540 buffer that the browser scales to the element
@@ -99,11 +106,6 @@ body {
 
 /* Phones held sideways have little height to spare: drop the header so the game gets all of it. */
 @media (max-height: 540px) {
-  :root {
-    /* Just the page's vertical padding once the header is gone. */
-    --game-chrome: 2.5rem;
-  }
-
   .game-header {
     display: none;
   }

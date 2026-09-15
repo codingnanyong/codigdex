@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { CHAPTERS, currentStageIndex, isCommonPathComplete } from "@codigdex/game-content/domain/chapters";
+import { currentStageIndex, isCommonPathComplete } from "@codigdex/game-content/domain/chapters";
 import { TUTORIAL_MONSTER, TUTORIAL_ONBOARDING_LINES } from "@codigdex/game-content/domain/chapters/tutorial";
 import type { ChapterDefinition, MonsterDefinition } from "@codigdex/game-core/domain/chapters/types";
 import { capturedIds } from "@codigdex/game-core/domain/dex/capture";
@@ -24,8 +24,6 @@ import { drawCareerAtlas } from "../worldMap/careerAtlas";
 import { routePointsFor } from "../worldMap/chapterRoute";
 import {
   careerPathFor,
-  careerTerrainAssetKey,
-  careerTerrainTextureKey,
 } from "../worldMap/careerPaths";
 import { showGuideHint } from "../worldMap/guideHint";
 import { createWorldMapHud } from "../worldMap/hud";
@@ -61,7 +59,7 @@ export class WorldMapScene extends Phaser.Scene {
   }
 
   preload() {
-    const { backdrop, selectedJob } = this.resolveProgress();
+    const { backdrop, captured, selectedJob } = this.resolveProgress();
     this.load.image(backdrop.textureKey, assetUrl(backdrop.assetKey));
     this.load.image(selectedJob.overworldTextureKey, assetUrl(selectedJob.overworldAssetKey));
     if (selectedJob.textureKey && selectedJob.assetKey) {
@@ -70,13 +68,16 @@ export class WorldMapScene extends Phaser.Scene {
     if (selectedJob.guideTextureKey && selectedJob.guideAssetKey) {
       this.load.image(selectedJob.guideTextureKey, assetUrl(selectedJob.guideAssetKey));
     }
-    if (selectedJob.id !== "junior") {
-      const path = careerPathFor(selectedJob.id as JobId);
-      path.regions.forEach((region) => {
-        this.load.image(careerTerrainTextureKey(path, region), assetUrl(careerTerrainAssetKey(path, region)));
-      });
+    const activeChapter = selectActiveChapter(captured);
+    if (activeChapter) {
+      const activeIndex = currentStageIndex(activeChapter, captured);
+      preloadMonsterArt(
+        this,
+        activeChapter.stages.filter(
+          (monster, index) => captured.has(monster.id) || index === activeIndex
+        )
+      );
     }
-    preloadMonsterArt(this, CHAPTERS.flatMap((chapter) => chapter.stages));
   }
 
   /** Where the player stands. A career only counts once the common path is complete. */
