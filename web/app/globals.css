@@ -77,7 +77,7 @@ body {
 /* The game renders into a 960x540 buffer that the browser scales to the element
    size and the device pixel ratio. Pixelated keeps sprites and bitmap glyphs
    sharp at whole-number scales; PhaserGame switches to smoothing whenever the
-   scale is fractional (lib/phaser/displayScale.ts), where nearest-neighbour
+   scale is fractional (lib/phaser/displayScale.ts), where nearest-neighbor
    would make strokes uneven. */
 .pixel-canvas canvas {
   image-rendering: pixelated;

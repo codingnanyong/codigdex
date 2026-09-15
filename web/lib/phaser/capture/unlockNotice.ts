@@ -1,7 +1,7 @@
-import { unlockAfter } from "@/lib/domain/chapters";
-import type { ChapterId } from "@/lib/domain/chapters/types";
-import type { Locale } from "@/lib/i18n/locale";
-import { translate } from "@/lib/i18n/messages";
+import { unlockAfter } from "@codigdex/game-content/domain/chapters";
+import type { ChapterId } from "@codigdex/game-core/domain/chapters/types";
+import type { Locale } from "@codigdex/game-core/i18n/locale";
+import { translate } from "@codigdex/game-i18n/messages";
 
 /**
  * The line announcing what a first capture opened, plus the chapter whose

@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { CAREER_CATALOG } from "@/lib/domain/careerDex";
-import { CHAPTERS } from "@/lib/domain/chapters";
-import { TUTORIAL_ONBOARDING_LINES } from "@/lib/domain/chapters/tutorial";
-import { JOB_OPTIONS, SECONDARY_JOB_OPTIONS, TERTIARY_JOB_OPTIONS } from "@/lib/domain/player/jobs";
-import { TECHNOLOGY_SPECIMENS } from "@/lib/domain/technologySpecimens";
-import { detectLocale, formatDate, isLocale, joinText, LOCALES } from "@/lib/i18n/locale";
-import { messageCatalog, translate } from "@/lib/i18n/messages";
+import { CAREER_CATALOG } from "@codigdex/game-content/domain/careerDex";
+import { CHAPTERS } from "@codigdex/game-content/domain/chapters";
+import { TUTORIAL_ONBOARDING_LINES } from "@codigdex/game-content/domain/chapters/tutorial";
+import { JOB_OPTIONS, SECONDARY_JOB_OPTIONS, TERTIARY_JOB_OPTIONS } from "@codigdex/game-content/domain/player/jobs";
+import { TECHNOLOGY_SPECIMENS } from "@codigdex/game-content/domain/technologySpecimens";
+import { detectLocale, formatDate, isLocale, joinText, LOCALES } from "@codigdex/game-core/i18n/locale";
+import { messageCatalog, translate } from "@codigdex/game-i18n/messages";
 import { ALL_NODES } from "@/lib/phaser/pathMap/layout";
 import { CAREER_PATHS } from "@/lib/phaser/worldMap/careerPaths";
 import { WORLD_BACKDROPS } from "@/lib/phaser/worldMap/progression";

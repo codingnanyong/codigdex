@@ -1,9 +1,9 @@
-import { GIT_CHAPTER } from "@/lib/domain/chapters/git";
-import { LINUX_CHAPTER } from "@/lib/domain/chapters/linux";
-import type { ChapterId } from "@/lib/domain/chapters/types";
-import { TECHNOLOGY_SPECIMENS } from "@/lib/domain/technologySpecimens";
-import { JOB_OPTIONS } from "@/lib/domain/player/jobs";
-import { same, text, type LocalizedText } from "@/lib/i18n/locale";
+import { GIT_CHAPTER } from "@codigdex/game-content/domain/chapters/git";
+import { LINUX_CHAPTER } from "@codigdex/game-content/domain/chapters/linux";
+import type { ChapterId } from "@codigdex/game-core/domain/chapters/types";
+import { TECHNOLOGY_SPECIMENS } from "@codigdex/game-content/domain/technologySpecimens";
+import { JOB_OPTIONS } from "@codigdex/game-content/domain/player/jobs";
+import { same, text, type LocalizedText } from "@codigdex/game-core/i18n/locale";
 
 export type PathNodeKind = "common" | "promotion" | "career";
 

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { CHAPTERS } from "@/lib/domain/chapters";
-import { LOCALES } from "@/lib/i18n/locale";
+import { CHAPTERS } from "@codigdex/game-content/domain/chapters";
+import { LOCALES } from "@codigdex/game-core/i18n/locale";
 import { formatPrompt } from "@/lib/phaser/battle/promptFormat";
 
 describe("formatPrompt", () => {

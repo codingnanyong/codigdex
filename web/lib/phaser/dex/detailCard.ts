@@ -1,7 +1,7 @@
 import type Phaser from "phaser";
-import type { CapturedCard, MonsterDefinition } from "@/lib/domain/chapters/types";
+import type { CapturedCard, MonsterDefinition } from "@codigdex/game-core/domain/chapters/types";
 import { fitTexture } from "../monsterArt";
-import { formatDate } from "@/lib/i18n/locale";
+import { formatDate } from "@codigdex/game-core/i18n/locale";
 import { lt, sceneLocale, t } from "../i18n";
 import { PALETTE_HEX } from "../palette";
 import { pixelText } from "../pixelFont";

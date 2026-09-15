@@ -1,6 +1,6 @@
-import type { JobId } from "@/lib/domain/player/jobs";
-import { text, type LocalizedText } from "@/lib/i18n/locale";
-import { monstersForCareerRegion } from "@/lib/domain/careerRegionMonsters";
+import type { JobId } from "@codigdex/game-content/domain/player/jobs";
+import { text, type LocalizedText } from "@codigdex/game-core/i18n/locale";
+import { monstersForCareerRegion } from "@codigdex/game-content/domain/careerRegionMonsters";
 
 export interface CareerRegion {
   id: string;

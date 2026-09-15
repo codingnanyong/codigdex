@@ -2,9 +2,9 @@ import Phaser from "phaser";
 import {
   monstersForCareerRegion,
   type CareerRegionMonster,
-} from "@/lib/domain/careerRegionMonsters";
-import { findJob, guideDisplayName, type JobId } from "@/lib/domain/player/jobs";
-import { capturedIds } from "@/lib/domain/dex/capture";
+} from "@codigdex/game-content/domain/careerRegionMonsters";
+import { findJob, guideDisplayName, type JobId } from "@codigdex/game-content/domain/player/jobs";
+import { capturedIds } from "@codigdex/game-core/domain/dex/capture";
 import { PALETTE, PALETTE_HEX } from "../palette";
 import { lt, t } from "../i18n";
 import { createHomeButton } from "../navigation";

@@ -4,13 +4,18 @@ Next.js + Phaser.js game client. The repo root keeps policy/community-health fil
 
 ## Develop
 
+Run these commands from the repository root so npm can resolve the shared
+workspaces:
+
 ```bash
 npm install
-npm run dev      # http://localhost:3000
-npm run build
+npm run dev --workspace @codigdex/web # http://localhost:3001
+npm run build:web
 npm run lint
 ```
 
 ## Vercel
 
-Set the project's **Root Directory** to `web` when connecting this repo to Vercel.
+Keep the project's **Root Directory** at the repository root so Vercel can use
+the root lockfile and resolve the shared workspaces. Use `npm run build:web` as
+the build command.

@@ -3,7 +3,7 @@ import {
   careerEmblemTextureKey,
   type CareerCatalogEntry,
   type CareerStatus,
-} from "@/lib/domain/careerDex";
+} from "@codigdex/game-content/domain/careerDex";
 import { PALETTE, PALETTE_HEX } from "../palette";
 import { pixelText } from "../pixelFont";
 

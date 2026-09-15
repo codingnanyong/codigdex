@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import type { ChapterDefinition } from "@/lib/domain/chapters/types";
+import type { ChapterDefinition } from "@codigdex/game-core/domain/chapters/types";
 import { PALETTE } from "../palette";
 
 export interface RoutePoint {

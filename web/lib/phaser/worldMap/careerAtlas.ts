@@ -4,13 +4,13 @@ import {
   type CareerPathDefinition,
   type CareerRegion,
 } from "./careerPaths";
-import { guideDisplayName, type JobOption } from "@/lib/domain/player/jobs";
+import { guideDisplayName, type JobOption } from "@codigdex/game-content/domain/player/jobs";
 import { lt, t } from "../i18n";
 import { PALETTE, PALETTE_HEX } from "../palette";
 import { pixelText } from "../pixelFont";
 import { drawOrnateFrame, fitTextInside } from "../ui";
 import { createDialogPortrait } from "./dialogPortrait";
-import { capturedIds } from "@/lib/domain/dex/capture";
+import { capturedIds } from "@codigdex/game-core/domain/dex/capture";
 import { readDexState } from "../registryAdapter";
 import { careerRegionProgression, type CareerRegionStatus } from "./careerRegionProgression";
 import { drawPixelChainLock } from "./pixelChainLock";

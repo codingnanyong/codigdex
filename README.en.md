@@ -68,9 +68,8 @@ The specialist chapters for each career (HTML/CSS, Docker, SQL and more) already
 Built with Next.js, Phaser and TypeScript.
 
 ```bash
-cd web
 npm install
-npm run dev
+npm run dev --workspace @codigdex/web
 ```
 
 Open [http://localhost:3001](http://localhost:3001) in your browser. Run the tests with `npm run test`.
@@ -80,6 +79,7 @@ Open [http://localhost:3001](http://localhost:3001) in your browser. Run the tes
 - [Game Design Document](docs/eng/GAME_DESIGN.md) — game rules, screens, visual guide
 - [Career Path Design](docs/eng/CAREER_PATH_DESIGN.md) — curriculum, promotion requirements, save format
 - [Git workflow](docs/eng/GIT_WORKFLOW.md) — branch strategy, PR and issue automation
+- [Monorepo architecture](docs/eng/MONOREPO_ARCHITECTURE.md) — web/mobile apps and shared package boundaries
 - [Contributing](CONTRIBUTING.md) · [Project and PR policy](AGENTS.md)
 
 ## Contributing

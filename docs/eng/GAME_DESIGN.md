@@ -102,7 +102,7 @@ The game supports Korean and English. A first visit follows the browser's langua
 
 A walkthrough of the tutorial, which teaches the game loop with a `for` loop.
 
-1. **Onboarding** — on the first visit Lupi introduces themself and explains the rule: answer at least 60% of the questions to register a monster in the dex.
+1. **Onboarding** — on the first visit Lupi says hello and explains the rule: answer at least 60% of the questions to register a monster in the dex.
 2. **Request** — tapping the glowing quest marker by the well starts Lupi's briefing: "The Infinite Loop Bug keeps circling the well. Defeat it and register it in the dex!"
 3. **Question battle** — the Infinite Loop Bug is Lv.1, so **3 questions** are drawn at random from its pool of 20. Answer order is shuffled every time.
    - e.g. How many times does `for i in range(5):` loop? → **5**
@@ -222,7 +222,7 @@ Defined in `web/lib/phaser/palette.ts`.
 ### Parked ideas (carried over from v0.2)
 
 - [ ] Card grades by accuracy (bronze · silver · gold), retry upgrades, chapter master badges
-- [ ] Code-snippet assembly and debugging battle minigame
+- [ ] Code-snippet assembly and debugging battle mini-game
 - [ ] EXP, levels and character cosmetics
 - [ ] Coins and a shop for dex covers and card frame skins
 - [ ] Comparing dexes with other players · rankings
