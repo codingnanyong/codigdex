@@ -21,6 +21,7 @@ export type PixelTextRole = keyof typeof PIXEL_SIZES;
 
 const PIXEL_FONT_VARIABLE = "--font-pixel";
 const BODY_FONT_VARIABLE = "--font-pixel-body";
+let fontReadyPromise: Promise<void> | undefined;
 
 /**
  * Body copy is where the quiz prompts and answers live, and Galmuri7 at 2x
@@ -56,11 +57,15 @@ export function whenPixelFontReady(callback: () => void) {
     return;
   }
   // Canvas text never makes the browser fetch a face the page itself doesn't
-  // use, so request each one explicitly before re-rasterizing.
-  const faces = [PIXEL_FONT_VARIABLE, BODY_FONT_VARIABLE].map((variable) =>
-    document.fonts.load(`14px ${getPixelFontFamily(variable)}`)
-  );
-  Promise.all(faces)
+  // use, so request each one explicitly. Cache the work: dynamic panels call
+  // this helper often, but loading the same font and awaiting document.fonts
+  // again adds needless microtasks and font-set scans.
+  fontReadyPromise ??= Promise.all(
+    [PIXEL_FONT_VARIABLE, BODY_FONT_VARIABLE].map((variable) =>
+      document.fonts.load(`14px ${getPixelFontFamily(variable)}`)
+    )
+  )
     .then(() => document.fonts.ready)
-    .then(callback, callback);
+    .then(() => undefined);
+  fontReadyPromise.then(callback, callback);
 }

@@ -3,7 +3,8 @@ import type { MonsterDefinition } from "@codigdex/game-core/domain/chapters/type
 import { lt, t } from "../i18n";
 import { PALETTE_HEX } from "../palette";
 import { pixelText } from "../pixelFont";
-import { addSnippetBlock, createButton, drawOrnateFrame, popIn } from "../ui";
+import { addSnippetBlock, createButton, drawOrnateFrame, fitTextInside, popIn } from "../ui";
+import { panelScaleToViewport } from "../dex/detailLayout";
 
 type Positioned = Phaser.GameObjects.GameObject & { y: number };
 
@@ -35,6 +36,7 @@ export function showCapturedPanel(scene: Phaser.Scene, options: CapturedPanelOpt
       align: "center",
     })
     .setOrigin(0.5, 0);
+  fitTextInside(title, textWidth, 48);
   cursor += title.height + 14;
 
   const description = scene.add
@@ -70,6 +72,7 @@ export function showCapturedPanel(scene: Phaser.Scene, options: CapturedPanelOpt
         ...pixelText("body"),
         color: PALETTE_HEX.wood,
         align: "center",
+        wordWrap: { width: textWidth },
       })
       .setOrigin(0.5, 0);
     cursor += notice.height;
@@ -91,7 +94,7 @@ export function showCapturedPanel(scene: Phaser.Scene, options: CapturedPanelOpt
   const panel = scene.add
     .container(width / 2, height / 2, [frame, ...content, confirm])
     .setDepth(1);
-  popIn(scene, panel, 0.85);
+  popIn(scene, panel, 0.85, panelScaleToViewport(CAPTURED_PANEL.width, panelHeight, width, height));
   return panel;
 }
 
@@ -140,6 +143,6 @@ export function showMissedPanel(scene: Phaser.Scene, options: MissedPanelOptions
   const panel = scene.add
     .container(width / 2, height / 2, [frame, title, resultLine, npcLine, retry])
     .setDepth(1);
-  popIn(scene, panel, 0.85);
+  popIn(scene, panel, 0.85, panelScaleToViewport(MISSED_PANEL.width, MISSED_PANEL.height, width, height));
   return panel;
 }

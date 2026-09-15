@@ -56,7 +56,11 @@ export class CareerRegionScene extends Phaser.Scene {
     if (job.guideTextureKey && job.guideAssetKey) {
       this.load.image(job.guideTextureKey, assetUrl(job.guideAssetKey));
     }
-    monstersForCareerRegion(region.id).forEach((monster) => {
+    const captured = capturedIds(readDexState(this.registry));
+    const monsters = monstersForCareerRegion(region.id);
+    const firstUncaptured = monsters.findIndex((monster) => !captured.has(monster.id));
+    const activeIndex = firstUncaptured === -1 ? monsters.length - 1 : firstUncaptured;
+    monsters.filter((monster, index) => captured.has(monster.id) || index === activeIndex).forEach((monster) => {
       this.load.image(monster.textureKey, assetUrl(monster.assetKey));
     });
   }

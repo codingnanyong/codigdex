@@ -34,9 +34,13 @@ export default function PhaserGame() {
       const game = new PhaserLib.Game(createGameConfig(containerRef.current));
       gameRef.current = game;
       game.events.once(PhaserLib.Core.Events.READY, () => {
-        if (cancelled) return;
-        observer = new ResizeObserver(syncRendering);
-        observer.observe(game.canvas);
+        if (cancelled || !containerRef.current) return;
+        observer = new ResizeObserver(() => {
+          game.scale.refresh();
+          syncRendering();
+        });
+        observer.observe(containerRef.current);
+        game.scale.refresh();
         syncRendering();
       });
     }

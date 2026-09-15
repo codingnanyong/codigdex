@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { DEX_MONSTERS } from "@codigdex/game-content/domain/chapters";
 import { DEX_CATALOG, PLANNED_DEX_SLOTS } from "@codigdex/game-content/domain/dex/catalog";
-import { buildDexEntries, registeredDexMonsters } from "@/lib/phaser/dex/entry";
+import { buildDexEntries, initialDexMonsters } from "@/lib/phaser/dex/entry";
 
 describe("dex catalog roadmap", () => {
   it("publishes career monsters as released numbered entries", () => {
@@ -19,7 +19,7 @@ describe("dex catalog roadmap", () => {
     expect(entries.every((entry) => entry.monster)).toBe(true);
   });
 
-  it("preloads art only for cards already registered in the dex", () => {
+  it("preloads only the selected registered card and defers the rest", () => {
     const [first, second] = DEX_MONSTERS;
     const entries = buildDexEntries([
       {
@@ -34,7 +34,8 @@ describe("dex catalog roadmap", () => {
       },
     ]);
 
-    expect(registeredDexMonsters(entries)).toEqual([second]);
-    expect(registeredDexMonsters(entries)).not.toContain(first);
+    expect(initialDexMonsters(entries, 1)).toEqual([second]);
+    expect(initialDexMonsters(entries, 0)).toEqual([]);
+    expect(initialDexMonsters(entries, 1)).not.toContain(first);
   });
 });
