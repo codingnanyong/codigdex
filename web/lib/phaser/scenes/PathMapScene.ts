@@ -66,6 +66,7 @@ export class PathMapScene extends Phaser.Scene {
   private selectedSecondaryJobId?: string;
   private selectedTertiaryJobId?: string;
   private stagePanelLoading = false;
+  private viewGeneration = 0;
 
   constructor() {
     super("path-map");
@@ -89,6 +90,7 @@ export class PathMapScene extends Phaser.Scene {
     this.toast = undefined;
     this.stagePanel = undefined;
     this.stagePanelLoading = false;
+    this.viewGeneration += 1;
     this.captured = capturedIds(readDexState(this.registry));
     const careerDex = reconcileCareerDexRegistry(this.registry);
     this.completedCareerIds = masteredPrimaryJobIds(careerDex);
@@ -315,7 +317,10 @@ export class PathMapScene extends Phaser.Scene {
       return;
     }
     this.stagePanelLoading = true;
-    this.load.once(Phaser.Loader.Events.COMPLETE, show);
+    const generation = this.viewGeneration;
+    this.load.once(Phaser.Loader.Events.COMPLETE, () => {
+      if (this.viewGeneration === generation) show();
+    });
     preloadMonsterArt(this, missing);
     if (!this.load.isLoading()) this.load.start();
   }

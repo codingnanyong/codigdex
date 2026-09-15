@@ -42,6 +42,10 @@ export class CodigdexScene extends Phaser.Scene {
   private detail!: DetailCard;
   private careerPanel?: CareerPanel;
   private careerAssetsLoading = false;
+  private readonly monsterArtLoads = new Map<
+    string,
+    { event: string; complete: () => void; callbacks: Set<() => void> }
+  >();
 
   constructor() {
     super("codigdex");
@@ -64,6 +68,10 @@ export class CodigdexScene extends Phaser.Scene {
     this.scene.bringToTop();
     this.careerPanel = undefined;
     this.careerAssetsLoading = false;
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      this.monsterArtLoads.forEach(({ event, complete }) => this.load.off(event, complete));
+      this.monsterArtLoads.clear();
+    });
     addShade(this, 1);
     const screen = drawDexShell(this);
     const bodyTop = screen.top + 52;
@@ -184,7 +192,20 @@ export class CodigdexScene extends Phaser.Scene {
       onReady();
       return;
     }
-    this.load.once(`filecomplete-image-${monster.textureKey}`, onReady);
+    const pending = this.monsterArtLoads.get(monster.textureKey);
+    if (pending) {
+      pending.callbacks.add(onReady);
+      return;
+    }
+    const event = `filecomplete-image-${monster.textureKey}`;
+    const callbacks = new Set([onReady]);
+    const complete = () => {
+      this.monsterArtLoads.delete(monster.textureKey);
+      if (!this.sys.isActive()) return;
+      callbacks.forEach((callback) => callback());
+    };
+    this.monsterArtLoads.set(monster.textureKey, { event, complete, callbacks });
+    this.load.once(event, complete);
     this.load.image(monster.textureKey, assetUrl(monster.assetKey));
     if (!this.load.isLoading()) this.load.start();
   }

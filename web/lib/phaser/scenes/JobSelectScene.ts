@@ -49,6 +49,7 @@ export class JobSelectScene extends Phaser.Scene {
   private selectedSecondaryJobId?: SecondaryJobId;
   private selectedTertiaryJobId?: string;
   private commonPathComplete = false;
+  private viewGeneration = 0;
 
   constructor() {
     super("job-select");
@@ -98,6 +99,7 @@ export class JobSelectScene extends Phaser.Scene {
   }
 
   private resetViewState() {
+    this.viewGeneration += 1;
     this.toast = undefined;
     this.promotionDialog = undefined;
     this.promotionDialogLoading = false;
@@ -208,9 +210,12 @@ export class JobSelectScene extends Phaser.Scene {
       !this.textures.exists(job.guideTextureKey)
     ) {
       this.promotionDialogLoading = true;
+      const generation = this.viewGeneration;
       this.load.once(`filecomplete-image-${job.guideTextureKey}`, () => {
         this.promotionDialogLoading = false;
-        if (this.sys.isActive()) this.showPrimaryJobConfirmation(job);
+        if (this.sys.isActive() && this.viewGeneration === generation) {
+          this.showPrimaryJobConfirmation(job);
+        }
       });
       this.load.image(job.guideTextureKey, assetUrl(job.guideAssetKey));
       if (!this.load.isLoading()) this.load.start();

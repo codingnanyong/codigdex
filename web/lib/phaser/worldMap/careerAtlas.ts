@@ -196,6 +196,7 @@ function drawRegion(
     terrainLoading = true;
     scene.load.once(`filecomplete-image-${terrainTextureKey}`, () => {
       terrainLoading = false;
+      if (!scene.sys.isActive()) return;
       createTerrainLayers();
       onReady();
     });
