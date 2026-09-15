@@ -3,6 +3,10 @@ import path from "node:path";
 
 const packageRules = [
   {
+    directory: "packages/game-assets/src",
+    allowedWorkspaces: new Set(),
+  },
+  {
     directory: "packages/game-core/src",
     allowedWorkspaces: new Set(),
   },
@@ -19,6 +23,8 @@ const packageRules = [
 const platformPackages = new Set(["next", "phaser", "react", "react-dom", "expo", "react-native"]);
 const sourceExtensions = new Set([".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs"]);
 const importPattern = /(?:from\s+|import\s*\()\s*["']([^"']+)["']/g;
+// Shared packages hold asset keys; turning a key into a URL is each app's job.
+const assetUrlPattern = /["'`]\/assets\//;
 const violations = [];
 
 async function collectFiles(directory) {
@@ -40,6 +46,9 @@ function workspaceName(specifier) {
 for (const rule of packageRules) {
   for (const file of await collectFiles(rule.directory)) {
     const source = await readFile(file, "utf8");
+    if (assetUrlPattern.test(source)) {
+      violations.push(`${file}: use an asset key instead of an /assets/ URL`);
+    }
     for (const match of source.matchAll(importPattern)) {
       const specifier = match[1];
       const dependency = workspaceName(specifier);

@@ -43,9 +43,9 @@ export const CAREER_NODES: readonly PathNode[] = [
 
 export const ALL_NODES: readonly PathNode[] = [...COMMON_NODES, PROMOTION_NODE, ...CAREER_NODES];
 
-export const CAREER_PORTRAITS = JOB_OPTIONS.map(({ textureKey, assetPath }) => ({
+export const CAREER_PORTRAITS = JOB_OPTIONS.map(({ textureKey, assetKey }) => ({
   textureKey,
-  assetPath,
+  assetKey,
 }));
 
 export const COMMON_WIDTH = 164;

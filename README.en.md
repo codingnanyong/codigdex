@@ -1,6 +1,6 @@
 <!-- markdownlint-disable MD033 MD041 -->
 <p align="center">
-  <img src="web/public/assets/icons/codigdex-main-icon.png" width="120" alt="Codigdex game icon">
+  <img src="packages/game-assets/files/icons/codigdex-main-icon.png" width="120" alt="Codigdex game icon">
 </p>
 
 <h1 align="center">Codigdex</h1>
@@ -21,7 +21,7 @@ In **Codeville**, a pixel village on a server cloud, the concepts hidden in code
 
 Instead of reading and moving on, you learn to code by catching concepts one at a time.
 
-![A junior developer holding a field guide, with bug monster regions](web/public/assets/wallpapers/codigdex-field-guide-wallpaper-v3.png)
+![A junior developer holding a field guide, with bug monster regions](packages/game-assets/files/wallpapers/codigdex-field-guide-wallpaper-v3.png)
 
 ## How to play
 
@@ -43,14 +43,14 @@ Tutorial · Loop Forest
 
 First learn Git and Linux, the skills every developer needs, then pick a career and explore that career's own map. Each career has a senior NPC to guide you, and higher careers like Fullstack Engineer or ML Developer stay hidden behind `???`, waiting for you to walk both paths that lead to them.
 
-![Player characters and guide NPCs from junior to tier 3](web/public/assets/characters/career-path/career-character-guide-v2.png)
+![Player characters and guide NPCs from junior to tier 3](packages/game-assets/files/characters/career-path/career-character-guide-v2.png)
 
 ## Things to collect
 
 - **Monster dex** — from the Loop Bug to the Git Sprout and the Kernel Guardian. Every technology has monsters that evolve from Lv.1 to Lv.5. Monsters you have not discovered yet stay as `???`.
 - **Career dex** — collect 16 career emblems, from junior developer to tier 3 master careers. The day you first promoted and the day you mastered each career are recorded.
 
-![Career emblems from junior to tier 3](web/public/assets/career-emblems/career-emblem-archive-v1.png)
+![Career emblems from junior to tier 3](packages/game-assets/files/career-emblems/career-emblem-archive-v1.png)
 
 ## Playable now
 

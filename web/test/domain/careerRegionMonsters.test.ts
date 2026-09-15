@@ -1,6 +1,5 @@
-import fs from "node:fs";
-import path from "node:path";
 import { describe, expect, it } from "vitest";
+import { isAssetKey } from "@codigdex/game-assets/manifest";
 import {
   CAREER_REGION_MONSTERS,
   monstersForCareerRegion,
@@ -9,8 +8,6 @@ import { findStage, stageStatus } from "@codigdex/game-content/domain/chapters";
 import { buildDexEntries } from "@/lib/phaser/dex/entry";
 import { applyCapture, EMPTY_DEX_STATE } from "@codigdex/game-core/domain/dex/capture";
 import { CAREER_PATHS } from "@/lib/phaser/worldMap/careerPaths";
-
-const PUBLIC_DIR = path.resolve(process.cwd(), "public");
 
 describe("career-region monster checkpoints", () => {
   it("matches five ordered monsters to every career map", () => {
@@ -25,7 +22,7 @@ describe("career-region monster checkpoints", () => {
 
   it("points every checkpoint at an existing individual monster image", () => {
     Object.values(CAREER_REGION_MONSTERS).flat().forEach((monster) => {
-      expect(fs.existsSync(path.join(PUBLIC_DIR, monster.assetPath)), monster.assetPath).toBe(true);
+      expect(isAssetKey(monster.assetKey), monster.assetKey).toBe(true);
     });
   });
 
@@ -52,7 +49,7 @@ describe("career-region monster checkpoints", () => {
       expect(monster.name.ko.length).toBeGreaterThan(0);
       expect(monster.name.en.length).toBeGreaterThan(0);
       expect(monster.name.ko).not.toBe(monster.name.en);
-      expect(monster.quizPool).toHaveLength(8);
+      expect(monster.quizPool).toHaveLength(20);
       (["ko", "en"] as const).forEach((locale) => {
         const prompts = monster.quizPool.map((question) => question.prompt[locale]);
         expect(new Set(prompts).size, monster.id).toBe(prompts.length);
@@ -62,6 +59,16 @@ describe("career-region monster checkpoints", () => {
         expect(question.answerIndex).toBeGreaterThanOrEqual(0);
         expect(question.answerIndex).toBeLessThan(4);
       });
+      expect(new Set(monster.quizPool.map((question) => question.answerIndex))).toEqual(
+        new Set([0, 1, 2, 3])
+      );
+      const choiceSets = monster.quizPool.map((question) =>
+        question.choices
+          .map((choice) => choice.en)
+          .sort()
+          .join("|")
+      );
+      expect(new Set(choiceSets).size, `${monster.id} distractor sets`).toBeGreaterThan(1);
       quizSignatures.add(monster.quizPool.map((question) => question.prompt.en).join("|"));
     });
 

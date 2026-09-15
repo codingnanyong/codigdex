@@ -42,7 +42,7 @@ describe("career catalog", () => {
   });
 
   it("gives every career a distinct collectible emblem", () => {
-    const emblems = CAREER_CATALOG.map((career) => career.emblemAssetPath);
+    const emblems = CAREER_CATALOG.map((career) => career.emblemAssetKey);
 
     expect(Object.keys(CAREER_EMBLEMS)).toHaveLength(CAREER_CATALOG.length);
     expect(emblems.every(Boolean)).toBe(true);

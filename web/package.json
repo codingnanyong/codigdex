@@ -3,7 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "sync:assets": "node scripts/sync-assets.mjs",
+    "predev": "npm run sync:assets",
     "dev": "next dev -p 3001",
+    "prebuild": "npm run sync:assets",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
@@ -11,6 +14,7 @@
     "test:watch": "vitest"
   },
   "dependencies": {
+    "@codigdex/game-assets": "*",
     "@codigdex/game-content": "*",
     "@codigdex/game-core": "*",
     "@codigdex/game-i18n": "*",

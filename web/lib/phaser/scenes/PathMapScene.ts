@@ -31,6 +31,7 @@ import {
   type TertiaryJobOption,
 } from "@codigdex/game-content/domain/player/jobs";
 import { COMMON_TECHNOLOGY_SPECIMENS } from "@codigdex/game-content/domain/technologySpecimens";
+import { assetUrl } from "../../assets";
 import { lt, sceneLocale, t } from "../i18n";
 import { preloadMonsterArt } from "../monsterArt";
 import { createSettingsButton } from "../settings/settingsButton";
@@ -79,8 +80,8 @@ export class PathMapScene extends Phaser.Scene {
   }
 
   preload() {
-    COMMON_TECHNOLOGY_SPECIMENS.forEach(({ textureKey, assetPath }) => this.load.image(textureKey, assetPath));
-    CAREER_PORTRAITS.forEach(({ textureKey, assetPath }) => this.load.image(textureKey, assetPath));
+    COMMON_TECHNOLOGY_SPECIMENS.forEach(({ textureKey, assetKey }) => this.load.image(textureKey, assetUrl(assetKey)));
+    CAREER_PORTRAITS.forEach(({ textureKey, assetKey }) => this.load.image(textureKey, assetUrl(assetKey)));
     preloadMonsterArt(this, [...GIT_CHAPTER.stages, ...LINUX_CHAPTER.stages]);
   }
 

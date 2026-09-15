@@ -13,6 +13,7 @@ import {
   SECONDARY_JOB_REGISTRY_KEY,
   TERTIARY_JOB_REGISTRY_KEY,
 } from "@codigdex/game-content/domain/player/jobs";
+import { assetUrl } from "../../assets";
 import { CareerPanel } from "../dex/careerPanel";
 import { DetailCard } from "../dex/detailCard";
 import { t } from "../i18n";
@@ -53,7 +54,7 @@ export class CodigdexScene extends Phaser.Scene {
   preload() {
     preloadMonsterArt(this, DEX_MONSTERS);
     CAREER_CATALOG.forEach((career) =>
-      this.load.image(careerEmblemTextureKey(career.id), career.emblemAssetPath)
+      this.load.image(careerEmblemTextureKey(career.id), assetUrl(career.emblemAssetKey))
     );
   }
 
