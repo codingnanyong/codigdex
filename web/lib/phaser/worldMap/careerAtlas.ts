@@ -23,8 +23,6 @@ interface CareerAtlasOptions {
   onMystery: () => void;
 }
 
-const terrainCenters = new Map<string, { x: number; y: number }>();
-
 /** Turns a painted career wallpaper into a navigable atlas. */
 export function drawCareerAtlas(scene: Phaser.Scene, options: CareerAtlasOptions) {
   const regionRegistryKey = `career-atlas-region:${options.job.id}`;
@@ -163,9 +161,9 @@ function drawRegion(
   onSelect: (region: CareerRegion) => void
 ) {
   const { width, height } = scene.scale;
-  const { landmark } = region;
+  const { landmark, lift } = region;
   const terrainTextureKey = careerTerrainTextureKey(path, region);
-  const labelCenter = findTerrainCenter(scene, terrainTextureKey, landmark);
+  const labelCenter = { x: lift.x, y: lift.y };
   const shadow = scene.add
     .image(width / 2, height / 2 + 5, terrainTextureKey)
     .setTint(PALETTE.nightBrown)
@@ -178,10 +176,14 @@ function drawRegion(
     .setVisible(false)
     .setDepth(4);
 
+  // Keep input geometry separate from the full-screen terrain texture. A
+  // pixel-perfect Image hit area calls canvas drawImage/getImageData for every
+  // pointer test and, because it needs a non-zero alpha, also submits one
+  // transparent 960x540 draw per region on every frame. The hand-authored
+  // object silhouette is both cheaper and stable across Canvas/WebGL.
   const hitArea = scene.add
-    .image(width / 2, height / 2, terrainTextureKey)
-    .setAlpha(0.001)
-    .setInteractive({ useHandCursor: true, pixelPerfect: true, alphaTolerance: 16 })
+    .polygon(lift.x, lift.y, lift.points, 0xffffff, 0)
+    .setInteractive({ useHandCursor: true })
     .setDepth(6);
   const label = scene.add
     .text(
@@ -284,51 +286,4 @@ function drawRegion(
   hitArea.on("pointerout", deactivate);
   hitArea.on("pointerup", select);
   return hitArea;
-}
-
-/** Centers hover labels on the visible v3 terrain instead of legacy map geometry. */
-function findTerrainCenter(
-  scene: Phaser.Scene,
-  textureKey: string,
-  fallback: { x: number; y: number }
-): { x: number; y: number } {
-  const cached = terrainCenters.get(textureKey);
-  if (cached) return cached;
-  if (typeof document === "undefined") return fallback;
-
-  try {
-    const source = scene.textures.get(textureKey).getSourceImage() as CanvasImageSource & {
-      width: number;
-      height: number;
-    };
-    const canvas = document.createElement("canvas");
-    canvas.width = source.width;
-    canvas.height = source.height;
-    const context = canvas.getContext("2d", { willReadFrequently: true });
-    if (!context) return fallback;
-
-    context.drawImage(source, 0, 0);
-    const pixels = context.getImageData(0, 0, canvas.width, canvas.height).data;
-    let left = canvas.width;
-    let right = -1;
-    let top = canvas.height;
-    let bottom = -1;
-
-    for (let y = 0; y < canvas.height; y += 1) {
-      for (let x = 0; x < canvas.width; x += 1) {
-        if (pixels[(y * canvas.width + x) * 4 + 3] < 16) continue;
-        left = Math.min(left, x);
-        right = Math.max(right, x);
-        top = Math.min(top, y);
-        bottom = Math.max(bottom, y);
-      }
-    }
-
-    if (right < left || bottom < top) return fallback;
-    const center = { x: (left + right) / 2, y: (top + bottom) / 2 };
-    terrainCenters.set(textureKey, center);
-    return center;
-  } catch {
-    return fallback;
-  }
 }

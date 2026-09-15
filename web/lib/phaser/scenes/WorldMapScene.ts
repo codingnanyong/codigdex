@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { CHAPTERS, currentStageIndex, isCommonPathComplete } from "@codigdex/game-content/domain/chapters";
+import { currentStageIndex, isCommonPathComplete } from "@codigdex/game-content/domain/chapters";
 import { TUTORIAL_MONSTER, TUTORIAL_ONBOARDING_LINES } from "@codigdex/game-content/domain/chapters/tutorial";
 import type { ChapterDefinition, MonsterDefinition } from "@codigdex/game-core/domain/chapters/types";
 import { capturedIds } from "@codigdex/game-core/domain/dex/capture";
@@ -61,7 +61,7 @@ export class WorldMapScene extends Phaser.Scene {
   }
 
   preload() {
-    const { backdrop, selectedJob } = this.resolveProgress();
+    const { backdrop, captured, selectedJob } = this.resolveProgress();
     this.load.image(backdrop.textureKey, assetUrl(backdrop.assetKey));
     this.load.image(selectedJob.overworldTextureKey, assetUrl(selectedJob.overworldAssetKey));
     if (selectedJob.textureKey && selectedJob.assetKey) {
@@ -76,7 +76,16 @@ export class WorldMapScene extends Phaser.Scene {
         this.load.image(careerTerrainTextureKey(path, region), assetUrl(careerTerrainAssetKey(path, region)));
       });
     }
-    preloadMonsterArt(this, CHAPTERS.flatMap((chapter) => chapter.stages));
+    const activeChapter = selectActiveChapter(captured);
+    if (activeChapter) {
+      const activeIndex = currentStageIndex(activeChapter, captured);
+      preloadMonsterArt(
+        this,
+        activeChapter.stages.filter(
+          (monster, index) => captured.has(monster.id) || index === activeIndex
+        )
+      );
+    }
   }
 
   /** Where the player stands. A career only counts once the common path is complete. */

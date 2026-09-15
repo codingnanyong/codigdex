@@ -2,7 +2,7 @@ import Phaser from "phaser";
 import { lt, t } from "../i18n";
 import { PALETTE, PALETTE_HEX } from "../palette";
 import { pixelText } from "../pixelFont";
-import { applyPixelFontToScene, createButton, setButtonEnabled } from "../ui";
+import { applyPixelFontToScene, createButton, fitTextInside, setButtonEnabled } from "../ui";
 import type { DexEntry } from "./entry";
 
 const ROW_HEIGHT = 36;
@@ -125,6 +125,7 @@ export class EntryList {
           color: entry.card ? PALETTE_HEX.cream : PALETTE_HEX.mutedBrown,
         })
         .setOrigin(0, 0.5);
+      fitTextInside(label, width - 54, ROW_HEIGHT - 8);
 
       this.rows.push(row);
       items.push(row, ball, label);
