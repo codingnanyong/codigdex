@@ -10,8 +10,6 @@ import {
   isCommonPathComplete,
   type ChapterStatus,
 } from "@codigdex/game-content/domain/chapters";
-import { GIT_CHAPTER } from "@codigdex/game-content/domain/chapters/git";
-import { LINUX_CHAPTER } from "@codigdex/game-content/domain/chapters/linux";
 import type { ChapterId } from "@codigdex/game-core/domain/chapters/types";
 import { capturedIds } from "@codigdex/game-core/domain/dex/capture";
 import {
@@ -67,6 +65,7 @@ export class PathMapScene extends Phaser.Scene {
   private completedSecondaryIds: ReadonlySet<SecondaryJobId> = new Set();
   private selectedSecondaryJobId?: string;
   private selectedTertiaryJobId?: string;
+  private stagePanelLoading = false;
 
   constructor() {
     super("path-map");
@@ -82,7 +81,6 @@ export class PathMapScene extends Phaser.Scene {
   preload() {
     COMMON_TECHNOLOGY_SPECIMENS.forEach(({ textureKey, assetKey }) => this.load.image(textureKey, assetUrl(assetKey)));
     CAREER_PORTRAITS.forEach(({ textureKey, assetKey }) => this.load.image(textureKey, assetUrl(assetKey)));
-    preloadMonsterArt(this, [...GIT_CHAPTER.stages, ...LINUX_CHAPTER.stages]);
   }
 
   create() {
@@ -90,6 +88,7 @@ export class PathMapScene extends Phaser.Scene {
     // Scene instances outlive restarts, so drop references to the last run's objects.
     this.toast = undefined;
     this.stagePanel = undefined;
+    this.stagePanelLoading = false;
     this.captured = capturedIds(readDexState(this.registry));
     const careerDex = reconcileCareerDexRegistry(this.registry);
     this.completedCareerIds = masteredPrimaryJobIds(careerDex);
@@ -297,14 +296,28 @@ export class PathMapScene extends Phaser.Scene {
   }
 
   private openStagePanel(chapterId: ChapterId) {
-    if (this.stagePanel) return;
-    this.stagePanel = new StagePanel(this, getChapter(chapterId), this.captured, {
-      onStart: (monsterId) => this.scene.start("code-battle", { monsterId }),
-      onClose: () => {
-        this.stagePanel?.destroy();
-        this.stagePanel = undefined;
-      },
-    });
+    if (this.stagePanel || this.stagePanelLoading) return;
+    const chapter = getChapter(chapterId);
+    const missing = chapter.stages.filter(({ textureKey }) => !this.textures.exists(textureKey));
+    const show = () => {
+      this.stagePanelLoading = false;
+      if (!this.sys.isActive() || this.stagePanel) return;
+      this.stagePanel = new StagePanel(this, chapter, this.captured, {
+        onStart: (monsterId) => this.scene.start("code-battle", { monsterId }),
+        onClose: () => {
+          this.stagePanel?.destroy();
+          this.stagePanel = undefined;
+        },
+      });
+    };
+    if (missing.length === 0) {
+      show();
+      return;
+    }
+    this.stagePanelLoading = true;
+    this.load.once(Phaser.Loader.Events.COMPLETE, show);
+    preloadMonsterArt(this, missing);
+    if (!this.load.isLoading()) this.load.start();
   }
 
   private notify(message: string) {

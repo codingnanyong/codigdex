@@ -1,7 +1,7 @@
 export const DETAIL_VIEWPORT_MARGIN = 16;
 
-/** Keeps a variable-height dex card wholly inside the fixed 960x540 game viewport. */
-export function detailPanelScale(
+/** Keeps any fixed or variable-size panel wholly inside the game viewport. */
+export function panelScaleToViewport(
   panelWidth: number,
   panelHeight: number,
   viewportWidth: number,

@@ -15,6 +15,7 @@ import {
   popIn,
   setButtonEnabled,
 } from "../ui";
+import { panelScaleToViewport } from "../dex/detailLayout";
 
 const PANEL = { width: 640, height: 340 };
 const SLOT_RADIUS = 32;
@@ -134,7 +135,7 @@ export class StagePanel {
       .setDepth(21);
 
     this.select(currentStageIndex(chapter, captured));
-    popIn(scene, this.group, 0.92);
+    popIn(scene, this.group, 0.92, panelScaleToViewport(PANEL.width, PANEL.height, width, height));
     applyPixelFontToScene(scene);
   }
 

@@ -41,6 +41,7 @@ import { applyPixelFontToScene, createButton, showToast } from "../ui";
 export class JobSelectScene extends Phaser.Scene {
   private toast?: Phaser.GameObjects.Text;
   private promotionDialog?: Phaser.GameObjects.Container;
+  private promotionDialogLoading = false;
   private selectedJobId: JobId | "junior" = "junior";
   private selectedPathComplete = false;
   private completedJobIds: ReadonlySet<JobId> = new Set();
@@ -56,9 +57,6 @@ export class JobSelectScene extends Phaser.Scene {
   preload() {
     JOB_OPTIONS.forEach((job) => {
       this.load.image(job.textureKey!, assetUrl(job.assetKey!));
-      if (job.guideTextureKey && job.guideAssetKey) {
-        this.load.image(job.guideTextureKey, assetUrl(job.guideAssetKey));
-      }
     });
   }
 
@@ -102,6 +100,7 @@ export class JobSelectScene extends Phaser.Scene {
   private resetViewState() {
     this.toast = undefined;
     this.promotionDialog = undefined;
+    this.promotionDialogLoading = false;
   }
 
   private loadProgressState() {
@@ -202,7 +201,21 @@ export class JobSelectScene extends Phaser.Scene {
   }
 
   private showPrimaryJobConfirmation(job: PrimaryJobOption) {
-    if (this.promotionDialog) return;
+    if (this.promotionDialog || this.promotionDialogLoading) return;
+    if (
+      job.guideTextureKey &&
+      job.guideAssetKey &&
+      !this.textures.exists(job.guideTextureKey)
+    ) {
+      this.promotionDialogLoading = true;
+      this.load.once(`filecomplete-image-${job.guideTextureKey}`, () => {
+        this.promotionDialogLoading = false;
+        if (this.sys.isActive()) this.showPrimaryJobConfirmation(job);
+      });
+      this.load.image(job.guideTextureKey, assetUrl(job.guideAssetKey));
+      if (!this.load.isLoading()) this.load.start();
+      return;
+    }
     this.promotionDialog = createPromotionDialog(this, job, {
       onCancel: () => {
         this.promotionDialog?.destroy(true);

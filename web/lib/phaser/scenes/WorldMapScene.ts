@@ -24,8 +24,6 @@ import { drawCareerAtlas } from "../worldMap/careerAtlas";
 import { routePointsFor } from "../worldMap/chapterRoute";
 import {
   careerPathFor,
-  careerTerrainAssetKey,
-  careerTerrainTextureKey,
 } from "../worldMap/careerPaths";
 import { showGuideHint } from "../worldMap/guideHint";
 import { createWorldMapHud } from "../worldMap/hud";
@@ -69,12 +67,6 @@ export class WorldMapScene extends Phaser.Scene {
     }
     if (selectedJob.guideTextureKey && selectedJob.guideAssetKey) {
       this.load.image(selectedJob.guideTextureKey, assetUrl(selectedJob.guideAssetKey));
-    }
-    if (selectedJob.id !== "junior") {
-      const path = careerPathFor(selectedJob.id as JobId);
-      path.regions.forEach((region) => {
-        this.load.image(careerTerrainTextureKey(path, region), assetUrl(careerTerrainAssetKey(path, region)));
-      });
     }
     const activeChapter = selectActiveChapter(captured);
     if (activeChapter) {
