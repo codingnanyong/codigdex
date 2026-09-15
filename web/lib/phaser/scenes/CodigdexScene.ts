@@ -4,7 +4,6 @@ import {
   careerEmblemTextureKey,
   type CareerId,
 } from "@codigdex/game-content/domain/careerDex";
-import { DEX_MONSTERS } from "@codigdex/game-content/domain/chapters";
 import {
   findJob,
   findSecondaryJob,
@@ -17,7 +16,7 @@ import { assetUrl } from "../../assets";
 import { CareerPanel } from "../dex/careerPanel";
 import { DetailCard } from "../dex/detailCard";
 import { t } from "../i18n";
-import { buildDexEntries, type DexEntry } from "../dex/entry";
+import { buildDexEntries, registeredDexMonsters, type DexEntry } from "../dex/entry";
 import { EntryList } from "../dex/entryList";
 import { PreviewPane } from "../dex/previewPane";
 import { DEX_PANEL, drawDexShell } from "../dex/shell";
@@ -52,7 +51,11 @@ export class CodigdexScene extends Phaser.Scene {
   }
 
   preload() {
-    preloadMonsterArt(this, DEX_MONSTERS);
+    // The catalog contains more than a hundred released monsters, but the
+    // initial view only draws art for registered cards. Loading every image
+    // here made opening the dex wait for all downloads and texture decoding.
+    this.entries = buildDexEntries(readDexState(this.registry).cards);
+    preloadMonsterArt(this, registeredDexMonsters(this.entries));
     CAREER_CATALOG.forEach((career) =>
       this.load.image(careerEmblemTextureKey(career.id), assetUrl(career.emblemAssetKey))
     );
@@ -65,7 +68,6 @@ export class CodigdexScene extends Phaser.Scene {
     const screen = drawDexShell(this);
     const bodyTop = screen.top + 52;
 
-    this.entries = buildDexEntries(readDexState(this.registry).cards);
     this.selectedIndex = Math.max(0, this.entries.findIndex((entry) => entry.card));
 
     this.detail = new DetailCard(this);
