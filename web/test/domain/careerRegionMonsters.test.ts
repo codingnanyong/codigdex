@@ -52,7 +52,7 @@ describe("career-region monster checkpoints", () => {
       expect(monster.name.ko.length).toBeGreaterThan(0);
       expect(monster.name.en.length).toBeGreaterThan(0);
       expect(monster.name.ko).not.toBe(monster.name.en);
-      expect(monster.quizPool).toHaveLength(8);
+      expect(monster.quizPool).toHaveLength(20);
       (["ko", "en"] as const).forEach((locale) => {
         const prompts = monster.quizPool.map((question) => question.prompt[locale]);
         expect(new Set(prompts).size, monster.id).toBe(prompts.length);
@@ -62,6 +62,9 @@ describe("career-region monster checkpoints", () => {
         expect(question.answerIndex).toBeGreaterThanOrEqual(0);
         expect(question.answerIndex).toBeLessThan(4);
       });
+      expect(new Set(monster.quizPool.map((question) => question.answerIndex))).toEqual(
+        new Set([0, 1, 2, 3])
+      );
       quizSignatures.add(monster.quizPool.map((question) => question.prompt.en).join("|"));
     });
 
