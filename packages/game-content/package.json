@@ -1,0 +1,19 @@
+{
+  "name": "@codigdex/game-content",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./domain/chapters": "./src/domain/chapters/index.ts",
+    "./domain/*": "./src/domain/*.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@codigdex/game-core": "*"
+  },
+  "devDependencies": {
+    "typescript": "^5"
+  }
+}

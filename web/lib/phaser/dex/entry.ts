@@ -1,5 +1,5 @@
-import { DEX_CATALOG } from "@/lib/domain/dex/catalog";
-import type { CapturedCard, MonsterDefinition } from "@/lib/domain/chapters/types";
+import { DEX_CATALOG } from "@codigdex/game-content/domain/dex/catalog";
+import type { CapturedCard, MonsterDefinition } from "@codigdex/game-core/domain/chapters/types";
 
 /** One dex row: the monster, and its card if the player has captured it. */
 export interface DexEntry {

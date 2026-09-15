@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { isCommonPathComplete } from "@/lib/domain/chapters";
+import { isCommonPathComplete } from "@codigdex/game-content/domain/chapters";
 import {
   EMPTY_CAREER_DEX_STATE,
   isCareerId,
@@ -8,9 +8,9 @@ import {
   selectCareer,
   type CareerDexState,
   type CareerId,
-} from "@/lib/domain/careerDex";
-import { capturedIds, DexState, EMPTY_DEX_STATE } from "@/lib/domain/dex/capture";
-import { CAPTURABLE_MONSTERS } from "@/lib/domain/chapters";
+} from "@codigdex/game-content/domain/careerDex";
+import { capturedIds, DexState, EMPTY_DEX_STATE } from "@codigdex/game-core/domain/dex/capture";
+import { CAPTURABLE_MONSTERS } from "@codigdex/game-content/domain/chapters";
 import {
   completedSecondaryJobIds,
   findJob,
@@ -19,9 +19,9 @@ import {
   JOB_REGISTRY_KEY,
   SECONDARY_JOB_REGISTRY_KEY,
   TERTIARY_JOB_REGISTRY_KEY,
-} from "@/lib/domain/player/jobs";
-import { DEFAULT_LOCALE, detectLocale, isLocale, type Locale } from "@/lib/i18n/locale";
-import { createSave, parseSave } from "./save/schema";
+} from "@codigdex/game-content/domain/player/jobs";
+import { DEFAULT_LOCALE, detectLocale, isLocale, type Locale } from "@codigdex/game-core/i18n/locale";
+import { createSave, parseSave } from "@codigdex/game-core/save/schema";
 import { completedCareerPathIds } from "./worldMap/careerPaths";
 
 const CARDS_KEY = "cards";

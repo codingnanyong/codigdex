@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { DEX_MONSTERS } from "@/lib/domain/chapters";
-import { DEX_CATALOG, PLANNED_DEX_SLOTS } from "@/lib/domain/dex/catalog";
+import { DEX_MONSTERS } from "@codigdex/game-content/domain/chapters";
+import { DEX_CATALOG, PLANNED_DEX_SLOTS } from "@codigdex/game-content/domain/dex/catalog";
 import { buildDexEntries } from "@/lib/phaser/dex/entry";
 
 describe("dex catalog roadmap", () => {

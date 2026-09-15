@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { DEFAULT_LOCALE, isLocale, type Locale } from "@/lib/i18n/locale";
+import { DEFAULT_LOCALE, isLocale, type Locale } from "@codigdex/game-core/i18n/locale";
 import { LOCALE_CHANGE_EVENT } from "@/lib/phaser/i18nEvents";
 
 const COPY: Readonly<Record<Locale, { tagline: string; rotateHint: string }>> = {

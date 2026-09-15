@@ -68,9 +68,8 @@
 Next.js, Phaser, TypeScript로 만들었습니다.
 
 ```bash
-cd web
 npm install
-npm run dev
+npm run dev --workspace @codigdex/web
 ```
 
 브라우저에서 [http://localhost:3001](http://localhost:3001)을 엽니다. 테스트는 `npm run test`로 실행합니다.
@@ -80,6 +79,7 @@ npm run dev
 - [게임 기획서](docs/kor/GAME_DESIGN.md) — 게임 규칙, 화면, 비주얼 가이드
 - [직업 전직 Path 설계](docs/kor/CAREER_PATH_DESIGN.md) — 커리큘럼, 전직 조건, 저장 구조
 - [Git 작업 흐름](docs/kor/GIT_WORKFLOW.md) — 브랜치 전략, PR·이슈 자동화
+- [모노레포 아키텍처](docs/eng/MONOREPO_ARCHITECTURE.md) — web/mobile 앱과 공유 패키지 경계
 - [기여 가이드](CONTRIBUTING.md) · [프로젝트 및 PR 정책](AGENTS.md)
 
 ## 기여

@@ -7,9 +7,9 @@ import {
   type CareerDexState,
   type CareerId,
   type CareerStatus,
-} from "@/lib/domain/careerDex";
-import { formatDate } from "@/lib/i18n/locale";
-import type { MessageKey } from "@/lib/i18n/messages";
+} from "@codigdex/game-content/domain/careerDex";
+import { formatDate } from "@codigdex/game-core/i18n/locale";
+import type { MessageKey } from "@codigdex/game-i18n/messages";
 import { lt, sceneLocale, t } from "../i18n";
 import { PALETTE, PALETTE_HEX } from "../palette";
 import { pixelText } from "../pixelFont";

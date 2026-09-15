@@ -1,15 +1,15 @@
 import { existsSync, readdirSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
-import { CHAPTERS } from "@/lib/domain/chapters";
-import { CAREER_EMBLEMS } from "@/lib/domain/careerDex";
-import { TECHNOLOGY_SPECIMENS } from "@/lib/domain/technologySpecimens";
+import { CHAPTERS } from "@codigdex/game-content/domain/chapters";
+import { CAREER_EMBLEMS } from "@codigdex/game-content/domain/careerDex";
+import { TECHNOLOGY_SPECIMENS } from "@codigdex/game-content/domain/technologySpecimens";
 import {
   CAREER_CHARACTER_GUIDE_ASSET_PATH,
   DEFAULT_JOB,
   JOB_OPTIONS,
   OVERWORLD_PLAYER_ASSET_PATH,
-} from "@/lib/domain/player/jobs";
+} from "@codigdex/game-content/domain/player/jobs";
 import { WORLD_BACKDROPS } from "@/lib/phaser/worldMap/progression";
 import {
   CAREER_PATHS,

@@ -4,10 +4,10 @@ import { describe, expect, it } from "vitest";
 import {
   CAREER_REGION_MONSTERS,
   monstersForCareerRegion,
-} from "@/lib/domain/careerRegionMonsters";
-import { findStage, stageStatus } from "@/lib/domain/chapters";
+} from "@codigdex/game-content/domain/careerRegionMonsters";
+import { findStage, stageStatus } from "@codigdex/game-content/domain/chapters";
 import { buildDexEntries } from "@/lib/phaser/dex/entry";
-import { applyCapture, EMPTY_DEX_STATE } from "@/lib/domain/dex/capture";
+import { applyCapture, EMPTY_DEX_STATE } from "@codigdex/game-core/domain/dex/capture";
 import { CAREER_PATHS } from "@/lib/phaser/worldMap/careerPaths";
 
 const PUBLIC_DIR = path.resolve(process.cwd(), "public");

@@ -3,8 +3,8 @@ import {
   CAREER_CATALOG,
   careerEmblemTextureKey,
   type CareerId,
-} from "@/lib/domain/careerDex";
-import { DEX_MONSTERS } from "@/lib/domain/chapters";
+} from "@codigdex/game-content/domain/careerDex";
+import { DEX_MONSTERS } from "@codigdex/game-content/domain/chapters";
 import {
   findJob,
   findSecondaryJob,
@@ -12,7 +12,7 @@ import {
   JOB_REGISTRY_KEY,
   SECONDARY_JOB_REGISTRY_KEY,
   TERTIARY_JOB_REGISTRY_KEY,
-} from "@/lib/domain/player/jobs";
+} from "@codigdex/game-content/domain/player/jobs";
 import { CareerPanel } from "../dex/careerPanel";
 import { DetailCard } from "../dex/detailCard";
 import { t } from "../i18n";

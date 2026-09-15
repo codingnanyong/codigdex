@@ -1,12 +1,12 @@
 import Phaser from "phaser";
-import { findStage } from "@/lib/domain/chapters";
-import type { ChapterDefinition, MonsterDefinition } from "@/lib/domain/chapters/types";
+import { findStage } from "@codigdex/game-content/domain/chapters";
+import type { ChapterDefinition, MonsterDefinition } from "@codigdex/game-core/domain/chapters/types";
 import {
   applyCapture,
   capturedIds,
   isSuccessfulCapture,
   requiredCorrectAnswers,
-} from "@/lib/domain/dex/capture";
+} from "@codigdex/game-core/domain/dex/capture";
 import { showCapturedPanel, showMissedPanel } from "../capture/resultPanels";
 import { createHomeButton } from "../navigation";
 import { describeUnlock } from "../capture/unlockNotice";

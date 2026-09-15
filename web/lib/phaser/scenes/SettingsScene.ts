@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { LOCALE_NAMES, LOCALES, type Locale } from "@/lib/i18n/locale";
+import { LOCALE_NAMES, LOCALES, type Locale } from "@codigdex/game-core/i18n/locale";
 import { sceneLocale, setSceneLocale, t } from "../i18n";
 import { PALETTE, PALETTE_HEX } from "../palette";
 import { pixelText } from "../pixelFont";

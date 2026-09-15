@@ -1,4 +1,4 @@
-import { monstersForCareerRegion } from "@/lib/domain/careerRegionMonsters";
+import { monstersForCareerRegion } from "@codigdex/game-content/domain/careerRegionMonsters";
 import type { CareerPathDefinition, CareerRegion } from "./careerPaths";
 
 export type CareerRegionStatus = "locked" | "available" | "completed";

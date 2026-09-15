@@ -8,9 +8,9 @@ import {
   masteredPrimaryJobIds,
   reconcileCareerDex,
   selectCareer,
-} from "@/lib/domain/careerDex";
-import type { JobId, SecondaryJobId } from "@/lib/domain/player/jobs";
-import { LOCALES } from "@/lib/i18n/locale";
+} from "@codigdex/game-content/domain/careerDex";
+import type { JobId, SecondaryJobId } from "@codigdex/game-content/domain/player/jobs";
+import { LOCALES } from "@codigdex/game-core/i18n/locale";
 
 const fixedNow = () => "2026-09-14T00:00:00.000Z";
 

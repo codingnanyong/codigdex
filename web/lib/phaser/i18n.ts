@@ -1,6 +1,6 @@
 import type Phaser from "phaser";
-import type { Locale, LocalizedText } from "@/lib/i18n/locale";
-import { translate, type MessageKey, type MessageParams } from "@/lib/i18n/messages";
+import type { Locale, LocalizedText } from "@codigdex/game-core/i18n/locale";
+import { translate, type MessageKey, type MessageParams } from "@codigdex/game-i18n/messages";
 import { LOCALE_CHANGE_EVENT } from "./i18nEvents";
 import { LOCALE_REGISTRY_KEY, readLocale } from "./registryAdapter";
 

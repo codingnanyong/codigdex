@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import type { ChapterStatus } from "@/lib/domain/chapters";
+import type { ChapterStatus } from "@codigdex/game-content/domain/chapters";
 import { lt, t } from "../i18n";
 import { PALETTE, PALETTE_HEX } from "../palette";
 import { pixelText } from "../pixelFont";

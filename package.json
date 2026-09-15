@@ -1,0 +1,17 @@
+{
+  "name": "codigdex",
+  "version": "0.1.0",
+  "private": true,
+  "workspaces": [
+    "web",
+    "mobile",
+    "packages/*"
+  ],
+  "scripts": {
+    "build:web": "npm run build --workspace @codigdex/web",
+    "check:boundaries": "node scripts/check-package-boundaries.mjs",
+    "lint": "npm run lint --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "typecheck": "npm run check:boundaries && npm run typecheck --workspaces --if-present"
+  }
+}
