@@ -1,3 +1,5 @@
+// Made-up commands below are deliberate wrong answers, not typos.
+// cspell:words procs
 import type { QuizQuestion } from "@codigdex/game-core/domain/chapters/types";
 import { question } from "../question";
 
