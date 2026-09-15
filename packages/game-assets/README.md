@@ -24,7 +24,7 @@ On Windows, regenerate all normalized 192×192 portraits after changing a
 sheet:
 
 ```powershell
-./scripts/prepare-monster-evolutions.ps1
+npm run generate:portraits --workspace @codigdex/game-assets
 ```
 
 The extractor trims transparent/generated background, removes detached pieces

@@ -10,6 +10,7 @@
   },
   "scripts": {
     "generate": "node scripts/generate-manifest.mjs",
+    "generate:portraits": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/prepare-monster-evolutions.ps1",
     "typecheck": "node scripts/generate-manifest.mjs --check && tsc --noEmit -p tsconfig.json"
   },
   "devDependencies": {

@@ -1,7 +1,7 @@
 $ErrorActionPreference = "Stop"
 
-$repoRoot = Split-Path -Parent $PSScriptRoot
-$monsterRoot = Join-Path $repoRoot "packages/game-assets/files/monsters"
+$packageRoot = Split-Path -Parent $PSScriptRoot
+$monsterRoot = Join-Path $packageRoot "files/monsters"
 $processor = Join-Path $PSScriptRoot "prepare-pixel-specimens.ps1"
 
 $families = @(
