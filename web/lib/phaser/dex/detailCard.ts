@@ -17,7 +17,7 @@ import { detailPanelScale } from "./detailLayout";
 
 const PANEL_WIDTH = 600;
 const MIN_PANEL_HEIGHT = 360;
-const ART_BOX = { width: 200, height: 120 };
+const ART_BOX = { width: 216, height: 136, inset: 14 };
 
 type Positioned = Phaser.GameObjects.GameObject & { y: number };
 
@@ -40,7 +40,7 @@ export class DetailCard {
     this.shade = addShade(scene, 0.75, 20);
     this.shade.on("pointerup", () => this.close());
 
-    const fit = fitTexture(scene, monster.textureKey, ART_BOX.width, ART_BOX.height);
+    const fit = fitTexture(scene, monster.textureKey, ART_BOX.width, ART_BOX.height, ART_BOX.inset);
     const art = scene.add.image(0, ART_BOX.height / 2, monster.textureKey).setScale(fit.scale);
     const content: Positioned[] = [art];
 
