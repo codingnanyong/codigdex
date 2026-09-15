@@ -1,4 +1,5 @@
 import type Phaser from "phaser";
+import { t } from "../i18n";
 import { PALETTE, PALETTE_HEX } from "../palette";
 import { pixelText } from "../pixelFont";
 import { fitTextInside } from "../ui";
@@ -56,7 +57,7 @@ export function drawHeader(
   fitTextInside(title, width - 380, 18);
 
   scene.add
-    .text(width / 2, 56, tertiaryCareerName ? "2차 직업 마스터 경로를 완료해 3차 전직을 달성했어요" : secondaryCareerName ? "2차 직업의 마스터 경로를 완주하면 3차 전직이 열려요" : careerName ? "선택한 1차 직업의 전문 경로를 완주하세요" : "공통 기술을 익히고 원하는 직업으로 전직하세요", {
+    .text(width / 2, 56, t(scene, tertiaryCareerName ? "path.headerTertiary" : secondaryCareerName ? "path.headerSecondary" : careerName ? "path.headerPrimary" : "path.headerJunior"), {
       ...pixelText("body"),
       color: PALETTE_HEX.cream,
     })
@@ -64,21 +65,21 @@ export function drawHeader(
 }
 
 export function drawSectionLabels(scene: Phaser.Scene) {
-  drawSectionLabel(scene, 205, "COMMON", "주니어 공통 과정");
-  drawSectionLabel(scene, 490, "PROMOTION", "전직 선택");
-  drawSectionLabel(scene, 790, "CAREER PATH", "직업별 전문 과정");
+  drawSectionLabel(scene, 205, "COMMON", t(scene, "path.sectionCommon"));
+  drawSectionLabel(scene, 490, "PROMOTION", t(scene, "path.sectionPromotion"));
+  drawSectionLabel(scene, 790, "CAREER PATH", t(scene, "path.sectionCareer"));
 }
 
-function drawSectionLabel(scene: Phaser.Scene, x: number, english: string, korean: string) {
+function drawSectionLabel(scene: Phaser.Scene, x: number, badge: string, caption: string) {
   scene.add
-    .text(x, 94, english, {
+    .text(x, 94, badge, {
       ...pixelText("micro"),
       color: PALETTE_HEX.amber,
       letterSpacing: 1,
     })
     .setOrigin(0.5);
   scene.add
-    .text(x, 112, korean, {
+    .text(x, 112, caption, {
       ...pixelText("caption"),
       color: PALETTE_HEX.mutedBrown,
     })

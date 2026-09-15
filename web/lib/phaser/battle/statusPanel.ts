@@ -1,7 +1,9 @@
 import type Phaser from "phaser";
 import type { MonsterDefinition } from "@/lib/domain/chapters/types";
+import { lt } from "../i18n";
 import { PALETTE, PALETTE_HEX } from "../palette";
 import { pixelText } from "../pixelFont";
+import { fitTextInside } from "../ui";
 import { drawGbcBox } from "./gbcBox";
 import { STATUS_BOX } from "./layout";
 
@@ -29,12 +31,13 @@ export class StatusPanel {
 
     drawGbcBox(scene, STATUS_BOX, PALETTE.cream);
 
-    scene.add
-      .text(left + 16, top + 12, `${monster.name}  Lv.${monster.level}`, {
+    const name = scene.add
+      .text(left + 16, top + 12, `${lt(scene, monster.name)}  Lv.${monster.level}`, {
         ...pixelText("body"),
         color: PALETTE_HEX.ink,
       })
       .setOrigin(0, 0);
+    fitTextInside(name, STATUS_BOX.width - 32, 18);
 
     scene.add
       .text(left + 16, top + 42, "HP", {

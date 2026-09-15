@@ -8,6 +8,9 @@ import {
   type CareerId,
   type CareerStatus,
 } from "@/lib/domain/careerDex";
+import { formatDate } from "@/lib/i18n/locale";
+import type { MessageKey } from "@/lib/i18n/messages";
+import { lt, sceneLocale, t } from "../i18n";
 import { PALETTE, PALETTE_HEX } from "../palette";
 import { pixelText } from "../pixelFont";
 import { createCareerEmblem } from "./careerEmblem";
@@ -33,13 +36,14 @@ const PORTRAIT_SIZE = 164;
 const ROW_HEIGHT = 34;
 const ROW_STEP = 40;
 const VISIBLE_ROWS = 7;
-const STATUS_LABEL: Record<CareerStatus, string> = {
+/** Status badges; LOCKED and MASTER read the same in every language. */
+const STATUS_LABEL: Record<CareerStatus, MessageKey | "LOCKED" | "MASTER"> = {
   locked: "LOCKED",
-  unlocked: "전직 가능",
-  active: "현재 직업",
+  unlocked: "career.statusUnlocked",
+  active: "career.statusActive",
   mastered: "MASTER",
 };
-const TIER_LABEL = ["전직 전", "1차 직업", "2차 직업", "3차 직업"] as const;
+const TIER_LABEL = ["career.tier0", "career.tier1", "career.tier2", "career.tier3"] as const;
 
 /** Pokédex-style career collection with a preview, scrolling list, and detail card. */
 export class CareerPanel {
@@ -90,7 +94,7 @@ export class CareerPanel {
     const mastered = state.careers.filter((career) => Boolean(career.masteredAt)).length;
     this.root.add(
       scene.add
-        .text(listLeft, statsY, `등록 ${registered}/${CAREER_CATALOG.length} · MASTER ${mastered}`, {
+        .text(listLeft, statsY, t(scene, "career.stats", { registered, total: CAREER_CATALOG.length, mastered }), {
           ...pixelText("body"),
           color: PALETTE_HEX.sand,
         })
@@ -159,17 +163,17 @@ export class CareerPanel {
       items.push(line);
       cursor += line.height + gap;
     };
-    addLine(`JOB.${String(this.selectedIndex).padStart(3, "0")} · ${TIER_LABEL[entry.tier]}`, {
+    addLine(`JOB.${String(this.selectedIndex).padStart(3, "0")} · ${t(this.scene, TIER_LABEL[entry.tier])}`, {
       ...pixelText("body"),
       color: PALETTE_HEX.sand,
     }, 3);
-    addLine(locked ? "???" : entry.name, {
+    addLine(locked ? "???" : lt(this.scene, entry.name), {
       ...pixelText("subtitle"),
       color: PALETTE_HEX.cream,
       align: "center",
       wordWrap: { width: PREVIEW_WIDTH - 18 },
     }, 4);
-    addLine(STATUS_LABEL[status], {
+    addLine(this.statusLabel(status), {
       ...pixelText("body"),
       color: status === "mastered" || status === "active" ? PALETTE_HEX.amber : PALETTE_HEX.mutedBrown,
     }, 0);
@@ -210,14 +214,14 @@ export class CareerPanel {
         .circle(listLeft + 18, y, 7, this.statusColor(status), 1)
         .setStrokeStyle(2, PALETTE.ink);
       const label = this.scene.add
-        .text(listLeft + 36, y, `JOB.${String(index).padStart(3, "0")}  ${locked ? "???" : entry.name}`, {
+        .text(listLeft + 36, y, `JOB.${String(index).padStart(3, "0")}  ${locked ? "???" : lt(this.scene, entry.name)}`, {
           ...pixelText("body"),
           color: locked ? PALETTE_HEX.mutedBrown : PALETTE_HEX.cream,
         })
         .setOrigin(0, 0.5);
       fitTextInside(label, width - 145, 18);
       const badge = this.scene.add
-        .text(listRight - 10, y, STATUS_LABEL[status], {
+        .text(listRight - 10, y, this.statusLabel(status), {
           ...pixelText("caption"),
           color: status === "active" || status === "mastered" ? PALETTE_HEX.amber : PALETTE_HEX.mutedBrown,
         })
@@ -251,23 +255,23 @@ export class CareerPanel {
     const frame = drawOrnateFrame(this.scene, 0, 0, panelWidth, panelHeight);
     const items: Phaser.GameObjects.GameObject[] = [frame];
     items.push(createCareerEmblem(this.scene, entry, status, -220, -82, 112));
-    const number = this.scene.add.text(-140, -132, `JOB.${String(index).padStart(3, "0")} · ${TIER_LABEL[entry.tier]}`, {
+    const number = this.scene.add.text(-140, -132, `JOB.${String(index).padStart(3, "0")} · ${t(this.scene, TIER_LABEL[entry.tier])}`, {
       ...pixelText("body"),
       color: PALETTE_HEX.mutedBrown,
     });
-    const name = this.scene.add.text(-140, -102, entry.name, {
+    const name = this.scene.add.text(-140, -102, lt(this.scene, entry.name), {
       ...pixelText("subtitle"),
       color: PALETTE_HEX.ink,
     });
     fitTextInside(name, 400, 26);
-    const statusText = this.scene.add.text(-140, -65, STATUS_LABEL[status], {
+    const statusText = this.scene.add.text(-140, -65, this.statusLabel(status), {
       ...pixelText("body"),
       color: PALETTE_HEX.maroon,
     });
     items.push(number, name, statusText);
     if (entry.guideName) {
       items.push(
-        this.scene.add.text(-140, -38, `가이드 · ${entry.guideName}`, {
+        this.scene.add.text(-140, -38, t(this.scene, "career.guide", { name: lt(this.scene, entry.guideName) }), {
           ...pixelText("caption"),
           color: PALETTE_HEX.amber,
         })
@@ -275,11 +279,14 @@ export class CareerPanel {
     }
 
     const requirementNames = entry.requires.map(
-      (id) => CAREER_CATALOG.find((career) => career.id === id)?.name ?? id
+      (id) => {
+        const career = CAREER_CATALOG.find((candidate) => candidate.id === id);
+        return career ? lt(this.scene, career.name) : id;
+      }
     );
     items.push(
       this.scene.add
-        .text(0, 18, entry.tagline, {
+        .text(0, 18, lt(this.scene, entry.tagline), {
           ...pixelText("body"),
           color: PALETTE_HEX.ink,
           align: "center",
@@ -287,7 +294,7 @@ export class CareerPanel {
         })
         .setOrigin(0.5, 0),
       this.scene.add
-        .text(0, 72, requirementNames.length ? `전직 조건 · ${requirementNames.join(" + ")}` : "모든 개발자의 시작점", {
+        .text(0, 72, requirementNames.length ? t(this.scene, "career.requires", { names: requirementNames.join(" + ") }) : t(this.scene, "career.startingPoint"), {
           ...pixelText("body"),
           color: PALETTE_HEX.maroon,
           align: "center",
@@ -299,15 +306,15 @@ export class CareerPanel {
           0,
           112,
           record?.masteredAt
-            ? `MASTER 등록 · ${new Date(record.masteredAt).toLocaleDateString("ko-KR")}`
+            ? t(this.scene, "career.masteredOn", { date: formatDate(record.masteredAt, sceneLocale(this.scene)) })
             : record?.selectedAt
-              ? `최초 전직 · ${new Date(record.selectedAt).toLocaleDateString("ko-KR")}`
-              : "도감에 발견된 직업",
+              ? t(this.scene, "career.firstPromotion", { date: formatDate(record.selectedAt, sceneLocale(this.scene)) })
+              : t(this.scene, "career.discovered"),
           { ...pixelText("caption"), color: PALETTE_HEX.mutedBrown }
         )
         .setOrigin(0.5, 0)
     );
-    items.push(createButton(this.scene, 0, 148, 100, 30, "닫기", () => this.closeDetail()));
+    items.push(createButton(this.scene, 0, 148, 100, 30, t(this.scene, "common.close"), () => this.closeDetail()));
 
     this.detail = this.scene.add.container(width / 2, height / 2, items).setDepth(31);
     popIn(this.scene, this.detail);
@@ -319,6 +326,11 @@ export class CareerPanel {
     this.detailShade = undefined;
     this.detail?.destroy(true);
     this.detail = undefined;
+  }
+
+  private statusLabel(status: CareerStatus): string {
+    const label = STATUS_LABEL[status];
+    return label === "LOCKED" || label === "MASTER" ? label : t(this.scene, label);
   }
 
   private statusColor(status: CareerStatus): number {

@@ -1,3 +1,5 @@
+import { joinText, text, type LocalizedText } from "@/lib/i18n/locale";
+
 export type JobId = "frontend" | "backend" | "devops" | "data-engineer" | "data-analyst";
 export type SecondaryJobId =
   | "fullstack-engineer"
@@ -14,14 +16,14 @@ export type TertiaryJobId =
 
 export interface JobOption {
   id: JobId | "junior";
-  name: string;
-  tagline: string;
+  name: LocalizedText;
+  tagline: LocalizedText;
   textureKey?: string;
   assetPath?: string;
   overworldTextureKey: string;
   overworldAssetPath: string;
-  guideTitle: string;
-  guideName: string;
+  guideTitle: LocalizedText;
+  guideName: LocalizedText;
   guideTextureKey?: string;
   guideAssetPath?: string;
 }
@@ -37,9 +39,9 @@ export interface PrimaryJobOption extends JobOption {
 export interface SecondaryJobOption {
   id: SecondaryJobId;
   /** Kept out of the UI until the unlock condition is met. */
-  name: string;
-  guideTitle: string;
-  guideName: string;
+  name: LocalizedText;
+  guideTitle: LocalizedText;
+  guideName: LocalizedText;
   requires: readonly [JobId, JobId];
   /** Final mastery captures required before this path can promote to tier three. */
   masteryCaptureIds: readonly string[];
@@ -47,9 +49,9 @@ export interface SecondaryJobOption {
 
 export interface TertiaryJobOption {
   id: TertiaryJobId;
-  name: string;
-  guideTitle: string;
-  guideName: string;
+  name: LocalizedText;
+  guideTitle: LocalizedText;
+  guideName: LocalizedText;
   requires: SecondaryJobId;
 }
 
@@ -57,7 +59,7 @@ const careerCharacterArt = (careerId: JobId | "junior", role: "player" | "guide"
   `/assets/characters/career-path/${careerId}/${role}-v${role === "player" ? 2 : 1}.png`;
 
 const careerOverworldArt = (careerId: JobId) =>
-  `/assets/characters/career-path/${careerId}/overworld-v1.png`;
+  `/assets/characters/player/overworld-player-${careerId}-v1.png`;
 
 export const CAREER_CHARACTER_GUIDE_ASSET_PATH =
   "/assets/characters/career-path/career-character-guide-v2.png";
@@ -68,14 +70,14 @@ export const OVERWORLD_PLAYER_ASSET_PATH =
 // Every player starts here. A primary job is selected after the common path.
 export const DEFAULT_JOB: JobOption = {
   id: "junior",
-  name: "주니어 개발자",
-  tagline: "이제 막 첫 모험을 떠난 개발자",
+  name: text("주니어 개발자", "Junior Developer"),
+  tagline: text("이제 막 첫 모험을 떠난 개발자", "A developer setting out on their first adventure"),
   textureKey: "career-junior",
   assetPath: careerCharacterArt("junior", "player"),
   overworldTextureKey: OVERWORLD_PLAYER_TEXTURE_KEY,
   overworldAssetPath: OVERWORLD_PLAYER_ASSET_PATH,
-  guideTitle: "버그 연구원",
-  guideName: "루피",
+  guideTitle: text("버그 연구원", "Bug Researcher"),
+  guideName: text("루피", "Lupi"),
   guideTextureKey: "npc-lupi-guide",
   guideAssetPath: careerCharacterArt("junior", "guide"),
 };
@@ -83,66 +85,66 @@ export const DEFAULT_JOB: JobOption = {
 export const JOB_OPTIONS: readonly PrimaryJobOption[] = [
   {
     id: "frontend",
-    name: "웹 프론트엔드 개발자",
-    tagline: "화면을 그리는 마법사",
+    name: text("웹 프론트엔드 개발자", "Web Frontend Developer"),
+    tagline: text("화면을 그리는 마법사", "A wizard who paints the screen"),
     textureKey: "career-frontend",
     assetPath: careerCharacterArt("frontend", "player"),
     overworldTextureKey: "player-overworld-frontend",
     overworldAssetPath: careerOverworldArt("frontend"),
-    guideTitle: "UI 연금술사",
-    guideName: "미나",
+    guideTitle: text("UI 연금술사", "UI Alchemist"),
+    guideName: text("미나", "Mina"),
     guideTextureKey: "npc-frontend-senior",
     guideAssetPath: careerCharacterArt("frontend", "guide"),
   },
   {
     id: "backend",
-    name: "백엔드 개발자",
-    tagline: "데이터를 지키는 수호자",
+    name: text("백엔드 개발자", "Backend Developer"),
+    tagline: text("데이터를 지키는 수호자", "A guardian who protects the data"),
     textureKey: "career-backend",
     assetPath: careerCharacterArt("backend", "player"),
     overworldTextureKey: "player-overworld-backend",
     overworldAssetPath: careerOverworldArt("backend"),
-    guideTitle: "서버 수호자",
-    guideName: "태오",
+    guideTitle: text("서버 수호자", "Server Guardian"),
+    guideName: text("태오", "Taeo"),
     guideTextureKey: "npc-backend-senior",
     guideAssetPath: careerCharacterArt("backend", "guide"),
   },
   {
     id: "devops",
-    name: "DevOps 엔지니어",
-    tagline: "배포 흐름을 지키는 자동화 장인",
+    name: text("DevOps 엔지니어", "DevOps Engineer"),
+    tagline: text("배포 흐름을 지키는 자동화 장인", "An automation artisan who keeps releases flowing"),
     textureKey: "career-devops",
     assetPath: careerCharacterArt("devops", "player"),
     overworldTextureKey: "player-overworld-devops",
     overworldAssetPath: careerOverworldArt("devops"),
-    guideTitle: "자동화 장인",
-    guideName: "도윤",
+    guideTitle: text("자동화 장인", "Automation Artisan"),
+    guideName: text("도윤", "Doyun"),
     guideTextureKey: "npc-devops-senior",
     guideAssetPath: careerCharacterArt("devops", "guide"),
   },
   {
     id: "data-engineer",
-    name: "데이터 엔지니어",
-    tagline: "데이터의 길을 만드는 설계자",
+    name: text("데이터 엔지니어", "Data Engineer"),
+    tagline: text("데이터의 길을 만드는 설계자", "An architect who builds roads for data"),
     textureKey: "career-data-engineer",
     assetPath: careerCharacterArt("data-engineer", "player"),
     overworldTextureKey: "player-overworld-data-engineer",
     overworldAssetPath: careerOverworldArt("data-engineer"),
-    guideTitle: "파이프라인 설계자",
-    guideName: "하나",
+    guideTitle: text("파이프라인 설계자", "Pipeline Architect"),
+    guideName: text("하나", "Hana"),
     guideTextureKey: "npc-data-engineer-senior",
     guideAssetPath: careerCharacterArt("data-engineer", "guide"),
   },
   {
     id: "data-analyst",
-    name: "데이터 분석가",
-    tagline: "패턴을 읽는 관찰자",
+    name: text("데이터 분석가", "Data Analyst"),
+    tagline: text("패턴을 읽는 관찰자", "An observer who reads patterns"),
     textureKey: "career-data-analyst",
     assetPath: careerCharacterArt("data-analyst", "player"),
     overworldTextureKey: "player-overworld-data-analyst",
     overworldAssetPath: careerOverworldArt("data-analyst"),
-    guideTitle: "인사이트 탐정",
-    guideName: "이안",
+    guideTitle: text("인사이트 탐정", "Insight Detective"),
+    guideName: text("이안", "Ian"),
     guideTextureKey: "npc-data-analyst-senior",
     guideAssetPath: careerCharacterArt("data-analyst", "guide"),
   },
@@ -152,41 +154,41 @@ export const JOB_OPTIONS: readonly PrimaryJobOption[] = [
 export const SECONDARY_JOB_OPTIONS: readonly SecondaryJobOption[] = [
   {
     id: "fullstack-engineer",
-    name: "풀스택 엔지니어",
-    guideTitle: "경계의 설계자",
-    guideName: "아라",
+    name: text("풀스택 엔지니어", "Fullstack Engineer"),
+    guideTitle: text("경계의 설계자", "Boundary Architect"),
+    guideName: text("아라", "Ara"),
     requires: ["frontend", "backend"],
     masteryCaptureIds: [],
   },
   {
     id: "platform-engineer",
-    name: "플랫폼 엔지니어 / SRE",
-    guideTitle: "플랫폼 항해사",
-    guideName: "준",
+    name: text("플랫폼 엔지니어 / SRE", "Platform Engineer / SRE"),
+    guideTitle: text("플랫폼 항해사", "Platform Navigator"),
+    guideName: text("준", "Jun"),
     requires: ["backend", "devops"],
     masteryCaptureIds: [],
   },
   {
     id: "ml-developer",
-    name: "ML Developer",
-    guideTitle: "모델 조련사",
-    guideName: "유진",
+    name: text("ML Developer", "ML Developer"),
+    guideTitle: text("모델 조련사", "Model Tamer"),
+    guideName: text("유진", "Yujin"),
     requires: ["backend", "data-engineer"],
     masteryCaptureIds: [],
   },
   {
     id: "mlops-engineer",
-    name: "MLOps 엔지니어",
-    guideTitle: "모델 운영관",
-    guideName: "시우",
+    name: text("MLOps 엔지니어", "MLOps Engineer"),
+    guideTitle: text("모델 운영관", "Model Operator"),
+    guideName: text("시우", "Siwoo"),
     requires: ["devops", "data-engineer"],
     masteryCaptureIds: [],
   },
   {
     id: "analytics-engineer",
-    name: "분석 엔지니어",
-    guideTitle: "지표 번역가",
-    guideName: "소라",
+    name: text("분석 엔지니어", "Analytics Engineer"),
+    guideTitle: text("지표 번역가", "Metrics Translator"),
+    guideName: text("소라", "Sora"),
     requires: ["data-engineer", "data-analyst"],
     masteryCaptureIds: [],
   },
@@ -196,43 +198,43 @@ export const SECONDARY_JOB_OPTIONS: readonly SecondaryJobOption[] = [
 export const TERTIARY_JOB_OPTIONS: readonly TertiaryJobOption[] = [
   {
     id: "software-architect",
-    name: "소프트웨어 아키텍트",
-    guideTitle: "시스템 대현자",
-    guideName: "로한",
+    name: text("소프트웨어 아키텍트", "Software Architect"),
+    guideTitle: text("시스템 대현자", "System Sage"),
+    guideName: text("로한", "Rohan"),
     requires: "fullstack-engineer",
   },
   {
     id: "cloud-platform-architect",
-    name: "클라우드 플랫폼 아키텍트",
-    guideTitle: "구름 성채 설계자",
-    guideName: "하늘",
+    name: text("클라우드 플랫폼 아키텍트", "Cloud Platform Architect"),
+    guideTitle: text("구름 성채 설계자", "Cloud Citadel Architect"),
+    guideName: text("하늘", "Haneul"),
     requires: "platform-engineer",
   },
   {
     id: "ai-product-engineer",
-    name: "AI 프로덕트 엔지니어",
-    guideTitle: "AI 공방장",
-    guideName: "지안",
+    name: text("AI 프로덕트 엔지니어", "AI Product Engineer"),
+    guideTitle: text("AI 공방장", "AI Workshop Master"),
+    guideName: text("지안", "Jian"),
     requires: "ml-developer",
   },
   {
     id: "ai-platform-architect",
-    name: "AI 플랫폼 아키텍트",
-    guideTitle: "지능 기반 설계자",
-    guideName: "레온",
+    name: text("AI 플랫폼 아키텍트", "AI Platform Architect"),
+    guideTitle: text("지능 기반 설계자", "Intelligence Foundation Architect"),
+    guideName: text("레온", "Leon"),
     requires: "mlops-engineer",
   },
   {
     id: "data-architect",
-    name: "데이터 아키텍트",
-    guideTitle: "데이터 기록관",
-    guideName: "서윤",
+    name: text("데이터 아키텍트", "Data Architect"),
+    guideTitle: text("데이터 기록관", "Data Archivist"),
+    guideName: text("서윤", "Seoyun"),
     requires: "analytics-engineer",
   },
 ];
 
-export function guideDisplayName(job: Pick<JobOption, "guideTitle" | "guideName">): string {
-  return `${job.guideTitle} ${job.guideName}`;
+export function guideDisplayName(job: Pick<JobOption, "guideTitle" | "guideName">): LocalizedText {
+  return joinText([job.guideTitle, job.guideName]);
 }
 
 export const JOB_REGISTRY_KEY = "selectedJob";

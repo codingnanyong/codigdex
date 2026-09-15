@@ -31,7 +31,9 @@ import {
   type TertiaryJobOption,
 } from "@/lib/domain/player/jobs";
 import { COMMON_TECHNOLOGY_SPECIMENS } from "@/lib/domain/technologySpecimens";
+import { lt, sceneLocale, t } from "../i18n";
 import { preloadMonsterArt } from "../monsterArt";
+import { createSettingsButton } from "../settings/settingsButton";
 import { createHomeButton } from "../navigation";
 import { PALETTE } from "../palette";
 import { drawConnections } from "../pathMap/connections";
@@ -124,9 +126,9 @@ export class PathMapScene extends Phaser.Scene {
         : undefined;
     drawHeader(
       this,
-      selectedCareer ? selectedJob.name : undefined,
-      secondaryOnThisPath?.name,
-      tertiaryOnThisPath?.name
+      selectedCareer ? lt(this, selectedJob.name) : undefined,
+      secondaryOnThisPath && lt(this, secondaryOnThisPath.name),
+      tertiaryOnThisPath && lt(this, tertiaryOnThisPath.name)
     );
     drawSectionLabels(this);
     drawConnections(this, (node) => this.statusOf(node) === "cleared", careerNodes);
@@ -142,11 +144,12 @@ export class PathMapScene extends Phaser.Scene {
 
     if (this.selectedCareerId) this.drawAdvancedCareerPaths(this.selectedCareerId);
 
-    createButton(this, width / 2, height - 27, 140, 32, "돌아가기", () => this.scene.start("world-map"));
-    createButton(this, 92, height - 27, 140, 32, "직업 변경", () => this.scene.start("job-select"));
+    createButton(this, width / 2, height - 27, 140, 32, t(this, "common.back"), () => this.scene.start("world-map"));
+    createButton(this, 92, height - 27, 140, 32, t(this, "path.changeCareer"), () => this.scene.start("job-select"));
     createHomeButton(this).setDepth(30);
+    createSettingsButton(this).setDepth(30);
     if (this.captured.size > 0) {
-      createButton(this, width - 92, 47, 120, 32, "Codigdex 도감", () => this.openCodigdex());
+      createButton(this, width - 92, 47, 120, 32, t(this, "common.codigdex"), () => this.openCodigdex());
     }
 
     applyPixelFontToScene(this);
@@ -178,7 +181,7 @@ export class PathMapScene extends Phaser.Scene {
       lines.lineBetween(primaryX, branchY, x, secondaryY - 27);
       const unlocked = isSecondaryJobUnlocked(candidate, this.completedCareerIds);
       drawSecondaryCareerNode(this, x, secondaryY, {
-        name: candidate.name,
+        name: lt(this, candidate.name),
         unlocked,
         selected: this.selectedSecondaryJobId === candidate.id,
         onSelect: () => this.onSecondaryCareerSelected(candidate),
@@ -200,21 +203,21 @@ export class PathMapScene extends Phaser.Scene {
     lines.lineBetween(tertiaryX, secondaryBottom, tertiaryX, tertiaryTop);
 
     drawSecondaryCareerNode(this, tertiaryX, tertiaryY, {
-      name: tertiary?.name ?? "",
+      name: tertiary ? lt(this, tertiary.name) : "",
       unlocked: tertiary ? isTertiaryJobUnlocked(tertiary, this.completedSecondaryIds) : false,
-      selected: tertiary?.id === this.selectedTertiaryJobId,
-      tierLabel: "3차 전직",
+      selected: Boolean(tertiary) && tertiary?.id === this.selectedTertiaryJobId,
+      tierLabel: t(this, "path.tier3"),
       onSelect: () => {
         if (tertiary) this.onTertiaryCareerSelected(tertiary);
-        else this.notify("2차 직업을 선택하고 마스터 경로를 완료하면 3차 전직이 열려요.");
+        else this.notify(t(this, "path.tier3Hint"));
       },
     });
   }
 
   private onSecondaryCareerSelected(job: SecondaryJobOption) {
     if (!isSecondaryJobUnlocked(job, this.completedCareerIds)) {
-      const requirements = job.requires.map((jobId) => findJob(jobId).name).join(" + ");
-      this.notify(`${requirements} 경로를 모두 완료하면 열려요.`);
+      const requirements = job.requires.map((jobId) => lt(this, findJob(jobId).name)).join(" + ");
+      this.notify(t(this, "path.requiresPaths", { names: requirements }));
       return;
     }
 
@@ -229,7 +232,7 @@ export class PathMapScene extends Phaser.Scene {
   private onTertiaryCareerSelected(job: TertiaryJobOption) {
     if (!isTertiaryJobUnlocked(job, this.completedSecondaryIds)) {
       const required = findSecondaryJob(job.requires);
-      this.notify(`${required?.name ?? "2차 직업"} 마스터 경로를 완료하면 열려요.`);
+      this.notify(t(this, "path.requiresMastery", { name: required ? lt(this, required.name) : t(this, "career.tier2") }));
       return;
     }
 
@@ -273,7 +276,11 @@ export class PathMapScene extends Phaser.Scene {
       if (this.statusOf(node) === "locked") {
         const chapter = getChapter(node.chapterId);
         const required = chapter.requires && getChapter(chapter.requires);
-        this.notify(required ? `${chapterTitle(required)} 클리어 후 열려요.` : `${chapter.name} 챕터는 아직 잠겨 있어요.`);
+        this.notify(
+          required
+            ? t(this, "path.chapterRequires", { chapter: chapterTitle(required, sceneLocale(this)) })
+            : t(this, "path.chapterLocked", { chapter: lt(this, chapter.name) })
+        );
         return;
       }
       this.openStagePanel(node.chapterId);
@@ -283,7 +290,7 @@ export class PathMapScene extends Phaser.Scene {
       if (isCommonPathComplete(this.captured) && node.id === this.selectedCareerId) {
         this.scene.start("world-map");
       } else {
-        this.notify(`${node.label} 전직에는 Git과 Linux 클리어가 필요해요.`);
+        this.notify(t(this, "path.careerNeedsCommon", { career: lt(this, node.label) }));
       }
     }
   }

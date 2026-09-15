@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import { lt, t } from "../i18n";
 import { PALETTE, PALETTE_HEX } from "../palette";
 import { pixelText } from "../pixelFont";
 import { applyPixelFontToScene, createButton, setButtonEnabled } from "../ui";
@@ -44,7 +45,7 @@ export class EntryList {
     const released = entries.filter((entry) => !entry.planned).length;
     const planned = entries.length - released;
     scene.add
-      .text(centerX, statsY, `등록 ${captured}/${released}  ·  미발견 ${planned}`, {
+      .text(centerX, statsY, t(scene, "dex.monsterStats", { captured, released, planned }), {
         ...pixelText("body"),
         color: PALETTE_HEX.sand,
       })
@@ -119,7 +120,7 @@ export class EntryList {
       ball.strokeCircle(0, 0, 7);
 
       const label = scene.add
-        .text(options.left + 42, rowY, `No.${entry.dexNumber}  ${entry.card ? entry.card.name : "???"}`, {
+        .text(options.left + 42, rowY, `No.${entry.dexNumber}  ${entry.card ? lt(scene, entry.card.name) : "???"}`, {
           ...pixelText("body"),
           color: entry.card ? PALETTE_HEX.cream : PALETTE_HEX.mutedBrown,
         })

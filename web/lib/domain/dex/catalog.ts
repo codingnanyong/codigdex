@@ -1,5 +1,6 @@
 import { DEX_MONSTERS } from "@/lib/domain/chapters";
 import { TECHNOLOGY_SPECIMENS } from "@/lib/domain/technologySpecimens";
+import { CAREER_REGION_MONSTERS } from "@/lib/domain/careerRegionMonsters";
 import type { MonsterDefinition } from "@/lib/domain/chapters/types";
 
 export interface ReleasedDexSlot {
@@ -20,7 +21,12 @@ export type DexCatalogSlot = ReleasedDexSlot | PlannedDexSlot;
 const firstPlannedNumber = Math.max(...DEX_MONSTERS.map(({ dexNumber }) => Number(dexNumber))) + 1;
 
 export const PLANNED_DEX_SLOTS: readonly PlannedDexSlot[] = Object.values(TECHNOLOGY_SPECIMENS)
-  .filter((specimen) => specimen.role === "future")
+  .filter(
+    (specimen) =>
+      specimen.role === "future" &&
+      !(specimen.id in CAREER_REGION_MONSTERS) &&
+      specimen.id !== "frontend-testing"
+  )
   .map((specimen, index) => ({
     kind: "planned",
     dexNumber: String(firstPlannedNumber + index).padStart(3, "0"),

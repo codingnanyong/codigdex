@@ -5,15 +5,21 @@ import {
   type CareerRegion,
 } from "./careerPaths";
 import { guideDisplayName, type JobOption } from "@/lib/domain/player/jobs";
+import { lt, t } from "../i18n";
 import { PALETTE, PALETTE_HEX } from "../palette";
 import { pixelText } from "../pixelFont";
 import { drawOrnateFrame, fitTextInside } from "../ui";
 import { createDialogPortrait } from "./dialogPortrait";
+import { capturedIds } from "@/lib/domain/dex/capture";
+import { readDexState } from "../registryAdapter";
+import { careerRegionProgression, type CareerRegionStatus } from "./careerRegionProgression";
+import { drawPixelChainLock } from "./pixelChainLock";
 
 interface CareerAtlasOptions {
   job: JobOption;
   path: CareerPathDefinition;
   onRegion: (region: CareerRegion) => void;
+  onLocked: (region: CareerRegion, requiredRegion: CareerRegion) => void;
   onMystery: () => void;
 }
 
@@ -21,8 +27,70 @@ const terrainCenters = new Map<string, { x: number; y: number }>();
 
 /** Turns a painted career wallpaper into a navigable atlas. */
 export function drawCareerAtlas(scene: Phaser.Scene, options: CareerAtlasOptions) {
-  options.path.regions.forEach((region, index) =>
-    drawRegion(scene, options.path, region, index + 1, options.onRegion)
+  const regionRegistryKey = `career-atlas-region:${options.job.id}`;
+  const storedRegionId = scene.registry.get(regionRegistryKey) as string | undefined;
+  const progression = careerRegionProgression(options.path, capturedIds(readDexState(scene.registry)));
+  const storedProgress = progression.find(({ region }) => region.id === storedRegionId);
+  const startingRegion = storedProgress?.status !== "locked"
+    ? storedProgress?.region ?? progression.find(({ status }) => status === "available")?.region
+    : progression.find(({ status }) => status === "available")?.region;
+  const startX = startingRegion?.x ?? scene.scale.width / 2;
+  const startY = startingRegion?.y ?? scene.scale.height / 2;
+  const playerShadow = scene.add
+    .ellipse(startX, startY + 26, 36, 10, PALETTE.nightBrown, 0.28)
+    .setDepth(6);
+  const player = scene.add
+    .image(startX, startY, options.job.overworldTextureKey)
+    .setDisplaySize(41, 54)
+    .setDepth(7);
+  let traveling = false;
+
+  const travelToRegion = (region: CareerRegion) => {
+    if (traveling) return;
+
+    const fromX = player.x;
+    const fromY = player.y;
+    const distance = Phaser.Math.Distance.Between(fromX, fromY, region.x, region.y);
+    if (distance < 4) {
+      scene.registry.set(regionRegistryKey, region.id);
+      options.onRegion(region);
+      return;
+    }
+
+    traveling = true;
+    const progress = { value: 0 };
+    const walkCycles = Math.max(4, Math.round(distance / 48));
+    player.setFlipX(region.x < fromX);
+    scene.tweens.add({
+      targets: progress,
+      value: 1,
+      duration: Phaser.Math.Clamp((distance / 240) * 1_000, 450, 2_400),
+      ease: "Linear",
+      onUpdate: () => {
+        const step = Math.abs(Math.sin(progress.value * Math.PI * walkCycles));
+        const x = Phaser.Math.Linear(fromX, region.x, progress.value);
+        const y = Phaser.Math.Linear(fromY, region.y, progress.value);
+        player.setPosition(x, y - step * 3);
+        playerShadow.setPosition(x, y + 26);
+        playerShadow.setScale(1 - step * 0.08, 1 - step * 0.04);
+      },
+      onComplete: () => {
+        player.setPosition(region.x, region.y).setFlipX(false);
+        playerShadow.setPosition(region.x, region.y + 26).setScale(1);
+        scene.registry.set(regionRegistryKey, region.id);
+        options.onRegion(region);
+      },
+    });
+  };
+
+  progression.forEach(({ region, status, requiredRegion }, index) =>
+    drawRegion(scene, options.path, region, index + 1, status, (selected) => {
+      if (status === "locked" && requiredRegion) {
+        options.onLocked(selected, requiredRegion);
+        return;
+      }
+      travelToRegion(selected);
+    })
   );
 
   // Keep guidance in a dedicated bottom dock. Region labels live over the
@@ -38,14 +106,14 @@ export function drawCareerAtlas(scene: Phaser.Scene, options: CareerAtlasOptions
   );
   guide.forEach((portrait) => portrait.setDepth(9));
   const guideName = scene.add
-    .text(88, 480, guideDisplayName(options.job), {
+    .text(88, 480, lt(scene, guideDisplayName(options.job)), {
       ...pixelText("caption"),
       color: PALETTE_HEX.maroon,
     })
     .setDepth(9);
   fitTextInside(guideName, 184, 16);
   const guideLine = scene.add
-    .text(88, 502, "빛나는 지역을 눌러 수집지를 확인하세요.", {
+    .text(88, 502, t(scene, "world.atlasHint"), {
       ...pixelText("caption"),
       color: PALETTE_HEX.ink,
       lineSpacing: 2,
@@ -53,49 +121,13 @@ export function drawCareerAtlas(scene: Phaser.Scene, options: CareerAtlasOptions
     .setDepth(9);
   fitTextInside(guideLine, 190, 16);
 
-  const playerFrame = drawOrnateFrame(scene, 404, 501, 188, 64, {
-    fill: PALETTE.cream,
-    fillAlpha: 0.97,
-    radius: 10,
-  }).setDepth(8);
-  const playerShadow = scene.add
-    .ellipse(347, 520, 34, 8, PALETTE.nightBrown, 0.24)
-    .setDepth(8);
-  const player = scene.add
-    .image(347, 493, options.job.overworldTextureKey)
-    .setDisplaySize(41, 54)
-    .setDepth(9);
-  const playerRole = scene.add
-    .text(379, 482, "MY PLAYER", {
-      ...pixelText("micro"),
-      color: PALETTE_HEX.cream,
-      backgroundColor: PALETTE_HEX.maroon,
-      padding: { x: 5, y: 3 },
-    })
-    .setDepth(9);
-  const playerJob = scene.add
-    .text(379, 505, options.job.name, {
-      ...pixelText("caption"),
-      color: PALETTE_HEX.ink,
-    })
-    .setDepth(9);
-  fitTextInside(playerJob, 112, 15);
-  scene.tweens.add({
-    targets: player,
-    y: 490,
-    duration: 620,
-    ease: "Sine.InOut",
-    yoyo: true,
-    repeat: -1,
-  });
-
   const mysteryFrame = drawOrnateFrame(scene, 858, 466, 168, 76, {
     fill: PALETTE.nightBrown,
     fillAlpha: 0.92,
     radius: 10,
   }).setDepth(5);
   const mysteryTitle = scene.add
-    .text(858, 451, "2차 전직", { ...pixelText("caption"), color: PALETTE_HEX.sand })
+    .text(858, 451, t(scene, "world.tier2"), { ...pixelText("caption"), color: PALETTE_HEX.sand })
     .setOrigin(0.5)
     .setDepth(6);
   const mystery = scene.add
@@ -115,11 +147,6 @@ export function drawCareerAtlas(scene: Phaser.Scene, options: CareerAtlasOptions
     ...guide,
     guideName,
     guideLine,
-    playerFrame,
-    playerShadow,
-    player,
-    playerRole,
-    playerJob,
     mysteryFrame,
     mysteryTitle,
     mystery,
@@ -132,6 +159,7 @@ function drawRegion(
   path: CareerPathDefinition,
   region: CareerRegion,
   order: number,
+  status: CareerRegionStatus,
   onSelect: (region: CareerRegion) => void
 ) {
   const { width, height } = scene.scale;
@@ -156,7 +184,11 @@ function drawRegion(
     .setInteractive({ useHandCursor: true, pixelPerfect: true, alphaTolerance: 16 })
     .setDepth(6);
   const label = scene.add
-    .text(labelCenter.x, labelCenter.y + 6, `${order} · ${region.label}`, {
+    .text(
+      labelCenter.x,
+      labelCenter.y + 6,
+      `${status === "completed" ? "✓" : order} · ${lt(scene, region.label)}`,
+      {
       ...pixelText("subtitle"),
       color: PALETTE_HEX.cream,
       backgroundColor: "#2a1d14eb",
@@ -171,13 +203,24 @@ function drawRegion(
         stroke: true,
         fill: true,
       },
-    })
+      }
+    )
     .setOrigin(0.5)
     .setAlpha(0)
     .setScale(0.96)
     .setDepth(5);
 
+  if (status === "locked") {
+    const lock = drawPixelChainLock(scene, labelCenter.x, labelCenter.y);
+    const scale = Phaser.Math.Clamp(Math.min(landmark.width / 150, landmark.height / 110), 0.78, 1.12);
+    lock.setScale(scale);
+  }
+
   const activate = () => {
+    if (status === "locked") {
+      scene.tweens.add({ targets: label, alpha: 1, scale: 1, duration: 120 });
+      return;
+    }
     scene.tweens.killTweensOf([shadow, liftedRegion, label]);
     shadow.setVisible(true);
     liftedRegion.setVisible(true);
@@ -205,6 +248,10 @@ function drawRegion(
     });
   };
   const deactivate = () => {
+    if (status === "locked") {
+      scene.tweens.add({ targets: label, alpha: 0, scale: 0.96, duration: 100 });
+      return;
+    }
     scene.tweens.killTweensOf([shadow, liftedRegion, label]);
     scene.tweens.add({
       targets: shadow,

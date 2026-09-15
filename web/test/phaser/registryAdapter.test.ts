@@ -10,10 +10,12 @@ import {
   hasSavedProgress,
   hydrateRegistry,
   LEGACY_SAVE_STORAGE_KEY,
+  LOCALE_REGISTRY_KEY,
   persistRegistry,
   PREVIOUS_SAVE_STORAGE_KEY,
   readCareerDexState,
   readDexState,
+  readLocale,
   resetGameProgress,
   SAVE_STORAGE_KEY,
   TUTORIAL_ONBOARDING_SEEN_KEY,
@@ -127,7 +129,7 @@ describe("hydrateRegistry", () => {
     });
     const registry = fakeRegistry();
 
-    hydrateRegistry(registry, storage);
+    hydrateRegistry(registry, storage, ["ko-KR"]);
 
     expect(JSON.parse(storage.getItem(SAVE_STORAGE_KEY)!)).toEqual({
       version: 3,
@@ -147,7 +149,7 @@ describe("hydrateRegistry", () => {
         ],
       },
       player: { primaryJobId: "frontend", secondaryJobId: null, tertiaryJobId: null },
-      ui: { tutorialOnboardingSeen: true },
+      ui: { tutorialOnboardingSeen: true, locale: "ko" },
     });
   });
 
@@ -162,7 +164,7 @@ describe("hydrateRegistry", () => {
     });
     const registry = fakeRegistry();
 
-    hydrateRegistry(registry, storage);
+    hydrateRegistry(registry, storage, ["ko-KR"]);
 
     expect(JSON.parse(storage.getItem(SAVE_STORAGE_KEY)!)).toMatchObject({
       version: 3,
@@ -208,7 +210,8 @@ describe("persistRegistry", () => {
         captures: [{ id: first.id, capturedAt: "2026-09-01T00:00:00.000Z" }],
         selectedJob: "backend",
         tutorialOnboardingSeen: true,
-      })
+      }),
+      ["ko-KR"]
     );
     persistRegistry(source, storage);
 
@@ -230,7 +233,7 @@ describe("persistRegistry", () => {
         ],
       },
       player: { primaryJobId: "backend", secondaryJobId: null, tertiaryJobId: null },
-      ui: { tutorialOnboardingSeen: true },
+      ui: { tutorialOnboardingSeen: true, locale: "ko" },
     });
 
     const restored = fakeRegistry();
@@ -255,7 +258,7 @@ describe("resetGameProgress", () => {
       tutorialOnboardingSeen: true,
     });
     const registry = fakeRegistry();
-    hydrateRegistry(registry, storage);
+    hydrateRegistry(registry, storage, ["ko-KR"]);
 
     resetGameProgress(registry, storage);
 
@@ -270,7 +273,7 @@ describe("resetGameProgress", () => {
       version: 3,
       progress: { captures: [], careers: [] },
       player: { primaryJobId: "junior", secondaryJobId: null, tertiaryJobId: null },
-      ui: { tutorialOnboardingSeen: false },
+      ui: { tutorialOnboardingSeen: false, locale: "ko" },
     });
   });
 
@@ -302,5 +305,47 @@ describe("hasSavedProgress", () => {
         })
       )
     ).toBe(true);
+  });
+});
+
+describe("interface language", () => {
+  it("starts a first visit in the browser's language", () => {
+    const english = fakeRegistry();
+    hydrateRegistry(english, memoryStorage(), ["en-GB", "ko-KR"]);
+    expect(readLocale(english)).toBe("en");
+
+    const unsupported = fakeRegistry();
+    hydrateRegistry(unsupported, memoryStorage(), ["ja-JP"]);
+    expect(readLocale(unsupported)).toBe("ko");
+  });
+
+  it("prefers the language saved in settings over the browser's", () => {
+    const registry = fakeRegistry();
+    hydrateRegistry(
+      registry,
+      savedGame({
+        version: 3,
+        progress: { captures: [], careers: [] },
+        player: { primaryJobId: "junior", secondaryJobId: null, tertiaryJobId: null },
+        ui: { tutorialOnboardingSeen: true, locale: "en" },
+      }),
+      ["ko-KR"]
+    );
+    expect(readLocale(registry)).toBe("en");
+  });
+
+  it("persists the chosen language and keeps it through a new game", () => {
+    const storage = memoryStorage();
+    const registry = fakeRegistry({ [LOCALE_REGISTRY_KEY]: "en" });
+    persistRegistry(registry, storage);
+    expect(JSON.parse(storage.getItem(SAVE_STORAGE_KEY)!).ui.locale).toBe("en");
+
+    resetGameProgress(registry, storage);
+    expect(readLocale(registry)).toBe("en");
+    expect(JSON.parse(storage.getItem(SAVE_STORAGE_KEY)!).ui.locale).toBe("en");
+  });
+
+  it("ignores a language it does not support", () => {
+    expect(readLocale(fakeRegistry({ [LOCALE_REGISTRY_KEY]: "fr" }))).toBe("ko");
   });
 });

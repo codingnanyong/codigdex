@@ -1,4 +1,5 @@
 import type Phaser from "phaser";
+import { t } from "../i18n";
 import { PALETTE, PALETTE_HEX } from "../palette";
 import { pixelText } from "../pixelFont";
 
@@ -49,7 +50,7 @@ export function drawDexShell(scene: Phaser.Scene): DexScreen {
     badge.strokeCircle(0, 0, 6);
   });
   scene.add
-    .text(centerX, headerY, "CODIGDEX 도감", {
+    .text(centerX, headerY, t(scene, "dex.title"), {
       ...pixelText("subtitle"),
       color: PALETTE_HEX.cream,
     })

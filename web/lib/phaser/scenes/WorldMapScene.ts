@@ -13,7 +13,9 @@ import {
 } from "@/lib/domain/player/jobs";
 import { capturedIds } from "@/lib/domain/dex/capture";
 import { playAmbience } from "../ambience";
+import { lt, t } from "../i18n";
 import { fitTexture, preloadMonsterArt } from "../monsterArt";
+import { createSettingsButton } from "../settings/settingsButton";
 import { PALETTE } from "../palette";
 import { PALETTE_HEX } from "../palette";
 import { pixelText } from "../pixelFont";
@@ -34,6 +36,7 @@ import { showGuideHint } from "../worldMap/guideHint";
 import { OnboardingDialog } from "../worldMap/onboarding";
 import { showQuestDialog } from "../worldMap/questDialog";
 import { QuestMarker } from "../worldMap/questMarker";
+import { WorldMapPlayer } from "../worldMap/playerMovement";
 import {
   drawChapterRoute,
   routeEntryPointsFor,
@@ -59,6 +62,7 @@ export class WorldMapScene extends Phaser.Scene {
   private selectedCareerId?: JobId;
   private toast?: Phaser.GameObjects.Text;
   private tutorialTravel?: () => void;
+  private player?: WorldMapPlayer;
   /** Retained across scene restarts so travel only plays after real progress. */
   private readonly lastRouteIndex = new Map<string, number>();
 
@@ -107,6 +111,7 @@ export class WorldMapScene extends Phaser.Scene {
     this.selectedCareerId = undefined;
     this.toast = undefined;
     this.tutorialTravel = undefined;
+    this.player = undefined;
 
     const { captured, storedJob, selectedJob, backdrop } = this.resolveProgress();
     this.captured = captured;
@@ -138,6 +143,7 @@ export class WorldMapScene extends Phaser.Scene {
       const quest = this.quest as QuestMarker | undefined;
       quest?.group.setAlpha(0);
       quest?.setEnabled(false);
+      this.setPlayerEnabled(false);
       // The quest actors and hidden HUD are already interactive; swallow taps
       // until the dialog's own shade takes over, so onboarding can't be skipped.
       const inputBlocker = this.add
@@ -147,8 +153,8 @@ export class WorldMapScene extends Phaser.Scene {
       this.time.delayedCall(550, () => {
         inputBlocker.destroy();
         new OnboardingDialog(this, {
-          speaker: guideDisplayName(selectedJob),
-          lines: TUTORIAL_ONBOARDING_LINES,
+          speaker: lt(this, guideDisplayName(selectedJob)),
+          lines: TUTORIAL_ONBOARDING_LINES.map((line) => lt(this, line)),
           portraitTextureKey: selectedJob.guideTextureKey,
           onFinish: () => this.finishOnboarding(),
         });
@@ -166,6 +172,7 @@ export class WorldMapScene extends Phaser.Scene {
       this.selectedCareerId = undefined;
       this.toast = undefined;
       this.tutorialTravel = undefined;
+      this.player = undefined;
     });
   }
 
@@ -177,10 +184,17 @@ export class WorldMapScene extends Phaser.Scene {
       onRegion: (region) => {
         this.scene.start("career-region", { careerId, regionId: region.id });
       },
+      onLocked: (_region, requiredRegion) => {
+        this.toast = showToast(
+          this,
+          t(this, "world.lockedCareerRegion", { region: lt(this, requiredRegion.label) }),
+          this.toast
+        );
+      },
       onMystery: () => {
         this.toast = showToast(
           this,
-          "??? · 다른 1차 직업 경로까지 완성하면 정체가 드러나요.",
+          t(this, "world.mysteryCareer"),
           this.toast
         );
       },
@@ -192,7 +206,7 @@ export class WorldMapScene extends Phaser.Scene {
 
     const chapterFrame = drawOrnateFrame(this, width / 2, 24, 340, 34, { radius: 10 });
     const chapterTitle = this.add
-        .text(width / 2, 24, `📘 ${backdrop.title}  ▾`, {
+        .text(width / 2, 24, `📘 ${lt(this, backdrop.title)}  ▾`, {
           ...pixelText("body"),
           color: PALETTE_HEX.ink,
         })
@@ -209,6 +223,7 @@ export class WorldMapScene extends Phaser.Scene {
       chapterTitle,
       chapterHitArea,
       createHomeButton(this),
+      createSettingsButton(this),
     ];
     if (this.isTutorialCaptured()) {
       const onCareerAtlas = this.selectedCareerId !== undefined;
@@ -219,7 +234,7 @@ export class WorldMapScene extends Phaser.Scene {
           onCareerAtlas ? height - 24 : 26,
           120,
           32,
-          "Codigdex 도감",
+          t(this, "common.codigdex"),
           () => this.openCodigdex()
         )
       );
@@ -244,8 +259,8 @@ export class WorldMapScene extends Phaser.Scene {
     if (!this.activeChapter || !this.activeMonster) return "";
     const index = this.activeChapter.stages.indexOf(this.activeMonster);
     return this.activeChapter.id === "tutorial"
-      ? `첫 의뢰 · ${this.activeMonster.name}`
-      : `${this.activeChapter.label} · ${index + 1}/${this.activeChapter.stages.length} · ${this.activeMonster.name}`;
+      ? t(this, "world.firstQuest", { name: lt(this, this.activeMonster.name) })
+      : `${this.activeChapter.label} · ${index + 1}/${this.activeChapter.stages.length} · ${lt(this, this.activeMonster.name)}`;
   }
 
   private createQuestActors() {
@@ -257,18 +272,11 @@ export class WorldMapScene extends Phaser.Scene {
     const point = route?.[activeIndex];
     const monsterX = point?.x ?? 604;
     const monsterY = point ? point.y - 98 : 270;
-    const npcSide = monsterX < this.scale.width / 2 ? 1 : -1;
     const npcTargetX = point
       ? point.x
-      : Phaser.Math.Clamp(monsterX + npcSide * 126, 92, this.scale.width - 92);
+      : Phaser.Math.Clamp(monsterX + (monsterX < this.scale.width / 2 ? 126 : -126), 92, this.scale.width - 92);
     const npcTargetY = point?.y ?? monsterY + 18;
     const selectedJob = this.resolveProgress().selectedJob;
-    const actorTextureKey = point ? selectedJob.overworldTextureKey : "npc-lupi-guide";
-    const actorWidth = point ? 41 : 142;
-    const actorHeight = point ? 54 : 142;
-    const shadowOffsetY = point ? 26 : 67;
-    const shadowWidth = point ? 36 : 82;
-    const shadowHeight = point ? 10 : 18;
     const lastIndex = this.lastRouteIndex.get(chapter.id);
     const shouldTravel = lastIndex !== undefined && activeIndex === lastIndex + 1;
     const tutorialEntry =
@@ -282,18 +290,13 @@ export class WorldMapScene extends Phaser.Scene {
     const npcStartY = tutorialEntry?.[0].y ?? previousPoint?.y ?? npcTargetY;
 
     drawChapterRoute(this, chapter, this.captured, activeIndex, () => this.onQuestClicked());
+    this.drawCheckpointMonsters(chapter, route, activeIndex);
 
-    const npcShadow = this.add
-      .ellipse(npcStartX, npcStartY + shadowOffsetY, shadowWidth, shadowHeight, PALETTE.nightBrown, 0.28)
-      .setDepth(2);
-    const actor = this.add
-      .image(npcStartX, npcStartY, actorTextureKey)
-      .setDisplaySize(actorWidth, actorHeight)
-      .setFlipX(!point && !shouldTravel && npcTargetX > monsterX)
-      .setDepth(3);
-    if (!point) {
-      actor.setInteractive({ useHandCursor: true }).on("pointerup", () => this.onQuestClicked());
-    }
+    this.player = new WorldMapPlayer(this, {
+      textureKey: selectedJob.overworldTextureKey,
+      start: { x: npcStartX, y: npcStartY },
+      onInteract: () => this.onPlayerInteract({ x: monsterX, y: monsterY }),
+    });
 
     this.add.ellipse(monsterX, monsterY + 62, 100, 20, PALETTE.nightBrown, 0.28).setDepth(2);
     const monsterFit = fitTexture(this, monster.textureKey, 128, 128);
@@ -304,50 +307,27 @@ export class WorldMapScene extends Phaser.Scene {
       .setInteractive({ useHandCursor: true });
     monsterImage.on("pointerup", () => this.onQuestClicked());
 
-    const animateTravel = (routeTravelPoints: readonly { x: number; y: number }[]) => {
-      const travelPoints = routeTravelPoints.length > 1
-        ? routeTravelPoints.map(
-            (travelPoint) => new Phaser.Math.Vector2(travelPoint.x, travelPoint.y)
-          )
-        : undefined;
-      const travelCurve = travelPoints ? new Phaser.Curves.Spline(travelPoints) : undefined;
-      const progress = { value: 0 };
-      const travelLength = travelCurve?.getLength() ?? 0;
-      const duration = Phaser.Math.Clamp((travelLength / 240) * 1_000, 900, 3_200);
-      const walkCycles = Math.max(4, Math.round(travelLength / 54));
-      this.tweens.add({
-        targets: progress,
-        value: 1,
-        duration,
-        ease: "Linear",
-        onUpdate: () => {
-          const position = travelCurve?.getPointAt(progress.value);
-          if (!position) return;
-          const nextPosition = travelCurve?.getPointAt(Math.min(1, progress.value + 0.002));
-          const step = Math.abs(Math.sin(progress.value * Math.PI * walkCycles));
-          actor.setFlipX(Boolean(nextPosition && nextPosition.x < position.x));
-          actor.setPosition(position.x, position.y - step * 3);
-          npcShadow.setPosition(position.x, position.y + shadowOffsetY);
-          npcShadow.setScale(1 - step * 0.08, 1 - step * 0.04);
-        },
-        onComplete: () => {
-          actor.setPosition(npcTargetX, npcTargetY);
-          actor.setFlipX(false);
-          npcShadow.setPosition(npcTargetX, npcTargetY + shadowOffsetY);
-          npcShadow.setScale(1);
-        },
-      });
-    };
-
     if (shouldTravel && previousPoint) {
       const travelPoints = routeTravelPointsFor(chapter, activeIndex);
-      if (travelPoints) animateTravel(travelPoints);
+      if (travelPoints) this.player.followPath(travelPoints);
     } else if (tutorialEntry) {
       this.tutorialTravel = () => {
-        animateTravel(tutorialEntry);
+        this.player?.followPath(tutorialEntry);
         this.tutorialTravel = undefined;
       };
     }
+
+    const movementFrame = drawOrnateFrame(this, this.scale.width / 2, this.scale.height - 18, 520, 28, {
+      fillAlpha: 0.9,
+      radius: 8,
+    });
+    const movementHint = this.add
+      .text(this.scale.width / 2, this.scale.height - 18, t(this, "world.movementHint"), {
+        ...pixelText("caption"),
+        color: PALETTE_HEX.ink,
+      })
+      .setOrigin(0.5);
+    this.hud.add([movementFrame, movementHint]);
     this.tweens.add({
       targets: monsterImage,
       y: "-=5",
@@ -377,6 +357,43 @@ export class WorldMapScene extends Phaser.Scene {
     }
   }
 
+  private drawCheckpointMonsters(
+    chapter: ChapterDefinition,
+    route: readonly { x: number; y: number }[] | undefined,
+    activeIndex: number
+  ) {
+    if (!route) return;
+
+    chapter.stages.forEach((monster, index) => {
+      if (index === activeIndex) return;
+      const point = route[index];
+      if (!point) return;
+
+      const captured = this.captured.has(monster.id);
+      const size = captured ? 72 : 66;
+      const fit = fitTexture(this, monster.textureKey, size, size);
+      this.add
+        .ellipse(point.x, point.y - 14, captured ? 50 : 44, 12, PALETTE.nightBrown, captured ? 0.25 : 0.18)
+        .setDepth(2);
+      const image = this.add
+        .image(point.x, point.y - 50, monster.textureKey)
+        .setScale(fit.scale)
+        .setAlpha(captured ? 0.8 : 0.48)
+        .setDepth(2.5);
+      if (!captured) image.setTint(PALETTE.nightBrown);
+
+      this.add
+        .text(point.x, point.y - 88, `LV.${monster.level}${captured ? " ✓" : ""}`, {
+          ...pixelText("micro"),
+          color: captured ? PALETTE_HEX.cream : PALETTE_HEX.sand,
+          backgroundColor: captured ? "#2a1d14cc" : "#2a1d1488",
+          padding: { x: 4, y: 2 },
+        })
+        .setOrigin(0.5)
+        .setDepth(3);
+    });
+  }
+
   private finishOnboarding() {
     this.registry.set(TUTORIAL_ONBOARDING_SEEN_KEY, true);
     this.tweens.add({
@@ -386,7 +403,8 @@ export class WorldMapScene extends Phaser.Scene {
       delay: 100,
       onComplete: () => {
         this.quest?.setEnabled(true);
-        this.tutorialTravel?.();
+        if (this.tutorialTravel) this.tutorialTravel();
+        else this.setPlayerEnabled(true);
         this.showHint();
       },
     });
@@ -403,8 +421,8 @@ export class WorldMapScene extends Phaser.Scene {
     this.guideHint = showGuideHint(
       this,
       this.activeChapter?.id === "tutorial"
-        ? "빛나는 첫 의뢰 표식을 눌러 보세요"
-        : "루피 또는 현재 몬스터를 눌러 배틀을 시작하세요",
+        ? t(this, "world.hintFirstQuest")
+        : t(this, "world.hintStartBattle", { guide: lt(this, this.activeChapter?.npcName ?? guideDisplayName(this.resolveProgress().selectedJob)) }),
       routePoint ?? { x: 604, y: 270 }
     );
   }
@@ -416,9 +434,10 @@ export class WorldMapScene extends Phaser.Scene {
 
     const monster = this.activeMonster;
     const guide = this.resolveProgress().selectedJob;
+    this.setPlayerEnabled(false);
     this.questDialog = showQuestDialog(this, {
-      speaker: `${guideDisplayName(guide)}:`,
-      message: monster.briefing,
+      speaker: `${lt(this, guideDisplayName(guide))}:`,
+      message: lt(this, monster.briefing),
       portraitTextureKey: guide.guideTextureKey,
       onStart: () => {
         this.closeQuestDialog();
@@ -431,6 +450,20 @@ export class WorldMapScene extends Phaser.Scene {
   private closeQuestDialog() {
     this.questDialog?.destroy(true);
     this.questDialog = undefined;
+    this.setPlayerEnabled(true);
+  }
+
+  private setPlayerEnabled(enabled: boolean) {
+    this.player?.setEnabled(enabled);
+  }
+
+  private onPlayerInteract(monsterPosition: { x: number; y: number }) {
+    if (!this.player || this.questDialog) return;
+    if (this.player.distanceTo(monsterPosition) <= 145) {
+      this.onQuestClicked();
+      return;
+    }
+    this.toast = showToast(this, t(this, "world.moveCloser"), this.toast);
   }
 
   private openCodigdex() {

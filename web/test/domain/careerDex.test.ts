@@ -10,6 +10,7 @@ import {
   selectCareer,
 } from "@/lib/domain/careerDex";
 import type { JobId, SecondaryJobId } from "@/lib/domain/player/jobs";
+import { LOCALES } from "@/lib/i18n/locale";
 
 const fixedNow = () => "2026-09-14T00:00:00.000Z";
 
@@ -32,10 +33,12 @@ describe("career catalog", () => {
   });
 
   it("gives every playable career path a distinct named guide", () => {
-    const guideNames = CAREER_CATALOG.map((career) => career.guideName);
+    for (const locale of LOCALES) {
+      const guideNames = CAREER_CATALOG.map((career) => career.guideName?.[locale]);
 
-    expect(guideNames.every(Boolean)).toBe(true);
-    expect(new Set(guideNames).size).toBe(16);
+      expect(guideNames.every(Boolean)).toBe(true);
+      expect(new Set(guideNames).size).toBe(16);
+    }
   });
 
   it("gives every career a distinct collectible emblem", () => {

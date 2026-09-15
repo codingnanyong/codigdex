@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   CHAPTERS,
-  DEX_MONSTERS,
+  COMMON_MONSTERS,
   chapterStatus,
   isCommonPathComplete,
   stageStatus,
@@ -41,7 +41,7 @@ describe("tutorial -> Git's five stages -> Linux", () => {
       expect(chapterStatus(chapter, capturedIds(state))).toBe("cleared");
     }
 
-    expect(state.cards.map((card) => card.id)).toEqual(DEX_MONSTERS.map((monster) => monster.id));
+    expect(state.cards.map((card) => card.id)).toEqual(COMMON_MONSTERS.map((monster) => monster.id));
     expect(isCommonPathComplete(capturedIds(state))).toBe(true);
   });
 

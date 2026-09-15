@@ -1,5 +1,3 @@
-import type { QuizQuestion } from "../chapters/types";
-
 type Rng = () => number;
 
 /** Lv.1 asks 3 questions and each level adds one more. */
@@ -21,11 +19,11 @@ function shuffle<T>(items: readonly T[], rng: Rng): T[] {
  * with its choices shuffled, so a retry never replays the same quiz in the
  * same order. Asks for more than the pool holds and you just get the pool.
  */
-export function drawQuizQuestions(
-  pool: readonly QuizQuestion[],
+export function drawQuizQuestions<Q extends { choices: readonly unknown[]; answerIndex: number }>(
+  pool: readonly Q[],
   count: number,
   rng: Rng = Math.random
-): QuizQuestion[] {
+): Q[] {
   return shuffle(pool, rng)
     .slice(0, Math.max(0, Math.min(count, pool.length)))
     .map((question) => {

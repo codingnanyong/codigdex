@@ -10,6 +10,7 @@ import { drawQuizQuestions, quizCountForLevel } from "@/lib/domain/dex/quiz";
 import { playAmbience } from "../ambience";
 import { AnswerGrid } from "../battle/answerGrid";
 import { drawNpcBanner } from "../battle/banner";
+import { lt, t } from "../i18n";
 import { MessagePanel } from "../battle/messagePanel";
 import { Opponent } from "../battle/opponent";
 import { StatusPanel } from "../battle/statusPanel";
@@ -19,6 +20,8 @@ import { applyPixelFontToScene } from "../ui";
 
 export interface CodeBattleData {
   monsterId: string;
+  returnTo?: { scene: "world-map" | "career-region"; data?: Record<string, unknown> };
+  arena?: ChapterDefinition["arena"];
 }
 
 /** Runs one battle until its pass line is reached or its questions run out. */
@@ -33,6 +36,8 @@ export class CodeBattleScene extends Phaser.Scene {
   private opponent!: Opponent;
   private message!: MessagePanel;
   private answers!: AnswerGrid;
+  private returnTo?: CodeBattleData["returnTo"];
+  private battleArena?: ChapterDefinition["arena"];
 
   constructor() {
     super("code-battle");
@@ -43,6 +48,8 @@ export class CodeBattleScene extends Phaser.Scene {
     this.chapter = chapter;
     this.monster = monster;
     this.questions = drawQuizQuestions(monster.quizPool, quizCountForLevel(monster.level));
+    this.returnTo = data.returnTo;
+    this.battleArena = data.arena ?? chapter.arena;
     this.questionIndex = 0;
     this.correctCount = 0;
     this.locked = false;
@@ -50,21 +57,21 @@ export class CodeBattleScene extends Phaser.Scene {
 
   preload() {
     preloadMonsterArt(this, [this.monster]);
-    const { arena } = this.chapter;
-    if (arena) this.load.image(arena.textureKey, arena.assetPath);
+    if (this.battleArena) this.load.image(this.battleArena.textureKey, this.battleArena.assetPath);
   }
 
   create() {
     const { width, height } = this.scale;
-    const { arena, npcName } = this.chapter;
+    const { npcName } = this.chapter;
+    const arena = this.battleArena;
 
     // Backdrop and its ambience go in first so every battle panel draws on top.
     if (arena) {
       this.add.image(width / 2, height / 2, arena.textureKey).setDisplaySize(width, height);
-      playAmbience(this, arena.ambience);
+      if (arena.ambience) playAmbience(this, arena.ambience);
     }
 
-    drawNpcBanner(this, `${npcName}: ${this.monster.preBattleLine}`);
+    drawNpcBanner(this, `${lt(this, npcName)}: ${lt(this, this.monster.preBattleLine)}`);
     this.status = new StatusPanel(this, this.monster);
     this.opponent = new Opponent(this, this.monster);
     this.message = new MessagePanel(this);
@@ -82,9 +89,12 @@ export class CodeBattleScene extends Phaser.Scene {
       total: this.questions.length,
       correct: this.correctCount,
       required: requiredCorrectAnswers(this.questions.length),
-      prompt: question.prompt,
+      prompt: lt(this, question.prompt),
     });
-    this.answers.show(question.choices, (index) => this.onAnswer(index, index === question.answerIndex));
+    this.answers.show(
+      question.choices.map((choice) => lt(this, choice)),
+      (index) => this.onAnswer(index, index === question.answerIndex)
+    );
   }
 
   private onAnswer(index: number, isCorrect: boolean) {
@@ -94,12 +104,12 @@ export class CodeBattleScene extends Phaser.Scene {
 
     if (isCorrect) {
       this.correctCount += 1;
-      this.message.say("명중! 타격을 줬어요.");
+      this.message.say(t(this, "battle.hit"));
       const required = requiredCorrectAnswers(this.questions.length);
       this.status.setHealth(Math.max(0, required - this.correctCount) / required);
       this.opponent.flinch();
     } else {
-      this.message.say("안 통했어요!");
+      this.message.say(t(this, "battle.miss"));
     }
 
     this.time.delayedCall(650, () => {
@@ -117,13 +127,13 @@ export class CodeBattleScene extends Phaser.Scene {
 
     this.answers.clear();
     if (isSuccessfulCapture(this.correctCount, this.questions.length)) {
-      this.message.say(`${this.monster.name} 격파!`);
+      this.message.say(t(this, "battle.defeated", { name: lt(this, this.monster.name) }));
       this.opponent.faint(() => this.finishBattle());
     } else {
       this.message.say(
         this.questionIndex < this.questions.length
-          ? "목표 달성 불가! 전투에 실패했어요."
-          : "전투 종료! 결과를 확인할게요."
+          ? t(this, "battle.failedEarly")
+          : t(this, "battle.finished")
       );
       this.time.delayedCall(700, () => this.finishBattle());
     }
@@ -134,6 +144,7 @@ export class CodeBattleScene extends Phaser.Scene {
       monsterId: this.monster.id,
       correctCount: this.correctCount,
       total: this.questions.length,
+      returnTo: this.returnTo,
     });
   }
 }
