@@ -45,6 +45,7 @@ jobs:
           TOTAL: ${{ steps.sync.outputs.total }}
           PROGRESS: ${{ steps.sync.outputs.progress }}
           STATUS: ${{ steps.sync.outputs.status }}
+          SKIPPED: ${{ steps.sync.outputs.skipped }}
         run: |
           {
             echo "## Linear → Notion sprint sync"
@@ -52,4 +53,5 @@ jobs:
             echo "- Issues: ${COMPLETED}/${TOTAL}"
             echo "- Completion: ${PROGRESS}"
             echo "- Status: ${STATUS}"
+            echo "- Skipped: ${SKIPPED}"
           } >> "$GITHUB_STEP_SUMMARY"

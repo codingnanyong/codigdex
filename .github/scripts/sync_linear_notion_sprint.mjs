@@ -12,7 +12,15 @@ function requireValue(value, name) {
 
 async function requestJson(url, options) {
   const response = await fetch(url, options);
-  const payload = await response.json();
+  const responseBody = await response.text();
+  let payload;
+  try {
+    payload = JSON.parse(responseBody);
+  } catch {
+    throw new Error(
+      `${response.status} ${response.statusText}: expected JSON, received ${responseBody.slice(0, 500)}`
+    );
+  }
   if (!response.ok) {
     throw new Error(`${response.status} ${response.statusText}: ${JSON.stringify(payload)}`);
   }
@@ -34,8 +42,8 @@ export function statusForCycle({ progress, startsAt, endsAt }, now = new Date())
 }
 
 export async function fetchCurrentLinearCycle({ apiKey, teamKey, projectName, now = new Date() }) {
-  const query = `
-    query CurrentTeamCycles($teamKey: String!, $projectName: String!) {
+  const cyclesQuery = `
+    query CurrentTeamCycles($teamKey: String!) {
       teams(first: 1, filter: { key: { eq: $teamKey } }) {
         nodes {
           cycles(first: 50) {
@@ -44,28 +52,55 @@ export async function fetchCurrentLinearCycle({ apiKey, teamKey, projectName, no
               number
               startsAt
               endsAt
-              issues(first: 250, filter: { project: { name: { eq: $projectName } } }) {
-                nodes { id state { type } }
-              }
             }
           }
         }
       }
     }
   `;
-  const payload = await requestJson(LINEAR_API_URL, {
+  const cyclesPayload = await requestJson(LINEAR_API_URL, {
     method: "POST",
     headers: { Authorization: apiKey, "Content-Type": "application/json" },
-    body: JSON.stringify({ query, variables: { teamKey, projectName } }),
+    body: JSON.stringify({ query: cyclesQuery, variables: { teamKey } }),
   });
-  if (payload.errors?.length) throw new Error(`Linear API: ${JSON.stringify(payload.errors)}`);
+  if (cyclesPayload.errors?.length) {
+    throw new Error(`Linear API: ${JSON.stringify(cyclesPayload.errors)}`);
+  }
 
-  const cycles = payload.data?.teams?.nodes?.[0]?.cycles?.nodes ?? [];
+  const cycles = cyclesPayload.data?.teams?.nodes?.[0]?.cycles?.nodes ?? [];
   const current = cycles.find(
     ({ startsAt, endsAt }) => new Date(startsAt) <= now && now <= new Date(endsAt)
   );
   if (!current) throw new Error(`No current Linear cycle found for team ${teamKey}`);
-  return current;
+
+  const issuesQuery = `
+    query CycleIssues($cycleId: String!, $projectName: String!) {
+      cycle(id: $cycleId) {
+        issues(first: 250, filter: { project: { name: { eq: $projectName } } }) {
+          nodes { id state { type } }
+          pageInfo { hasNextPage }
+        }
+      }
+    }
+  `;
+  const issuesPayload = await requestJson(LINEAR_API_URL, {
+    method: "POST",
+    headers: { Authorization: apiKey, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      query: issuesQuery,
+      variables: { cycleId: current.id, projectName },
+    }),
+  });
+  if (issuesPayload.errors?.length) {
+    throw new Error(`Linear API: ${JSON.stringify(issuesPayload.errors)}`);
+  }
+
+  const issues = issuesPayload.data?.cycle?.issues;
+  if (!issues) throw new Error(`Linear cycle ${current.number} did not return issues`);
+  if (issues.pageInfo?.hasNextPage) {
+    throw new Error(`Linear cycle ${current.number} has more than 250 project issues`);
+  }
+  return { ...current, issues };
 }
 
 async function findNotionSprintPage({
@@ -88,7 +123,11 @@ async function findNotionSprintPage({
       page_size: 2,
     }),
   });
-  if (payload.results.length !== 1) {
+  if (payload.results.length === 0) {
+    console.warn(`::warning::No Notion sprint found for ${cycleUrl}; skipping update`);
+    return null;
+  }
+  if (payload.results.length > 1) {
     throw new Error(`Expected one Notion sprint for ${cycleUrl}, found ${payload.results.length}`);
   }
   return { pageId: payload.results[0].id, cycleUrl };
@@ -139,6 +178,11 @@ export async function syncSprintProgress(env = process.env, now = new Date()) {
     teamKey,
     cycleNumber: cycle.number,
   });
+  if (!sprint) {
+    const result = { cycle: cycle.number, status, ...progress, skipped: true };
+    writeOutputs(env.GITHUB_OUTPUT, result);
+    return result;
+  }
   await updateNotionSprint({
     apiKey: notionApiKey,
     pageId: sprint.pageId,
@@ -147,14 +191,23 @@ export async function syncSprintProgress(env = process.env, now = new Date()) {
     syncedAt: now.toISOString(),
   });
 
-  const result = { cycle: cycle.number, status, ...progress, notionPageId: sprint.pageId };
-  if (env.GITHUB_OUTPUT) {
-    appendFileSync(
-      env.GITHUB_OUTPUT,
-      Object.entries(result).map(([key, value]) => `${key}=${value}`).join("\n") + "\n"
-    );
-  }
+  const result = {
+    cycle: cycle.number,
+    status,
+    ...progress,
+    skipped: false,
+    notionPageId: sprint.pageId,
+  };
+  writeOutputs(env.GITHUB_OUTPUT, result);
   return result;
+}
+
+function writeOutputs(outputPath, values) {
+  if (!outputPath) return;
+  appendFileSync(
+    outputPath,
+    Object.entries(values).map(([key, value]) => `${key}=${value}`).join("\n") + "\n"
+  );
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {

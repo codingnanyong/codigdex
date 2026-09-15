@@ -29,3 +29,10 @@ test("maps cycle dates and progress to Sprint Tracker statuses", () => {
   assert.equal(statusForCycle({ ...cycle, progress: 0.5 }, new Date("2026-09-21T00:00:00Z")), "Delayed");
   assert.equal(statusForCycle({ ...cycle, progress: 1 }, new Date("2026-09-15T00:00:00Z")), "Completed");
 });
+
+test("treats the exact cycle boundaries as in progress", () => {
+  const cycle = { startsAt: "2026-09-14T00:00:00Z", endsAt: "2026-09-20T23:59:59Z" };
+
+  assert.equal(statusForCycle({ ...cycle, progress: 0 }, new Date(cycle.startsAt)), "In Progress");
+  assert.equal(statusForCycle({ ...cycle, progress: 0.5 }, new Date(cycle.endsAt)), "In Progress");
+});
