@@ -1,0 +1,55 @@
+name: Sync Linear sprint progress to Notion
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+  pull_request:
+    branches: [develop]
+    types: [closed]
+
+permissions:
+  contents: read
+
+jobs:
+  sync:
+    if: github.event_name != 'pull_request' || github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    env:
+      LINEAR_API_KEY: ${{ secrets.LINEAR_API_KEY }}
+      NOTION_API_KEY: ${{ secrets.NOTION_API_KEY }}
+      LINEAR_TEAM_KEY: ${{ vars.LINEAR_TEAM_KEY }}
+      LINEAR_PROJECT_NAME: ${{ vars.LINEAR_PROJECT_NAME }}
+      LINEAR_WORKSPACE_SLUG: ${{ vars.LINEAR_WORKSPACE_SLUG }}
+      NOTION_SPRINT_DATA_SOURCE_ID: ${{ vars.NOTION_SPRINT_DATA_SOURCE_ID }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify sync calculations
+        run: node --test .github/scripts/sync_linear_notion_sprint.test.mjs
+
+      - name: Skip until the Notion integration token is configured
+        if: env.NOTION_API_KEY == ''
+        run: echo "Add the NOTION_API_KEY repository secret to enable Sprint Tracker updates."
+
+      - name: Update the matching Notion sprint
+        if: env.NOTION_API_KEY != ''
+        id: sync
+        run: node .github/scripts/sync_linear_notion_sprint.mjs
+
+      - name: Write summary
+        if: env.NOTION_API_KEY != ''
+        env:
+          CYCLE: ${{ steps.sync.outputs.cycle }}
+          COMPLETED: ${{ steps.sync.outputs.completed }}
+          TOTAL: ${{ steps.sync.outputs.total }}
+          PROGRESS: ${{ steps.sync.outputs.progress }}
+          STATUS: ${{ steps.sync.outputs.status }}
+        run: |
+          {
+            echo "## Linear → Notion sprint sync"
+            echo "- Cycle: ${CYCLE}"
+            echo "- Issues: ${COMPLETED}/${TOTAL}"
+            echo "- Completion: ${PROGRESS}"
+            echo "- Status: ${STATUS}"
+          } >> "$GITHUB_STEP_SUMMARY"

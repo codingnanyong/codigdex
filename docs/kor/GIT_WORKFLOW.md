@@ -55,4 +55,17 @@ feat/<slug> ── push ──> Linear 이슈 + GitHub 미러 이슈
 
 설정 후에는 `feat/<slug>` push 시 Linear/GitHub 이슈 쌍과 Draft PR 생성, PR 정책 검사, 리뷰, merge 알림이 자동으로 실행됩니다.
 
+## Linear → Notion 스프린트 진행률 동기화
+
+`.github/workflows/sync-sprint-progress.yml`은 15분마다, 그리고 기능 PR이 `develop`에 병합된 직후 현재 Linear 사이클과 Codigdex 프로젝트가 겹치는 이슈를 집계해 Notion Sprint Tracker를 갱신합니다. 취소되지 않은 이슈 중 완료 이슈의 비율을 `Completion %`로 계산하고 `Status`, `Last Synced`, `Sync Status`도 함께 반영합니다.
+
+저장소마다 한 번만 다음 항목을 설정합니다.
+
+1. 읽기 및 콘텐츠 수정 권한을 가진 Notion 내부 통합을 만들고 Sprint Tracker 데이터 소스를 통합에 공유합니다.
+2. 통합 토큰을 Actions secret `NOTION_API_KEY`로 등록합니다.
+3. Actions variables에 `LINEAR_TEAM_KEY`, `LINEAR_WORKSPACE_SLUG`, `NOTION_SPRINT_DATA_SOURCE_ID`를 등록합니다. `LINEAR_PROJECT_NAME`은 기능 PR 자동화와 함께 사용합니다.
+4. **Sync Linear sprint progress to Notion** 워크플로를 한 번 수동 실행해 연결을 확인합니다. `NOTION_API_KEY`가 없으면 원격 갱신만 안전하게 건너뛰고 계산 테스트는 계속 실행합니다.
+
+Sprint Tracker의 각 행에는 해당 Linear 사이클 URL을 `Linear Cycle` 속성에 입력해야 합니다. 예: `https://linear.app/codingnanyong/team/COD/cycle/2`
+
 자세한 정책과 절차는 [AGENTS.md](../../AGENTS.md#pr--issue-policy)를 참고하세요.

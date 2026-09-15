@@ -56,4 +56,17 @@ A new repository that uses this project as a template needs the following one-ti
 
 Once configured, pushing `feat/<slug>` automatically creates the Linear/GitHub issue pair and Draft PR, then runs the PR policy check, review, and merge notification.
 
+## Linear to Notion sprint progress sync
+
+`.github/workflows/sync-sprint-progress.yml` updates the matching Notion Sprint Tracker row every 15 minutes and after a feature PR is merged into `develop`. It calculates `Completion %` from completed, non-canceled Codigdex issues in the current Linear cycle and also updates `Status`, `Last Synced`, and `Sync Status`.
+
+One-time repository configuration:
+
+1. Create a Notion internal integration with read and update-content capabilities, then share the Sprint Tracker data source with it.
+2. Add its token as the Actions secret `NOTION_API_KEY`.
+3. Set `LINEAR_TEAM_KEY`, `LINEAR_WORKSPACE_SLUG`, and `NOTION_SPRINT_DATA_SOURCE_ID` as Actions variables. `LINEAR_PROJECT_NAME` is shared with feature-PR automation.
+4. Run **Sync Linear sprint progress to Notion** manually once to verify the connection. Without `NOTION_API_KEY`, the workflow safely skips the remote update while still testing its calculations.
+
+Each Sprint Tracker row must contain its Linear cycle URL in the `Linear Cycle` property, for example `https://linear.app/codingnanyong/team/COD/cycle/2`.
+
 See [AGENTS.md](../../AGENTS.md#pr--issue-policy) for the full policy and procedure.
