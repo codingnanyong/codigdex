@@ -32,6 +32,7 @@ type QuestStageOptions = {
 export type QuestStageActors = {
   player: WorldMapPlayer;
   quest?: QuestMarker;
+  movementHelp: Phaser.GameObjects.Container;
   tutorialTravel?: () => void;
 };
 
@@ -95,7 +96,7 @@ export function createQuestStage(
     scene.scale.height - 18,
     520,
     28,
-    { fillAlpha: 0.9, radius: 8 }
+    { fillAlpha: 0.98, radius: 8 }
   );
   const movementHint = scene.add
     .text(scene.scale.width / 2, scene.scale.height - 18, options.movementHint, {
@@ -103,7 +104,8 @@ export function createQuestStage(
       color: PALETTE_HEX.ink,
     })
     .setOrigin(0.5);
-  options.hud.add([movementFrame, movementHint]);
+  const movementHelp = scene.add.container(0, 0, [movementFrame, movementHint]);
+  options.hud.add(movementHelp);
   scene.tweens.add({
     targets: monsterImage,
     y: "-=5",
@@ -129,7 +131,7 @@ export function createQuestStage(
     quest = new QuestMarker(scene, options.onQuest, { x: monsterX, y: labelY });
     quest.update(options.questLabel, false);
   }
-  return { player, quest, tutorialTravel };
+  return { player, quest, movementHelp, tutorialTravel };
 }
 
 function drawCheckpointMonsters(
