@@ -82,7 +82,13 @@ export class CareerRegionScene extends Phaser.Scene {
     this.drawGuide(job.guideTextureKey ?? job.textureKey!, lt(this, guideDisplayName(job)), region);
     createButton(this, 88, height - 28, 136, 34, t(this, "region.detailMap"), () => this.scene.start("world-map"));
     createButton(this, width - 88, height - 28, 136, 34, t(this, "region.viewPath"), () =>
-      this.scene.start("path-map", { careerId: this.careerId })
+      this.scene.start("path-map", {
+        careerId: this.careerId,
+        returnTo: {
+          scene: "career-region",
+          data: { careerId: this.careerId, regionId: this.regionId },
+        },
+      })
     );
     createHomeButton(this).setDepth(30);
     createSettingsButton(this).setDepth(30);
