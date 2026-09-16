@@ -80,6 +80,7 @@ Open [http://localhost:3001](http://localhost:3001) in your browser. Run the tes
 - [Career Path Design](docs/eng/CAREER_PATH_DESIGN.md) — curriculum, promotion requirements, save format
 - [Git workflow](docs/eng/GIT_WORKFLOW.md) — branch strategy, PR and issue automation
 - [Monorepo architecture](docs/eng/MONOREPO_ARCHITECTURE.md) — web/mobile apps and shared package boundaries
+- [Account linking and cloud saves](docs/eng/ACCOUNT_LINKING_AND_CLOUD_SAVE.md) — Google, GitHub, and Apple identities plus cross-platform save ownership
 - [Contributing](CONTRIBUTING.md) · [Project and PR policy](AGENTS.md)
 
 ## Contributing

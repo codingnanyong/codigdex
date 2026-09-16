@@ -82,6 +82,16 @@ describe("career paths", () => {
     expect(SECONDARY_JOB_OPTIONS.map((job) => job.id)).toContain("ml-developer");
     expect(secondaryJobsFor("backend").length).toBeGreaterThan(1);
   });
+
+  it("places the data analyst Python destination on the lower-right locked island", () => {
+    const python = CAREER_PATHS["data-analyst"].regions.find(({ id }) => id === "python");
+
+    expect(python).toBeDefined();
+    expect(python!.x).toBeGreaterThan(700);
+    expect(python!.y).toBeGreaterThan(350);
+    expect(python!.lift.x).toBeGreaterThan(700);
+    expect(python!.lift.y).toBeGreaterThan(350);
+  });
 });
 
 describe("primary job changes", () => {

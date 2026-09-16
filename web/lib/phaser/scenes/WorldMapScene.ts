@@ -53,6 +53,7 @@ export class WorldMapScene extends Phaser.Scene {
   private toast?: Phaser.GameObjects.Text;
   private tutorialTravel?: () => void;
   private player?: WorldMapPlayer;
+  private movementHelp?: Phaser.GameObjects.Container;
   /** Retained across scene restarts so travel only plays after real progress. */
   private readonly lastRouteIndex = new Map<string, number>();
 
@@ -158,6 +159,7 @@ export class WorldMapScene extends Phaser.Scene {
     this.toast = undefined;
     this.tutorialTravel = undefined;
     this.player = undefined;
+    this.movementHelp = undefined;
   }
 
   private startOnboarding(
@@ -248,6 +250,7 @@ export class WorldMapScene extends Phaser.Scene {
     });
     this.player = actors.player;
     this.quest = actors.quest;
+    this.movementHelp = actors.movementHelp;
     if (actors.tutorialTravel) {
       this.tutorialTravel = () => {
         actors.tutorialTravel?.();
@@ -302,6 +305,7 @@ export class WorldMapScene extends Phaser.Scene {
     const monster = this.activeMonster;
     const guide = this.resolveProgress().selectedJob;
     this.setPlayerEnabled(false);
+    this.movementHelp?.setVisible(false);
     this.questDialog = showQuestDialog(this, {
       speaker: `${lt(this, guideDisplayName(guide))}:`,
       message: lt(this, monster.briefing),
@@ -317,6 +321,7 @@ export class WorldMapScene extends Phaser.Scene {
   private closeQuestDialog() {
     this.questDialog?.destroy(true);
     this.questDialog = undefined;
+    this.movementHelp?.setVisible(true);
     this.setPlayerEnabled(true);
   }
 
