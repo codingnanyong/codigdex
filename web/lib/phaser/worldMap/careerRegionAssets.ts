@@ -28,12 +28,14 @@ export function careerRegionAssets(
       key: careerChapterWallpaperTextureKey(path, region),
       url: assetUrl(careerChapterWallpaperAssetKey(path, region)),
     },
-    { key: job.textureKey!, url: assetUrl(job.assetKey!) },
     ...visibleMonsters.map((monster) => ({
       key: monster.textureKey,
       url: assetUrl(monster.assetKey),
     })),
   ];
+  if (job.textureKey && job.assetKey) {
+    assets.push({ key: job.textureKey, url: assetUrl(job.assetKey) });
+  }
   if (job.guideTextureKey && job.guideAssetKey) {
     assets.push({ key: job.guideTextureKey, url: assetUrl(job.guideAssetKey) });
   }

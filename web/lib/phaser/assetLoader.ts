@@ -64,6 +64,7 @@ export function showLoadingScreen(
   };
   const cleanup = () => {
     scene.load.off(Phaser.Loader.Events.PROGRESS, update);
+    scene.load.off(Phaser.Loader.Events.COMPLETE, cleanup);
     backdrop.destroy();
     title.destroy();
     track.destroy();
@@ -73,7 +74,5 @@ export function showLoadingScreen(
 
   scene.load.on(Phaser.Loader.Events.PROGRESS, update);
   scene.load.once(Phaser.Loader.Events.COMPLETE, cleanup);
-  scene.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
-    scene.load.off(Phaser.Loader.Events.PROGRESS, update);
-  });
+  scene.events.once(Phaser.Scenes.Events.SHUTDOWN, cleanup);
 }
