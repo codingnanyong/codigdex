@@ -4,7 +4,7 @@ import { PALETTE_HEX } from "../palette";
 import { pixelText } from "../pixelFont";
 import { applyPixelFontToScene } from "../ui";
 
-/** A bobbing arrow pointing at the quest pin, plus an instruction along the bottom. */
+/** A bobbing arrow plus a contextual instruction above the persistent movement dock. */
 export function showGuideHint(
   scene: Phaser.Scene,
   message = t(scene, "world.hintQuestMarker"),
@@ -26,7 +26,7 @@ export function showGuideHint(
     })
     .setOrigin(0.5);
   const instruction = scene.add
-    .text(width / 2, height - 28, message, {
+    .text(width / 2, height - 60, message, {
       ...pixelText("body"),
       color: PALETTE_HEX.cream,
       backgroundColor: "#2a1d14e6",
