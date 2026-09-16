@@ -102,7 +102,7 @@ The game supports Korean and English. A first visit follows the browser's langua
 
 A walkthrough of the tutorial, which teaches the game loop with a `for` loop.
 
-1. **Onboarding** — on the first visit Lupi introduces themself and explains the rule: answer at least 60% of the questions to register a monster in the dex.
+1. **Onboarding** — on the first visit Lupi says hello and explains the rule: answer at least 60% of the questions to register a monster in the dex.
 2. **Request** — tapping the glowing quest marker by the well starts Lupi's briefing: "The Infinite Loop Bug keeps circling the well. Defeat it and register it in the dex!"
 3. **Question battle** — the Infinite Loop Bug is Lv.1, so **3 questions** are drawn at random from its pool of 20. Answer order is shuffled every time.
    - e.g. How many times does `for i in range(5):` loop? → **5**
@@ -113,7 +113,7 @@ A walkthrough of the tutorial, which teaches the game loop with a `for` loop.
 
 ## 6. Battle & capture rules
 
-The battle is the questions themselves; there is no separate quiz step. All rules live in `web/lib/domain/dex/`.
+The battle is the questions themselves; there is no separate quiz step. Shared rules live in `packages/game-core/src/domain/dex/`.
 
 - **Question count**: monster level + 2. Lv.1 asks 3, Lv.5 asks 7.
 - **Drawing**: every monster has a pool of 20 questions. Each battle draws a random subset and shuffles each question's choices, so a retry gets a different set.
@@ -181,7 +181,7 @@ Career roadmaps, promotion requirements, shared technologies and the save format
 
 ## 9. Visual style guide
 
-The game runs at 960×540. Region wallpapers and battle arenas are painted at the same 960×540, monster and career character illustrations are 256×256, and the field player that walks the world map is a 96×128 sprite. The reference visual is `web/public/assets/wallpapers/codigdex-field-guide-wallpaper-v3.png` ("a junior developer holding a field guide, with bug monster regions"), using a limited warm cream/maroon palette. The battle screen contrasts with the field screens through Game Boy Color–style panels and a pixel font.
+The game runs at 960×540. Region wallpapers and battle arenas are painted at the same 960×540, monster and career character illustrations are 256×256, and the field player that walks the world map is a 96×128 sprite. The reference visual is `packages/game-assets/files/wallpapers/codigdex-field-guide-wallpaper-v3.png` ("a junior developer holding a field guide, with bug monster regions"), using a limited warm cream/maroon palette. The battle screen contrasts with the field screens through Game Boy Color–style panels and a pixel font.
 
 Each region layers an ambience effect: Loop Forest (`loop-forest`), Field of Records (`git-field`), Shell Cave (`linux-cave`), and the title archive (`title-archive`).
 
@@ -222,7 +222,7 @@ Defined in `web/lib/phaser/palette.ts`.
 ### Parked ideas (carried over from v0.2)
 
 - [ ] Card grades by accuracy (bronze · silver · gold), retry upgrades, chapter master badges
-- [ ] Code-snippet assembly and debugging battle minigame
+- [ ] Code-snippet assembly and debugging battle mini-game
 - [ ] EXP, levels and character cosmetics
 - [ ] Coins and a shop for dex covers and card frame skins
 - [ ] Comparing dexes with other players · rankings

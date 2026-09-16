@@ -1,17 +1,20 @@
 import { describe, expect, it } from "vitest";
-import { CAREER_CATALOG } from "@/lib/domain/careerDex";
-import { CHAPTERS } from "@/lib/domain/chapters";
-import { TUTORIAL_ONBOARDING_LINES } from "@/lib/domain/chapters/tutorial";
-import { JOB_OPTIONS, SECONDARY_JOB_OPTIONS, TERTIARY_JOB_OPTIONS } from "@/lib/domain/player/jobs";
-import { TECHNOLOGY_SPECIMENS } from "@/lib/domain/technologySpecimens";
-import { detectLocale, formatDate, isLocale, joinText, LOCALES } from "@/lib/i18n/locale";
-import { messageCatalog, translate } from "@/lib/i18n/messages";
+import { CAREER_CATALOG } from "@codigdex/game-content/domain/careerDex";
+import { ALL_CHAPTERS } from "@codigdex/game-content/domain/chapters";
+import { TUTORIAL_ONBOARDING_LINES } from "@codigdex/game-content/domain/chapters/tutorial";
+import { JOB_OPTIONS, SECONDARY_JOB_OPTIONS, TERTIARY_JOB_OPTIONS } from "@codigdex/game-content/domain/player/jobs";
+import { TECHNOLOGY_SPECIMENS } from "@codigdex/game-content/domain/technologySpecimens";
+import { detectLocale, formatDate, isLocale, joinText, LOCALES } from "@codigdex/game-core/i18n/locale";
+import { messageCatalog, translate } from "@codigdex/game-i18n/messages";
+import { loadQuizPack } from "@codigdex/quiz-content/loader";
+import { QUIZ_PACK_MANIFEST } from "@codigdex/quiz-content/manifest";
 import { ALL_NODES } from "@/lib/phaser/pathMap/layout";
 import { CAREER_PATHS } from "@/lib/phaser/worldMap/careerPaths";
 import { WORLD_BACKDROPS } from "@/lib/phaser/worldMap/progression";
 
 const HANGUL = /[가-힣]/;
 const placeholders = (copy: string) => [...copy.matchAll(/\{(\w+)\}/g)].map(([, name]) => name).sort();
+const QUIZ_PACKS = await Promise.all(Object.keys(QUIZ_PACK_MANIFEST).map(loadQuizPack));
 
 /** Every { ko, en } pair reachable from `value`, labelled with where it was found. */
 function collectLocalizedText(value: unknown, path = "content", found: [string, Record<string, unknown>][] = []) {
@@ -85,7 +88,8 @@ describe("interface messages", () => {
 
 describe("game content", () => {
   const content = {
-    chapters: CHAPTERS,
+    chapters: ALL_CHAPTERS,
+    quizPacks: QUIZ_PACKS,
     onboarding: TUTORIAL_ONBOARDING_LINES,
     jobs: [...JOB_OPTIONS, ...SECONDARY_JOB_OPTIONS, ...TERTIARY_JOB_OPTIONS],
     careers: CAREER_CATALOG,
@@ -97,8 +101,10 @@ describe("game content", () => {
   const pairs = collectLocalizedText(content);
 
   it("finds every chapter, quiz and career string", () => {
-    // 11 monsters x 20 questions x (1 prompt + 4 choices) alone is 1100 pairs.
-    expect(pairs.length).toBeGreaterThan(1100);
+    // Each question carries one prompt plus four choices; the collector has to
+    // reach all of those and still pick up the chapter and career copy on top.
+    const quizPairs = QUIZ_PACKS.reduce((total, pack) => total + pack.questions.length * 5, 0);
+    expect(pairs.length).toBeGreaterThan(quizPairs);
   });
 
   it("gives every string a non-empty translation", () => {

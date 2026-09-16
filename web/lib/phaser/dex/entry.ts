@@ -1,5 +1,5 @@
-import { DEX_CATALOG } from "@/lib/domain/dex/catalog";
-import type { CapturedCard, MonsterDefinition } from "@/lib/domain/chapters/types";
+import { DEX_CATALOG } from "@codigdex/game-content/domain/dex/catalog";
+import type { CapturedCard, MonsterDefinition } from "@codigdex/game-core/domain/chapters/types";
 
 /** One dex row: the monster, and its card if the player has captured it. */
 export interface DexEntry {
@@ -7,6 +7,37 @@ export interface DexEntry {
   monster?: MonsterDefinition;
   card?: CapturedCard;
   planned: boolean;
+}
+
+/**
+ * Lets local development inspect every released card without mutating save
+ * data or unlocking gameplay progression.
+ */
+export function cardsForDexDisplay(
+  cards: readonly CapturedCard[],
+  revealAll: boolean,
+  now: () => string = () => new Date().toISOString()
+): readonly CapturedCard[] {
+  if (!revealAll) return cards;
+
+  const savedById = new Map(cards.map((card) => [card.id, card]));
+  const inspectedAt = now();
+  return DEX_CATALOG.flatMap((slot) => {
+    if (slot.kind !== "released") return [];
+    const monster = slot.monster;
+    return [
+      savedById.get(monster.id) ?? {
+        id: monster.id,
+        dexNumber: monster.dexNumber,
+        name: monster.name,
+        classification: monster.classification,
+        trait: monster.trait,
+        description: monster.description,
+        snippet: monster.snippet,
+        capturedAt: inspectedAt,
+      },
+    ];
+  });
 }
 
 export function buildDexEntries(cards: readonly CapturedCard[]): DexEntry[] {
@@ -20,4 +51,13 @@ export function buildDexEntries(cards: readonly CapturedCard[]): DexEntry[] {
         }
       : { dexNumber: slot.dexNumber, planned: true }
   );
+}
+
+/** Only the selected captured entry blocks the first dex paint; the rest load on demand. */
+export function initialDexMonsters(
+  entries: readonly DexEntry[],
+  selectedIndex: number
+): MonsterDefinition[] {
+  const selected = entries[selectedIndex];
+  return selected?.monster && selected.card ? [selected.monster] : [];
 }

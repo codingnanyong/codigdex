@@ -1,8 +1,8 @@
 import type Phaser from "phaser";
-import { chapterTitle, currentStageIndex, stageStatus } from "@/lib/domain/chapters";
-import type { ChapterDefinition } from "@/lib/domain/chapters/types";
-import { requiredCorrectAnswers } from "@/lib/domain/dex/capture";
-import { quizCountForLevel } from "@/lib/domain/dex/quiz";
+import { chapterTitle, currentStageIndex, stageStatus } from "@codigdex/game-content/domain/chapters";
+import type { ChapterDefinition } from "@codigdex/game-core/domain/chapters/types";
+import { requiredCorrectAnswers } from "@codigdex/game-core/domain/dex/capture";
+import { quizCountForLevel } from "@codigdex/game-core/domain/dex/quiz";
 import { lt, sceneLocale, t } from "../i18n";
 import { fitTexture } from "../monsterArt";
 import { PALETTE, PALETTE_HEX } from "../palette";
@@ -15,6 +15,7 @@ import {
   popIn,
   setButtonEnabled,
 } from "../ui";
+import { panelScaleToViewport } from "../dex/detailLayout";
 
 const PANEL = { width: 640, height: 340 };
 const SLOT_RADIUS = 32;
@@ -134,7 +135,7 @@ export class StagePanel {
       .setDepth(21);
 
     this.select(currentStageIndex(chapter, captured));
-    popIn(scene, this.group, 0.92);
+    popIn(scene, this.group, 0.92, panelScaleToViewport(PANEL.width, PANEL.height, width, height));
     applyPixelFontToScene(scene);
   }
 

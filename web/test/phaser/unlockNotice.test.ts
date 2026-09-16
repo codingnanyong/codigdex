@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { GIT_CHAPTER } from "@/lib/domain/chapters/git";
-import { LINUX_CHAPTER } from "@/lib/domain/chapters/linux";
+import { GIT_CHAPTER } from "@codigdex/game-content/domain/chapters/git";
+import { LINUX_CHAPTER } from "@codigdex/game-content/domain/chapters/linux";
 import { describeUnlock } from "@/lib/phaser/capture/unlockNotice";
 
 describe("describeUnlock", () => {

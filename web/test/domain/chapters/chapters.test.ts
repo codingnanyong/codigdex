@@ -12,13 +12,14 @@ import {
   isCommonPathComplete,
   stageStatus,
   unlockAfter,
-} from "@/lib/domain/chapters";
-import { GIT_CHAPTER } from "@/lib/domain/chapters/git";
-import { LINUX_CHAPTER } from "@/lib/domain/chapters/linux";
-import { TUTORIAL_CHAPTER, TUTORIAL_MONSTER } from "@/lib/domain/chapters/tutorial";
-import type { ChapterId, MonsterDefinition } from "@/lib/domain/chapters/types";
-import { quizCountForLevel } from "@/lib/domain/dex/quiz";
-import { LOCALES } from "@/lib/i18n/locale";
+} from "@codigdex/game-content/domain/chapters";
+import { GIT_CHAPTER } from "@codigdex/game-content/domain/chapters/git";
+import { LINUX_CHAPTER } from "@codigdex/game-content/domain/chapters/linux";
+import { TUTORIAL_CHAPTER, TUTORIAL_MONSTER } from "@codigdex/game-content/domain/chapters/tutorial";
+import type { ChapterId, MonsterDefinition } from "@codigdex/game-core/domain/chapters/types";
+import { quizCountForLevel } from "@codigdex/game-core/domain/dex/quiz";
+import { LOCALES } from "@codigdex/game-core/i18n/locale";
+import { loadQuizPack } from "@codigdex/quiz-content/loader";
 
 const GIT = GIT_CHAPTER.stages;
 const LINUX = LINUX_CHAPTER.stages;
@@ -142,7 +143,7 @@ describe("dex entries", () => {
   });
 
   it("gives every stage its own battle sprite", () => {
-    const sprites = DEX_MONSTERS.map((monster) => monster.assetPath);
+    const sprites = DEX_MONSTERS.map((monster) => monster.assetKey);
     expect(new Set(sprites).size).toBe(sprites.length);
   });
 });
@@ -156,8 +157,9 @@ describe.each(CHAPTERS.map((chapter) => [chapter.id, chapter] as const))("%s cha
     );
   });
 
-  it.each(LOCALES)("never repeats a %s prompt across its stages", (locale) => {
-    const prompts = chapter.stages.flatMap((monster) => monster.quizPool.map((question) => question.prompt[locale]));
+  it.each(LOCALES)("never repeats a %s prompt across its stages", async (locale) => {
+    const pools = await Promise.all(chapter.stages.map((monster) => loadQuizPack(monster.quizPackId)));
+    const prompts = pools.flatMap((pack) => pack.questions.map((question) => question.prompt[locale]));
     expect(new Set(prompts).size).toBe(prompts.length);
   });
 });
@@ -165,14 +167,14 @@ describe.each(CHAPTERS.map((chapter) => [chapter.id, chapter] as const))("%s cha
 describe.each(
   CHAPTERS.flatMap((chapter) => chapter.stages.map((monster) => [`${chapter.id} / ${monster.name.en}`, monster] as const))
 )("%s quiz pool", (_label, monster) => {
-  const pool = monster.quizPool;
-
-  it("holds about twenty questions, well beyond one battle's draw", () => {
+  it("holds about twenty questions, well beyond one battle's draw", async () => {
+    const pool = (await loadQuizPack(monster.quizPackId)).questions;
     expect(pool.length).toBeGreaterThanOrEqual(20);
     expect(pool.length).toBeGreaterThan(quizCountForLevel(monster.level));
   });
 
-  it.each(LOCALES)("gives every question four distinct %s choices with the answer among them", (locale) => {
+  it.each(LOCALES)("gives every question four distinct %s choices with the answer among them", async (locale) => {
+    const pool = (await loadQuizPack(monster.quizPackId)).questions;
     for (const question of pool) {
       expect(question.choices).toHaveLength(4);
       expect(new Set(question.choices.map((choice) => choice[locale])).size).toBe(4);

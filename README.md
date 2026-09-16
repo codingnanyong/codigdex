@@ -1,6 +1,6 @@
 <!-- markdownlint-disable MD033 MD041 -->
 <p align="center">
-  <img src="web/public/assets/icons/codigdex-main-icon.png" width="120" alt="Codigdex 게임 아이콘">
+  <img src="packages/game-assets/files/icons/codigdex-main-icon.png" width="120" alt="Codigdex 게임 아이콘">
 </p>
 
 <h1 align="center">Codigdex</h1>
@@ -21,7 +21,7 @@
 
 읽고 넘어가는 공부 대신, 한 마리씩 잡아서 모으는 코딩 공부입니다.
 
-![필드 가이드를 든 주니어 개발자와 버그 몬스터 지역](web/public/assets/wallpapers/codigdex-field-guide-wallpaper-v3.png)
+![필드 가이드를 든 주니어 개발자와 버그 몬스터 지역](packages/game-assets/files/wallpapers/codigdex-field-guide-wallpaper-v3.png)
 
 ## 이렇게 플레이해요
 
@@ -43,14 +43,14 @@
 
 모든 개발자가 알아야 할 Git과 Linux를 먼저 익힌 뒤, 원하는 직업을 골라 그 직업만의 지도를 탐험합니다. 직업마다 길을 안내하는 선배 NPC가 있고, 풀스택 엔지니어나 ML Developer 같은 상위 직업은 `???`로 가려진 채 여러분이 두 직업의 길을 모두 걸어오기를 기다립니다.
 
-![주니어부터 3차 전직까지의 플레이어 캐릭터와 가이드 NPC](web/public/assets/characters/career-path/career-character-guide-v2.png)
+![주니어부터 3차 전직까지의 플레이어 캐릭터와 가이드 NPC](packages/game-assets/files/characters/career-path/career-character-guide-v2.png)
 
 ## 모으는 재미
 
 - **몬스터 도감** — 반복문 버그부터 깃새싹, 커널 수호자까지. 기술마다 Lv.1에서 Lv.5로 진화하는 몬스터가 있습니다. 아직 발견하지 못한 몬스터는 `???`로 남아 있어요.
 - **직업 도감** — 주니어 개발자부터 3차 마스터 직업까지 16종의 직업 심볼을 모읍니다. 처음 전직한 날과 마스터한 날이 기록됩니다.
 
-![주니어부터 3차 전직까지의 직업 심볼](web/public/assets/career-emblems/career-emblem-archive-v1.png)
+![주니어부터 3차 전직까지의 직업 심볼](packages/game-assets/files/career-emblems/career-emblem-archive-v1.png)
 
 ## 지금 플레이할 수 있는 것
 
@@ -68,9 +68,8 @@
 Next.js, Phaser, TypeScript로 만들었습니다.
 
 ```bash
-cd web
 npm install
-npm run dev
+npm run dev --workspace @codigdex/web
 ```
 
 브라우저에서 [http://localhost:3001](http://localhost:3001)을 엽니다. 테스트는 `npm run test`로 실행합니다.
@@ -80,6 +79,7 @@ npm run dev
 - [게임 기획서](docs/kor/GAME_DESIGN.md) — 게임 규칙, 화면, 비주얼 가이드
 - [직업 전직 Path 설계](docs/kor/CAREER_PATH_DESIGN.md) — 커리큘럼, 전직 조건, 저장 구조
 - [Git 작업 흐름](docs/kor/GIT_WORKFLOW.md) — 브랜치 전략, PR·이슈 자동화
+- [모노레포 아키텍처](docs/eng/MONOREPO_ARCHITECTURE.md) — web/mobile 앱과 공유 패키지 경계
 - [기여 가이드](CONTRIBUTING.md) · [프로젝트 및 PR 정책](AGENTS.md)
 
 ## 기여

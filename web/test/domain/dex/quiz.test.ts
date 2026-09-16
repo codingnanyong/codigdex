@@ -1,8 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { TUTORIAL_MONSTER } from "@/lib/domain/chapters/tutorial";
-import { drawQuizQuestions, quizCountForLevel } from "@/lib/domain/dex/quiz";
+import { TUTORIAL_MONSTER } from "@codigdex/game-content/domain/chapters/tutorial";
+import { drawQuizQuestions, quizCountForLevel } from "@codigdex/game-core/domain/dex/quiz";
+import { loadQuizPack } from "@codigdex/quiz-content/loader";
 
-const POOL = TUTORIAL_MONSTER.quizPool;
+const POOL = (await loadQuizPack(TUTORIAL_MONSTER.quizPackId)).questions;
 const BATTLE_COUNT = quizCountForLevel(TUTORIAL_MONSTER.level);
 
 /** Deterministic stand-in for Math.random, cycling through fixed values. */

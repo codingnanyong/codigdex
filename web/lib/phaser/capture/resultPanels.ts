@@ -1,9 +1,10 @@
 import type Phaser from "phaser";
-import type { MonsterDefinition } from "@/lib/domain/chapters/types";
+import type { MonsterDefinition } from "@codigdex/game-core/domain/chapters/types";
 import { lt, t } from "../i18n";
 import { PALETTE_HEX } from "../palette";
 import { pixelText } from "../pixelFont";
-import { addSnippetBlock, createButton, drawOrnateFrame, popIn } from "../ui";
+import { addSnippetBlock, createButton, drawOrnateFrame, fitTextInside, popIn } from "../ui";
+import { panelScaleToViewport } from "../dex/detailLayout";
 
 type Positioned = Phaser.GameObjects.GameObject & { y: number };
 
@@ -13,6 +14,9 @@ const MISSED_PANEL = { width: 560, height: 240 };
 export interface CapturedPanelOptions {
   monster: MonsterDefinition;
   npcLine: string;
+  /** Overrides the ordinary card-registration title for milestone screens. */
+  title?: string;
+  confirmLabel?: string;
   /** False on a replay: the title says so and nothing new is announced. */
   isNewEntry: boolean;
   unlockNotice?: string;
@@ -29,12 +33,13 @@ export function showCapturedPanel(scene: Phaser.Scene, options: CapturedPanelOpt
   // can be sized to whatever this monster's copy needs, then shift it into place.
   let cursor = 0;
   const title = scene.add
-    .text(0, cursor, t(scene, options.isNewEntry ? "capture.registered" : "capture.reviewed", { name: lt(scene, monster.name) }), {
+    .text(0, cursor, options.title ?? t(scene, options.isNewEntry ? "capture.registered" : "capture.reviewed", { name: lt(scene, monster.name) }), {
       ...pixelText("subtitle"),
       color: PALETTE_HEX.ink,
       align: "center",
     })
     .setOrigin(0.5, 0);
+  fitTextInside(title, textWidth, 48);
   cursor += title.height + 14;
 
   const description = scene.add
@@ -70,6 +75,7 @@ export function showCapturedPanel(scene: Phaser.Scene, options: CapturedPanelOpt
         ...pixelText("body"),
         color: PALETTE_HEX.wood,
         align: "center",
+        wordWrap: { width: textWidth },
       })
       .setOrigin(0.5, 0);
     cursor += notice.height;
@@ -86,12 +92,20 @@ export function showCapturedPanel(scene: Phaser.Scene, options: CapturedPanelOpt
   });
 
   const frame = drawOrnateFrame(scene, 0, 0, CAPTURED_PANEL.width, panelHeight);
-  const confirm = createButton(scene, 0, panelHeight / 2 - 32, 120, 34, t(scene, "common.confirm"), options.onConfirm);
+  const confirm = createButton(
+    scene,
+    0,
+    panelHeight / 2 - 32,
+    options.confirmLabel ? 180 : 120,
+    34,
+    options.confirmLabel ?? t(scene, "common.confirm"),
+    options.onConfirm
+  );
 
   const panel = scene.add
     .container(width / 2, height / 2, [frame, ...content, confirm])
     .setDepth(1);
-  popIn(scene, panel, 0.85);
+  popIn(scene, panel, 0.85, panelScaleToViewport(CAPTURED_PANEL.width, panelHeight, width, height));
   return panel;
 }
 
@@ -140,6 +154,6 @@ export function showMissedPanel(scene: Phaser.Scene, options: MissedPanelOptions
   const panel = scene.add
     .container(width / 2, height / 2, [frame, title, resultLine, npcLine, retry])
     .setDepth(1);
-  popIn(scene, panel, 0.85);
+  popIn(scene, panel, 0.85, panelScaleToViewport(MISSED_PANEL.width, MISSED_PANEL.height, width, height));
   return panel;
 }

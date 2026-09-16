@@ -18,8 +18,8 @@ import {
   TERTIARY_JOB_OPTIONS,
   tertiaryJobsFor,
   type JobId,
-} from "@/lib/domain/player/jobs";
-import { monstersForCareerRegion } from "@/lib/domain/careerRegionMonsters";
+} from "@codigdex/game-content/domain/player/jobs";
+import { monstersForCareerRegion } from "@codigdex/game-content/domain/careerRegionMonsters";
 
 describe("career paths", () => {
   it("gives every primary job a detailed map with several dex destinations", () => {

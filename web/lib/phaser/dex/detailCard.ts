@@ -1,7 +1,7 @@
 import type Phaser from "phaser";
-import type { CapturedCard, MonsterDefinition } from "@/lib/domain/chapters/types";
+import type { CapturedCard, MonsterDefinition } from "@codigdex/game-core/domain/chapters/types";
 import { fitTexture } from "../monsterArt";
-import { formatDate } from "@/lib/i18n/locale";
+import { formatDate } from "@codigdex/game-core/i18n/locale";
 import { lt, sceneLocale, t } from "../i18n";
 import { PALETTE_HEX } from "../palette";
 import { pixelText } from "../pixelFont";
@@ -13,6 +13,7 @@ import {
   drawOrnateFrame,
   popIn,
 } from "../ui";
+import { panelScaleToViewport } from "./detailLayout";
 
 const PANEL_WIDTH = 600;
 const MIN_PANEL_HEIGHT = 360;
@@ -77,10 +78,11 @@ export class DetailCard {
     const frame = drawOrnateFrame(scene, 0, 0, PANEL_WIDTH, panelHeight);
     const closeButton = createButton(scene, 0, panelHeight / 2 - 32, 100, 32, t(scene, "common.close"), () => this.close());
 
+    const finalScale = panelScaleToViewport(PANEL_WIDTH, panelHeight, width, height);
     this.group = scene.add
       .container(width / 2, height / 2, [frame, ...content, closeButton])
       .setDepth(21);
-    popIn(scene, this.group);
+    popIn(scene, this.group, 0.9, finalScale);
     applyPixelFontToScene(scene);
   }
 

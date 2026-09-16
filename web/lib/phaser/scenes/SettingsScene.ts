@@ -1,9 +1,10 @@
 import Phaser from "phaser";
-import { LOCALE_NAMES, LOCALES, type Locale } from "@/lib/i18n/locale";
+import { LOCALE_NAMES, LOCALES, type Locale } from "@codigdex/game-core/i18n/locale";
 import { sceneLocale, setSceneLocale, t } from "../i18n";
 import { PALETTE, PALETTE_HEX } from "../palette";
 import { pixelText } from "../pixelFont";
 import { addShade, applyPixelFontToScene, createButton, drawOrnateFrame, popIn } from "../ui";
+import { panelScaleToViewport } from "../dex/detailLayout";
 
 export interface SettingsData {
   /** The paused scene underneath, resumed — or rebuilt in the new language — on close. */
@@ -92,7 +93,7 @@ export class SettingsScene extends Phaser.Scene {
     );
 
     const panel = this.add.container(width / 2, height / 2, items);
-    popIn(this, panel);
+    popIn(this, panel, 0.9, panelScaleToViewport(PANEL.width, PANEL.height, width, height));
     this.input.keyboard?.once("keydown-ESC", () => this.close());
     applyPixelFontToScene(this);
   }

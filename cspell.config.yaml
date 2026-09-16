@@ -1,0 +1,64 @@
+# Project spelling dictionary for cSpell (VS Code "Code Spell Checker" and `npx cspell`).
+# Add a word here only if it is a real term used across the project. A made-up word that
+# belongs to one file (for example a wrong quiz answer) goes in that file as `cspell:words`.
+version: "0.2"
+language: en
+ignorePaths:
+  - "**/node_modules/**"
+  - "**/.next/**"
+  - "**/package-lock.json"
+  - "**/*.tsbuildinfo"
+  - "**/*.svg"
+  - "web/public/fonts/*-OFL.md"
+words:
+  # Project and repository names
+  - busan
+  - codigdex
+  - codingnanyong
+  - Codeville
+
+  # Guide NPCs, romanized from their Korean names
+  - Doyun
+  - Hana
+  - Haneul
+  - Jian
+  - Lupi
+  - Rohan
+  - Seoyun
+  - Siwoo
+  - Taeo
+  - Yujin
+
+  # Monsters, careers and game vocabulary
+  - capturable
+  - keywarden
+  - mlops
+  - overworld
+  - playthrough
+  - Pokédex
+  - Rebaser
+  - Stardew
+
+  # Engine, UI, font and image API terms
+  - Argb
+  - changedata
+  - Galmuri
+  - LTRB
+  - pressable
+  - rasterizes
+  - rasterizing
+  - setdata
+  - tweens
+  - WASD
+  - wordmark
+  - yoyo
+
+  # Git and Linux terms taught in the quizzes
+  - chgrp
+  - cicd
+  - nohup
+  - oneline
+  - reflog
+  - Ritchie
+  - rwxr
+  - usermod

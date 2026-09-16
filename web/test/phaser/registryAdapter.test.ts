@@ -1,11 +1,11 @@
 import type Phaser from "phaser";
 import { describe, expect, it, vi } from "vitest";
-import { DEX_MONSTERS } from "@/lib/domain/chapters";
+import { DEX_MONSTERS } from "@codigdex/game-content/domain/chapters";
 import {
   JOB_REGISTRY_KEY,
   SECONDARY_JOB_REGISTRY_KEY,
   TERTIARY_JOB_REGISTRY_KEY,
-} from "@/lib/domain/player/jobs";
+} from "@codigdex/game-content/domain/player/jobs";
 import {
   hasSavedProgress,
   hydrateRegistry,

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { monstersForCareerRegion } from "@/lib/domain/careerRegionMonsters";
+import { monstersForCareerRegion } from "@codigdex/game-content/domain/careerRegionMonsters";
 import { CAREER_PATHS } from "@/lib/phaser/worldMap/careerPaths";
 import { careerRegionProgression } from "@/lib/phaser/worldMap/careerRegionProgression";
 

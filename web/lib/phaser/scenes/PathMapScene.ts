@@ -2,18 +2,16 @@ import Phaser from "phaser";
 import {
   masteredPrimaryJobIds,
   masteredSecondaryJobIds,
-} from "@/lib/domain/careerDex";
+} from "@codigdex/game-content/domain/careerDex";
 import {
   chapterStatus,
   chapterTitle,
   getChapter,
   isCommonPathComplete,
   type ChapterStatus,
-} from "@/lib/domain/chapters";
-import { GIT_CHAPTER } from "@/lib/domain/chapters/git";
-import { LINUX_CHAPTER } from "@/lib/domain/chapters/linux";
-import type { ChapterId } from "@/lib/domain/chapters/types";
-import { capturedIds } from "@/lib/domain/dex/capture";
+} from "@codigdex/game-content/domain/chapters";
+import type { ChapterId } from "@codigdex/game-core/domain/chapters/types";
+import { capturedIds } from "@codigdex/game-core/domain/dex/capture";
 import {
   findJob,
   findSecondaryJob,
@@ -29,8 +27,9 @@ import {
   type SecondaryJobOption,
   type SecondaryJobId,
   type TertiaryJobOption,
-} from "@/lib/domain/player/jobs";
-import { COMMON_TECHNOLOGY_SPECIMENS } from "@/lib/domain/technologySpecimens";
+} from "@codigdex/game-content/domain/player/jobs";
+import { COMMON_TECHNOLOGY_SPECIMENS } from "@codigdex/game-content/domain/technologySpecimens";
+import { assetUrl } from "../../assets";
 import { lt, sceneLocale, t } from "../i18n";
 import { preloadMonsterArt } from "../monsterArt";
 import { createSettingsButton } from "../settings/settingsButton";
@@ -66,6 +65,8 @@ export class PathMapScene extends Phaser.Scene {
   private completedSecondaryIds: ReadonlySet<SecondaryJobId> = new Set();
   private selectedSecondaryJobId?: string;
   private selectedTertiaryJobId?: string;
+  private stagePanelLoading = false;
+  private viewGeneration = 0;
 
   constructor() {
     super("path-map");
@@ -79,9 +80,8 @@ export class PathMapScene extends Phaser.Scene {
   }
 
   preload() {
-    COMMON_TECHNOLOGY_SPECIMENS.forEach(({ textureKey, assetPath }) => this.load.image(textureKey, assetPath));
-    CAREER_PORTRAITS.forEach(({ textureKey, assetPath }) => this.load.image(textureKey, assetPath));
-    preloadMonsterArt(this, [...GIT_CHAPTER.stages, ...LINUX_CHAPTER.stages]);
+    COMMON_TECHNOLOGY_SPECIMENS.forEach(({ textureKey, assetKey }) => this.load.image(textureKey, assetUrl(assetKey)));
+    CAREER_PORTRAITS.forEach(({ textureKey, assetKey }) => this.load.image(textureKey, assetUrl(assetKey)));
   }
 
   create() {
@@ -89,6 +89,8 @@ export class PathMapScene extends Phaser.Scene {
     // Scene instances outlive restarts, so drop references to the last run's objects.
     this.toast = undefined;
     this.stagePanel = undefined;
+    this.stagePanelLoading = false;
+    this.viewGeneration += 1;
     this.captured = capturedIds(readDexState(this.registry));
     const careerDex = reconcileCareerDexRegistry(this.registry);
     this.completedCareerIds = masteredPrimaryJobIds(careerDex);
@@ -296,14 +298,31 @@ export class PathMapScene extends Phaser.Scene {
   }
 
   private openStagePanel(chapterId: ChapterId) {
-    if (this.stagePanel) return;
-    this.stagePanel = new StagePanel(this, getChapter(chapterId), this.captured, {
-      onStart: (monsterId) => this.scene.start("code-battle", { monsterId }),
-      onClose: () => {
-        this.stagePanel?.destroy();
-        this.stagePanel = undefined;
-      },
+    if (this.stagePanel || this.stagePanelLoading) return;
+    const chapter = getChapter(chapterId);
+    const missing = chapter.stages.filter(({ textureKey }) => !this.textures.exists(textureKey));
+    const show = () => {
+      this.stagePanelLoading = false;
+      if (!this.sys.isActive() || this.stagePanel) return;
+      this.stagePanel = new StagePanel(this, chapter, this.captured, {
+        onStart: (monsterId) => this.scene.start("code-battle", { monsterId }),
+        onClose: () => {
+          this.stagePanel?.destroy();
+          this.stagePanel = undefined;
+        },
+      });
+    };
+    if (missing.length === 0) {
+      show();
+      return;
+    }
+    this.stagePanelLoading = true;
+    const generation = this.viewGeneration;
+    this.load.once(Phaser.Loader.Events.COMPLETE, () => {
+      if (this.viewGeneration === generation) show();
     });
+    preloadMonsterArt(this, missing);
+    if (!this.load.isLoading()) this.load.start();
   }
 
   private notify(message: string) {

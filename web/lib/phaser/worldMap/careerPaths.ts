@@ -1,6 +1,6 @@
-import type { JobId } from "@/lib/domain/player/jobs";
-import { text, type LocalizedText } from "@/lib/i18n/locale";
-import { monstersForCareerRegion } from "@/lib/domain/careerRegionMonsters";
+import type { JobId } from "@codigdex/game-content/domain/player/jobs";
+import { text, type LocalizedText } from "@codigdex/game-core/i18n/locale";
+import { monstersForCareerRegion } from "@codigdex/game-content/domain/careerRegionMonsters";
 
 export interface CareerRegion {
   id: string;
@@ -24,7 +24,7 @@ export interface CareerRegion {
 export interface CareerPathDefinition {
   jobId: JobId;
   textureKey: string;
-  assetPath: string;
+  assetKey: string;
   title: LocalizedText;
   regions: readonly CareerRegion[];
   /** Final captures that prove every chapter in this primary path is complete. */
@@ -35,8 +35,8 @@ export function careerTerrainTextureKey(path: CareerPathDefinition, region: Care
   return `${path.textureKey}-${region.id}-terrain`;
 }
 
-export function careerTerrainAssetPath(path: CareerPathDefinition, region: CareerRegion): string {
-  return `/assets/wallpapers/career-paths/${path.jobId}-${region.id}-terrain-v3.png`;
+export function careerTerrainAssetKey(path: CareerPathDefinition, region: CareerRegion): string {
+  return `wallpapers/career-paths/${path.jobId}-${region.id}-terrain-v3.png`;
 }
 
 export function careerChapterWallpaperTextureKey(
@@ -46,11 +46,11 @@ export function careerChapterWallpaperTextureKey(
   return `${path.textureKey}-${region.id}-chapter-wallpaper`;
 }
 
-export function careerChapterWallpaperAssetPath(
+export function careerChapterWallpaperAssetKey(
   path: CareerPathDefinition,
   region: CareerRegion
 ): string {
-  return `/assets/wallpapers/career-chapters/${path.jobId}-${region.id}-wallpaper-v1.png`;
+  return `wallpapers/career-chapters/${path.jobId}-${region.id}-wallpaper-v1.png`;
 }
 
 export type Point = readonly [x: number, y: number];
@@ -107,7 +107,7 @@ const CAREER_PATH_DEFINITIONS: Record<
   frontend: {
     jobId: "frontend",
     textureKey: "world-career-frontend-v3",
-    assetPath: "/assets/wallpapers/career-paths/frontend-path-map-v3.png",
+    assetKey: "wallpapers/career-paths/frontend-path-map-v3.png",
     title: text("웹 프론트엔드 개발자 경로", "Web Frontend Developer Path"),
     regions: [
       region("html-css", text("HTML/CSS", "HTML/CSS"), [164, 384], [[18, 292], [70, 263], [151, 263], [211, 289], [253, 337], [244, 397], [190, 431], [83, 426], [22, 394]], [[30, 337], [56, 337], [56, 292], [82, 292], [82, 270], [109, 270], [109, 307], [143, 307], [143, 289], [174, 289], [174, 321], [211, 321], [211, 348], [230, 348], [230, 391], [199, 391], [199, 414], [153, 414], [153, 430], [94, 430], [94, 414], [48, 414], [48, 391], [24, 391], [24, 355]]),
@@ -120,7 +120,7 @@ const CAREER_PATH_DEFINITIONS: Record<
   backend: {
     jobId: "backend",
     textureKey: "world-career-backend-v3",
-    assetPath: "/assets/wallpapers/career-paths/backend-path-map-v3.png",
+    assetKey: "wallpapers/career-paths/backend-path-map-v3.png",
     title: text("백엔드 개발자 경로", "Backend Developer Path"),
     regions: [
       region("http-api", text("HTTP/API", "HTTP/API"), [109, 416], [[20, 353], [72, 324], [139, 329], [184, 365], [184, 425], [146, 468], [76, 480], [21, 449]], [[0, 383], [33, 383], [33, 354], [66, 354], [66, 331], [111, 331], [111, 349], [145, 349], [145, 379], [172, 379], [172, 422], [146, 422], [146, 459], [113, 459], [113, 488], [63, 488], [63, 469], [25, 469], [25, 444], [0, 444]]),
@@ -134,7 +134,7 @@ const CAREER_PATH_DEFINITIONS: Record<
   devops: {
     jobId: "devops",
     textureKey: "world-career-devops-v3",
-    assetPath: "/assets/wallpapers/career-paths/devops-path-map-v3.png",
+    assetKey: "wallpapers/career-paths/devops-path-map-v3.png",
     title: text("DevOps 엔지니어 경로", "DevOps Engineer Path"),
     regions: [
       region("network", text("네트워크", "Networking"), [80, 435], [[1, 347], [31, 308], [90, 300], [130, 330], [138, 381], [118, 440], [70, 465], [20, 450]], [[0, 373], [21, 373], [21, 335], [43, 335], [43, 306], [77, 306], [77, 322], [101, 322], [101, 350], [124, 350], [124, 391], [137, 391], [137, 431], [113, 431], [113, 455], [78, 455], [78, 472], [35, 472], [35, 455], [5, 455]]),
@@ -148,7 +148,7 @@ const CAREER_PATH_DEFINITIONS: Record<
   "data-engineer": {
     jobId: "data-engineer",
     textureKey: "world-career-data-engineer-v3",
-    assetPath: "/assets/wallpapers/career-paths/data-engineer-path-map-v3.png",
+    assetKey: "wallpapers/career-paths/data-engineer-path-map-v3.png",
     title: text("데이터 엔지니어 경로", "Data Engineer Path"),
     regions: [
       region("python", text("Python", "Python"), [114, 400], [[17, 333], [60, 290], [125, 281], [189, 306], [224, 355], [215, 415], [168, 459], [91, 470], [30, 431]], [[18, 345], [43, 345], [43, 313], [72, 313], [72, 293], [116, 293], [116, 304], [155, 304], [155, 324], [190, 324], [190, 350], [216, 350], [216, 399], [202, 399], [202, 427], [174, 427], [174, 451], [132, 451], [132, 468], [87, 468], [87, 455], [52, 455], [52, 435], [27, 435], [27, 407], [18, 407]]),
@@ -162,7 +162,7 @@ const CAREER_PATH_DEFINITIONS: Record<
   "data-analyst": {
     jobId: "data-analyst",
     textureKey: "world-career-data-analyst-v3",
-    assetPath: "/assets/wallpapers/career-paths/data-analyst-path-map-v3.png",
+    assetKey: "wallpapers/career-paths/data-analyst-path-map-v3.png",
     title: text("데이터 분석가 경로", "Data Analyst Path"),
     regions: [
       region("sql", text("SQL", "SQL"), [272, 412], [[3, 350], [50, 319], [122, 310], [195, 327], [241, 368], [245, 423], [205, 469], [130, 486], [55, 465], [8, 418]], [[0, 365], [24, 365], [24, 338], [55, 338], [55, 319], [96, 319], [96, 310], [143, 310], [143, 321], [182, 321], [182, 339], [215, 339], [215, 365], [239, 365], [239, 420], [225, 420], [225, 449], [196, 449], [196, 473], [150, 473], [150, 485], [102, 485], [102, 475], [58, 475], [58, 456], [26, 456], [26, 432], [5, 432], [5, 400], [0, 400]]),

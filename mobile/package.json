@@ -1,0 +1,11 @@
+{
+  "name": "@codigdex/mobile",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "@codigdex/game-assets": "*",
+    "@codigdex/game-content": "*",
+    "@codigdex/game-core": "*",
+    "@codigdex/game-i18n": "*"
+  }
+}

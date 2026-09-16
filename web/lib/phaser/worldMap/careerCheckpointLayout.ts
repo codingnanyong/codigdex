@@ -1,4 +1,4 @@
-import type { JobId } from "@/lib/domain/player/jobs";
+import type { JobId } from "@codigdex/game-content/domain/player/jobs";
 
 export interface CareerCheckpointPoint {
   x: number;

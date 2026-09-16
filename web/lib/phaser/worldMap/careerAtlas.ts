@@ -1,16 +1,18 @@
 import Phaser from "phaser";
 import {
+  careerTerrainAssetKey,
   careerTerrainTextureKey,
   type CareerPathDefinition,
   type CareerRegion,
 } from "./careerPaths";
-import { guideDisplayName, type JobOption } from "@/lib/domain/player/jobs";
+import { assetUrl } from "../../assets";
+import { guideDisplayName, type JobOption } from "@codigdex/game-content/domain/player/jobs";
 import { lt, t } from "../i18n";
 import { PALETTE, PALETTE_HEX } from "../palette";
 import { pixelText } from "../pixelFont";
 import { drawOrnateFrame, fitTextInside } from "../ui";
 import { createDialogPortrait } from "./dialogPortrait";
-import { capturedIds } from "@/lib/domain/dex/capture";
+import { capturedIds } from "@codigdex/game-core/domain/dex/capture";
 import { readDexState } from "../registryAdapter";
 import { careerRegionProgression, type CareerRegionStatus } from "./careerRegionProgression";
 import { drawPixelChainLock } from "./pixelChainLock";
@@ -22,8 +24,6 @@ interface CareerAtlasOptions {
   onLocked: (region: CareerRegion, requiredRegion: CareerRegion) => void;
   onMystery: () => void;
 }
-
-const terrainCenters = new Map<string, { x: number; y: number }>();
 
 /** Turns a painted career wallpaper into a navigable atlas. */
 export function drawCareerAtlas(scene: Phaser.Scene, options: CareerAtlasOptions) {
@@ -163,25 +163,55 @@ function drawRegion(
   onSelect: (region: CareerRegion) => void
 ) {
   const { width, height } = scene.scale;
-  const { landmark } = region;
+  const { landmark, lift } = region;
   const terrainTextureKey = careerTerrainTextureKey(path, region);
-  const labelCenter = findTerrainCenter(scene, terrainTextureKey, landmark);
-  const shadow = scene.add
-    .image(width / 2, height / 2 + 5, terrainTextureKey)
-    .setTint(PALETTE.nightBrown)
-    .setAlpha(0)
-    .setVisible(false)
-    .setDepth(3);
-  const liftedRegion = scene.add
-    .image(width / 2, height / 2, terrainTextureKey)
-    .setAlpha(0)
-    .setVisible(false)
-    .setDepth(4);
+  const labelCenter = { x: lift.x, y: lift.y };
+  let shadow: Phaser.GameObjects.Image | undefined;
+  let liftedRegion: Phaser.GameObjects.Image | undefined;
+  let terrainLoading = false;
+  let hovered = false;
 
+  const createTerrainLayers = () => {
+    if (shadow || !scene.textures.exists(terrainTextureKey)) return;
+    shadow = scene.add
+      .image(width / 2, height / 2 + 5, terrainTextureKey)
+      .setTint(PALETTE.nightBrown)
+      .setAlpha(0)
+      .setVisible(false)
+      .setDepth(3);
+    liftedRegion = scene.add
+      .image(width / 2, height / 2, terrainTextureKey)
+      .setAlpha(0)
+      .setVisible(false)
+      .setDepth(4);
+  };
+
+  const ensureTerrainLayers = (onReady: () => void) => {
+    createTerrainLayers();
+    if (shadow && liftedRegion) {
+      onReady();
+      return;
+    }
+    if (terrainLoading) return;
+    terrainLoading = true;
+    scene.load.once(`filecomplete-image-${terrainTextureKey}`, () => {
+      terrainLoading = false;
+      if (!scene.sys.isActive()) return;
+      createTerrainLayers();
+      onReady();
+    });
+    scene.load.image(terrainTextureKey, assetUrl(careerTerrainAssetKey(path, region)));
+    if (!scene.load.isLoading()) scene.load.start();
+  };
+
+  // Keep input geometry separate from the full-screen terrain texture. A
+  // pixel-perfect Image hit area calls canvas drawImage/getImageData for every
+  // pointer test and, because it needs a non-zero alpha, also submits one
+  // transparent 960x540 draw per region on every frame. The hand-authored
+  // object silhouette is both cheaper and stable across Canvas/WebGL.
   const hitArea = scene.add
-    .image(width / 2, height / 2, terrainTextureKey)
-    .setAlpha(0.001)
-    .setInteractive({ useHandCursor: true, pixelPerfect: true, alphaTolerance: 16 })
+    .polygon(lift.x, lift.y, lift.points, 0xffffff, 0)
+    .setInteractive({ useHandCursor: true })
     .setDepth(6);
   const label = scene.add
     .text(
@@ -216,12 +246,9 @@ function drawRegion(
     lock.setScale(scale);
   }
 
-  const activate = () => {
-    if (status === "locked") {
-      scene.tweens.add({ targets: label, alpha: 1, scale: 1, duration: 120 });
-      return;
-    }
-    scene.tweens.killTweensOf([shadow, liftedRegion, label]);
+  const liftTerrain = () => {
+    if (!hovered || !shadow || !liftedRegion) return;
+    scene.tweens.killTweensOf([shadow, liftedRegion]);
     shadow.setVisible(true);
     liftedRegion.setVisible(true);
     scene.tweens.add({
@@ -238,37 +265,51 @@ function drawRegion(
       duration: 150,
       ease: "Cubic.Out",
     });
+  };
+
+  const activate = () => {
+    hovered = true;
+    if (status === "locked") {
+      scene.tweens.add({ targets: label, alpha: 1, scale: 1, duration: 120 });
+      return;
+    }
+    scene.tweens.killTweensOf(label);
     scene.tweens.add({
       targets: label,
       alpha: 1,
       y: labelCenter.y,
       scale: 1,
-      duration: 150,
+      duration: 120,
       ease: "Cubic.Out",
     });
+    ensureTerrainLayers(liftTerrain);
   };
   const deactivate = () => {
+    hovered = false;
     if (status === "locked") {
       scene.tweens.add({ targets: label, alpha: 0, scale: 0.96, duration: 100 });
       return;
     }
-    scene.tweens.killTweensOf([shadow, liftedRegion, label]);
-    scene.tweens.add({
-      targets: shadow,
-      alpha: 0,
-      y: height / 2 + 5,
-      duration: 120,
-      ease: "Cubic.In",
-      onComplete: () => shadow.setVisible(false),
-    });
-    scene.tweens.add({
-      targets: liftedRegion,
-      alpha: 0,
-      y: height / 2,
-      duration: 130,
-      ease: "Cubic.In",
-      onComplete: () => liftedRegion.setVisible(false),
-    });
+    scene.tweens.killTweensOf(label);
+    if (shadow && liftedRegion) {
+      scene.tweens.killTweensOf([shadow, liftedRegion]);
+      scene.tweens.add({
+        targets: shadow,
+        alpha: 0,
+        y: height / 2 + 5,
+        duration: 120,
+        ease: "Cubic.In",
+        onComplete: () => shadow?.setVisible(false),
+      });
+      scene.tweens.add({
+        targets: liftedRegion,
+        alpha: 0,
+        y: height / 2,
+        duration: 130,
+        ease: "Cubic.In",
+        onComplete: () => liftedRegion?.setVisible(false),
+      });
+    }
     scene.tweens.add({
       targets: label,
       alpha: 0,
@@ -284,51 +325,4 @@ function drawRegion(
   hitArea.on("pointerout", deactivate);
   hitArea.on("pointerup", select);
   return hitArea;
-}
-
-/** Centers hover labels on the visible v3 terrain instead of legacy map geometry. */
-function findTerrainCenter(
-  scene: Phaser.Scene,
-  textureKey: string,
-  fallback: { x: number; y: number }
-): { x: number; y: number } {
-  const cached = terrainCenters.get(textureKey);
-  if (cached) return cached;
-  if (typeof document === "undefined") return fallback;
-
-  try {
-    const source = scene.textures.get(textureKey).getSourceImage() as CanvasImageSource & {
-      width: number;
-      height: number;
-    };
-    const canvas = document.createElement("canvas");
-    canvas.width = source.width;
-    canvas.height = source.height;
-    const context = canvas.getContext("2d", { willReadFrequently: true });
-    if (!context) return fallback;
-
-    context.drawImage(source, 0, 0);
-    const pixels = context.getImageData(0, 0, canvas.width, canvas.height).data;
-    let left = canvas.width;
-    let right = -1;
-    let top = canvas.height;
-    let bottom = -1;
-
-    for (let y = 0; y < canvas.height; y += 1) {
-      for (let x = 0; x < canvas.width; x += 1) {
-        if (pixels[(y * canvas.width + x) * 4 + 3] < 16) continue;
-        left = Math.min(left, x);
-        right = Math.max(right, x);
-        top = Math.min(top, y);
-        bottom = Math.max(bottom, y);
-      }
-    }
-
-    if (right < left || bottom < top) return fallback;
-    const center = { x: (left + right) / 2, y: (top + bottom) / 2 };
-    terrainCenters.set(textureKey, center);
-    return center;
-  } catch {
-    return fallback;
-  }
 }

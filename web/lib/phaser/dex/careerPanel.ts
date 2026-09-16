@@ -7,13 +7,14 @@ import {
   type CareerDexState,
   type CareerId,
   type CareerStatus,
-} from "@/lib/domain/careerDex";
-import { formatDate } from "@/lib/i18n/locale";
-import type { MessageKey } from "@/lib/i18n/messages";
+} from "@codigdex/game-content/domain/careerDex";
+import { formatDate } from "@codigdex/game-core/i18n/locale";
+import type { MessageKey } from "@codigdex/game-i18n/messages";
 import { lt, sceneLocale, t } from "../i18n";
 import { PALETTE, PALETTE_HEX } from "../palette";
 import { pixelText } from "../pixelFont";
 import { createCareerEmblem } from "./careerEmblem";
+import { panelScaleToViewport } from "./detailLayout";
 import {
   addShade,
   applyPixelFontToScene,
@@ -317,7 +318,7 @@ export class CareerPanel {
     items.push(createButton(this.scene, 0, 148, 100, 30, t(this.scene, "common.close"), () => this.closeDetail()));
 
     this.detail = this.scene.add.container(width / 2, height / 2, items).setDepth(31);
-    popIn(this.scene, this.detail);
+    popIn(this.scene, this.detail, 0.9, panelScaleToViewport(panelWidth, panelHeight, width, height));
     applyPixelFontToScene(this.scene);
   }
 

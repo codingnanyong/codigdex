@@ -4,7 +4,7 @@ export function devicePixelsPerGamePixel(cssWidth: number, devicePixelRatio: num
 }
 
 /**
- * Nearest-neighbour scaling keeps pixel art sharp only at whole-number
+ * Nearest-neighbor scaling keeps pixel art sharp only at whole-number
  * scales. At 1.25x or 1.5x (common Windows display settings, and most phone
  * layouts) it doubles some pixel rows and not others, so glyph strokes come
  * out uneven; smoothing reads better there.

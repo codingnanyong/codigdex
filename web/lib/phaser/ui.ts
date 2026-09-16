@@ -2,6 +2,8 @@ import Phaser from "phaser";
 import { PALETTE, PALETTE_HEX } from "./palette";
 import { pixelText, whenPixelFontReady } from "./pixelFont";
 
+const scenesAwaitingFontRefresh = new WeakSet<Phaser.Scene>();
+
 /**
  * Re-rasterizes every Text object already in a scene once the webfont has
  * actually loaded — text drawn before that point bakes the fallback face
@@ -10,6 +12,14 @@ import { pixelText, whenPixelFontReady } from "./pixelFont";
  * that texture; the family string itself doesn't change.
  */
 export function applyPixelFontToScene(scene: Phaser.Scene) {
+  // Lists and previews call this while rebuilding dynamic content. Coalesce
+  // those calls so a pointer hover never re-rasterizes every Text object in
+  // the scene multiple times during the same font load.
+  if (scenesAwaitingFontRefresh.has(scene)) return;
+  scenesAwaitingFontRefresh.add(scene);
+  scene.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+    scenesAwaitingFontRefresh.delete(scene);
+  });
   whenPixelFontReady(() => {
     const restyle = (child: Phaser.GameObjects.GameObject) => {
       if (child instanceof Phaser.GameObjects.Text) {
@@ -147,12 +157,17 @@ export function addShade(scene: Phaser.Scene, alpha: number, depth = 0): Phaser.
 }
 
 /** Scales a freshly built modal up into place. */
-export function popIn(scene: Phaser.Scene, target: Phaser.GameObjects.Container, fromScale = 0.9) {
-  target.setAlpha(0).setScale(fromScale);
+export function popIn(
+  scene: Phaser.Scene,
+  target: Phaser.GameObjects.Container,
+  fromScale = 0.9,
+  targetScale = 1
+) {
+  target.setAlpha(0).setScale(fromScale * targetScale);
   scene.tweens.add({
     targets: target,
     alpha: 1,
-    scale: 1,
+    scale: targetScale,
     duration: 240,
     ease: "Back.Out",
   });

@@ -1,5 +1,5 @@
 import type Phaser from "phaser";
-import type { AmbienceId } from "@/lib/domain/chapters/types";
+import type { AmbienceId } from "@codigdex/game-core/domain/chapters/types";
 import { driftMotes, flickerGlow, pulseGlow } from "./effects";
 
 type Preset = (scene: Phaser.Scene) => void;

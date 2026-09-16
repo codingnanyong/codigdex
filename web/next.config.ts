@@ -1,6 +1,13 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  transpilePackages: [
+    "@codigdex/game-assets",
+    "@codigdex/game-core",
+    "@codigdex/game-content",
+    "@codigdex/game-i18n",
+    "@codigdex/quiz-content",
+  ],
   /* config options here */
   // AGENTS.md is this repo's own agent policy file (see root AGENTS.md /
   // CLAUDE.md) — don't let `next dev`/`next build` append Next.js's

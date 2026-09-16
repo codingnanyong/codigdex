@@ -3,8 +3,7 @@ import {
   CAREER_CATALOG,
   careerEmblemTextureKey,
   type CareerId,
-} from "@/lib/domain/careerDex";
-import { DEX_MONSTERS } from "@/lib/domain/chapters";
+} from "@codigdex/game-content/domain/careerDex";
 import {
   findJob,
   findSecondaryJob,
@@ -12,14 +11,20 @@ import {
   JOB_REGISTRY_KEY,
   SECONDARY_JOB_REGISTRY_KEY,
   TERTIARY_JOB_REGISTRY_KEY,
-} from "@/lib/domain/player/jobs";
+} from "@codigdex/game-content/domain/player/jobs";
+import { assetUrl } from "../../assets";
 import { CareerPanel } from "../dex/careerPanel";
 import { DetailCard } from "../dex/detailCard";
 import { t } from "../i18n";
-import { buildDexEntries, type DexEntry } from "../dex/entry";
+import {
+  buildDexEntries,
+  cardsForDexDisplay,
+  initialDexMonsters,
+  type DexEntry,
+} from "../dex/entry";
 import { EntryList } from "../dex/entryList";
 import { PreviewPane } from "../dex/previewPane";
-import { DEX_PANEL, drawDexShell } from "../dex/shell";
+import { DEX_FOOTER, dexFooterLayout, drawDexShell } from "../dex/shell";
 import { preloadMonsterArt } from "../monsterArt";
 import { createHomeButton } from "../navigation";
 import { readDexState, reconcileCareerDexRegistry } from "../registryAdapter";
@@ -41,6 +46,11 @@ export class CodigdexScene extends Phaser.Scene {
   private list!: EntryList;
   private detail!: DetailCard;
   private careerPanel?: CareerPanel;
+  private careerAssetsLoading = false;
+  private readonly monsterArtLoads = new Map<
+    string,
+    { event: string; complete: () => void; callbacks: Set<() => void> }
+  >();
 
   constructor() {
     super("codigdex");
@@ -51,21 +61,28 @@ export class CodigdexScene extends Phaser.Scene {
   }
 
   preload() {
-    preloadMonsterArt(this, DEX_MONSTERS);
-    CAREER_CATALOG.forEach((career) =>
-      this.load.image(careerEmblemTextureKey(career.id), career.emblemAssetPath)
-    );
+    // Load only the initially selected card. Other captured art is fetched on
+    // demand as the cursor reaches it, so a mature save with 100+ cards opens
+    // just as quickly as a new save.
+    const savedCards = readDexState(this.registry).cards;
+    const displayCards = cardsForDexDisplay(savedCards, process.env.NODE_ENV === "development");
+    this.entries = buildDexEntries(displayCards);
+    this.selectedIndex = Math.max(0, this.entries.findIndex((entry) => entry.card));
+    preloadMonsterArt(this, initialDexMonsters(this.entries, this.selectedIndex));
   }
 
   create() {
     this.scene.bringToTop();
     this.careerPanel = undefined;
+    this.careerAssetsLoading = false;
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      this.monsterArtLoads.forEach(({ event, complete }) => this.load.off(event, complete));
+      this.monsterArtLoads.clear();
+    });
     addShade(this, 1);
     const screen = drawDexShell(this);
     const bodyTop = screen.top + 52;
-
-    this.entries = buildDexEntries(readDexState(this.registry).cards);
-    this.selectedIndex = Math.max(0, this.entries.findIndex((entry) => entry.card));
+    const footer = dexFooterLayout(screen);
 
     this.detail = new DetailCard(this);
     this.preview = new PreviewPane(this, screen.left + 16 + PREVIEW_COLUMN / 2, bodyTop);
@@ -76,24 +93,24 @@ export class CodigdexScene extends Phaser.Scene {
       onHover: (index) => this.select(index),
       onPick: (index) => this.pick(index),
     });
-    this.preview.show(this.entries[this.selectedIndex]);
+    this.showPreview(this.selectedIndex);
     this.list.highlight(this.selectedIndex);
 
     createButton(
       this,
       screen.centerX + 66,
-      screen.centerY + DEX_PANEL.height / 2 - DEX_PANEL.inset - 14,
+      footer.buttonY,
       100,
-      30,
+      DEX_FOOTER.buttonHeight,
       t(this, "common.close"),
       () => this.close()
     );
     createButton(
       this,
       screen.centerX - 66,
-      screen.centerY + DEX_PANEL.height / 2 - DEX_PANEL.inset - 14,
+      footer.buttonY,
       120,
-      30,
+      DEX_FOOTER.buttonHeight,
       t(this, "dex.lineage"),
       () => this.openCareerLineage()
     );
@@ -104,13 +121,34 @@ export class CodigdexScene extends Phaser.Scene {
       this.careerPanel = undefined;
     }).setDepth(20);
     createButton(this, screen.left + 152, screen.top + 22, 88, 28, t(this, "dex.tabCareers"), () => {
-      this.showCareerPanel(screen, bodyTop);
+      this.showCareerPanel(screen, bodyTop, footer.contentBottom);
     }).setDepth(20);
 
     applyPixelFontToScene(this);
   }
 
-  private showCareerPanel(screen: ReturnType<typeof drawDexShell>, bodyTop: number) {
+  private showCareerPanel(
+    screen: ReturnType<typeof drawDexShell>,
+    bodyTop: number,
+    contentBottom: number
+  ) {
+    const missingEmblems = CAREER_CATALOG.filter(
+      (career) => !this.textures.exists(careerEmblemTextureKey(career.id))
+    );
+    if (missingEmblems.length > 0) {
+      if (this.careerAssetsLoading) return;
+      this.careerAssetsLoading = true;
+      missingEmblems.forEach((career) =>
+        this.load.image(careerEmblemTextureKey(career.id), assetUrl(career.emblemAssetKey))
+      );
+      this.load.once(Phaser.Loader.Events.COMPLETE, () => {
+        this.careerAssetsLoading = false;
+        if (this.sys.isActive()) this.showCareerPanel(screen, bodyTop, contentBottom);
+      });
+      this.load.start();
+      return;
+    }
+
     this.careerPanel?.destroy();
     const state = reconcileCareerDexRegistry(this.registry);
     const activeIds = new Set<CareerId>();
@@ -130,7 +168,7 @@ export class CodigdexScene extends Phaser.Scene {
         left: screen.left + 8,
         right: screen.left + screen.width - 8,
         top: bodyTop - 6,
-        bottom: screen.top + screen.height - 48,
+        bottom: contentBottom,
       },
       state,
       activeIds
@@ -141,13 +179,47 @@ export class CodigdexScene extends Phaser.Scene {
     if (index === this.selectedIndex) return;
     this.selectedIndex = index;
     this.list.highlight(index);
-    this.preview.show(this.entries[index]);
+    this.showPreview(index);
   }
 
   private pick(index: number) {
     this.select(index);
     const { monster, card } = this.entries[index];
-    if (monster && card) this.detail.open(monster, card);
+    if (monster && card) {
+      this.ensureMonsterArt(monster, () => this.detail.open(monster, card));
+    }
+  }
+
+  private showPreview(index: number) {
+    const entry = this.entries[index];
+    this.preview.show(entry);
+    if (!entry.card || !entry.monster) return;
+    this.ensureMonsterArt(entry.monster, () => {
+      if (this.selectedIndex === index) this.preview.show(entry);
+    });
+  }
+
+  private ensureMonsterArt(monster: NonNullable<DexEntry["monster"]>, onReady: () => void) {
+    if (this.textures.exists(monster.textureKey)) {
+      onReady();
+      return;
+    }
+    const pending = this.monsterArtLoads.get(monster.textureKey);
+    if (pending) {
+      pending.callbacks.add(onReady);
+      return;
+    }
+    const event = `filecomplete-image-${monster.textureKey}`;
+    const callbacks = new Set([onReady]);
+    const complete = () => {
+      this.monsterArtLoads.delete(monster.textureKey);
+      if (!this.sys.isActive()) return;
+      callbacks.forEach((callback) => callback());
+    };
+    this.monsterArtLoads.set(monster.textureKey, { event, complete, callbacks });
+    this.load.once(event, complete);
+    this.load.image(monster.textureKey, assetUrl(monster.assetKey));
+    if (!this.load.isLoading()) this.load.start();
   }
 
   private close() {

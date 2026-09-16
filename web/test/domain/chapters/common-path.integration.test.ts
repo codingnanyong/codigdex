@@ -5,39 +5,40 @@ import {
   chapterStatus,
   isCommonPathComplete,
   stageStatus,
-} from "@/lib/domain/chapters";
-import { GIT_CHAPTER } from "@/lib/domain/chapters/git";
-import { LINUX_CHAPTER } from "@/lib/domain/chapters/linux";
-import { TUTORIAL_MONSTER } from "@/lib/domain/chapters/tutorial";
-import type { MonsterDefinition } from "@/lib/domain/chapters/types";
+} from "@codigdex/game-content/domain/chapters";
+import { GIT_CHAPTER } from "@codigdex/game-content/domain/chapters/git";
+import { LINUX_CHAPTER } from "@codigdex/game-content/domain/chapters/linux";
+import { TUTORIAL_MONSTER } from "@codigdex/game-content/domain/chapters/tutorial";
+import type { MonsterDefinition } from "@codigdex/game-core/domain/chapters/types";
 import {
   EMPTY_DEX_STATE,
   applyCapture,
   capturedIds,
   isSuccessfulCapture,
   requiredCorrectAnswers,
-} from "@/lib/domain/dex/capture";
-import { drawQuizQuestions, quizCountForLevel } from "@/lib/domain/dex/quiz";
+} from "@codigdex/game-core/domain/dex/capture";
+import { drawQuizQuestions, quizCountForLevel } from "@codigdex/game-core/domain/dex/quiz";
+import { loadQuizPack } from "@codigdex/quiz-content/loader";
 
-const drawBattle = (monster: MonsterDefinition) =>
-  drawQuizQuestions(monster.quizPool, quizCountForLevel(monster.level));
+const drawBattle = async (monster: MonsterDefinition) =>
+  drawQuizQuestions((await loadQuizPack(monster.quizPackId)).questions, quizCountForLevel(monster.level));
 
 describe("tutorial -> Git's five stages -> Linux", () => {
-  it("walks every stage in order, each opening only once the last is captured", () => {
+  it("walks every stage in order, each opening only once the last is captured", async () => {
     let state = EMPTY_DEX_STATE;
 
     for (const chapter of CHAPTERS) {
-      chapter.stages.forEach((monster, index) => {
+      for (const [index, monster] of chapter.stages.entries()) {
         expect(stageStatus(chapter, index, capturedIds(state))).toBe("available");
 
-        const questions = drawBattle(monster);
+        const questions = await drawBattle(monster);
         expect(questions).toHaveLength(quizCountForLevel(monster.level));
         // Clearing just the pass line is enough to move on.
         expect(isSuccessfulCapture(requiredCorrectAnswers(questions.length), questions.length)).toBe(true);
         state = applyCapture(state, monster);
 
         expect(stageStatus(chapter, index, capturedIds(state))).toBe("cleared");
-      });
+      }
       expect(chapterStatus(chapter, capturedIds(state))).toBe("cleared");
     }
 
@@ -45,9 +46,9 @@ describe("tutorial -> Git's five stages -> Linux", () => {
     expect(isCommonPathComplete(capturedIds(state))).toBe(true);
   });
 
-  it("holds the next Git stage, and Linux, locked after a botched battle", () => {
+  it("holds the next Git stage, and Linux, locked after a botched battle", async () => {
     const state = applyCapture(EMPTY_DEX_STATE, TUTORIAL_MONSTER);
-    const questions = drawBattle(GIT_CHAPTER.stages[0]);
+    const questions = await drawBattle(GIT_CHAPTER.stages[0]);
 
     // CaptureQuizScene only calls applyCapture when this is true, so a
     // battle one answer short of the pass line leaves the dex, and every

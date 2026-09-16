@@ -8,9 +8,9 @@ import {
   masteredPrimaryJobIds,
   reconcileCareerDex,
   selectCareer,
-} from "@/lib/domain/careerDex";
-import type { JobId, SecondaryJobId } from "@/lib/domain/player/jobs";
-import { LOCALES } from "@/lib/i18n/locale";
+} from "@codigdex/game-content/domain/careerDex";
+import type { JobId, SecondaryJobId } from "@codigdex/game-content/domain/player/jobs";
+import { LOCALES } from "@codigdex/game-core/i18n/locale";
 
 const fixedNow = () => "2026-09-14T00:00:00.000Z";
 
@@ -42,7 +42,7 @@ describe("career catalog", () => {
   });
 
   it("gives every career a distinct collectible emblem", () => {
-    const emblems = CAREER_CATALOG.map((career) => career.emblemAssetPath);
+    const emblems = CAREER_CATALOG.map((career) => career.emblemAssetKey);
 
     expect(Object.keys(CAREER_EMBLEMS)).toHaveLength(CAREER_CATALOG.length);
     expect(emblems.every(Boolean)).toBe(true);
