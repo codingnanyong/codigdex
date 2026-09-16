@@ -8,10 +8,11 @@ import {
   requiredCorrectAnswers,
 } from "@codigdex/game-core/domain/dex/capture";
 import { showCapturedPanel, showMissedPanel } from "../capture/resultPanels";
+import { resolveCaptureSuccessFlow, type CaptureReturnTarget } from "../capture/resultFlow";
 import { createHomeButton } from "../navigation";
 import { describeUnlock } from "../capture/unlockNotice";
 import { lt, sceneLocale, t } from "../i18n";
-import { readDexState, writeDexState } from "../registryAdapter";
+import { readDexState, reconcileCareerDexRegistry, writeDexState } from "../registryAdapter";
 import { addShade, applyPixelFontToScene } from "../ui";
 import { didUnlockPrimaryJobSelection } from "../worldMap/progression";
 
@@ -28,7 +29,7 @@ export class CaptureQuizScene extends Phaser.Scene {
   private monster!: MonsterDefinition;
   private correctCount = 0;
   private total = 0;
-  private nextTarget: { scene: "world-map" | "job-select" | "career-region"; data?: Record<string, unknown> } = { scene: "world-map" };
+  private nextTarget: CaptureReturnTarget = { scene: "world-map" };
 
   constructor() {
     super("capture-quiz");
@@ -59,9 +60,15 @@ export class CaptureQuizScene extends Phaser.Scene {
     const { chapter, monster } = this;
     const isNewEntry = this.registerCapture();
     const unlock = describeUnlock(monster.id, sceneLocale(this));
+    const flow = resolveCaptureSuccessFlow(monster.id, isNewEntry, this.nextTarget);
+    this.nextTarget = flow.target;
 
     showCapturedPanel(this, {
       monster,
+      title: flow.regionCleared
+        ? t(this, "capture.regionCleared", { region: lt(this, chapter.name) })
+        : undefined,
+      confirmLabel: flow.regionCleared ? t(this, "capture.returnToMap") : undefined,
       npcLine: `${lt(this, chapter.npcName)}: ${lt(this, chapter.successLine)}`,
       isNewEntry,
       unlockNotice: isNewEntry ? unlock.notice : undefined,
@@ -95,6 +102,7 @@ export class CaptureQuizScene extends Phaser.Scene {
       this.nextTarget = { scene: "job-select" };
     }
     writeDexState(this.registry, after);
+    reconcileCareerDexRegistry(this.registry);
     return after !== before;
   }
 }

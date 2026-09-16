@@ -46,6 +46,8 @@ const ko = {
   "region.viewPath": "Path 보기",
 
   "battle.progress": "Q{index} / {total}  ·  정답 {correct}  ·  목표 {required}개",
+  "battle.loadingQuiz": "퀴즈 팩을 불러오는 중...",
+  "battle.quizLoadFailed": "퀴즈 팩을 불러오지 못했어요. 홈으로 돌아가 다시 시도해 주세요.",
   "battle.hit": "명중! 타격을 줬어요.",
   "battle.miss": "안 통했어요!",
   "battle.defeated": "{name} 격파!",
@@ -54,6 +56,8 @@ const ko = {
 
   "capture.registered": "\"{name}\" 도감 등록 완료!",
   "capture.reviewed": "\"{name}\" 복습 완료!",
+  "capture.regionCleared": "{region} 지역 클리어!",
+  "capture.returnToMap": "지도로 돌아가기",
   "capture.failed": "\"{name}\" 캡처 실패",
   "capture.retry": "재도전",
   "capture.resultLine": "정답 {correct} / {total} · {required}개 이상 맞히면 포획돼요",
@@ -168,6 +172,8 @@ const en: Readonly<Record<MessageKey, string>> = {
   "region.viewPath": "View Path",
 
   "battle.progress": "Q{index} / {total}  ·  Correct {correct}  ·  Goal {required}",
+  "battle.loadingQuiz": "Loading quiz pack...",
+  "battle.quizLoadFailed": "The quiz pack could not be loaded. Return home and try again.",
   "battle.hit": "A hit! You landed a blow.",
   "battle.miss": "It didn't work!",
   "battle.defeated": "{name} defeated!",
@@ -176,6 +182,8 @@ const en: Readonly<Record<MessageKey, string>> = {
 
   "capture.registered": "\"{name}\" registered in the dex!",
   "capture.reviewed": "\"{name}\" review complete!",
+  "capture.regionCleared": "{region} region cleared!",
+  "capture.returnToMap": "Return to map",
   "capture.failed": "\"{name}\" got away",
   "capture.retry": "Retry",
   "capture.resultLine": "Correct {correct} / {total} · Get {required} or more right to capture",

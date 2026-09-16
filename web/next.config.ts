@@ -6,6 +6,7 @@ const nextConfig: NextConfig = {
     "@codigdex/game-core",
     "@codigdex/game-content",
     "@codigdex/game-i18n",
+    "@codigdex/quiz-content",
   ],
   /* config options here */
   // AGENTS.md is this repo's own agent policy file (see root AGENTS.md /

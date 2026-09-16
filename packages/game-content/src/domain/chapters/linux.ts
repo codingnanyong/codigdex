@@ -1,6 +1,6 @@
 import { text } from "@codigdex/game-core/i18n/locale";
 import type { ChapterDefinition } from "@codigdex/game-core/domain/chapters/types";
-import { LINUX_STAGE_QUIZZES } from "./quizzes/linux";
+import { quizPackIdFor } from "@codigdex/game-core/domain/dex/quiz";
 
 const ART = "monsters/ch02.linux";
 
@@ -47,7 +47,7 @@ export const LINUX_CHAPTER: ChapterDefinition = {
         "A Shell Scout is tapping on a pocket terminal at the mouth of the Shell Cave! Say hello with some basic commands."
       ),
       preBattleLine: text("셸 탐험가는 pwd, ls, cd만 알아도 따라잡을 수 있어!", "Just pwd, ls and cd are enough to keep up with the Shell Scout!"),
-      quizPool: LINUX_STAGE_QUIZZES.shellScoutQuiz,
+      quizPackId: quizPackIdFor("linux", "linux-shell-scout"),
     },
     {
       id: "linux-path-file-forager",
@@ -71,7 +71,7 @@ export const LINUX_CHAPTER: ChapterDefinition = {
         "절대 경로와 상대 경로, 그리고 cp, mv, rm의 차이를 떠올려!",
         "Remember absolute versus relative paths, and how cp, mv and rm differ!"
       ),
-      quizPool: LINUX_STAGE_QUIZZES.pathFileForagerQuiz,
+      quizPackId: quizPackIdFor("linux", "linux-path-file-forager"),
     },
     {
       id: "linux-permission-guard",
@@ -86,13 +86,13 @@ export const LINUX_CHAPTER: ChapterDefinition = {
       ),
       snippet: text("ls -l run.sh\nchmod 755 run.sh\nsudo chown lupi run.sh", "ls -l run.sh\nchmod 755 run.sh\nsudo chown lupi run.sh"),
       textureKey: "linux-permission-guard",
-      assetKey: `${ART}/permission-guard-lv3.png`,
+      assetKey: `${ART}/permission-guard-lv3-v2.png`,
       briefing: text(
         "권한 수호병이 열쇠를 쥐고 길을 막았어! 누가 무엇을 할 수 있는지 증명해야 지나갈 수 있어.",
         "The Permission Guard is blocking the way with its key! Prove who can do what, and it will let you pass."
       ),
       preBattleLine: text("r=4, w=2, x=1. 소유자, 그룹, 기타 순서를 잊지 마!", "r=4, w=2, x=1. Don't forget the order: owner, group, others!"),
-      quizPool: LINUX_STAGE_QUIZZES.permissionGuardQuiz,
+      quizPackId: quizPackIdFor("linux", "linux-permission-guard"),
     },
     {
       id: "linux-pipe-process-engineer",
@@ -107,7 +107,7 @@ export const LINUX_CHAPTER: ChapterDefinition = {
       ),
       snippet: text("ps aux | grep node\nkill 1234\nnpm run dev > dev.log &", "ps aux | grep node\nkill 1234\nnpm run dev > dev.log &"),
       textureKey: "linux-pipe-process-engineer",
-      assetKey: `${ART}/pipe-process-engineer-lv4.png`,
+      assetKey: `${ART}/pipe-process-engineer-lv4-v2.png`,
       briefing: text(
         "파이프 엔지니어가 뒤엉킨 파이프로 프로세스를 폭주시키고 있어! 출력의 흐름을 바로잡아 줘.",
         "The Pipe Engineer is sending processes haywire with tangled pipes! Straighten out where the output flows."
@@ -116,7 +116,7 @@ export const LINUX_CHAPTER: ChapterDefinition = {
         "파이프, 리다이렉션, 백그라운드 실행. 출력이 어디로 흐르는지 따라가 봐!",
         "Pipes, redirection, background jobs. Follow where the output goes!"
       ),
-      quizPool: LINUX_STAGE_QUIZZES.pipeProcessEngineerQuiz,
+      quizPackId: quizPackIdFor("linux", "linux-pipe-process-engineer"),
     },
     {
       id: "linux-kernel-guardian",
@@ -131,7 +131,7 @@ export const LINUX_CHAPTER: ChapterDefinition = {
       ),
       snippet: text("uname -r\nfree -h\nsystemctl status nginx", "uname -r\nfree -h\nsystemctl status nginx"),
       textureKey: "linux-kernel-guardian",
-      assetKey: `${ART}/kernel-guardian-lv5.png`,
+      assetKey: `${ART}/kernel-guardian-lv5-v2.png`,
       briefing: text(
         "셸 동굴의 가장 깊은 곳에서 커널 수호자가 깨어났어! 운영체제의 핵심을 이해했는지 보여 줘.",
         "The Kernel Guardian has awoken in the deepest part of the Shell Cave! Show that you understand the heart of the operating system."
@@ -140,7 +140,7 @@ export const LINUX_CHAPTER: ChapterDefinition = {
         "커널, 시스템 콜, 스케줄러, 부팅. 셸 너머의 세계를 떠올려!",
         "Kernel, system calls, scheduler, boot. Think about the world beyond the shell!"
       ),
-      quizPool: LINUX_STAGE_QUIZZES.kernelGuardianQuiz,
+      quizPackId: quizPackIdFor("linux", "linux-kernel-guardian"),
     },
   ],
 };

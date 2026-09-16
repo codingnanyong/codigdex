@@ -5,6 +5,7 @@
   "type": "module",
   "exports": {
     "./domain/chapters": "./src/domain/chapters/index.ts",
+    "./quiz-sources/career": "./src/domain/careerMonsterQuizzes.ts",
     "./domain/*": "./src/domain/*.ts"
   },
   "scripts": {
