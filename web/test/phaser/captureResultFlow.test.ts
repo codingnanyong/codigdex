@@ -12,6 +12,7 @@ describe("capture result flow", () => {
   it("returns to the career region after an intermediate checkpoint", () => {
     expect(resolveCaptureSuccessFlow(region[3].id, true, fallback)).toEqual({
       regionCleared: false,
+      careerCleared: false,
       target: fallback,
     });
   });
@@ -19,6 +20,7 @@ describe("capture result flow", () => {
   it("shows completion and returns to the map after the new level-five capture", () => {
     expect(resolveCaptureSuccessFlow(region[4].id, true, fallback)).toEqual({
       regionCleared: true,
+      careerCleared: false,
       target: { scene: "world-map" },
     });
   });
@@ -26,7 +28,16 @@ describe("capture result flow", () => {
   it("keeps a level-five replay in the region", () => {
     expect(resolveCaptureSuccessFlow(region[4].id, false, fallback)).toEqual({
       regionCleared: false,
+      careerCleared: false,
       target: fallback,
+    });
+  });
+
+  it("shows a career clear and opens career selection after the final path capture", () => {
+    expect(resolveCaptureSuccessFlow(region[4].id, true, fallback, true)).toEqual({
+      regionCleared: true,
+      careerCleared: true,
+      target: { scene: "job-select" },
     });
   });
 });

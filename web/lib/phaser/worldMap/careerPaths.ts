@@ -174,6 +174,95 @@ const CAREER_PATH_DEFINITIONS: Record<
   },
 };
 
+type TerrainBounds = readonly [left: number, top: number, right: number, bottom: number];
+
+/**
+ * Opaque-pixel bounds measured from the shipped 960x540 terrain overlays.
+ *
+ * The early hand-authored outlines were drawn before several wallpapers were
+ * finalized. Keeping their silhouettes but fitting them to the real asset
+ * bounds makes hover, locks, and player destinations agree with the artwork.
+ */
+const CAREER_TERRAIN_BOUNDS: Record<JobId, Record<string, TerrainBounds>> = {
+  frontend: {
+    "html-css": [6, 257, 283, 520],
+    javascript: [144, 72, 405, 340],
+    "http-api": [340, 273, 639, 536],
+    react: [543, 134, 817, 398],
+    "frontend-testing": [734, 4, 956, 244],
+  },
+  backend: {
+    "http-api": [21, 307, 230, 514],
+    "server-framework": [13, 49, 271, 292],
+    sql: [333, 86, 531, 292],
+    "security-auth": [532, 41, 722, 257],
+    network: [326, 259, 670, 523],
+    docker: [702, 242, 939, 502],
+  },
+  devops: {
+    network: [5, 305, 163, 538],
+    docker: [173, 293, 372, 507],
+    cicd: [288, 150, 479, 356],
+    kubernetes: [477, 109, 651, 331],
+    "cloud-iac": [653, 40, 821, 291],
+    monitoring: [805, 6, 958, 226],
+  },
+  "data-engineer": {
+    python: [7, 251, 238, 514],
+    sql: [106, 74, 398, 325],
+    "data-pipeline": [341, 266, 653, 510],
+    docker: [510, 74, 717, 259],
+    orchestration: [687, 195, 949, 441],
+    monitoring: [782, 15, 947, 188],
+  },
+  "data-analyst": {
+    sql: [0, 262, 290, 513],
+    statistics: [228, 163, 525, 418],
+    visualization: [407, 56, 648, 285],
+    "bi-tools": [668, 26, 950, 267],
+    python: [561, 260, 895, 493],
+  },
+};
+
+function alignRegionToTerrain(region: CareerRegion, bounds: TerrainBounds): CareerRegion {
+  const [left, top, right, bottom] = bounds;
+  const width = right - left;
+  const height = bottom - top;
+  const x = (left + right) / 2;
+  const y = (top + bottom) / 2;
+  const offsetX = x - region.lift.x;
+  const offsetY = y - region.lift.y;
+  const scalePoints = (
+    points: readonly Point[],
+    sourceWidth: number,
+    sourceHeight: number
+  ): readonly Point[] => points.map(([pointX, pointY]) => [
+    (pointX / sourceWidth) * width,
+    (pointY / sourceHeight) * height,
+  ]);
+
+  return {
+    ...region,
+    // Preserve the intended standing spot relative to the destination while
+    // moving it with the corrected terrain object.
+    x: region.x + offsetX,
+    y: region.y + offsetY,
+    landmark: { x, y, width, height },
+    focusPoints: scalePoints(
+      region.focusPoints,
+      region.landmark.width,
+      region.landmark.height
+    ),
+    lift: {
+      x,
+      y,
+      width,
+      height,
+      points: scalePoints(region.lift.points, region.lift.width, region.lift.height),
+    },
+  };
+}
+
 function releasedCompletionCaptureIds(
   regions: readonly CareerRegion[]
 ): readonly string[] {
@@ -190,9 +279,15 @@ export const CAREER_PATHS: Record<JobId, CareerPathDefinition> = Object.fromEntr
     Omit<CareerPathDefinition, "completionCaptureIds">,
   ][]).map(([jobId, path]) => [
     jobId,
-    { ...path, completionCaptureIds: releasedCompletionCaptureIds(path.regions) },
+    {
+      ...path,
+      regions: path.regions.map((careerRegion) =>
+        alignRegionToTerrain(careerRegion, CAREER_TERRAIN_BOUNDS[jobId][careerRegion.id])
+      ),
+      completionCaptureIds: releasedCompletionCaptureIds(path.regions),
+    },
   ])
-) as Record<JobId, CareerPathDefinition>;
+) as unknown as Record<JobId, CareerPathDefinition>;
 
 export function careerPathFor(jobId: JobId): CareerPathDefinition {
   return CAREER_PATHS[jobId];

@@ -46,10 +46,9 @@ export class CareerRegionScene extends Phaser.Scene {
   }
 
   preload() {
-    const captured = capturedIds(readDexState(this.registry));
     const queued = queueImages(
       this,
-      careerRegionAssets(this.careerId, this.regionId, captured)
+      careerRegionAssets(this.careerId, this.regionId)
     );
     showLoadingScreen(this, queued, t(this, "loading.region"));
   }
