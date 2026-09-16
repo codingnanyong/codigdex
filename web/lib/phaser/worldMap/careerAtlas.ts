@@ -20,6 +20,7 @@ import { drawPixelChainLock } from "./pixelChainLock";
 interface CareerAtlasOptions {
   job: JobOption;
   path: CareerPathDefinition;
+  onRegionIntent?: (region: CareerRegion) => void;
   onRegion: (region: CareerRegion) => void;
   onLocked: (region: CareerRegion, requiredRegion: CareerRegion) => void;
   onMystery: () => void;
@@ -47,6 +48,7 @@ export function drawCareerAtlas(scene: Phaser.Scene, options: CareerAtlasOptions
 
   const travelToRegion = (region: CareerRegion) => {
     if (traveling) return;
+    options.onRegionIntent?.(region);
 
     const fromX = player.x;
     const fromY = player.y;

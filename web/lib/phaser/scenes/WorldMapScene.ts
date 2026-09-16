@@ -12,6 +12,7 @@ import {
 } from "@codigdex/game-content/domain/player/jobs";
 import { assetUrl } from "../../assets";
 import { playAmbience } from "../ambience";
+import { queueImage, queueImages, showLoadingScreen } from "../assetLoader";
 import { lt, t } from "../i18n";
 import { preloadMonsterArt } from "../monsterArt";
 import {
@@ -27,6 +28,7 @@ import {
 } from "../worldMap/careerPaths";
 import { showGuideHint } from "../worldMap/guideHint";
 import { createWorldMapHud } from "../worldMap/hud";
+import { careerRegionAssets } from "../worldMap/careerRegionAssets";
 import { OnboardingDialog } from "../worldMap/onboarding";
 import { WorldMapPlayer } from "../worldMap/playerMovement";
 import {
@@ -60,24 +62,39 @@ export class WorldMapScene extends Phaser.Scene {
 
   preload() {
     const { backdrop, captured, selectedJob } = this.resolveProgress();
-    this.load.image(backdrop.textureKey, assetUrl(backdrop.assetKey));
-    this.load.image(selectedJob.overworldTextureKey, assetUrl(selectedJob.overworldAssetKey));
+    let queued = Number(
+      queueImage(this, { key: backdrop.textureKey, url: assetUrl(backdrop.assetKey) })
+    );
+    queued += Number(
+      queueImage(this, {
+        key: selectedJob.overworldTextureKey,
+        url: assetUrl(selectedJob.overworldAssetKey),
+      })
+    );
     if (selectedJob.textureKey && selectedJob.assetKey) {
-      this.load.image(selectedJob.textureKey, assetUrl(selectedJob.assetKey));
+      queued += Number(
+        queueImage(this, { key: selectedJob.textureKey, url: assetUrl(selectedJob.assetKey) })
+      );
     }
     if (selectedJob.guideTextureKey && selectedJob.guideAssetKey) {
-      this.load.image(selectedJob.guideTextureKey, assetUrl(selectedJob.guideAssetKey));
+      queued += Number(
+        queueImage(this, {
+          key: selectedJob.guideTextureKey,
+          url: assetUrl(selectedJob.guideAssetKey),
+        })
+      );
     }
     const activeChapter = selectActiveChapter(captured);
     if (activeChapter) {
       const activeIndex = currentStageIndex(activeChapter, captured);
-      preloadMonsterArt(
+      queued += preloadMonsterArt(
         this,
         activeChapter.stages.filter(
           (monster, index) => captured.has(monster.id) || index === activeIndex
         )
       );
     }
+    showLoadingScreen(this, queued, t(this, "loading.world"));
   }
 
   /** Where the player stands. A career only counts once the common path is complete. */
@@ -172,6 +189,7 @@ export class WorldMapScene extends Phaser.Scene {
     drawCareerAtlas(this, {
       job,
       path: careerPathFor(careerId),
+      onRegionIntent: (region) => this.prefetchCareerRegion(careerId, region.id),
       onRegion: (region) => {
         this.scene.start("career-region", { careerId, regionId: region.id });
       },
@@ -186,6 +204,14 @@ export class WorldMapScene extends Phaser.Scene {
         this.toast = showToast(this, t(this, "world.mysteryCareer"), this.toast);
       },
     });
+  }
+
+  private prefetchCareerRegion(careerId: JobId, regionId: string) {
+    const queued = queueImages(
+      this,
+      careerRegionAssets(careerId, regionId, this.captured)
+    );
+    if (queued > 0 && !this.load.isLoading()) this.load.start();
   }
 
   private openChapterMap() {

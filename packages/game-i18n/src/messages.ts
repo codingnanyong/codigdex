@@ -10,6 +10,9 @@ const ko = {
   "common.locked": "잠금",
   "common.codigdex": "Codigdex 도감",
 
+  "loading.world": "지도를 불러오는 중...",
+  "loading.region": "새 지역을 불러오는 중...",
+
   "settings.title": "설정",
   "settings.language": "언어",
   "settings.languageHint": "게임 안의 모든 글자가 선택한 언어로 바뀌어요.",
@@ -135,6 +138,9 @@ const en: Readonly<Record<MessageKey, string>> = {
   "common.current": "Current",
   "common.locked": "Locked",
   "common.codigdex": "Codigdex",
+
+  "loading.world": "Loading map...",
+  "loading.region": "Loading new region...",
 
   "settings.title": "Settings",
   "settings.language": "Language",

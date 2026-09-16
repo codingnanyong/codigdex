@@ -1,9 +1,14 @@
 import type Phaser from "phaser";
 import { assetUrl } from "../assets";
 import type { MonsterDefinition } from "@codigdex/game-core/domain/chapters/types";
+import { queueImage } from "./assetLoader";
 
 export function preloadMonsterArt(scene: Phaser.Scene, monsters: readonly MonsterDefinition[]) {
-  monsters.forEach(({ textureKey, assetKey }) => scene.load.image(textureKey, assetUrl(assetKey)));
+  return monsters.reduce(
+    (queued, { textureKey, assetKey }) =>
+      queued + Number(queueImage(scene, { key: textureKey, url: assetUrl(assetKey) })),
+    0
+  );
 }
 
 /**

@@ -5,7 +5,7 @@ import {
 } from "@codigdex/game-content/domain/careerRegionMonsters";
 import { findJob, guideDisplayName, type JobId } from "@codigdex/game-content/domain/player/jobs";
 import { capturedIds } from "@codigdex/game-core/domain/dex/capture";
-import { assetUrl } from "../../assets";
+import { queueImages, showLoadingScreen } from "../assetLoader";
 import { PALETTE, PALETTE_HEX } from "../palette";
 import { lt, t } from "../i18n";
 import { createHomeButton } from "../navigation";
@@ -24,6 +24,7 @@ import {
   type CareerRegion,
 } from "../worldMap/careerPaths";
 import { createDialogPortrait } from "../worldMap/dialogPortrait";
+import { careerRegionAssets } from "../worldMap/careerRegionAssets";
 
 interface CareerRegionData {
   careerId: JobId;
@@ -45,24 +46,12 @@ export class CareerRegionScene extends Phaser.Scene {
   }
 
   preload() {
-    const path = careerPathFor(this.careerId);
-    const job = findJob(this.careerId);
-    const region = path.regions.find((candidate) => candidate.id === this.regionId) ?? path.regions[0];
-    this.load.image(
-      careerChapterWallpaperTextureKey(path, region),
-      assetUrl(careerChapterWallpaperAssetKey(path, region))
-    );
-    this.load.image(job.textureKey!, assetUrl(job.assetKey!));
-    if (job.guideTextureKey && job.guideAssetKey) {
-      this.load.image(job.guideTextureKey, assetUrl(job.guideAssetKey));
-    }
     const captured = capturedIds(readDexState(this.registry));
-    const monsters = monstersForCareerRegion(region.id);
-    const firstUncaptured = monsters.findIndex((monster) => !captured.has(monster.id));
-    const activeIndex = firstUncaptured === -1 ? monsters.length - 1 : firstUncaptured;
-    monsters.filter((monster, index) => captured.has(monster.id) || index === activeIndex).forEach((monster) => {
-      this.load.image(monster.textureKey, assetUrl(monster.assetKey));
-    });
+    const queued = queueImages(
+      this,
+      careerRegionAssets(this.careerId, this.regionId, captured)
+    );
+    showLoadingScreen(this, queued, t(this, "loading.region"));
   }
 
   create() {
