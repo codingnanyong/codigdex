@@ -18,6 +18,7 @@
     "@codigdex/game-content": "*",
     "@codigdex/game-core": "*",
     "@codigdex/game-i18n": "*",
+    "@codigdex/quiz-content": "*",
     "next": "16.3.4",
     "phaser": "^4.2.1",
     "react": "19.2.8",

@@ -10,10 +10,15 @@
   },
   "scripts": {
     "generate": "node scripts/generate-manifest.mjs",
+    "generate:guide": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/generate-evolution-guide.ps1",
+    "generate:normalized": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/prepare-common-monster-normalizations.ps1",
+    "generate:order-fixes": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/prepare-corrected-monster-order.ps1",
+    "generate:overflows": "node scripts/recover-sheet-overflows.mjs",
     "generate:portraits": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/prepare-monster-evolutions.ps1",
     "typecheck": "node scripts/generate-manifest.mjs --check && tsc --noEmit -p tsconfig.json"
   },
   "devDependencies": {
+    "sharp": "^0.35.4",
     "typescript": "^5"
   }
 }

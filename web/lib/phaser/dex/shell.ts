@@ -2,17 +2,9 @@ import type Phaser from "phaser";
 import { t } from "../i18n";
 import { PALETTE, PALETTE_HEX } from "../palette";
 import { pixelText } from "../pixelFont";
+import { DEX_PANEL, type DexScreen } from "./shellLayout";
 
-export const DEX_PANEL = { width: 780, height: 460, inset: 16 };
-
-export interface DexScreen {
-  left: number;
-  top: number;
-  width: number;
-  height: number;
-  centerX: number;
-  centerY: number;
-}
+export { DEX_FOOTER, DEX_PANEL, dexFooterLayout, type DexScreen } from "./shellLayout";
 
 /** The red handheld shell, its dark screen, and the title across the top. Returns the screen's bounds. */
 export function drawDexShell(scene: Phaser.Scene): DexScreen {

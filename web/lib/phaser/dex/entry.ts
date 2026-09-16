@@ -9,6 +9,37 @@ export interface DexEntry {
   planned: boolean;
 }
 
+/**
+ * Lets local development inspect every released card without mutating save
+ * data or unlocking gameplay progression.
+ */
+export function cardsForDexDisplay(
+  cards: readonly CapturedCard[],
+  revealAll: boolean,
+  now: () => string = () => new Date().toISOString()
+): readonly CapturedCard[] {
+  if (!revealAll) return cards;
+
+  const savedById = new Map(cards.map((card) => [card.id, card]));
+  const inspectedAt = now();
+  return DEX_CATALOG.flatMap((slot) => {
+    if (slot.kind !== "released") return [];
+    const monster = slot.monster;
+    return [
+      savedById.get(monster.id) ?? {
+        id: monster.id,
+        dexNumber: monster.dexNumber,
+        name: monster.name,
+        classification: monster.classification,
+        trait: monster.trait,
+        description: monster.description,
+        snippet: monster.snippet,
+        capturedAt: inspectedAt,
+      },
+    ];
+  });
+}
+
 export function buildDexEntries(cards: readonly CapturedCard[]): DexEntry[] {
   return DEX_CATALOG.map((slot) =>
     slot.kind === "released"

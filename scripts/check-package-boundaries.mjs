@@ -18,6 +18,10 @@ const packageRules = [
     directory: "packages/game-i18n/src",
     allowedWorkspaces: new Set(["@codigdex/game-core"]),
   },
+  {
+    directory: "packages/quiz-content/src",
+    allowedWorkspaces: new Set(["@codigdex/game-core", "@codigdex/game-content"]),
+  },
 ];
 
 const platformPackages = new Set(["next", "phaser", "react", "react-dom", "expo", "react-native"]);

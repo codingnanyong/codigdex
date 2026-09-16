@@ -4,10 +4,7 @@ import type { QuizQuestion } from "@codigdex/game-core/domain/chapters/types";
 /** A choice is either code that reads the same in every language, or a [Korean, English] pair. */
 export type ChoiceCopy = string | readonly [ko: string, en: string];
 
-/**
- * Authors one bilingual question compactly. Pools put the right answer first,
- * so `answerIndex` defaults to 0; drawQuizQuestions shuffles choices per draw.
- */
+/** Compact helper retained for the small inline tutorial pool. */
 export function question(
   prompt: readonly [ko: string, en: string],
   choices: readonly ChoiceCopy[],

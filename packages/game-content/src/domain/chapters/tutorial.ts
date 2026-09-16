@@ -1,4 +1,5 @@
 import { text } from "@codigdex/game-core/i18n/locale";
+import { quizPackIdFor } from "@codigdex/game-core/domain/dex/quiz";
 import { question } from "./quizzes/question";
 import type { ChapterDefinition } from "@codigdex/game-core/domain/chapters/types";
 
@@ -52,6 +53,7 @@ export const TUTORIAL_CHAPTER: ChapterDefinition = {
         "저 버그, 같은 경로를 계속 맴돌고 있어. for 반복문으로 정확히 5번만 물을 부어보자!",
         "That bug keeps running the same path. Use a for loop to pour water exactly 5 times!"
       ),
+      quizPackId: quizPackIdFor("tutorial", "infinite-loop-slime"),
       // A battle draws quizCountForLevel(level) of these at random, so a retry
       // asks a different set than the first attempt.
       quizPool: [
