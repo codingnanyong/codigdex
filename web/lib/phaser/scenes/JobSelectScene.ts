@@ -7,6 +7,7 @@ import {
 import { capturedIds } from "@codigdex/game-core/domain/dex/capture";
 import {
   canSelectPrimaryJob,
+  canSelectSecondaryJob,
   findJob,
   findSecondaryJob,
   findTertiaryJob,
@@ -121,7 +122,7 @@ export class JobSelectScene extends Phaser.Scene {
       this.registry.get(SECONDARY_JOB_REGISTRY_KEY) as string | null | undefined
     );
     this.selectedSecondaryJobId =
-      storedSecondaryJob && isSecondaryJobUnlocked(storedSecondaryJob, this.completedJobIds)
+      storedSecondaryJob && canSelectSecondaryJob(storedSecondaryJob, this.completedJobIds)
         ? storedSecondaryJob.id
         : undefined;
 
@@ -142,6 +143,10 @@ export class JobSelectScene extends Phaser.Scene {
         t(this, "path.requiresPaths", { names: requirements }),
         this.toast
       );
+      return;
+    }
+    if (!canSelectSecondaryJob(job, this.completedJobIds)) {
+      this.toast = showToast(this, t(this, "jobs.secondaryPreviewOnly"), this.toast);
       return;
     }
 

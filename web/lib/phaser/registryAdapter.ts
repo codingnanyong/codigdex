@@ -18,6 +18,7 @@ import {
   findTertiaryJob,
   JOB_REGISTRY_KEY,
   SECONDARY_JOB_REGISTRY_KEY,
+  SECONDARY_JOB_SELECTION_ENABLED,
   TERTIARY_JOB_REGISTRY_KEY,
 } from "@codigdex/game-content/domain/player/jobs";
 import { DEFAULT_LOCALE, detectLocale, isLocale, type Locale } from "@codigdex/game-core/i18n/locale";
@@ -197,17 +198,22 @@ export function activateCareerInRegistry(registry: Phaser.Data.DataManager, id: 
 /** Reconciles capture-based completion once, then lets lineage screens read career milestones. */
 export function reconcileCareerDexRegistry(registry: Phaser.Data.DataManager): CareerDexState {
   const captured = capturedIds(readDexState(registry));
+  const completedPrimaryJobs = completedCareerPathIds(captured);
   const primary = findJob(registry.get(JOB_REGISTRY_KEY) as string | undefined).id;
-  const secondary = findSecondaryJob(
-    registry.get(SECONDARY_JOB_REGISTRY_KEY) as string | null | undefined
-  )?.id;
-  const tertiary = findTertiaryJob(
-    registry.get(TERTIARY_JOB_REGISTRY_KEY) as string | null | undefined
-  )?.id;
+  const secondary = SECONDARY_JOB_SELECTION_ENABLED
+    ? findSecondaryJob(
+        registry.get(SECONDARY_JOB_REGISTRY_KEY) as string | null | undefined
+      )?.id
+    : undefined;
+  const tertiary = SECONDARY_JOB_SELECTION_ENABLED
+    ? findTertiaryJob(
+        registry.get(TERTIARY_JOB_REGISTRY_KEY) as string | null | undefined
+      )?.id
+    : undefined;
   const current = readCareerDexState(registry);
   const next = reconcileCareerDex(current, {
     commonPathComplete: isCommonPathComplete(captured),
-    completedPrimaryJobs: completedCareerPathIds(captured),
+    completedPrimaryJobs,
     completedSecondaryJobs: completedSecondaryJobIds(captured),
     activePrimaryJob: primary,
     activeSecondaryJob: secondary,

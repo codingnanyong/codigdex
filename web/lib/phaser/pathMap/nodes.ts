@@ -120,6 +120,7 @@ export function drawSecondaryCareerNode(
     name: string;
     unlocked: boolean;
     selected: boolean;
+    selectable?: boolean;
     onSelect: () => void;
     /** Defaults to the tier-two label. */
     tierLabel?: string;
@@ -154,12 +155,14 @@ export function drawSecondaryCareerNode(
     .setOrigin(0.5);
   fitTextInside(label, width - 10, 22);
   const card = scene.add.container(x, y, [panel, eyebrow, label]);
-  makePressable(
-    card,
-    new Phaser.Geom.Rectangle(-width / 2, -height / 2, width, height),
-    1.035,
-    options.onSelect
-  );
+  if (options.selectable !== false) {
+    makePressable(
+      card,
+      new Phaser.Geom.Rectangle(-width / 2, -height / 2, width, height),
+      1.035,
+      options.onSelect
+    );
+  }
   return card;
 }
 
