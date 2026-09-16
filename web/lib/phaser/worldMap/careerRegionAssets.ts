@@ -8,27 +8,27 @@ import {
   careerPathFor,
 } from "./careerPaths";
 
-/** The smallest useful bundle for opening one career region. */
+/**
+ * Assets for one career region.
+ *
+ * All five checkpoint monsters are cached on the first visit. Their files are
+ * small, and doing this once prevents the region loading screen from appearing
+ * again after every successful level 1-4 battle.
+ */
 export function careerRegionAssets(
   careerId: JobId,
-  regionId: string,
-  captured: ReadonlySet<string>
+  regionId: string
 ): readonly ImageAsset[] {
   const path = careerPathFor(careerId);
   const job = findJob(careerId);
   const region = path.regions.find((candidate) => candidate.id === regionId) ?? path.regions[0];
   const monsters = monstersForCareerRegion(region.id);
-  const firstUncaptured = monsters.findIndex((monster) => !captured.has(monster.id));
-  const activeIndex = firstUncaptured === -1 ? monsters.length - 1 : firstUncaptured;
-  const visibleMonsters = monsters.filter(
-    (monster, index) => captured.has(monster.id) || index === activeIndex
-  );
   const assets: ImageAsset[] = [
     {
       key: careerChapterWallpaperTextureKey(path, region),
       url: assetUrl(careerChapterWallpaperAssetKey(path, region)),
     },
-    ...visibleMonsters.map((monster) => ({
+    ...monsters.map((monster) => ({
       key: monster.textureKey,
       url: assetUrl(monster.assetKey),
     })),

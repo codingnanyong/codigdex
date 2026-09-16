@@ -15,6 +15,8 @@ import { lt, sceneLocale, t } from "../i18n";
 import { readDexState, reconcileCareerDexRegistry, writeDexState } from "../registryAdapter";
 import { addShade, applyPixelFontToScene } from "../ui";
 import { didUnlockPrimaryJobSelection } from "../worldMap/progression";
+import { findJob, JOB_REGISTRY_KEY } from "@codigdex/game-content/domain/player/jobs";
+import { careerPathFor, isCareerPathComplete } from "../worldMap/careerPaths";
 
 export interface CaptureResultData {
   monsterId: string;
@@ -58,17 +60,33 @@ export class CaptureQuizScene extends Phaser.Scene {
 
   private showCaptured() {
     const { chapter, monster } = this;
-    const isNewEntry = this.registerCapture();
+    const { isNewEntry, beforeCaptured, afterCaptured } = this.registerCapture();
+    const selectedJob = findJob(this.registry.get(JOB_REGISTRY_KEY) as string | undefined);
+    const careerCleared =
+      selectedJob.id !== "junior" &&
+      !isCareerPathComplete(careerPathFor(selectedJob.id), beforeCaptured) &&
+      isCareerPathComplete(careerPathFor(selectedJob.id), afterCaptured);
     const unlock = describeUnlock(monster.id, sceneLocale(this));
-    const flow = resolveCaptureSuccessFlow(monster.id, isNewEntry, this.nextTarget);
+    const flow = resolveCaptureSuccessFlow(
+      monster.id,
+      isNewEntry,
+      this.nextTarget,
+      careerCleared
+    );
     this.nextTarget = flow.target;
 
     showCapturedPanel(this, {
       monster,
-      title: flow.regionCleared
-        ? t(this, "capture.regionCleared", { region: lt(this, chapter.name) })
-        : undefined,
-      confirmLabel: flow.regionCleared ? t(this, "capture.returnToMap") : undefined,
+      title: flow.careerCleared
+        ? t(this, "capture.careerCleared", { career: lt(this, selectedJob.name) })
+        : flow.regionCleared
+          ? t(this, "capture.regionCleared", { region: lt(this, chapter.name) })
+          : undefined,
+      confirmLabel: flow.careerCleared
+        ? t(this, "capture.chooseCareer")
+        : flow.regionCleared
+          ? t(this, "capture.returnToMap")
+          : undefined,
       npcLine: `${lt(this, chapter.npcName)}: ${lt(this, chapter.successLine)}`,
       isNewEntry,
       unlockNotice: isNewEntry ? unlock.notice : undefined,
@@ -94,15 +112,17 @@ export class CaptureQuizScene extends Phaser.Scene {
     });
   }
 
-  /** Returns whether this was the monster's first capture. */
-  private registerCapture(): boolean {
+  /** Registers the card and exposes the capture transition for milestone checks. */
+  private registerCapture() {
     const before = readDexState(this.registry);
     const after = applyCapture(before, this.monster);
-    if (didUnlockPrimaryJobSelection(capturedIds(before), capturedIds(after))) {
+    const beforeCaptured = capturedIds(before);
+    const afterCaptured = capturedIds(after);
+    if (didUnlockPrimaryJobSelection(beforeCaptured, afterCaptured)) {
       this.nextTarget = { scene: "job-select" };
     }
     writeDexState(this.registry, after);
     reconcileCareerDexRegistry(this.registry);
-    return after !== before;
+    return { isNewEntry: after !== before, beforeCaptured, afterCaptured };
   }
 }

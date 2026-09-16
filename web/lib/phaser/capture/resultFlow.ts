@@ -7,18 +7,25 @@ export type CaptureReturnTarget = {
 
 export interface CaptureSuccessFlow {
   regionCleared: boolean;
+  careerCleared: boolean;
   target: CaptureReturnTarget;
 }
 
-/** A newly completed career region exits to its atlas; retries and replays keep their requested return. */
+/** Career completion takes priority; otherwise a cleared region exits to its atlas. */
 export function resolveCaptureSuccessFlow(
   monsterId: string,
   isNewEntry: boolean,
-  fallback: CaptureReturnTarget
+  fallback: CaptureReturnTarget,
+  careerCleared = false
 ): CaptureSuccessFlow {
   const regionCleared = isNewEntry && unlockAfter(monsterId).kind === "career-region-complete";
   return {
     regionCleared,
-    target: regionCleared ? { scene: "world-map" } : fallback,
+    careerCleared,
+    target: careerCleared
+      ? { scene: "job-select" }
+      : regionCleared
+        ? { scene: "world-map" }
+        : fallback,
   };
 }

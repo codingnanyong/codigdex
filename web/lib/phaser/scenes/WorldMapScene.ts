@@ -211,7 +211,7 @@ export class WorldMapScene extends Phaser.Scene {
   private prefetchCareerRegion(careerId: JobId, regionId: string) {
     const queued = queueImages(
       this,
-      careerRegionAssets(careerId, regionId, this.captured)
+      careerRegionAssets(careerId, regionId)
     );
     if (queued > 0 && !this.load.isLoading()) this.load.start();
   }

@@ -165,7 +165,7 @@ function drawRegion(
   onSelect: (region: CareerRegion) => void
 ) {
   const { width, height } = scene.scale;
-  const { landmark, lift } = region;
+  const { lift } = region;
   const terrainTextureKey = careerTerrainTextureKey(path, region);
   const labelCenter = { x: lift.x, y: lift.y };
   let shadow: Phaser.GameObjects.Image | undefined;
@@ -244,7 +244,10 @@ function drawRegion(
 
   if (status === "locked") {
     const lock = drawPixelChainLock(scene, labelCenter.x, labelCenter.y);
-    const scale = Phaser.Math.Clamp(Math.min(landmark.width / 150, landmark.height / 110), 0.78, 1.12);
+    // The lock marks the destination without covering the illustrated object.
+    // Its position comes from the real terrain asset bounds, not the old route
+    // disc coordinates.
+    const scale = Phaser.Math.Clamp(Math.min(lift.width / 300, lift.height / 250), 0.62, 0.82);
     lock.setScale(scale);
   }
 
