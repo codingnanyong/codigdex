@@ -90,6 +90,18 @@ describe("career dex progression", () => {
     expect(careerStatus(secondaryMastered, "software-architect")).toBe("unlocked");
   });
 
+  it("reveals tier-two careers without recording them as selected", () => {
+    const unlocked = reconcileCareerDex(
+      EMPTY_CAREER_DEX_STATE,
+      progress(new Set(["frontend", "backend"])),
+      fixedNow
+    );
+    const attempted = selectCareer(unlocked, "fullstack-engineer", fixedNow);
+
+    expect(careerStatus(attempted, "fullstack-engineer")).toBe("unlocked");
+    expect(careerRecord(attempted, "fullstack-engineer")?.selectedAt).toBeUndefined();
+  });
+
   it("keeps earned milestones when a later reconciliation has fewer inputs", () => {
     const mastered = reconcileCareerDex(
       EMPTY_CAREER_DEX_STATE,

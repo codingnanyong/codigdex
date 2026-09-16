@@ -13,6 +13,7 @@ import {
 import type { ChapterId } from "@codigdex/game-core/domain/chapters/types";
 import { capturedIds } from "@codigdex/game-core/domain/dex/capture";
 import {
+  canSelectSecondaryJob,
   findJob,
   findSecondaryJob,
   findTertiaryJob,
@@ -107,7 +108,7 @@ export class PathMapScene extends Phaser.Scene {
       this.registry.get(SECONDARY_JOB_REGISTRY_KEY) as string | null | undefined
     );
     this.selectedSecondaryJobId =
-      storedSecondaryJob && isSecondaryJobUnlocked(storedSecondaryJob, this.completedCareerIds)
+      storedSecondaryJob && canSelectSecondaryJob(storedSecondaryJob, this.completedCareerIds)
         ? storedSecondaryJob.id
         : undefined;
     const storedTertiaryJob = findTertiaryJob(
@@ -196,6 +197,7 @@ export class PathMapScene extends Phaser.Scene {
         name: lt(this, candidate.name),
         unlocked,
         selected: this.selectedSecondaryJobId === candidate.id,
+        selectable: !unlocked || canSelectSecondaryJob(candidate, this.completedCareerIds),
         onSelect: () => this.onSecondaryCareerSelected(candidate),
       });
     });
@@ -230,6 +232,10 @@ export class PathMapScene extends Phaser.Scene {
     if (!isSecondaryJobUnlocked(job, this.completedCareerIds)) {
       const requirements = job.requires.map((jobId) => lt(this, findJob(jobId).name)).join(" + ");
       this.notify(t(this, "path.requiresPaths", { names: requirements }));
+      return;
+    }
+    if (!canSelectSecondaryJob(job, this.completedCareerIds)) {
+      this.notify(t(this, "jobs.secondaryPreviewOnly"));
       return;
     }
 

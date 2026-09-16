@@ -4,6 +4,7 @@ import {
   guideDisplayName,
   JOB_OPTIONS,
   SECONDARY_JOB_OPTIONS,
+  SECONDARY_JOB_SELECTION_ENABLED,
   TERTIARY_JOB_OPTIONS,
   type JobId,
   type SecondaryJobId,
@@ -107,7 +108,12 @@ export function normalizeCareerDexState(state: CareerDexState): CareerDexState {
   const byId = new Map<CareerId, CareerDexRecord>();
   state.careers.forEach((record) => {
     if (!isCareerId(record.id) || byId.has(record.id)) return;
-    byId.set(record.id, { ...record });
+    const tier = CAREER_CATALOG.find(({ id }) => id === record.id)?.tier;
+    const normalized =
+      !SECONDARY_JOB_SELECTION_ENABLED && tier !== undefined && tier >= 2
+        ? { ...record, selectedAt: undefined }
+        : { ...record };
+    byId.set(record.id, normalized);
   });
   return { careers: CAREER_CATALOG.flatMap(({ id }) => (byId.has(id) ? [byId.get(id)!] : [])) };
 }
@@ -131,6 +137,10 @@ export function selectCareer(
   now: () => string = () => new Date().toISOString()
 ): CareerDexState {
   const unlocked = unlockCareer(state, id, now);
+  const tier = CAREER_CATALOG.find((career) => career.id === id)?.tier;
+  if (!SECONDARY_JOB_SELECTION_ENABLED && tier !== undefined && tier >= 2) {
+    return unlocked;
+  }
   const existing = careerRecord(unlocked, id)!;
   if (existing.selectedAt) return unlocked;
   return {

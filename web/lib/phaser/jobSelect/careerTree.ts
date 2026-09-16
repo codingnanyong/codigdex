@@ -1,6 +1,7 @@
 import Phaser from "phaser";
 import {
   canSelectPrimaryJob,
+  canSelectSecondaryJob,
   findJob,
   isSecondaryJobUnlocked,
   isTertiaryJobUnlocked,
@@ -66,6 +67,7 @@ export function drawCareerTree(
       name: unlocked ? lt(scene, job.name) : "◆  ???",
       selected: state.selectedSecondaryJobId === job.id,
       unlocked,
+      selectable: !unlocked || canSelectSecondaryJob(job, state.completedJobIds),
       onSelect: () => actions.onSecondaryJob(job),
     });
   });
@@ -198,6 +200,7 @@ type AdvancedJobCardOptions = {
   name: string;
   selected: boolean;
   unlocked: boolean;
+  selectable?: boolean;
   onSelect: () => void;
 };
 
@@ -231,7 +234,9 @@ function drawAdvancedJob(scene: Phaser.Scene, options: AdvancedJobCardOptions) {
       })
       .setOrigin(0.5);
   }
-  addHitArea(scene, x, y, width, 52, frame, onSelect, 0.78);
+  if (options.selectable !== false) {
+    addHitArea(scene, x, y, width, 52, frame, onSelect, 0.78);
+  }
 }
 
 function addHitArea(
