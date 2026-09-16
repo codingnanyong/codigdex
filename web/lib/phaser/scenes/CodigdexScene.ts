@@ -10,6 +10,7 @@ import {
   findTertiaryJob,
   JOB_REGISTRY_KEY,
   SECONDARY_JOB_REGISTRY_KEY,
+  SECONDARY_JOB_SELECTION_ENABLED,
   TERTIARY_JOB_REGISTRY_KEY,
 } from "@codigdex/game-content/domain/player/jobs";
 import { assetUrl } from "../../assets";
@@ -159,8 +160,8 @@ export class CodigdexScene extends Phaser.Scene {
     const tertiary = findTertiaryJob(
       this.registry.get(TERTIARY_JOB_REGISTRY_KEY) as string | null | undefined
     );
-    if (secondary) activeIds.add(secondary.id);
-    if (tertiary) activeIds.add(tertiary.id);
+    if (SECONDARY_JOB_SELECTION_ENABLED && secondary) activeIds.add(secondary.id);
+    if (SECONDARY_JOB_SELECTION_ENABLED && tertiary) activeIds.add(tertiary.id);
 
     this.careerPanel = new CareerPanel(
       this,

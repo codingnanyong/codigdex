@@ -9,6 +9,7 @@ import {
 } from "@/lib/phaser/worldMap/careerPaths";
 import {
   canSelectPrimaryJob,
+  canSelectSecondaryJob,
   completedSecondaryJobIds,
   isTertiaryJobUnlocked,
   isSecondaryJobUnlocked,
@@ -148,6 +149,14 @@ describe("primary job changes", () => {
     const completed = new Set<JobId>(["frontend", "backend"]);
     expect(isSecondaryJobUnlocked(SECONDARY_JOB_OPTIONS[0], completed)).toBe(true);
     expect(isSecondaryJobUnlocked(SECONDARY_JOB_OPTIONS[1], completed)).toBe(false);
+  });
+
+  it("reveals eligible tier-two jobs without allowing selection before release", () => {
+    const completed = new Set<JobId>(["frontend", "backend"]);
+    const fullstack = SECONDARY_JOB_OPTIONS[0];
+
+    expect(isSecondaryJobUnlocked(fullstack, completed)).toBe(true);
+    expect(canSelectSecondaryJob(fullstack, completed)).toBe(false);
   });
 
   it("maps each tier-two job to one tier-three mastery path", () => {

@@ -240,6 +240,8 @@ export function guideDisplayName(job: Pick<JobOption, "guideTitle" | "guideName"
 export const JOB_REGISTRY_KEY = "selectedJob";
 export const SECONDARY_JOB_REGISTRY_KEY = "selectedSecondaryJob";
 export const TERTIARY_JOB_REGISTRY_KEY = "selectedTertiaryJob";
+/** Tier-two identities can be revealed, but their playable content is not released yet. */
+export const SECONDARY_JOB_SELECTION_ENABLED = false;
 
 export function findJob(id: string | undefined): JobOption {
   if (!id) return DEFAULT_JOB;
@@ -258,6 +260,14 @@ export function isSecondaryJobUnlocked(
   completedPrimaryJobs: ReadonlySet<JobId>
 ): boolean {
   return job.requires.every((jobId) => completedPrimaryJobs.has(jobId));
+}
+
+/** Separates revealing a tier-two identity from allowing the player to equip it. */
+export function canSelectSecondaryJob(
+  job: SecondaryJobOption,
+  completedPrimaryJobs: ReadonlySet<JobId>
+): boolean {
+  return SECONDARY_JOB_SELECTION_ENABLED && isSecondaryJobUnlocked(job, completedPrimaryJobs);
 }
 
 export function completedSecondaryJobIds(
