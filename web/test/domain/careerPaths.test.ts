@@ -92,6 +92,20 @@ describe("career paths", () => {
     expect(python!.lift.x).toBeGreaterThan(700);
     expect(python!.lift.y).toBeGreaterThan(350);
   });
+
+  it("aligns terrain interaction and travel positions with finalized map objects", () => {
+    const backendNetwork = CAREER_PATHS.backend.regions.find(({ id }) => id === "network");
+    const devopsCloud = CAREER_PATHS.devops.regions.find(({ id }) => id === "cloud-iac");
+    const dataEngineerDocker = CAREER_PATHS["data-engineer"].regions.find(
+      ({ id }) => id === "docker"
+    );
+
+    expect(backendNetwork?.lift).toMatchObject({ x: 498, y: 391 });
+    expect(backendNetwork?.x).toBeLessThan(550);
+    expect(backendNetwork?.y).toBeGreaterThan(350);
+    expect(devopsCloud?.lift).toMatchObject({ x: 737, y: 165.5 });
+    expect(dataEngineerDocker?.lift).toMatchObject({ x: 613.5, y: 166.5 });
+  });
 });
 
 describe("primary job changes", () => {
