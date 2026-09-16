@@ -41,6 +41,10 @@ import { drawPathNode, drawPromotionNode, drawSecondaryCareerNode } from "../pat
 import { StagePanel } from "../pathMap/stagePanel";
 import { drawHeader, drawMapSurface, drawSectionLabels } from "../pathMap/surface";
 import {
+  pathMapReturnTarget,
+  type PathMapReturnTarget,
+} from "../pathMap/returnTarget";
+import {
   activateCareerInRegistry,
   readDexState,
   reconcileCareerDexRegistry,
@@ -52,6 +56,8 @@ export interface PathMapData {
   focusChapterId?: ChapterId;
   /** Career chosen immediately before opening this route. */
   careerId?: JobId;
+  /** Restores the screen that opened this route view. */
+  returnTo?: PathMapReturnTarget;
 }
 
 /** The junior path: common chapters, the promotion diamond, and the career branches. */
@@ -67,6 +73,7 @@ export class PathMapScene extends Phaser.Scene {
   private selectedTertiaryJobId?: string;
   private stagePanelLoading = false;
   private viewGeneration = 0;
+  private returnTarget: PathMapReturnTarget = { scene: "world-map" };
 
   constructor() {
     super("path-map");
@@ -74,6 +81,7 @@ export class PathMapScene extends Phaser.Scene {
 
   init(data?: PathMapData) {
     this.focusChapterId = data?.focusChapterId;
+    this.returnTarget = pathMapReturnTarget(data?.returnTo);
     const requested = data?.careerId ?? (this.registry.get(JOB_REGISTRY_KEY) as string | undefined);
     const job = findJob(requested);
     this.selectedCareerId = job.id === "junior" ? undefined : (job.id as JobId);
@@ -146,7 +154,9 @@ export class PathMapScene extends Phaser.Scene {
 
     if (this.selectedCareerId) this.drawAdvancedCareerPaths(this.selectedCareerId);
 
-    createButton(this, width / 2, height - 27, 140, 32, t(this, "common.back"), () => this.scene.start("world-map"));
+    createButton(this, width / 2, height - 27, 140, 32, t(this, "common.back"), () =>
+      this.returnFromPathMap()
+    );
     createButton(this, 92, height - 27, 140, 32, t(this, "path.changeCareer"), () => this.scene.start("job-select"));
     createHomeButton(this).setDepth(30);
     createSettingsButton(this).setDepth(30);
@@ -228,7 +238,7 @@ export class PathMapScene extends Phaser.Scene {
     }
     activateCareerInRegistry(this.registry, job.id);
     this.registry.set(SECONDARY_JOB_REGISTRY_KEY, job.id);
-    this.scene.restart({ careerId: this.selectedCareerId });
+    this.scene.restart({ careerId: this.selectedCareerId, returnTo: this.returnTarget });
   }
 
   private onTertiaryCareerSelected(job: TertiaryJobOption) {
@@ -240,7 +250,7 @@ export class PathMapScene extends Phaser.Scene {
 
     activateCareerInRegistry(this.registry, job.id);
     this.registry.set(TERTIARY_JOB_REGISTRY_KEY, job.id);
-    this.scene.restart({ careerId: this.selectedCareerId });
+    this.scene.restart({ careerId: this.selectedCareerId, returnTo: this.returnTarget });
   }
 
   private statusOf(node: PathNode): ChapterStatus {
@@ -327,6 +337,14 @@ export class PathMapScene extends Phaser.Scene {
 
   private notify(message: string) {
     this.toast = showToast(this, message, this.toast);
+  }
+
+  private returnFromPathMap() {
+    if (this.returnTarget.scene === "career-region") {
+      this.scene.start("career-region", this.returnTarget.data);
+      return;
+    }
+    this.scene.start("world-map");
   }
 
   private openCodigdex() {
