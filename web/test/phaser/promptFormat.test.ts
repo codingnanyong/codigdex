@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { CHAPTERS } from "@codigdex/game-content/domain/chapters";
 import { LOCALES } from "@codigdex/game-core/i18n/locale";
 import { formatPrompt } from "@/lib/phaser/battle/promptFormat";
+import { loadQuizPack } from "@codigdex/quiz-content/loader";
 
 describe("formatPrompt", () => {
   it("leaves a plain question alone", () => {
@@ -19,11 +20,12 @@ describe("formatPrompt", () => {
     });
   });
 
-  it("never leaves a backtick in any chapter's quiz prompt, in either language", () => {
-    const prompts = CHAPTERS.flatMap((chapter) =>
-      chapter.stages.flatMap((stage) =>
-        stage.quizPool.flatMap((question) => LOCALES.map((locale) => question.prompt[locale]))
-      )
+  it("never leaves a backtick in any chapter's quiz prompt, in either language", async () => {
+    const packs = await Promise.all(
+      CHAPTERS.flatMap((chapter) => chapter.stages.map((stage) => loadQuizPack(stage.quizPackId)))
+    );
+    const prompts = packs.flatMap((pack) =>
+      pack.questions.flatMap((question) => LOCALES.map((locale) => question.prompt[locale]))
     );
     expect(prompts.length).toBeGreaterThan(400);
     for (const prompt of prompts) {

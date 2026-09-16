@@ -16,10 +16,15 @@ import { assetUrl } from "../../assets";
 import { CareerPanel } from "../dex/careerPanel";
 import { DetailCard } from "../dex/detailCard";
 import { t } from "../i18n";
-import { buildDexEntries, initialDexMonsters, type DexEntry } from "../dex/entry";
+import {
+  buildDexEntries,
+  cardsForDexDisplay,
+  initialDexMonsters,
+  type DexEntry,
+} from "../dex/entry";
 import { EntryList } from "../dex/entryList";
 import { PreviewPane } from "../dex/previewPane";
-import { DEX_PANEL, drawDexShell } from "../dex/shell";
+import { DEX_FOOTER, dexFooterLayout, drawDexShell } from "../dex/shell";
 import { preloadMonsterArt } from "../monsterArt";
 import { createHomeButton } from "../navigation";
 import { readDexState, reconcileCareerDexRegistry } from "../registryAdapter";
@@ -59,7 +64,9 @@ export class CodigdexScene extends Phaser.Scene {
     // Load only the initially selected card. Other captured art is fetched on
     // demand as the cursor reaches it, so a mature save with 100+ cards opens
     // just as quickly as a new save.
-    this.entries = buildDexEntries(readDexState(this.registry).cards);
+    const savedCards = readDexState(this.registry).cards;
+    const displayCards = cardsForDexDisplay(savedCards, process.env.NODE_ENV === "development");
+    this.entries = buildDexEntries(displayCards);
     this.selectedIndex = Math.max(0, this.entries.findIndex((entry) => entry.card));
     preloadMonsterArt(this, initialDexMonsters(this.entries, this.selectedIndex));
   }
@@ -75,6 +82,7 @@ export class CodigdexScene extends Phaser.Scene {
     addShade(this, 1);
     const screen = drawDexShell(this);
     const bodyTop = screen.top + 52;
+    const footer = dexFooterLayout(screen);
 
     this.detail = new DetailCard(this);
     this.preview = new PreviewPane(this, screen.left + 16 + PREVIEW_COLUMN / 2, bodyTop);
@@ -91,18 +99,18 @@ export class CodigdexScene extends Phaser.Scene {
     createButton(
       this,
       screen.centerX + 66,
-      screen.centerY + DEX_PANEL.height / 2 - DEX_PANEL.inset - 14,
+      footer.buttonY,
       100,
-      30,
+      DEX_FOOTER.buttonHeight,
       t(this, "common.close"),
       () => this.close()
     );
     createButton(
       this,
       screen.centerX - 66,
-      screen.centerY + DEX_PANEL.height / 2 - DEX_PANEL.inset - 14,
+      footer.buttonY,
       120,
-      30,
+      DEX_FOOTER.buttonHeight,
       t(this, "dex.lineage"),
       () => this.openCareerLineage()
     );
@@ -113,13 +121,17 @@ export class CodigdexScene extends Phaser.Scene {
       this.careerPanel = undefined;
     }).setDepth(20);
     createButton(this, screen.left + 152, screen.top + 22, 88, 28, t(this, "dex.tabCareers"), () => {
-      this.showCareerPanel(screen, bodyTop);
+      this.showCareerPanel(screen, bodyTop, footer.contentBottom);
     }).setDepth(20);
 
     applyPixelFontToScene(this);
   }
 
-  private showCareerPanel(screen: ReturnType<typeof drawDexShell>, bodyTop: number) {
+  private showCareerPanel(
+    screen: ReturnType<typeof drawDexShell>,
+    bodyTop: number,
+    contentBottom: number
+  ) {
     const missingEmblems = CAREER_CATALOG.filter(
       (career) => !this.textures.exists(careerEmblemTextureKey(career.id))
     );
@@ -131,7 +143,7 @@ export class CodigdexScene extends Phaser.Scene {
       );
       this.load.once(Phaser.Loader.Events.COMPLETE, () => {
         this.careerAssetsLoading = false;
-        if (this.sys.isActive()) this.showCareerPanel(screen, bodyTop);
+        if (this.sys.isActive()) this.showCareerPanel(screen, bodyTop, contentBottom);
       });
       this.load.start();
       return;
@@ -156,7 +168,7 @@ export class CodigdexScene extends Phaser.Scene {
         left: screen.left + 8,
         right: screen.left + screen.width - 8,
         top: bodyTop - 6,
-        bottom: screen.top + screen.height - 48,
+        bottom: contentBottom,
       },
       state,
       activeIds

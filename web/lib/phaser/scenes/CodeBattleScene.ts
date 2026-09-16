@@ -7,6 +7,7 @@ import {
   shouldContinueBattle,
 } from "@codigdex/game-core/domain/dex/capture";
 import { drawQuizQuestions, quizCountForLevel } from "@codigdex/game-core/domain/dex/quiz";
+import { loadQuizPack } from "@codigdex/quiz-content/loader";
 import { assetUrl } from "../../assets";
 import { playAmbience } from "../ambience";
 import { AnswerGrid } from "../battle/answerGrid";
@@ -17,6 +18,7 @@ import { Opponent } from "../battle/opponent";
 import { StatusPanel } from "../battle/statusPanel";
 import { preloadMonsterArt } from "../monsterArt";
 import { createHomeButton } from "../navigation";
+import { pixelText } from "../pixelFont";
 import { applyPixelFontToScene } from "../ui";
 
 export interface CodeBattleData {
@@ -39,6 +41,7 @@ export class CodeBattleScene extends Phaser.Scene {
   private answers!: AnswerGrid;
   private returnTo?: CodeBattleData["returnTo"];
   private battleArena?: ChapterDefinition["arena"];
+  private loadGeneration = 0;
 
   constructor() {
     super("code-battle");
@@ -48,12 +51,13 @@ export class CodeBattleScene extends Phaser.Scene {
     const { chapter, monster } = findStage(data.monsterId);
     this.chapter = chapter;
     this.monster = monster;
-    this.questions = drawQuizQuestions(monster.quizPool, quizCountForLevel(monster.level));
+    this.questions = [];
     this.returnTo = data.returnTo;
     this.battleArena = data.arena ?? chapter.arena;
     this.questionIndex = 0;
     this.correctCount = 0;
     this.locked = false;
+    this.loadGeneration += 1;
   }
 
   preload() {
@@ -63,7 +67,6 @@ export class CodeBattleScene extends Phaser.Scene {
 
   create() {
     const { width, height } = this.scale;
-    const { npcName } = this.chapter;
     const arena = this.battleArena;
 
     // Backdrop and its ambience go in first so every battle panel draws on top.
@@ -72,12 +75,37 @@ export class CodeBattleScene extends Phaser.Scene {
       if (arena.ambience) playAmbience(this, arena.ambience);
     }
 
+    createHomeButton(this).setDepth(30);
+    const loading = this.add
+      .text(width / 2, height / 2, t(this, "battle.loadingQuiz"), {
+        ...pixelText("body"),
+        color: "#f1e4cb",
+      })
+      .setOrigin(0.5);
+    applyPixelFontToScene(this);
+    void this.createBattleUi(this.loadGeneration, loading);
+  }
+
+  private async createBattleUi(generation: number, loading: Phaser.GameObjects.Text) {
+    try {
+      const pack = await loadQuizPack(this.monster.quizPackId);
+      if (!this.sys.isActive() || generation !== this.loadGeneration) return;
+      this.questions = drawQuizQuestions(pack.questions, quizCountForLevel(this.monster.level));
+      loading.destroy();
+    } catch (error) {
+      console.error(`[CodeBattleScene] failed to load ${this.monster.quizPackId}`, error);
+      if (!this.sys.isActive() || generation !== this.loadGeneration) return;
+      loading.setText(t(this, "battle.quizLoadFailed"));
+      return;
+    }
+
+    const { npcName } = this.chapter;
+
     drawNpcBanner(this, `${lt(this, npcName)}: ${lt(this, this.monster.preBattleLine)}`);
     this.status = new StatusPanel(this, this.monster);
     this.opponent = new Opponent(this, this.monster);
     this.message = new MessagePanel(this);
     this.answers = new AnswerGrid(this);
-    createHomeButton(this).setDepth(30);
 
     this.showQuestion();
     applyPixelFontToScene(this);

@@ -1,0 +1,22 @@
+{
+  "name": "@codigdex/quiz-content",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./loader": "./src/loader.ts",
+    "./manifest": "./src/manifest.ts",
+    "./validation": "./src/validation.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@codigdex/game-content": "*",
+    "@codigdex/game-core": "*"
+  },
+  "devDependencies": {
+    "typescript": "^5"
+  }
+}

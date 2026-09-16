@@ -40,7 +40,10 @@ export interface MonsterDefinition {
   briefing: LocalizedText;
   /** Banner line across the top of this monster's battle. */
   preBattleLine: LocalizedText;
-  quizPool: readonly QuizQuestion[];
+  /** Versioned content-pack identifier resolved when the battle starts. */
+  quizPackId: string;
+  /** @deprecated Transitional inline source; new content belongs in @codigdex/quiz-content. */
+  quizPool?: readonly QuizQuestion[];
 }
 
 export interface ChapterDefinition {

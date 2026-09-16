@@ -1,5 +1,10 @@
 type Rng = () => number;
 
+/** Stable convention shared by monster metadata and the quiz-content manifest. */
+export function quizPackIdFor(chapterId: string, monsterId: string, version = 1): string {
+  return `${chapterId}.${monsterId}.v${version}`;
+}
+
 /** Lv.1 asks 3 questions and each level adds one more. */
 export function quizCountForLevel(level: number): number {
   return Math.max(1, Math.floor(level) + 2);

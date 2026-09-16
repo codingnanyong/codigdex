@@ -4,6 +4,7 @@ import { createRequire } from "node:module";
 import { describe, expect, it } from "vitest";
 import { ASSET_KEYS, isAssetKey } from "@codigdex/game-assets/manifest";
 import { CHAPTERS } from "@codigdex/game-content/domain/chapters";
+import { CAREER_REGION_MONSTERS } from "@codigdex/game-content/domain/careerRegionMonsters";
 import { CAREER_EMBLEMS } from "@codigdex/game-content/domain/careerDex";
 import { TECHNOLOGY_SPECIMENS } from "@codigdex/game-content/domain/technologySpecimens";
 import {
@@ -85,9 +86,9 @@ describe("referenced art", () => {
   });
 
   it("keeps career monster portraits tightly normalized for dex rendering", () => {
-    const portraits = ASSET_KEYS.filter((key) =>
-      /^monsters\/ch(?:0[3-9]|1\d|2[0-2])\..+-lv[1-5]\.png$/.test(key)
-    );
+    const portraits = Object.values(CAREER_REGION_MONSTERS)
+      .flat()
+      .map((monster) => monster.assetKey);
 
     expect(portraits).toHaveLength(100);
     portraits.forEach((assetKey) => {

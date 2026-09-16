@@ -14,6 +14,9 @@ const MISSED_PANEL = { width: 560, height: 240 };
 export interface CapturedPanelOptions {
   monster: MonsterDefinition;
   npcLine: string;
+  /** Overrides the ordinary card-registration title for milestone screens. */
+  title?: string;
+  confirmLabel?: string;
   /** False on a replay: the title says so and nothing new is announced. */
   isNewEntry: boolean;
   unlockNotice?: string;
@@ -30,7 +33,7 @@ export function showCapturedPanel(scene: Phaser.Scene, options: CapturedPanelOpt
   // can be sized to whatever this monster's copy needs, then shift it into place.
   let cursor = 0;
   const title = scene.add
-    .text(0, cursor, t(scene, options.isNewEntry ? "capture.registered" : "capture.reviewed", { name: lt(scene, monster.name) }), {
+    .text(0, cursor, options.title ?? t(scene, options.isNewEntry ? "capture.registered" : "capture.reviewed", { name: lt(scene, monster.name) }), {
       ...pixelText("subtitle"),
       color: PALETTE_HEX.ink,
       align: "center",
@@ -89,7 +92,15 @@ export function showCapturedPanel(scene: Phaser.Scene, options: CapturedPanelOpt
   });
 
   const frame = drawOrnateFrame(scene, 0, 0, CAPTURED_PANEL.width, panelHeight);
-  const confirm = createButton(scene, 0, panelHeight / 2 - 32, 120, 34, t(scene, "common.confirm"), options.onConfirm);
+  const confirm = createButton(
+    scene,
+    0,
+    panelHeight / 2 - 32,
+    options.confirmLabel ? 180 : 120,
+    34,
+    options.confirmLabel ?? t(scene, "common.confirm"),
+    options.onConfirm
+  );
 
   const panel = scene.add
     .container(width / 2, height / 2, [frame, ...content, confirm])

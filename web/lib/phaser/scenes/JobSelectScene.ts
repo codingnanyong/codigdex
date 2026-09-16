@@ -25,6 +25,7 @@ import {
 import { assetUrl } from "../../assets";
 import { lt, t } from "../i18n";
 import { drawCareerTree } from "../jobSelect/careerTree";
+import { revealedTertiaryRequirement } from "../jobSelect/careerVisibility";
 import { createPromotionDialog } from "../jobSelect/promotionDialog";
 import { createHomeButton } from "../navigation";
 import { PALETTE, PALETTE_HEX } from "../palette";
@@ -158,7 +159,7 @@ export class JobSelectScene extends Phaser.Scene {
 
   private selectTertiaryJob(job: TertiaryJobOption) {
     if (!isTertiaryJobUnlocked(job, this.completedSecondaryJobIds)) {
-      const required = findSecondaryJob(job.requires);
+      const required = revealedTertiaryRequirement(job, this.completedJobIds);
       this.toast = showToast(
         this,
         t(this, "path.requiresMastery", {

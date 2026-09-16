@@ -1,6 +1,6 @@
 import { text } from "@codigdex/game-core/i18n/locale";
 import type { ChapterDefinition } from "@codigdex/game-core/domain/chapters/types";
-import { GIT_STAGE_QUIZZES } from "./quizzes/git";
+import { quizPackIdFor } from "@codigdex/game-core/domain/dex/quiz";
 
 const ART = "monsters/ch01.git";
 
@@ -50,7 +50,7 @@ export const GIT_CHAPTER: ChapterDefinition = {
         "깃새싹은 init, add, commit 순서만 알면 금방 잡을 수 있어!",
         "Know the order init, add, commit, and the Git Sprout is an easy catch!"
       ),
-      quizPool: GIT_STAGE_QUIZZES.sproutQuiz,
+      quizPackId: quizPackIdFor("git", "git-sprout"),
     },
     {
       id: "git-branch-merge-twins",
@@ -65,7 +65,7 @@ export const GIT_CHAPTER: ChapterDefinition = {
       ),
       snippet: text("git switch -c feature\ngit switch main\ngit merge feature", "git switch -c feature\ngit switch main\ngit merge feature"),
       textureKey: "git-branch-merge-twins",
-      assetKey: `${ART}/branch-merge-twins-lv2.png`,
+      assetKey: `${ART}/branch-merge-twins-lv2-v2.png`,
       briefing: text(
         "브랜치 쌍둥이가 줄기를 둘로 찢어 놨어! 갈라진 가지를 다시 하나로 합쳐 줘.",
         "The Branch Twins tore the stem in two! Merge the split branches back into one."
@@ -74,7 +74,7 @@ export const GIT_CHAPTER: ChapterDefinition = {
         "쌍둥이는 branch, switch, merge를 헷갈리게 해. 지금 어느 가지에 있는지 떠올려!",
         "The twins love to mix up branch, switch and merge. Keep track of which branch you're on!"
       ),
-      quizPool: GIT_STAGE_QUIZZES.branchMergeTwinsQuiz,
+      quizPackId: quizPackIdFor("git", "git-branch-merge-twins"),
     },
     {
       id: "git-undo-conflict",
@@ -101,7 +101,7 @@ export const GIT_CHAPTER: ChapterDefinition = {
         "충돌 표시를 읽고 reset과 revert의 차이를 기억해. 공유한 커밋은 revert야!",
         "Read the conflict markers and remember reset versus revert. Shared commits get revert!"
       ),
-      quizPool: GIT_STAGE_QUIZZES.undoConflictQuiz,
+      quizPackId: quizPackIdFor("git", "git-undo-conflict"),
     },
     {
       id: "git-remote-rebase",
@@ -128,7 +128,7 @@ export const GIT_CHAPTER: ChapterDefinition = {
         "fetch와 pull의 차이, 그리고 공유한 커밋은 rebase하지 않는다는 규칙을 떠올려!",
         "Remember fetch versus pull, and the rule: never rebase commits you've already shared!"
       ),
-      quizPool: GIT_STAGE_QUIZZES.remoteRebaseQuiz,
+      quizPackId: quizPackIdFor("git", "git-remote-rebase"),
     },
     {
       id: "git-team-workflow-guardian",
@@ -155,7 +155,7 @@ export const GIT_CHAPTER: ChapterDefinition = {
         "PR, 리뷰, 보호된 브랜치, CI. 혼자가 아니라 팀의 main을 지킨다고 생각해!",
         "PRs, reviews, protected branches, CI. Think about guarding the team's main, not just your own!"
       ),
-      quizPool: GIT_STAGE_QUIZZES.teamWorkflowGuardianQuiz,
+      quizPackId: quizPackIdFor("git", "git-team-workflow-guardian"),
     },
   ],
 };
