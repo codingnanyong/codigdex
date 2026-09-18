@@ -2,6 +2,10 @@
   "name": "codigdex",
   "version": "1.0.1",
   "private": true,
+  "packageManager": "npm@10.9.2",
+  "engines": {
+    "node": "22.x"
+  },
   "workspaces": [
     "web",
     "mobile",
@@ -12,6 +16,7 @@
     "check:boundaries": "node scripts/check-package-boundaries.mjs",
     "lint": "npm run lint --workspaces --if-present",
     "test": "npm run test --workspaces --if-present",
+    "test:e2e": "npm run test:e2e --workspace @codigdex/web",
     "typecheck": "npm run check:boundaries && npm run typecheck --workspaces --if-present"
   }
 }
