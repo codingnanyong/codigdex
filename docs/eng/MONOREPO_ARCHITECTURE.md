@@ -1,5 +1,7 @@
 # Monorepo architecture
 
+[한국어](../kor/MONOREPO_ARCHITECTURE.md) · **English**
+
 Codigdex uses independently owned packages inside one repository. This is a
 modular monolith, not a set of networked microservices: web and mobile need the
 same deterministic game rules and content, while their rendering and device
