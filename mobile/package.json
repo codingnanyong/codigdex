@@ -10,6 +10,7 @@
     "start:tunnel": "expo start --tunnel",
     "android": "expo start --android",
     "ios": "expo start --ios",
+    "test": "vitest run",
     "typecheck": "node scripts/generate-asset-map.mjs --check && tsc --noEmit"
   },
   "dependencies": {
@@ -17,6 +18,7 @@
     "@codigdex/game-content": "*",
     "@codigdex/game-core": "*",
     "@codigdex/game-i18n": "*",
+    "@react-native-async-storage/async-storage": "2.2.0",
     "expo": "57.0.24",
     "expo-font": "57.0.4",
     "expo-router": "57.0.22",
@@ -29,6 +31,7 @@
   },
   "devDependencies": {
     "@types/react": "19.2.18",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^5.0.1"
   }
 }

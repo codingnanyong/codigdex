@@ -1,8 +1,9 @@
 import { ASSET_KEYS } from "@codigdex/game-assets/manifest";
 import { DEX_MONSTERS } from "@codigdex/game-content/domain/chapters";
 import { localize, type Locale } from "@codigdex/game-core/i18n/locale";
+import { createEmptySave, type StoredGameStateV3 } from "@codigdex/game-core/save/schema";
 import { translate } from "@codigdex/game-i18n/messages";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Image,
   Pressable,
@@ -13,6 +14,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { mobileAssetSource } from "@/assets";
+import { mobileSaveStorage } from "@/storage/asyncStorage";
 
 const copy = {
   ko: {
@@ -34,9 +36,26 @@ const copy = {
 } as const;
 
 export default function MobileFoundationScreen() {
-  const [locale, setLocale] = useState<Locale>("ko");
+  const [save, setSave] = useState<StoredGameStateV3>(() => createEmptySave());
+  const locale = save.ui.locale ?? "ko";
   const firstMonster = DEX_MONSTERS[0];
   const text = copy[locale];
+
+  useEffect(() => {
+    let active = true;
+    void mobileSaveStorage.load().then((stored) => {
+      if (active) setSave(stored);
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  function selectLocale(nextLocale: Locale) {
+    const next = { ...save, ui: { ...save.ui, locale: nextLocale } };
+    setSave(next);
+    void mobileSaveStorage.save(next).catch(() => undefined);
+  }
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -52,7 +71,7 @@ export default function MobileFoundationScreen() {
                 accessibilityRole="button"
                 accessibilityState={{ selected: locale === value }}
                 key={value}
-                onPress={() => setLocale(value)}
+                onPress={() => selectLocale(value)}
                 style={[styles.localeButton, locale === value ? styles.localeButtonActive : undefined]}
               >
                 <Text
