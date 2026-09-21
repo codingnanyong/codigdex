@@ -49,9 +49,10 @@ mobile ─────┼──> game-content ──> game-core
   `packages/game-assets/src/manifest.generated.ts`에서 키 목록을 읽어 키마다
   정적 `require()`를 만들고, 저장소에 커밋되는
   `mobile/src/assets.generated.ts`로 출력합니다. `mobile/src/assets.ts`의
-  `mobileAssetSource()`가 그 맵으로 키를 해석합니다. 이 생성기는 `npm start`
-  전에 `prestart`로 실행되고, 모바일 `typecheck`에서는 `--check`로 실행되어
-  커밋된 맵이 낡았으면 실패합니다.
+  `mobileAssetSource()`가 그 맵으로 키를 해석합니다. 번들러를 띄우는 모바일
+  스크립트(`start`, `start:tunnel`, `android`, `ios`, `export:android`)는 모두
+  실행 전에 이 맵을 다시 생성하고, 모바일 `typecheck`는 생성기를 `--check`로
+  돌려 커밋된 맵이 낡았으면 실패합니다.
 - 아트를 추가·이름 변경·삭제한 뒤에는
   `npm run generate --workspace @codigdex/game-assets`를 실행합니다. 매니페스트가
   낡은 상태면 `typecheck`가 실패합니다.
@@ -109,22 +110,33 @@ npm run build:web
 npm run typecheck --workspace @codigdex/mobile   # 에셋 맵 --check 후 tsc --noEmit
 npm test --workspace @codigdex/mobile            # vitest run
 npm run generate:assets --workspace @codigdex/mobile
+npm run export:android --workspace @codigdex/mobile
 ```
 
 Expo 개발 서버를 켜고 Expo Go로 QR 코드를 스캔합니다.
 
 ```bash
-# LAN — 기기와 컴퓨터가 같은 Wi-Fi에 있을 때. 에셋 맵을 먼저 다시 생성합니다.
+# LAN — 기기와 컴퓨터가 같은 Wi-Fi에 있을 때
 npm run start --workspace @codigdex/mobile
 
 # 터널 — 네트워크가 다르거나 LAN이 개발 서버를 막을 때
-npm run generate:assets --workspace @codigdex/mobile
 npm run start:tunnel --workspace @codigdex/mobile
 ```
 
-에셋 맵을 `prestart`로 다시 생성하는 스크립트는 `start`뿐입니다.
-`start:tunnel`, `android`, `ios`에는 해당 훅이 없으므로 아트가 바뀌었다면
-`generate:assets`를 먼저 실행하세요.
+`start`, `start:tunnel`, `android`, `ios`는 모두 Expo를 띄우기 전에 에셋 맵을
+다시 생성하므로, 아트가 바뀌어도 `generate:assets`를 따로 실행할 필요가
+없습니다.
+
+`export:android`는 에셋 맵을 다시 생성한 뒤
+`expo export --platform android --output-dir .tmp-expo-export`를 실행합니다.
+Android SDK나 에뮬레이터, 네이티브 빌드 없이 Metro 번들과 Hermes 바이트코드만
+만드는 명령입니다. `typecheck`와 Vitest가 검사하지 못하는 번들러 단계의 문제,
+예를 들어 해석되지 않는 `require()`나 Metro가 따라가지 못하는 공유 패키지
+import를 잡아냅니다. Expo CLI가 실행할 때마다 `.tmp-expo-export/`를 먼저
+교체하므로 수동으로 미리 비울 필요는 없습니다. 실행이 끝나면 생성된 번들이 그대로
+남지만, 이 디렉터리는 git에서 무시됩니다. `.github/workflows/ci.yml`은
+`typecheck`·`lint`·`test` 뒤, 웹 빌드 앞에서 `CI=true`와 함께 이 명령을
+실행합니다.
 
 Vercel에서는 Root Directory를 `web`으로 설정합니다. 웹 애플리케이션이 그 디렉터리
 바깥의 워크스페이스 패키지를 import하므로 **Include source files outside of the Root

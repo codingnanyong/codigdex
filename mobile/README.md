@@ -19,16 +19,17 @@ The current vertical slice covers the read-only Codigdex archive:
 | `/` | `app/index.tsx` | Intro / title screen with save-hydration status |
 | `/dex` | `app/dex/index.tsx` | Responsive two-column dex grid with capture stats |
 | `/dex/[id]` | `app/dex/[id].tsx` | Monster card: art, trait, code note, snippet |
-| `/settings` | `app/settings.tsx` | Locale picker (ko / en), persisted to the save |
+| `/settings` | `app/settings.tsx` | Locale picker (ko / en) plus the dev-only home test panel |
 
 Navigation is [Expo Router](https://docs.expo.dev/router/introduction/) file-based
 routing (`app/`), with `typedRoutes` enabled in `app.json`. `app/_layout.tsx`
 loads the pixel font, mounts `SaveProvider`, and renders a headerless `Stack`.
 
 Not implemented yet: the battle and capture-quiz loop. `@codigdex/quiz-content`
-is deliberately not a dependency of this workspace, and the app never writes new
-captures — it reads whatever captures already exist in the save and only writes
-the chosen locale.
+is deliberately not a dependency of this workspace, and no gameplay path earns a
+capture — the screens read whatever captures already exist in the save. Outside
+of the development-only controls described under [Home testing](#home-testing),
+the only field the app writes is the chosen locale.
 
 ## Shared packages
 
@@ -66,9 +67,9 @@ npm run generate:assets --workspace @codigdex/mobile
 ```
 
 `npm run typecheck --workspace @codigdex/mobile` runs the generator with
-`--check` and fails while the committed map is stale. `npm start` regenerates it
-automatically through the `prestart` hook; `start:tunnel`, `android`, and `ios`
-have no such hook, so run `generate:assets` yourself if the art changed.
+`--check` and fails while the committed map is stale. Every launch script —
+`start`, `start:tunnel`, `android`, `ios` — and `export:android` regenerate the
+map before Expo starts, so a stale map cannot reach the bundler.
 
 ## Save persistence
 
@@ -95,9 +96,13 @@ an exhausted list returns `createEmptySave()` rather than throwing.
 `save()` only ever writes `codigdex:save:v3`. `clear()` removes all three keys.
 
 `src/state/SaveProvider.tsx` hydrates the save once on mount and exposes
-`{ hydrated, locale, save, setLocale }` through `useSave()`. Locale defaults to
-`ko` until the player picks one in settings. Screens read captures from
-`save.progress.captures`.
+`{ hydrated, locale, save, clearCaptures, loadDemoCaptures, setLocale }` through
+`useSave()`. Locale defaults to `ko` until the player picks one in settings.
+Screens read captures from `save.progress.captures`. Every mutator updates the
+in-memory save optimistically and then attempts to persist the whole save
+through `mobileSaveStorage.save()`. That write is asynchronous and its failures
+are currently swallowed, so a rejected write leaves memory ahead of disk with
+nothing surfaced to the player.
 
 ## Fonts and theme
 
@@ -115,31 +120,92 @@ Install once from the repository root (`npm ci`, Node 22.x). Then start the dev
 server and scan the QR code with Expo Go on a device:
 
 ```bash
-# LAN — device and computer on the same Wi-Fi; regenerates the asset map first
+# LAN — device and computer on the same Wi-Fi
 npm run start --workspace @codigdex/mobile
 
 # Tunnel — different networks, or a LAN that blocks the dev server
-npm run generate:assets --workspace @codigdex/mobile
 npm run start:tunnel --workspace @codigdex/mobile
 ```
 
-The first tunnel run may prompt Expo CLI to install its tunnel helper. To open a
-local simulator or emulator directly:
+Each script regenerates the asset map first. The first tunnel run may prompt
+Expo CLI to install its tunnel helper. To open a local simulator or emulator
+directly:
 
 ```bash
 npm run android --workspace @codigdex/mobile
 npm run ios --workspace @codigdex/mobile
 ```
 
+## Home testing
+
+Because no gameplay path writes a capture yet, the dex would otherwise always
+render every slot as unobserved. Settings carries a **home test panel** — the
+dashed amber block titled "홈 테스트 도구" / "Home test tools" — to put the save
+into either state on demand. It is guarded by `__DEV__`, so it appears in the
+dev-server builds started above and is absent from a production bundle
+(including `export:android`). Open it from the home screen's settings button, or
+the ⚙ button in the dex header.
+
+Two controls, both backed by `src/testing/demoSave.ts` and applied through
+`useSave()`:
+
+- **LOAD SAMPLE CAPTURES** — registers the first three monsters of `DEX_MONSTERS`
+  with a fixed `capturedAt` of `2026-01-01T00:00:00.000Z`. It is deterministic
+  and additive: the same three ids every run, and captures already in the save
+  are kept as they are, so pressing it twice changes nothing.
+- **CLEAR CAPTURES** — empties `progress.captures`, returning every dex slot to
+  its unobserved state.
+
+Neither control touches anything else in the save. Locale, job ids, career
+milestones, and the onboarding flag survive both actions, so you can switch to
+`en`, load samples, and still be in `en`. The panel prints the live capture
+count above the buttons as a quick confirmation.
+
+To verify both card states and that persistence holds across a reload:
+
+1. Press **CLEAR CAPTURES**, go back to `/dex`, and confirm every card shows the
+   `?` portrait with the `UNOBSERVED` badge, and that the stats line counts zero
+   captured. Planned (unreleased) slots stay `???` and remain untappable.
+2. Press **LOAD SAMPLE CAPTURES** and confirm the first three released cards now
+   show monster art, a localized name, the cyan `REGISTERED` badge, and open
+   their `/dex/[id]` detail screen.
+3. Reload the app — shake the device and pick **Reload**, or press `r` in the
+   Expo CLI terminal — and wait for the home screen to report "SAVE DATA LINKED"
+   (`hydrated`). The three captures should still be there, and the locale you
+   picked should still be applied.
+4. For a cold-start check, fully close and reopen the app in Expo Go. Every
+   mutation attempts a write to `codigdex:save:v3` in AsyncStorage, so a state
+   that persisted survives that too; only reinstalling or clearing the app's
+   storage resets it.
+
+If a reload comes back empty, the AsyncStorage write is the thing to inspect,
+not the panel — `SaveProvider` swallows save failures rather than surfacing them.
+
 ## Checks
 
 ```bash
 npm run typecheck --workspace @codigdex/mobile   # asset-map --check, then tsc --noEmit
 npm test --workspace @codigdex/mobile            # vitest run
+npm run export:android --workspace @codigdex/mobile
 ```
 
-Both are also covered by the root `npm run typecheck` and `npm test`, which fan
-out across every workspace.
+`typecheck` and `test` are also covered by the root `npm run typecheck` and
+`npm test`, which fan out across every workspace.
+
+`export:android` regenerates the asset map and then runs
+`expo export --platform android --output-dir .tmp-expo-export`, a full Metro
+bundle plus Hermes bytecode for Android. It is the cheapest way to catch a
+bundler-level break — an unresolved `require()` in the generated asset map, a
+module a shared package pulls in that Metro cannot resolve — without an Android
+SDK or a device: nothing native is compiled, only JavaScript is bundled. Expo
+CLI replaces `.tmp-expo-export/` at the start of every run, so no manual
+pre-clean is needed; the bundle it writes stays there afterward, and the
+directory is git-ignored. The command prompts for nothing; CI additionally pins
+`CI=true`.
+
+`.github/workflows/ci.yml` runs this export on every pull request touching
+`mobile/`, `packages/`, or `web/`, after `typecheck`, `lint`, and `test` and
+before the web build.
 
 Tests are plain Vitest over the platform-free modules — `saveStorage.test.ts`
 (migration and fallback behavior against an in-memory storage double) and

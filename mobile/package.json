@@ -5,11 +5,11 @@
   "main": "expo-router/entry",
   "scripts": {
     "generate:assets": "node scripts/generate-asset-map.mjs",
-    "prestart": "npm run generate:assets",
-    "start": "expo start",
-    "start:tunnel": "expo start --tunnel",
-    "android": "expo start --android",
-    "ios": "expo start --ios",
+    "start": "npm run generate:assets && expo start",
+    "start:tunnel": "npm run generate:assets && expo start --tunnel",
+    "android": "npm run generate:assets && expo start --android",
+    "ios": "npm run generate:assets && expo start --ios",
+    "export:android": "npm run generate:assets && expo export --platform android --output-dir .tmp-expo-export",
     "test": "vitest run",
     "typecheck": "node scripts/generate-asset-map.mjs --check && tsc --noEmit"
   },

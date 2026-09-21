@@ -49,9 +49,10 @@ packages.
   list from `packages/game-assets/src/manifest.generated.ts` and emits one
   static `require()` per key into the committed `mobile/src/assets.generated.ts`
   — Metro cannot resolve dynamic `require()` calls. `mobile/src/assets.ts`
-  resolves a key through that map with `mobileAssetSource()`. The generator runs
-  in `prestart` before `npm start`, and with `--check` inside the mobile
-  `typecheck`, which fails while the committed map is stale.
+  resolves a key through that map with `mobileAssetSource()`. Every mobile
+  script that feeds the bundler — `start`, `start:tunnel`, `android`, `ios`,
+  `export:android` — regenerates the map first, and the mobile `typecheck` runs
+  the generator with `--check`, which fails while the committed map is stale.
 - After adding, renaming, or removing art, run
   `npm run generate --workspace @codigdex/game-assets`; `typecheck` fails while
   the manifest is stale.
@@ -110,22 +111,33 @@ on mobile alone:
 npm run typecheck --workspace @codigdex/mobile   # asset-map --check, then tsc --noEmit
 npm test --workspace @codigdex/mobile            # vitest run
 npm run generate:assets --workspace @codigdex/mobile
+npm run export:android --workspace @codigdex/mobile
 ```
 
 Start the Expo dev server and scan the QR code with Expo Go:
 
 ```bash
-# LAN — device and computer on the same Wi-Fi; regenerates the asset map first
+# LAN — device and computer on the same Wi-Fi
 npm run start --workspace @codigdex/mobile
 
 # Tunnel — different networks, or a LAN that blocks the dev server
-npm run generate:assets --workspace @codigdex/mobile
 npm run start:tunnel --workspace @codigdex/mobile
 ```
 
-Only `start` regenerates the asset map through `prestart`; `start:tunnel`,
-`android`, and `ios` do not, so run `generate:assets` first when the art
-changed.
+`start`, `start:tunnel`, `android`, and `ios` all regenerate the asset map
+before Expo starts, so a separate `generate:assets` run is no longer needed
+after changing art.
+
+`export:android` regenerates the map and then runs
+`expo export --platform android --output-dir .tmp-expo-export`: a full Metro
+bundle plus Hermes bytecode, with no Android SDK, emulator, or native build
+involved. It is the bundler-level check for mobile — it catches an unresolved
+`require()` or a shared-package import Metro cannot follow, which `typecheck`
+and Vitest never exercise. Expo CLI replaces `.tmp-expo-export/` at the start of
+each run, so no manual pre-clean is needed; the generated bundle remains there
+afterward and the directory is git-ignored. `.github/workflows/ci.yml` runs it
+after `typecheck`, `lint`, and `test` and before the web build, with `CI=true`
+set.
 
 Vercel should use `web` as its Root Directory. Because the web application
 imports workspace packages outside that directory, keep **Include source files
