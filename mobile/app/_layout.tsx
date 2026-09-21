@@ -2,6 +2,7 @@ import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import { SaveProvider } from "@/state/SaveProvider";
 
 export default function RootLayout() {
   const [fontsLoaded, fontError] = useFonts({
@@ -13,8 +14,10 @@ export default function RootLayout() {
 
   return (
     <SafeAreaProvider>
-      <StatusBar style="light" />
-      <Stack screenOptions={{ headerShown: false, animation: "fade" }} />
+      <SaveProvider>
+        <StatusBar style="light" />
+        <Stack screenOptions={{ headerShown: false, animation: "fade" }} />
+      </SaveProvider>
     </SafeAreaProvider>
   );
 }
