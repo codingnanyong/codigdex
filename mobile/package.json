@@ -9,7 +9,8 @@
     "start:tunnel": "npm run generate:assets && expo start --tunnel",
     "android": "npm run generate:assets && expo start --android",
     "ios": "npm run generate:assets && expo start --ios",
-    "export:android": "npm run generate:assets && expo export --platform android --output-dir .tmp-expo-export",
+    "export:android": "npm run generate:assets && expo export --platform android --output-dir .tmp-expo-export/android",
+    "export:ios": "npm run generate:assets && expo export --platform ios --output-dir .tmp-expo-export/ios",
     "test": "vitest run",
     "typecheck": "node scripts/generate-asset-map.mjs --check && tsc --noEmit"
   },

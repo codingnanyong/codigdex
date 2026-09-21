@@ -68,8 +68,9 @@ npm run generate:assets --workspace @codigdex/mobile
 
 `npm run typecheck --workspace @codigdex/mobile` runs the generator with
 `--check` and fails while the committed map is stale. Every launch script —
-`start`, `start:tunnel`, `android`, `ios` — and `export:android` regenerate the
-map before Expo starts, so a stale map cannot reach the bundler.
+`start`, `start:tunnel`, `android`, `ios` — and both export scripts,
+`export:android` and `export:ios`, regenerate the map before Expo starts, so a
+stale map cannot reach the bundler.
 
 ## Save persistence
 
@@ -143,8 +144,8 @@ render every slot as unobserved. Settings carries a **home test panel** — the
 dashed amber block titled "홈 테스트 도구" / "Home test tools" — to put the save
 into either state on demand. It is guarded by `__DEV__`, so it appears in the
 dev-server builds started above and is absent from a production bundle
-(including `export:android`). Open it from the home screen's settings button, or
-the ⚙ button in the dex header.
+(including both `export:android` and `export:ios`). Open it from the home
+screen's settings button, or the ⚙ button in the dex header.
 
 Two controls, both backed by `src/testing/demoSave.ts` and applied through
 `useSave()`:
@@ -187,25 +188,52 @@ not the panel — `SaveProvider` swallows save failures rather than surfacing th
 npm run typecheck --workspace @codigdex/mobile   # asset-map --check, then tsc --noEmit
 npm test --workspace @codigdex/mobile            # vitest run
 npm run export:android --workspace @codigdex/mobile
+npm run export:ios --workspace @codigdex/mobile
 ```
 
 `typecheck` and `test` are also covered by the root `npm run typecheck` and
 `npm test`, which fan out across every workspace.
 
-`export:android` regenerates the asset map and then runs
-`expo export --platform android --output-dir .tmp-expo-export`, a full Metro
-bundle plus Hermes bytecode for Android. It is the cheapest way to catch a
-bundler-level break — an unresolved `require()` in the generated asset map, a
-module a shared package pulls in that Metro cannot resolve — without an Android
-SDK or a device: nothing native is compiled, only JavaScript is bundled. Expo
-CLI replaces `.tmp-expo-export/` at the start of every run, so no manual
-pre-clean is needed; the bundle it writes stays there afterward, and the
-directory is git-ignored. The command prompts for nothing; CI additionally pins
-`CI=true`.
+### Bundler checks (`export:android`, `export:ios`)
 
-`.github/workflows/ci.yml` runs this export on every pull request touching
-`mobile/`, `packages/`, or `web/`, after `typecheck`, `lint`, and `test` and
-before the web build.
+Both export scripts regenerate the asset map and then run `expo export` for one
+platform:
+
+| Script | Command it runs | Output |
+| --- | --- | --- |
+| `export:android` | `expo export --platform android --output-dir .tmp-expo-export/android` | `_expo/static/js/android/entry-*.hbc` |
+| `export:ios` | `expo export --platform ios --output-dir .tmp-expo-export/ios` | `_expo/static/js/ios/entry-*.hbc` |
+
+Each one produces a full Metro bundle plus Hermes bytecode for its platform.
+They are the cheapest way to catch a bundler-level break — an unresolved
+`require()` in the generated asset map, a module a shared package pulls in that
+Metro cannot resolve, a platform-conditional import that only one platform
+takes — without an Android SDK, Xcode, an emulator, or a device.
+
+**What these verify, and what they do not.** `expo export` only bundles and
+compiles JavaScript. No native code is compiled for either platform, so both
+scripts run on Windows and Linux with no Android SDK installed, and `export:ios`
+needs no macOS host, no Xcode, and no CocoaPods install. That also bounds what a
+green run proves: it says the JS graph resolves and Hermes accepts it for that
+platform. It says nothing about native modules linking, `AndroidManifest.xml` or
+`Info.plist` / entitlement and permission configuration, app startup, layout on
+a real screen, or anything in either native runtime. Neither script **replaces**
+a development build (`expo run:android`, `expo run:ios`, or EAS Build) or a run
+on an emulator, simulator, or real device — do those before trusting a change on
+that platform.
+
+The two scripts write to sibling directories under `.tmp-expo-export/`, so they
+are independent and can run in either order without one clobbering the other's
+bundle. Expo CLI replaces its own output directory at the start of every run, so
+no manual pre-clean is needed; the bundle stays there afterward, and
+`.tmp-expo-export/` is git-ignored in full. Neither command prompts for
+anything; CI additionally pins `CI=true`.
+
+`.github/workflows/ci.yml` runs **both** exports on every pull request touching
+`mobile/`, `packages/`, or `web/` — after `typecheck`, `lint`, and `test`, and
+before the web build. They are two steps in the same job rather than a matrix,
+so the iOS run reuses the Metro transform cache the Android run just warmed
+instead of paying for a second checkout and `npm ci`.
 
 Tests are plain Vitest over the platform-free modules — `saveStorage.test.ts`
 (migration and fallback behavior against an in-memory storage double) and

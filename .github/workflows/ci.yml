@@ -27,8 +27,15 @@ jobs:
       - run: npm run typecheck
       - run: npm run lint
       - run: npm test
+      # Metro/Hermes bundling only — no Android SDK or Xcode is involved. Both
+      # platforms run in this job so the second export reuses the warm Metro
+      # transform cache instead of paying for a second checkout and `npm ci`.
       - name: Verify Android Expo export
         run: npm run export:android --workspace @codigdex/mobile
+        env:
+          CI: "true"
+      - name: Verify iOS Expo export
+        run: npm run export:ios --workspace @codigdex/mobile
         env:
           CI: "true"
       - run: npm run build:web

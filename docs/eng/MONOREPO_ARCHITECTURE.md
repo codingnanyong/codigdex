@@ -51,8 +51,9 @@ packages.
   — Metro cannot resolve dynamic `require()` calls. `mobile/src/assets.ts`
   resolves a key through that map with `mobileAssetSource()`. Every mobile
   script that feeds the bundler — `start`, `start:tunnel`, `android`, `ios`,
-  `export:android` — regenerates the map first, and the mobile `typecheck` runs
-  the generator with `--check`, which fails while the committed map is stale.
+  `export:android`, `export:ios` — regenerates the map first, and the mobile
+  `typecheck` runs the generator with `--check`, which fails while the committed
+  map is stale.
 - After adding, renaming, or removing art, run
   `npm run generate --workspace @codigdex/game-assets`; `typecheck` fails while
   the manifest is stale.
@@ -112,6 +113,7 @@ npm run typecheck --workspace @codigdex/mobile   # asset-map --check, then tsc -
 npm test --workspace @codigdex/mobile            # vitest run
 npm run generate:assets --workspace @codigdex/mobile
 npm run export:android --workspace @codigdex/mobile
+npm run export:ios --workspace @codigdex/mobile
 ```
 
 Start the Expo dev server and scan the QR code with Expo Go:
@@ -128,16 +130,35 @@ npm run start:tunnel --workspace @codigdex/mobile
 before Expo starts, so a separate `generate:assets` run is no longer needed
 after changing art.
 
-`export:android` regenerates the map and then runs
-`expo export --platform android --output-dir .tmp-expo-export`: a full Metro
-bundle plus Hermes bytecode, with no Android SDK, emulator, or native build
-involved. It is the bundler-level check for mobile — it catches an unresolved
-`require()` or a shared-package import Metro cannot follow, which `typecheck`
-and Vitest never exercise. Expo CLI replaces `.tmp-expo-export/` at the start of
-each run, so no manual pre-clean is needed; the generated bundle remains there
-afterward and the directory is git-ignored. `.github/workflows/ci.yml` runs it
-after `typecheck`, `lint`, and `test` and before the web build, with `CI=true`
-set.
+`export:android` and `export:ios` are the bundler-level checks for mobile. Each
+regenerates the asset map and then runs `expo export` for one platform, into its
+own sibling directory under `.tmp-expo-export/`:
+
+| Script | Command it runs | Output |
+| --- | --- | --- |
+| `export:android` | `expo export --platform android --output-dir .tmp-expo-export/android` | `_expo/static/js/android/entry-*.hbc` |
+| `export:ios` | `expo export --platform ios --output-dir .tmp-expo-export/ios` | `_expo/static/js/ios/entry-*.hbc` |
+
+Each produces a full Metro bundle plus Hermes bytecode for its platform and
+catches what `typecheck` and Vitest never exercise — an unresolved `require()`,
+a shared-package import Metro cannot follow, a platform-conditional import only
+one platform takes. `expo export` compiles JavaScript only: no native build
+happens, so both run with no Android SDK installed and `export:ios` needs no
+macOS host, Xcode, or CocoaPods. That bounds what a green run proves — the JS
+graph resolves and Hermes accepts it for that platform, and nothing more. It
+says nothing about native module linking, manifest/entitlement or permission
+configuration, app startup, or on-device layout, and it does **not** replace a
+native development build (`expo run:android`, `expo run:ios`, or EAS Build) or a
+run on an emulator, simulator, or real device.
+
+Because the two output directories are siblings, the scripts are independent and
+can run in either order without clobbering each other. Expo CLI replaces its own
+output directory at the start of every run, so no manual pre-clean is needed;
+the generated bundles remain there afterward and `.tmp-expo-export/` is
+git-ignored in full. `.github/workflows/ci.yml` runs **both** exports
+sequentially in the same job — after `typecheck`, `lint`, and `test`, before the
+web build, with `CI=true` set — so the iOS run reuses the Metro transform cache
+the Android run warmed.
 
 Vercel should use `web` as its Root Directory. Because the web application
 imports workspace packages outside that directory, keep **Include source files
