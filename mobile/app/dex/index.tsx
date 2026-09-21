@@ -5,6 +5,7 @@ import { router, type Href } from "expo-router";
 import { Image, Pressable, StyleSheet, Text, View, useWindowDimensions } from "react-native";
 import { mobileAssetSource } from "@/assets";
 import { buildMobileDexEntries, type MobileDexEntry } from "@/dex/catalog";
+import { dexGridMetrics } from "@/dex/layout";
 import { useSave } from "@/state/SaveProvider";
 import { PixelButton } from "@/ui/PixelButton";
 import { Screen } from "@/ui/Screen";
@@ -23,7 +24,7 @@ export default function DexListScreen() {
   const released = DEX_CATALOG.filter((slot) => slot.kind === "released").length;
   const captured = entries.filter((entry) => entry.captured).length;
   const planned = entries.length - released;
-  const cardWidth = Math.max(132, Math.min(190, (width - 52) / 2));
+  const { cardWidth, imageSize } = dexGridMetrics(width);
   const text = copy[locale];
 
   return (
@@ -42,17 +43,22 @@ export default function DexListScreen() {
       </View>
       <View style={styles.grid}>
         {entries.map((entry) => (
-          <DexCard cardWidth={cardWidth} entry={entry} key={`${entry.kind}-${entry.id}`} locale={locale} />
+          <DexCard cardWidth={cardWidth} entry={entry} imageSize={imageSize} key={`${entry.kind}-${entry.id}`} locale={locale} />
         ))}
       </View>
       <View style={styles.footer}>
-        <PixelButton accessibilityLabel={translate(locale, "common.back")} onPress={() => router.back()} variant="quiet">{translate(locale, "common.back")}</PixelButton>
+        <PixelButton accessibilityLabel={translate(locale, "common.back")} onPress={goBack} variant="quiet">{translate(locale, "common.back")}</PixelButton>
       </View>
     </Screen>
   );
+
+  function goBack() {
+    if (router.canGoBack()) router.back();
+    else router.replace("/" as Href);
+  }
 }
 
-function DexCard({ cardWidth, entry, locale }: { cardWidth: number; entry: MobileDexEntry; locale: "ko" | "en" }) {
+function DexCard({ cardWidth, entry, imageSize, locale }: { cardWidth: number; entry: MobileDexEntry; imageSize: number; locale: "ko" | "en" }) {
   const text = copy[locale];
   const capturedMonster = entry.kind === "released" && entry.captured ? entry.slot.monster : undefined;
   const label = capturedMonster
@@ -71,7 +77,7 @@ function DexCard({ cardWidth, entry, locale }: { cardWidth: number; entry: Mobil
       <Text style={styles.number}>NO.{entry.dexNumber}</Text>
       <View style={styles.portrait}>
         {capturedMonster ? (
-          <Image accessibilityIgnoresInvertColors resizeMode="contain" source={mobileAssetSource(capturedMonster.assetKey)} style={styles.monster} />
+          <Image accessibilityIgnoresInvertColors resizeMode="contain" source={mobileAssetSource(capturedMonster.assetKey)} style={[styles.monster, { height: imageSize, width: imageSize }]} />
         ) : (
           <Text accessibilityElementsHidden style={styles.question}>?</Text>
         )}

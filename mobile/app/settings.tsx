@@ -1,6 +1,6 @@
 import { LOCALES, LOCALE_NAMES } from "@codigdex/game-core/i18n/locale";
 import { translate } from "@codigdex/game-i18n/messages";
-import { router } from "expo-router";
+import { router, type Href } from "expo-router";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useSave } from "@/state/SaveProvider";
 import { PixelButton } from "@/ui/PixelButton";
@@ -58,9 +58,14 @@ export default function SettingsScreen() {
         </View>
       ) : null}
       <View style={styles.spacer} />
-      <PixelButton accessibilityLabel={translate(locale, "common.back")} onPress={() => router.back()} variant="secondary">{translate(locale, "common.back")}</PixelButton>
+      <PixelButton accessibilityLabel={translate(locale, "common.back")} onPress={goBack} variant="secondary">{translate(locale, "common.back")}</PixelButton>
     </Screen>
   );
+
+  function goBack() {
+    if (router.canGoBack()) router.back();
+    else router.replace("/" as Href);
+  }
 }
 
 const styles = StyleSheet.create({

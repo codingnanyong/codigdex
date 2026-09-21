@@ -1,6 +1,6 @@
 import { localize } from "@codigdex/game-core/i18n/locale";
 import { translate } from "@codigdex/game-i18n/messages";
-import { router, useLocalSearchParams } from "expo-router";
+import { router, useLocalSearchParams, type Href } from "expo-router";
 import { Image, StyleSheet, Text, View } from "react-native";
 import { mobileAssetSource } from "@/assets";
 import { findReleasedDexEntry } from "@/dex/catalog";
@@ -25,7 +25,7 @@ export default function DexDetailScreen() {
     return (
       <Screen>
         <View style={styles.empty}><Text style={styles.emptyText}>{text.unavailable}</Text></View>
-        <PixelButton onPress={() => router.back()} variant="secondary">{translate(locale, "common.back")}</PixelButton>
+        <PixelButton onPress={goBack} variant="secondary">{translate(locale, "common.back")}</PixelButton>
       </Screen>
     );
   }
@@ -40,7 +40,7 @@ export default function DexDetailScreen() {
           <Text accessibilityRole="header" style={styles.lockedTitle}>{translate(locale, "dex.unobserved")}</Text>
           <Text style={styles.lockedBody}>{text.hidden}</Text>
         </View>
-        <PixelButton accessibilityLabel={translate(locale, "common.back")} onPress={() => router.back()} variant="secondary">{translate(locale, "common.back")}</PixelButton>
+        <PixelButton accessibilityLabel={translate(locale, "common.back")} onPress={goBack} variant="secondary">{translate(locale, "common.back")}</PixelButton>
       </Screen>
     );
   }
@@ -60,10 +60,15 @@ export default function DexDetailScreen() {
       <InfoBlock label={text.knowledge} value={localize(monster.description, locale)} />
       <View style={styles.codeBlock}><Text selectable style={styles.code}>{localize(monster.snippet, locale)}</Text></View>
       <View style={styles.footer}>
-        <PixelButton accessibilityLabel={translate(locale, "common.back")} onPress={() => router.back()} variant="secondary">{translate(locale, "common.back")}</PixelButton>
+        <PixelButton accessibilityLabel={translate(locale, "common.back")} onPress={goBack} variant="secondary">{translate(locale, "common.back")}</PixelButton>
       </View>
     </Screen>
   );
+
+  function goBack() {
+    if (router.canGoBack()) router.back();
+    else router.replace("/dex" as Href);
+  }
 }
 
 function InfoBlock({ label, value }: { label: string; value: string }) {
