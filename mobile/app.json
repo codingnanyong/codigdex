@@ -1,0 +1,21 @@
+{
+  "expo": {
+    "name": "Codigdex",
+    "slug": "codigdex",
+    "version": "1.0.1",
+    "orientation": "portrait",
+    "scheme": "codigdex",
+    "userInterfaceStyle": "dark",
+    "plugins": ["expo-router"],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.codingnanyong.codigdex"
+    },
+    "android": {
+      "package": "com.codingnanyong.codigdex"
+    }
+  }
+}

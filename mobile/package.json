@@ -2,10 +2,37 @@
   "name": "@codigdex/mobile",
   "version": "1.0.1",
   "private": true,
+  "main": "expo-router/entry",
+  "scripts": {
+    "generate:assets": "node scripts/generate-asset-map.mjs",
+    "start": "npm run generate:assets && expo start",
+    "start:tunnel": "npm run generate:assets && expo start --tunnel",
+    "android": "npm run generate:assets && expo start --android",
+    "ios": "npm run generate:assets && expo start --ios",
+    "export:android": "npm run generate:assets && expo export --platform android --output-dir .tmp-expo-export/android",
+    "export:ios": "npm run generate:assets && expo export --platform ios --output-dir .tmp-expo-export/ios",
+    "test": "vitest run",
+    "typecheck": "node scripts/generate-asset-map.mjs --check && tsc --noEmit"
+  },
   "dependencies": {
     "@codigdex/game-assets": "*",
     "@codigdex/game-content": "*",
     "@codigdex/game-core": "*",
-    "@codigdex/game-i18n": "*"
+    "@codigdex/game-i18n": "*",
+    "@react-native-async-storage/async-storage": "2.2.0",
+    "expo": "57.0.24",
+    "expo-font": "57.0.4",
+    "expo-router": "57.0.22",
+    "expo-status-bar": "57.0.1",
+    "galmuri": "2.40.3",
+    "react": "19.2.3",
+    "react-native": "0.86.3",
+    "react-native-safe-area-context": "5.7.0",
+    "react-native-screens": "4.26.0"
+  },
+  "devDependencies": {
+    "@types/react": "19.2.18",
+    "typescript": "^5.9.3",
+    "vitest": "^5.0.1"
   }
 }
