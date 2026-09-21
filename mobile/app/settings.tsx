@@ -8,7 +8,8 @@ import { Screen } from "@/ui/Screen";
 import { colors, font } from "@/ui/theme";
 
 export default function SettingsScreen() {
-  const { locale, setLocale } = useSave();
+  const { clearCaptures, loadDemoCaptures, locale, save, setLocale } = useSave();
+  const text = copy[locale];
   return (
     <Screen>
       <View style={styles.header}>
@@ -38,6 +39,24 @@ export default function SettingsScreen() {
           })}
         </View>
       </View>
+      {__DEV__ ? (
+        <View style={styles.developerPanel}>
+          <Text style={styles.developerEyebrow}>DEVELOPER TEST DATA</Text>
+          <Text style={styles.developerTitle}>{text.testData}</Text>
+          <Text style={styles.hint}>{text.testDataHint}</Text>
+          <Text accessibilityLiveRegion="polite" style={styles.captureCount}>
+            {text.captureCount}: {save.progress.captures.length}
+          </Text>
+          <View style={styles.developerActions}>
+            <PixelButton accessibilityLabel={text.loadSample} onPress={loadDemoCaptures} variant="secondary">
+              {text.loadSample}
+            </PixelButton>
+            <PixelButton accessibilityLabel={text.clearSample} onPress={clearCaptures} variant="quiet">
+              {text.clearSample}
+            </PixelButton>
+          </View>
+        </View>
+      ) : null}
       <View style={styles.spacer} />
       <PixelButton accessibilityLabel={translate(locale, "common.back")} onPress={() => router.back()} variant="secondary">{translate(locale, "common.back")}</PixelButton>
     </Screen>
@@ -49,6 +68,11 @@ const styles = StyleSheet.create({
   eyebrow: { color: colors.cyan, fontFamily: font, fontSize: 10, letterSpacing: 2 },
   title: { color: colors.text, fontFamily: font, fontSize: 30, marginTop: 7 },
   panel: { backgroundColor: colors.panel, borderColor: colors.border, borderRadius: 16, borderWidth: 1, padding: 18 },
+  developerPanel: { backgroundColor: colors.panel, borderColor: colors.amber, borderRadius: 16, borderStyle: "dashed", borderWidth: 1, marginTop: 16, padding: 18 },
+  developerEyebrow: { color: colors.amber, fontFamily: font, fontSize: 9, letterSpacing: 1.3 },
+  developerTitle: { color: colors.text, fontFamily: font, fontSize: 16, marginTop: 8 },
+  captureCount: { color: colors.blue, fontFamily: font, fontSize: 11, marginTop: 14 },
+  developerActions: { gap: 10, marginTop: 14 },
   label: { color: colors.text, fontFamily: font, fontSize: 17 },
   hint: { color: colors.muted, fontFamily: font, fontSize: 12, lineHeight: 19, marginTop: 8 },
   options: { gap: 10, marginTop: 22 },
@@ -62,3 +86,20 @@ const styles = StyleSheet.create({
   code: { color: colors.blue, fontFamily: font, fontSize: 10 },
   spacer: { flex: 1, minHeight: 28 },
 });
+
+const copy = {
+  ko: {
+    captureCount: "현재 포획 수",
+    clearSample: "포획 기록 비우기",
+    loadSample: "샘플 포획 데이터 불러오기",
+    testData: "홈 테스트 도구",
+    testDataHint: "개발 빌드에서만 표시됩니다. 샘플 카드를 등록하거나 미발견 상태로 되돌릴 수 있습니다.",
+  },
+  en: {
+    captureCount: "Captured",
+    clearSample: "CLEAR CAPTURES",
+    loadSample: "LOAD SAMPLE CAPTURES",
+    testData: "Home test tools",
+    testDataHint: "Only shown in development. Register sample cards or return the dex to its unobserved state.",
+  },
+} as const;

@@ -2,11 +2,14 @@ import { createEmptySave, type StoredGameStateV3 } from "@codigdex/game-core/sav
 import type { Locale } from "@codigdex/game-core/i18n/locale";
 import { createContext, useContext, useEffect, useMemo, useState, type PropsWithChildren } from "react";
 import { mobileSaveStorage } from "@/storage/asyncStorage";
+import { clearCapturedMonsters, createDemoSave } from "@/testing/demoSave";
 
 interface SaveContextValue {
   hydrated: boolean;
   locale: Locale;
   save: StoredGameStateV3;
+  clearCaptures(): void;
+  loadDemoCaptures(): void;
   setLocale(locale: Locale): void;
 }
 
@@ -29,7 +32,21 @@ export function SaveProvider({ children }: PropsWithChildren) {
   }, []);
 
   const value = useMemo<SaveContextValue>(() => ({
+    clearCaptures() {
+      setSave((current) => {
+        const next = clearCapturedMonsters(current);
+        void mobileSaveStorage.save(next).catch(() => undefined);
+        return next;
+      });
+    },
     hydrated,
+    loadDemoCaptures() {
+      setSave((current) => {
+        const next = createDemoSave(current);
+        void mobileSaveStorage.save(next).catch(() => undefined);
+        return next;
+      });
+    },
     locale: save.ui.locale ?? "ko",
     save,
     setLocale(locale) {
