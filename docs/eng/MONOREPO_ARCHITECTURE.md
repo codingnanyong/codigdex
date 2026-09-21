@@ -10,7 +10,7 @@ integration differ.
 ```text
 codigdex/
 ├─ web/                       Next.js + Phaser web application
-├─ mobile/                    future Expo/React Native application
+├─ mobile/                    Expo (SDK 57) + React Native application
 └─ packages/
    ├─ game-assets/            art files + generated asset-key manifest
    ├─ game-core/              rules, domain types, save schema/migrations
@@ -45,9 +45,13 @@ packages.
 - **web** runs `web/scripts/sync-assets.mjs` before `dev` and `build`, which
   mirrors the files into the git-ignored `web/public/assets/`, and resolves
   keys with `assetUrl()` from `web/lib/assets.ts`.
-- **mobile** should generate a static `require()` map from `ASSET_KEYS` in
-  `@codigdex/game-assets/manifest`, since Metro cannot resolve dynamic
-  `require()` calls.
+- **mobile** runs `mobile/scripts/generate-asset-map.mjs`, which reads the key
+  list from `packages/game-assets/src/manifest.generated.ts` and emits one
+  static `require()` per key into the committed `mobile/src/assets.generated.ts`
+  — Metro cannot resolve dynamic `require()` calls. `mobile/src/assets.ts`
+  resolves a key through that map with `mobileAssetSource()`. The generator runs
+  in `prestart` before `npm start`, and with `--check` inside the mobile
+  `typecheck`, which fails while the committed map is stale.
 - After adding, renaming, or removing art, run
   `npm run generate --workspace @codigdex/game-assets`; `typecheck` fails while
   the manifest is stale.
@@ -59,11 +63,32 @@ packages.
 
 ## Mobile implementation
 
-Create the Expo application in `mobile/` and consume the workspace packages
-directly. Mobile should implement its own screens and touch-first layout; it
-should not wrap or reuse the Phaser canvas. Persist the shared save snapshot
-through a mobile adapter (for example AsyncStorage) and pass plain data into
-the shared rules.
+`mobile/` is an Expo SDK 57 application (React Native 0.86, React 19) that
+consumes the workspace packages directly. See `mobile/README.md` for the full
+walkthrough.
+
+- **Navigation** is Expo Router file-based routing under `mobile/app/`, with
+  `typedRoutes` enabled in `app.json`. The implemented routes are `/` (intro),
+  `/dex` (grid), `/dex/[id]` (monster card), and `/settings` (locale picker).
+- **Phaser is not reused.** Mobile screens are plain React Native components;
+  there is no canvas, WebView, or Phaser dependency in the workspace. Web scene
+  classes stay in `web/`. Behavior that must match both clients belongs in
+  `game-core` or `game-content`, not in a ported scene.
+- **Shared packages in use:** `game-core` for the save schema, migrations, and
+  locale contracts; `game-content` for `DEX_CATALOG`; `game-i18n` for
+  `translate()`; `game-assets` for art through the generated `require()` map.
+  `quiz-content` is intentionally not a mobile dependency yet — the battle and
+  capture-quiz loop is still web-only.
+- **Persistence** is `@react-native-async-storage/async-storage` bound to the
+  shared `SaveStorage` contract in `mobile/src/storage/`. `load()` reads
+  `codigdex:save:v3`, then `:v2`, then `:v1`; `parseSave()` from `game-core`
+  migrates v1 and v2 payloads to `StoredGameStateV3`, and a migrated result is
+  written back to the v3 key. Corrupt data or a read failure falls back to
+  `createEmptySave()`. Writes only ever target the v3 key. Only plain data
+  crosses into the shared rules.
+- **Typography** is the Galmuri14 bitmap font from the `galmuri` package, loaded
+  with `expo-font` in `app/_layout.tsx`; the root layout renders nothing until
+  the font resolves.
 
 ## Commands
 
@@ -77,6 +102,30 @@ npm run lint
 npm test
 npm run build:web
 ```
+
+`typecheck` and `test` fan out across every workspace, mobile included. To work
+on mobile alone:
+
+```bash
+npm run typecheck --workspace @codigdex/mobile   # asset-map --check, then tsc --noEmit
+npm test --workspace @codigdex/mobile            # vitest run
+npm run generate:assets --workspace @codigdex/mobile
+```
+
+Start the Expo dev server and scan the QR code with Expo Go:
+
+```bash
+# LAN — device and computer on the same Wi-Fi; regenerates the asset map first
+npm run start --workspace @codigdex/mobile
+
+# Tunnel — different networks, or a LAN that blocks the dev server
+npm run generate:assets --workspace @codigdex/mobile
+npm run start:tunnel --workspace @codigdex/mobile
+```
+
+Only `start` regenerates the asset map through `prestart`; `start:tunnel`,
+`android`, and `ios` do not, so run `generate:assets` first when the art
+changed.
 
 Vercel should use `web` as its Root Directory. Because the web application
 imports workspace packages outside that directory, keep **Include source files
