@@ -1,12 +1,12 @@
 import Phaser from "phaser";
 import { findStage } from "@codigdex/game-content/domain/chapters";
-import type { ChapterDefinition, MonsterDefinition, QuizQuestion } from "@codigdex/game-core/domain/chapters/types";
+import type { ChapterDefinition, MonsterDefinition, MultipleChoiceQuestion } from "@codigdex/game-core/domain/chapters/types";
 import {
   isSuccessfulCapture,
   requiredCorrectAnswers,
   shouldContinueBattle,
 } from "@codigdex/game-core/domain/dex/capture";
-import { drawQuizQuestions, quizCountForLevel } from "@codigdex/game-core/domain/dex/quiz";
+import { drawQuizQuestions, isMultipleChoiceQuestion, quizCountForLevel } from "@codigdex/game-core/domain/dex/quiz";
 import { loadQuizPack } from "@codigdex/quiz-content/loader";
 import { assetUrl } from "../../assets";
 import { playAmbience } from "../ambience";
@@ -31,7 +31,7 @@ export interface CodeBattleData {
 export class CodeBattleScene extends Phaser.Scene {
   private chapter!: ChapterDefinition;
   private monster!: MonsterDefinition;
-  private questions: QuizQuestion[] = [];
+  private questions: MultipleChoiceQuestion[] = [];
   private questionIndex = 0;
   private correctCount = 0;
   private locked = false;
@@ -90,7 +90,7 @@ export class CodeBattleScene extends Phaser.Scene {
     try {
       const pack = await loadQuizPack(this.monster.quizPackId);
       if (!this.sys.isActive() || generation !== this.loadGeneration) return;
-      this.questions = drawQuizQuestions(pack.questions, quizCountForLevel(this.monster.level));
+      this.questions = drawQuizQuestions(pack.questions.filter(isMultipleChoiceQuestion), quizCountForLevel(this.monster.level));
       loading.destroy();
     } catch (error) {
       console.error(`[CodeBattleScene] failed to load ${this.monster.quizPackId}`, error);

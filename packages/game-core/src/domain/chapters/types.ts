@@ -1,10 +1,33 @@
 import type { LocalizedText } from "../../i18n/locale";
 
-export interface QuizQuestion {
+interface QuizQuestionCopy {
   prompt: LocalizedText;
+  /** Legacy choice questions may omit these; new content can reveal at most two hints. */
+  hints?: readonly LocalizedText[];
+  explanation?: LocalizedText;
+}
+
+export interface MultipleChoiceQuestion extends QuizQuestionCopy {
+  /** Omitted on legacy content, which is always multiple choice. */
+  type?: "multipleChoice";
   choices: readonly LocalizedText[];
   answerIndex: number;
+  acceptedAnswers?: never;
+  normalization?: never;
 }
+
+export interface FreeTextQuestion extends QuizQuestionCopy {
+  type: "freeText";
+  acceptedAnswers: readonly string[];
+  normalization: "trim-collapse-case";
+  hints: readonly LocalizedText[];
+  explanation: LocalizedText;
+  choices?: never;
+  answerIndex?: never;
+}
+
+/** A tagged union prevents a free-text prompt from accidentally carrying choice grading. */
+export type QuizQuestion = MultipleChoiceQuestion | FreeTextQuestion;
 
 export interface CapturedCard {
   id: string;

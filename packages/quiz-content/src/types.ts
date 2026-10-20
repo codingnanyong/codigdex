@@ -12,12 +12,12 @@ export interface QuizPackDescriptor {
   questionCount: number;
 }
 
-export interface PackagedQuizQuestion extends QuizQuestion {
+export type PackagedQuizQuestion = QuizQuestion & {
   /** Stable within a versioned pack. */
   id: string;
   difficulty: QuizDifficulty;
   tags: readonly string[];
-}
+};
 
 export interface QuizPack {
   descriptor: QuizPackDescriptor;

@@ -1,5 +1,5 @@
 import { CHAPTERS, DEX_MONSTERS, chapterStatus, stageStatus } from "@codigdex/game-content/domain/chapters";
-import type { MonsterDefinition, QuizQuestion } from "@codigdex/game-core/domain/chapters/types";
+import type { MonsterDefinition, MultipleChoiceQuestion } from "@codigdex/game-core/domain/chapters/types";
 import { localize } from "@codigdex/game-core/i18n/locale";
 import { loadQuizPack } from "@codigdex/quiz-content";
 import { useEffect, useMemo, useState } from "react";
@@ -104,7 +104,7 @@ function WorldScreen({ onBack, onBattle, onDex }: { onBack(): void; onBattle(mon
 
 function BattleScreen({ monster, onExit, onFinish }: { monster: MonsterDefinition; onExit(): void; onFinish(correct: number, total: number): void }) {
   const { locale } = useSave();
-  const [questions, setQuestions] = useState<readonly QuizQuestion[]>();
+  const [questions, setQuestions] = useState<readonly MultipleChoiceQuestion[]>();
   const [index, setIndex] = useState(0);
   const [correct, setCorrect] = useState(0);
   const [locked, setLocked] = useState(false);
