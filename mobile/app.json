@@ -3,7 +3,7 @@
     "name": "Codigdex",
     "slug": "codigdex",
     "version": "1.0.1",
-    "orientation": "landscape",
+    "orientation": "default",
     "scheme": "codigdex",
     "userInterfaceStyle": "dark",
     "ios": {

@@ -14,6 +14,6 @@ export function Screen({ children, scroll = false }: PropsWithChildren<{ scroll?
 
 const styles = StyleSheet.create({
   safeArea: { backgroundColor: colors.background, flex: 1 },
-  content: { flex: 1, paddingHorizontal: 18, paddingVertical: 12 },
+  content: { flex: 1, minHeight: 0, minWidth: 0, paddingHorizontal: 18, paddingVertical: 12 },
   scroll: { flexGrow: 1 },
 });

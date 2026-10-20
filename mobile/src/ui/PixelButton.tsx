@@ -1,4 +1,4 @@
-import type { PropsWithChildren } from "react";
+import React, { type PropsWithChildren } from "react";
 import { Pressable, StyleSheet, Text, type PressableProps } from "react-native";
 import { colors, font } from "./theme";
 
@@ -24,7 +24,7 @@ export function PixelButton({ accessibilityLabel, children, compact = false, dis
 
 const styles = StyleSheet.create({
   base: { alignItems: "center", borderRadius: 8, borderWidth: 2, justifyContent: "center", minHeight: 48, paddingHorizontal: 18, paddingVertical: 10 },
-  compact: { minHeight: 38, paddingHorizontal: 12, paddingVertical: 6 },
+  compact: { minHeight: 48, paddingHorizontal: 12, paddingVertical: 6 },
   primary: { backgroundColor: colors.cyan, borderColor: colors.cyan },
   secondary: { backgroundColor: colors.panelRaised, borderColor: colors.border },
   quiet: { backgroundColor: "transparent", borderColor: colors.border },

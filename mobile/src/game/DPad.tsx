@@ -25,13 +25,13 @@ function PadButton({ label, onPress, style, symbol }: { label: string; onPress()
 }
 
 const styles = StyleSheet.create({
-  pad: { height: 102, position: "relative", width: 102 },
-  button: { alignItems: "center", backgroundColor: colors.panelRaised, borderColor: colors.cyan, borderRadius: 8, borderWidth: 1, height: 34, justifyContent: "center", position: "absolute", width: 34 },
+  pad: { height: 144, position: "relative", width: 144 },
+  button: { alignItems: "center", backgroundColor: colors.panelRaised, borderColor: colors.cyan, borderRadius: 8, borderWidth: 1, height: 48, justifyContent: "center", position: "absolute", width: 48 },
   pressed: { backgroundColor: colors.cyan },
   symbol: { color: colors.text, fontFamily: font, fontSize: 18 },
-  up: { left: 34, top: 0 },
-  left: { left: 0, top: 34 },
-  center: { backgroundColor: colors.panelRaised, height: 34, left: 34, position: "absolute", top: 34, width: 34 },
-  right: { left: 68, top: 34 },
-  down: { left: 34, top: 68 },
+  up: { left: 48, top: 0 },
+  left: { left: 0, top: 48 },
+  center: { backgroundColor: colors.panelRaised, height: 48, left: 48, position: "absolute", top: 48, width: 48 },
+  right: { left: 96, top: 48 },
+  down: { left: 48, top: 96 },
 });
