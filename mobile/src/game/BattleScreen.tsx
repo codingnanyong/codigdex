@@ -12,6 +12,7 @@ import { colors, font } from "../ui/theme";
 import { battleQuestions } from "./battle";
 import { compactBattle } from "./battlePresentation";
 import { BattleView, type BattleFeedback } from "./BattleView";
+import { qaFaults } from "../qa/runtime";
 
 interface Props {
   monster: MonsterDefinition;
@@ -53,7 +54,7 @@ export function BattleScreen({ monster, monsterImage, locale, onExit, onFinish }
   useEffect(() => {
     let active = true;
     closed.current = false;
-    void loadMixedQuizPack(monster.quizPackId).then((pack) => {
+    void Promise.resolve().then(() => { qaFaults.beforeQuiz(); return loadMixedQuizPack(monster.quizPackId); }).then((pack) => {
       if (!active || closed.current) return;
       const next = createBattleState(battleQuestions(monster, pack.questions));
       current.current = next;

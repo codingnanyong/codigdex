@@ -13,25 +13,30 @@ import { battlePercent } from "./battle";
 import { BattleScreen } from "./BattleScreen";
 import { DPad } from "./DPad";
 import { WorldCanvas, type WorldPosition } from "./WorldCanvas";
+import { QAScreen } from "../qa/QAScreen";
+import { QA_ENABLED } from "../qa/runtime";
 
-type Route = "title" | "world" | "battle" | "result" | "dex" | "detail" | "settings";
+type Route = "title" | "world" | "battle" | "result" | "dex" | "detail" | "settings" | "qa";
 
 interface BattleResult { correct: number; monster: MonsterDefinition; total: number; passed: boolean }
 
 export function NativeGame() {
-  const { capture, hydrated, locale } = useSave();
+  const { capture, hydrated, locale, loadError, retryLoad } = useSave();
   const [route, setRoute] = useState<Route>("title");
   const [monster, setMonster] = useState<MonsterDefinition>(() => CHAPTERS[0].stages[0]);
   const [result, setResult] = useState<BattleResult>();
+  const [qaChecks, setQaChecks] = useState<string[]>([]);
 
   if (!hydrated) {
+    if (loadError) return <Screen><View style={styles.loading}><Text accessibilityRole="alert" style={styles.wrong}>저장 데이터를 읽지 못했습니다. / Could not read save data.</Text><PixelButton onPress={retryLoad}>다시 불러오기 / RETRY</PixelButton></View></Screen>;
     return <Screen><View style={styles.loading}><ActivityIndicator color={colors.cyan} /><Text style={styles.muted}>SAVE DATA LOADING</Text></View></Screen>;
   }
 
   const startBattle = (next: MonsterDefinition) => { setMonster(next); setRoute("battle"); };
-  if (route === "title") return <TitleScreen onDex={() => setRoute("dex")} onPlay={() => setRoute("world")} onSettings={() => setRoute("settings")} />;
-  if (route === "dex") return <DexScreen onBack={() => setRoute("title")} onSelect={(next) => { setMonster(next); setRoute("detail"); }} />;
+  if (QA_ENABLED && route === "qa") return <QAScreen checked={qaChecks} onToggleCheck={(check) => setQaChecks((items) => items.includes(check) ? items.filter((item) => item !== check) : [...items, check])} onBack={() => setRoute("title")} onBattle={startBattle} onDex={() => setRoute("dex")} />;
+  if (route === "title") return <TitleScreen onQA={() => setRoute("qa")} onDex={() => setRoute("dex")} onPlay={() => setRoute("world")} onSettings={() => setRoute("settings")} />;
   if (route === "world") return <WorldScreen onBack={() => setRoute("title")} onBattle={(next) => { setMonster(next); setRoute("battle"); }} onDex={() => setRoute("dex")} />;
+  if (route === "dex") return <DexScreen onBack={() => setRoute(QA_ENABLED ? "qa" : "title")} onSelect={(next) => { setMonster(next); setRoute("detail"); }} />;
   if (route === "detail") return <MonsterDetail monster={monster} onBack={() => setRoute("dex")} onBattle={() => startBattle(monster)} />;
   if (route === "settings") return <SettingsScreen onBack={() => setRoute("title")} />;
   if (route === "battle") {
@@ -42,10 +47,10 @@ export function NativeGame() {
       setRoute("result");
     }} />;
   }
-  return <ResultScreen result={result!} onRetry={() => setRoute("battle")} onDex={() => setRoute("dex")} onWorld={() => setRoute("world")} />;
+  return <ResultScreen result={result!} onRetry={() => setRoute("battle")} onQA={() => setRoute("qa")} onDex={() => setRoute("dex")} onWorld={() => setRoute("world")} />;
 }
 
-function TitleScreen({ onDex, onPlay, onSettings }: { onDex(): void; onPlay(): void; onSettings(): void }) {
+function TitleScreen({ onDex, onPlay, onSettings, onQA }: { onDex(): void; onPlay(): void; onSettings(): void; onQA(): void }) {
   const { locale, save } = useSave();
   const { width, height } = useWindowDimensions();
   const narrow = width < 680 || height > width;
@@ -64,6 +69,7 @@ function TitleScreen({ onDex, onPlay, onSettings }: { onDex(): void; onPlay(): v
           <PixelButton onPress={onPlay}>{ko ? "게임 시작" : "PLAY"}</PixelButton>
           <PixelButton onPress={onDex} variant="secondary">{ko ? "코디덱스" : "CODIGDEX"}</PixelButton>
           <PixelButton compact onPress={onSettings} variant="quiet">{ko ? "설정" : "SETTINGS"}</PixelButton>
+          {QA_ENABLED ? <PixelButton onPress={onQA} variant="secondary">QA · 기기 테스트</PixelButton> : null}
         </View>
       </View>
     </Screen>
@@ -110,7 +116,7 @@ function WorldScreen({ onBack, onBattle, onDex }: { onBack(): void; onBattle(mon
   );
 }
 
-function ResultScreen({ onDex, onWorld, onRetry, result }: { onDex(): void; onWorld(): void; onRetry(): void; result: BattleResult }) {
+function ResultScreen({ onDex, onWorld, onRetry, onQA, result }: { onDex(): void; onWorld(): void; onRetry(): void; onQA(): void; result: BattleResult }) {
   const { locale, saveError, retrySave } = useSave();
   const { width, height } = useWindowDimensions();
   const narrow = width < 680 || height > width;
@@ -133,6 +139,7 @@ function ResultScreen({ onDex, onWorld, onRetry, result }: { onDex(): void; onWo
           <PixelButton onPress={onWorld}>{ko ? "월드로" : "WORLD"}</PixelButton>
           <PixelButton onPress={onRetry} variant="secondary">{ko ? "다시 도전" : "RETRY BATTLE"}</PixelButton>
           <PixelButton onPress={onDex} variant="secondary">{ko ? "도감 보기" : "OPEN DEX"}</PixelButton>
+          {QA_ENABLED ? <PixelButton onPress={onQA} variant="quiet">QA · 기기 테스트</PixelButton> : null}
         </View>
       </View>
     </Screen>

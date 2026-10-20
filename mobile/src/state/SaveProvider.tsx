@@ -10,6 +10,8 @@ interface SaveContextValue {
   capture(monsterId: string, battle: BattleState): void;
   clearProgress(): void;
   hydrated: boolean;
+  loadError: boolean;
+  retryLoad(): void;
   locale: Locale;
   save: StoredGameStateV3;
   saveError: boolean;
@@ -22,6 +24,8 @@ const SaveContext = createContext<SaveContextValue | undefined>(undefined);
 export function SaveProvider({ children }: PropsWithChildren) {
   const [save, setSave] = useState<StoredGameStateV3>(() => createEmptySave("ko"));
   const [hydrated, setHydrated] = useState(false);
+  const [loadError, setLoadError] = useState(false);
+  const [loadAttempt, setLoadAttempt] = useState(0);
   const [saveError, setSaveError] = useState(false);
   const currentSave = useRef(save);
   const writer = useMemo(() => createSaveWriter(mobileSaveStorage), []);
@@ -33,9 +37,9 @@ export function SaveProvider({ children }: PropsWithChildren) {
       currentSave.current = stored;
       setSave(stored);
       setHydrated(true);
-    });
+    }).catch(() => { if (active) setLoadError(true); });
     return () => { active = false; };
-  }, []);
+  }, [loadAttempt]);
 
   const update = (produce: (current: StoredGameStateV3) => StoredGameStateV3) => {
     const next = produce(currentSave.current);
@@ -60,6 +64,8 @@ export function SaveProvider({ children }: PropsWithChildren) {
       update((current) => createEmptySave(current.ui.locale ?? "ko"));
     },
     hydrated,
+    loadError,
+    retryLoad() { setLoadError(false); setLoadAttempt((attempt) => attempt + 1); },
     locale: save.ui.locale ?? "ko",
     save,
     saveError,
@@ -67,8 +73,7 @@ export function SaveProvider({ children }: PropsWithChildren) {
     setLocale(locale) {
       update((current) => ({ ...current, ui: { ...current.ui, locale } }));
     },
-
-  }), [hydrated, save, saveError]);
+  }), [hydrated, loadError, save, saveError]);
 
   return <SaveContext.Provider value={value}>{children}</SaveContext.Provider>;
 }

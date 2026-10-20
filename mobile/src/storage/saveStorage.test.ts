@@ -18,6 +18,15 @@ function memoryStorage() {
 }
 
 describe("mobile capture persistence", () => {
+  it("propagates a read failure without replacing an existing save", async () => {
+    const { storage, values } = memoryStorage();
+    const stored = JSON.stringify(createEmptySave("en"));
+    values.set(SAVE_STORAGE_KEYS.current, stored);
+    const adapter = createAsyncSaveStorage({ ...storage, async getItem() { throw new Error("temporarily locked"); } });
+    await expect(adapter.load()).rejects.toThrow("temporarily locked");
+    expect(values.get(SAVE_STORAGE_KEYS.current)).toBe(stored);
+    expect((await createAsyncSaveStorage(storage).load()).ui.locale).toBe("en");
+  });
   it("restores a successful mixed battle capture without duplicate records or failed captures", async () => {
     const { storage } = memoryStorage();
     const adapter = createAsyncSaveStorage(storage);
