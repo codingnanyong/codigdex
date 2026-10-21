@@ -8,7 +8,8 @@ import { mobileAssetSource } from "@/assets";
 import { useSave } from "@/state/SaveProvider";
 import { PixelButton } from "@/ui/PixelButton";
 import { Screen } from "@/ui/Screen";
-import { colors, font } from "@/ui/theme";
+import { colors, font, pixelPanel } from "@/ui/theme";
+import { PixelScene, type PixelScenery } from "../ui/PixelScene";
 import { battlePercent } from "./battle";
 import { BattleScreen } from "./BattleScreen";
 import { WorldMapScreen } from "./WorldMapScreen";
@@ -65,12 +66,12 @@ function TitleScreen({ onDex, onPlay, onSettings, onQA }: { onDex(): void; onPla
   return (
     <Screen scroll>
       <View style={[styles.titleLayout, narrow && styles.verticalLayout]}>
-        <View style={styles.titleMark}><Text style={styles.titleMarkText}>{"{ }"}</Text></View>
+        <View style={styles.titleArt}><PixelScene scene="field" height={180} /><View style={styles.artLabel}><Text style={styles.kicker}>FIELD GUIDE · 01</Text></View></View>
         <View style={styles.titleCopy}>
-          <Text style={styles.kicker}>NATIVE CODING ADVENTURE</Text>
+          <Text style={styles.kicker}>A PIXEL CODING ADVENTURE</Text>
           <Text accessibilityRole="header" style={styles.logo}>CODIGDEX</Text>
           <Text style={styles.subtitle}>{ko ? "코드로 버그를 잡고 지식을 수집하세요" : "Catch bugs with code and collect knowledge"}</Text>
-          <Text style={styles.muted}>{ko ? `포획 ${save.progress.captures.length}마리 · React Native + Skia` : `${save.progress.captures.length} captured · React Native + Skia`}</Text>
+          <Text style={styles.muted}>{ko ? `나의 필드 가이드 · 포획 ${save.progress.captures.length}마리` : `MY FIELD GUIDE · ${save.progress.captures.length} CAPTURED`}</Text>
         </View>
         <View style={styles.titleActions}>
           <PixelButton onPress={onPlay}>{continuing ? (ko ? "이어하기" : "CONTINUE") : (ko ? "게임 시작" : "PLAY")}</PixelButton>
@@ -99,7 +100,7 @@ function ResultScreen({ onDex, onWorld, onRetry, onQA, onContinue, result }: { o
   return (
     <Screen scroll>
       <View style={[styles.resultLayout, narrow && styles.verticalLayout]}>
-        <Image resizeMode="contain" source={mobileAssetSource(result.monster.assetKey)} style={styles.resultMonster} />
+        <View style={styles.resultStage}><PixelScene backdrop scene={(chapter?.id ?? "field") as PixelScenery} /><Image resizeMode="contain" source={mobileAssetSource(result.monster.assetKey)} style={styles.resultMonster} /></View>
         <View style={styles.resultCopy}>
           <Text style={[styles.resultGrade, result.passed ? styles.correct : styles.wrong]}>{result.passed ? (ko ? "포획 성공" : "CAPTURED") : (ko ? "재도전" : "TRY AGAIN")}</Text>
           <Text style={styles.logo}>{battlePercent(result.correct, result.total)}%</Text>
@@ -158,7 +159,7 @@ function MonsterDetail({ monster, onBack, onBattle }: { monster: MonsterDefiniti
     <PixelButton onPress={onBack} variant="quiet">{ko ? "도감으로" : "BACK TO DEX"}</PixelButton>
     <Text style={styles.kicker}>NO.{monster.dexNumber} · LV.{monster.level}</Text>
     <Text accessibilityRole="header" style={styles.hudTitle}>{localize(monster.name, locale)}</Text>
-    <Image accessibilityLabel={localize(monster.name, locale)} source={mobileAssetSource(monster.assetKey)} resizeMode="contain" style={styles.resultMonster} />
+    <View style={styles.resultStage}><PixelScene backdrop scene="field" /><Image accessibilityLabel={localize(monster.name, locale)} source={mobileAssetSource(monster.assetKey)} resizeMode="contain" style={styles.resultMonster} /></View>
     <Text style={styles.body}>{localize(monster.briefing, locale)}</Text>
     <Text style={styles.hint}>{available ? (ko ? "정답 60% 이상이면 포획할 수 있어요. 힌트를 사용해도 정답으로 인정해요." : "Get at least 60% correct to capture. Answers with hints count too.") : (ko ? "공통 과정의 앞선 몬스터부터 완료하세요. 직업 지역 전투는 다음 단계에서 연결됩니다." : "Complete the earlier common stages first. Career battles are coming later.")}</Text>
     <PixelButton disabled={!available} onPress={onBattle}>{captured.has(monster.id) ? (ko ? "다시 도전" : "BATTLE AGAIN") : (ko ? "배틀 시작" : "START BATTLE")}</PixelButton>
@@ -191,56 +192,57 @@ function SettingsScreen({ onBack }: { onBack(): void }) {
 
 const styles = StyleSheet.create({
   loading: { alignItems: "center", flex: 1, gap: 16, justifyContent: "center" },
-  muted: { color: colors.muted, fontFamily: font, fontSize: 11, lineHeight: 17, textAlign: "center" },
-  titleLayout: { alignItems: "center", flex: 1, flexDirection: "row", gap: 34, justifyContent: "center" },
-  verticalLayout: { flexDirection: "column", gap: 20, paddingVertical: 18 },
-  titleMark: { alignItems: "center", backgroundColor: colors.panelRaised, borderColor: colors.cyan, borderRadius: 22, borderWidth: 3, height: 150, justifyContent: "center", transform: [{ rotate: "3deg" }], width: 150 },
-  titleMarkText: { color: colors.cyan, fontFamily: font, fontSize: 38, fontWeight: "900" },
-  titleCopy: { maxWidth: 390 },
-  titleActions: { gap: 10, minWidth: 180 },
-  kicker: { color: colors.cyan, fontFamily: font, fontSize: 10, fontWeight: "700", letterSpacing: 2 },
-  logo: { color: colors.text, fontFamily: font, fontSize: 38, fontWeight: "900", letterSpacing: 3, marginVertical: 8 },
+  muted: { color: colors.muted, fontFamily: font, fontSize: 15, lineHeight: 22, textAlign: "center" },
+  titleLayout: { alignItems: "center", flex: 1, flexDirection: "row", flexWrap: "wrap", gap: 20, justifyContent: "center", maxWidth: 1000, width: "100%", alignSelf: "center" },
+  verticalLayout: { flexDirection: "column", gap: 18, paddingVertical: 12 },
+  titleArt: { ...pixelPanel, width: "100%", overflow: "hidden" },
+  artLabel: { padding: 10, backgroundColor: colors.panel, borderTopWidth: 2, borderColor: colors.shadow },
+  titleCopy: { maxWidth: 390, width: "100%", paddingVertical: 8 },
+  titleActions: { gap: 10, minWidth: 180, width: "100%", maxWidth: 390 },
+  kicker: { color: colors.cyan, fontFamily: font, fontSize: 15 },
+  logo: { color: colors.text, fontFamily: font, fontSize: 30, marginVertical: 8 },
   subtitle: { color: colors.blue, fontFamily: font, fontSize: 15, lineHeight: 22, marginBottom: 13 },
-  topbar: { alignItems: "center", flexDirection: "row", height: 52, justifyContent: "space-between" },
-  topbarTitle: { color: colors.text, flex: 1, textAlign: "center", fontFamily: font, fontSize: 12, fontWeight: "800" },
-  topbarGap: { width: 90 },
+  topbar: { alignItems: "center", flexDirection: "row", minHeight: 52, justifyContent: "space-between", gap: 8 },
+  topbarTitle: { color: colors.text, flex: 1, textAlign: "center", fontFamily: font, fontSize: 15 },
+  topbarGap: { width: 0 },
   worldLayout: { flex: 1, flexDirection: "row", gap: 14 },
   worldColumn: { flexDirection: "column" },
-  worldHud: { backgroundColor: colors.panel, borderColor: colors.border, borderRadius: 12, borderWidth: 1, flex: 1, minWidth: 0 },
+  worldHud: { backgroundColor: colors.panel, borderColor: colors.border, borderRadius: 0, borderWidth: 1, flex: 1, minWidth: 0 },
   worldHudContent: { padding: 14, flexGrow: 1 },
-  hudTitle: { color: colors.text, fontFamily: font, fontSize: 17, fontWeight: "800", marginVertical: 7 },
-  body: { color: colors.text, fontFamily: font, fontSize: 11, lineHeight: 17 },
+  hudTitle: { color: colors.text, fontFamily: font, fontSize: 15, marginVertical: 7 },
+  body: { color: colors.text, fontFamily: font, fontSize: 15, lineHeight: 22 },
   hudSpacer: { flex: 1 },
-  hint: { color: colors.amber, fontFamily: font, fontSize: 9, lineHeight: 14, marginVertical: 8, textAlign: "center" },
+  hint: { color: colors.amber, fontFamily: font, fontSize: 15, lineHeight: 22, marginVertical: 8, textAlign: "center" },
   battleLayout: { flex: 1, flexDirection: "row", gap: 16 },
-  monsterPanel: { alignItems: "center", backgroundColor: colors.panel, borderColor: colors.border, borderRadius: 14, borderWidth: 1, justifyContent: "center", width: "34%" },
+  monsterPanel: { alignItems: "center", backgroundColor: colors.panel, borderColor: colors.border, borderRadius: 0, borderWidth: 1, justifyContent: "center", width: "34%" },
   battleMonster: { height: 190, width: 190 },
-  quizPanel: { backgroundColor: colors.panel, borderColor: colors.cyan, borderRadius: 14, borderWidth: 1, flex: 1, padding: 18 },
-  question: { color: colors.text, fontFamily: font, fontSize: 16, fontWeight: "700", lineHeight: 23, marginBottom: 14, marginTop: 9 },
+  quizPanel: { backgroundColor: colors.panel, borderColor: colors.cyan, borderRadius: 0, borderWidth: 1, flex: 1, padding: 18 },
+  question: { color: colors.text, fontFamily: font, fontSize: 15, lineHeight: 23, marginBottom: 14, marginTop: 9 },
   answers: { flex: 1, flexDirection: "row", flexWrap: "wrap", gap: 10 },
-  answer: { alignItems: "center", backgroundColor: colors.panelRaised, borderColor: colors.border, borderRadius: 9, borderWidth: 1, flexDirection: "row", minHeight: 54, padding: 10, width: "48%" },
+  answer: { alignItems: "center", backgroundColor: colors.panelRaised, borderColor: colors.border, borderRadius: 0, borderWidth: 1, flexDirection: "row", minHeight: 54, padding: 10, width: "48%" },
   answerPressed: { borderColor: colors.cyan, transform: [{ translateY: 2 }] },
   answerLocked: { opacity: 0.6 },
-  answerKey: { color: colors.cyan, fontFamily: font, fontSize: 15, fontWeight: "900", marginRight: 10 },
-  answerText: { color: colors.text, flex: 1, fontFamily: font, fontSize: 11, lineHeight: 16 },
-  feedback: { fontFamily: font, fontSize: 14, fontWeight: "900", textAlign: "right" },
+  answerKey: { color: colors.cyan, fontFamily: font, fontSize: 15, marginRight: 10 },
+  answerText: { color: colors.text, flex: 1, fontFamily: font, fontSize: 15, lineHeight: 22 },
+  feedback: { fontFamily: font, fontSize: 15, textAlign: "right" },
   correct: { color: colors.cyan },
-  wrong: { color: colors.danger },
-  score: { color: colors.amber, fontFamily: font, fontSize: 12, fontWeight: "800" },
-  resultLayout: { alignItems: "center", flex: 1, flexDirection: "row", gap: 32, justifyContent: "center" },
+  wrong: { color: colors.danger, fontFamily: font },
+  score: { color: colors.amber, fontFamily: font, fontSize: 15 },
+  resultLayout: { alignItems: "center", flex: 1, flexDirection: "row", flexWrap: "wrap", gap: 24, justifyContent: "center" },
+  resultStage: { ...pixelPanel, width: "100%", maxWidth: 390, height: 200, overflow: "hidden", alignItems: "center", justifyContent: "center" },
   resultMonster: { height: 220, width: 220 },
   resultCopy: { maxWidth: 330 },
-  resultGrade: { fontFamily: font, fontSize: 18, fontWeight: "900", letterSpacing: 2 },
+  resultGrade: { fontFamily: font, fontSize: 30 },
   dexGrid: { gap: 10, paddingBottom: 24 },
   dexRow: { gap: 10, justifyContent: "center" },
   detail: { alignItems: "center", gap: 14, maxWidth: 600, width: "100%", alignSelf: "center", paddingBottom: 24 },
-  dexCard: { backgroundColor: colors.panel, borderColor: colors.border, borderRadius: 10, borderWidth: 1, padding: 8, width: 128 },
+  dexCard: { backgroundColor: colors.panel, borderColor: colors.border, borderRadius: 0, borderWidth: 1, padding: 8, width: 128 },
   dexCardCaptured: { borderColor: colors.cyan },
-  number: { color: colors.blue, fontFamily: font, fontSize: 8 },
+  number: { color: colors.blue, fontFamily: font, fontSize: 15 },
   dexMonster: { height: 84, width: "100%" },
   dexUnknown: { alignItems: "center", height: 84, justifyContent: "center" },
-  dexQuestion: { color: colors.border, fontFamily: font, fontSize: 38 },
-  dexName: { color: colors.text, fontFamily: font, fontSize: 10, fontWeight: "700", textAlign: "center" },
-  settingsPanel: { alignSelf: "center", backgroundColor: colors.panel, borderColor: colors.border, borderRadius: 14, borderWidth: 1, gap: 14, marginTop: 24, maxWidth: 520, padding: 22, width: "80%" },
+  dexQuestion: { color: colors.border, fontFamily: font, fontSize: 45 },
+  dexName: { color: colors.text, fontFamily: font, fontSize: 15, textAlign: "center" },
+  settingsPanel: { ...pixelPanel, alignSelf: "center", gap: 14, marginTop: 24, maxWidth: 520, padding: 16, width: "100%" },
   settingsRow: { flexDirection: "row", gap: 12 },
 });

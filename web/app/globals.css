@@ -2,7 +2,7 @@
 
 @font-face {
   font-family: "Galmuri7";
-  src: url("/fonts/Galmuri7.woff2") format("woff2");
+  src: url("/assets/fonts/Galmuri7.woff2") format("woff2");
   font-weight: normal;
   font-style: normal;
   font-display: swap;
@@ -10,7 +10,7 @@
 
 @font-face {
   font-family: "Galmuri14";
-  src: url("/fonts/Galmuri14.woff2") format("woff2");
+  src: url("/assets/fonts/Galmuri14.woff2") format("woff2");
   font-weight: normal;
   font-style: normal;
   font-display: swap;

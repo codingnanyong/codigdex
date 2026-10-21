@@ -17,20 +17,20 @@ export function PixelButton({ accessibilityLabel, children, compact = false, dis
       onPress={onPress}
       style={({ pressed }) => [styles.base, styles[variant], compact && styles.compact, disabled && styles.disabled, pressed && styles.pressed]}
     >
-      <Text style={[styles.label, variant === "primary" && styles.primaryLabel]}>{children}</Text>
+      <Text style={[styles.label, (variant === "primary" || variant === "danger") && styles.primaryLabel]}>{children}</Text>
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
-  base: { alignItems: "center", borderRadius: 8, borderWidth: 2, justifyContent: "center", minHeight: 48, paddingHorizontal: 18, paddingVertical: 10 },
+  base: { alignItems: "center", borderRadius: 0, borderWidth: 2, borderBottomWidth: 4, justifyContent: "center", minHeight: 48, paddingHorizontal: 16, paddingVertical: 10 },
   compact: { minHeight: 48, paddingHorizontal: 12, paddingVertical: 6 },
-  primary: { backgroundColor: colors.cyan, borderColor: colors.cyan },
-  secondary: { backgroundColor: colors.panelRaised, borderColor: colors.border },
-  quiet: { backgroundColor: "transparent", borderColor: colors.border },
-  danger: { backgroundColor: colors.danger, borderColor: colors.danger },
+  primary: { backgroundColor: colors.cyan, borderColor: colors.shadow, borderTopColor: colors.path },
+  secondary: { backgroundColor: colors.panelRaised, borderColor: colors.shadow, borderTopColor: colors.highlight },
+  quiet: { backgroundColor: colors.panel, borderColor: colors.border, borderTopColor: colors.highlight },
+  danger: { backgroundColor: colors.danger, borderColor: colors.shadow, borderTopColor: "#dc9075" },
   disabled: { opacity: 0.35 },
   pressed: { opacity: 0.72, transform: [{ translateY: 2 }] },
-  label: { color: colors.text, fontFamily: font, fontSize: 13, fontWeight: "700", textAlign: "center" },
-  primaryLabel: { color: colors.background },
+  label: { color: colors.text, fontFamily: font, fontSize: 15, textAlign: "center", lineHeight: 22 },
+  primaryLabel: { color: colors.highlight },
 });

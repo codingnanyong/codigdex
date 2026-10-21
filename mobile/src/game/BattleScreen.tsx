@@ -138,6 +138,6 @@ export function BattleScreen({ monster, monsterImage, locale, onExit, onFinish }
 const styles = StyleSheet.create({
   flex: { flex: 1 },
   loading: { alignItems: "center", justifyContent: "center", flex: 1, gap: 16 },
-  error: { color: colors.danger, fontFamily: font, fontSize: 14, textAlign: "center" },
-  caption: { color: colors.muted, fontFamily: font, fontSize: 12 },
+  error: { color: colors.danger, fontFamily: font, fontSize: 15, textAlign: "center" },
+  caption: { color: colors.muted, fontFamily: font, fontSize: 15 },
 });

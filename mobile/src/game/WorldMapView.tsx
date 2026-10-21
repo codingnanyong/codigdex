@@ -3,7 +3,8 @@ import { localize, type Locale } from "@codigdex/game-core/i18n/locale";
 import React from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { PixelButton } from "../ui/PixelButton";
-import { colors, font } from "../ui/theme";
+import { colors, font, pixelPanel } from "../ui/theme";
+import { PixelScene, type PixelScenery } from "../ui/PixelScene";
 import { checkpoints, nextCheckpoint, selectedCheckpoint } from "./progression";
 
 export interface WorldMapViewProps {
@@ -37,6 +38,7 @@ export function WorldMapView({ captured, locale, selectedId, onSelect, onBattle,
         <Text style={styles.body}>{ko ? "튜토리얼 → Git → Linux · 체크포인트를 터치해 이동하세요." : "Tutorial → Git → Linux · Tap a checkpoint to travel."}</Text>
         <Text style={styles.summary}>{path.filter(({ status }) => status === "cleared").length}/{path.length} {ko ? "체크포인트 완료" : "CHECKPOINTS CLEARED"}</Text>
       </View>
+      <View style={styles.landscape}><PixelScene scene={selected.chapter.id as PixelScenery} height={152} /><View style={styles.landscapeLabel}><Text style={styles.kicker}>{selected.chapter.label} · {localize(selected.chapter.place, locale)}</Text></View></View>
       <View style={styles.regions}>
         {CHAPTERS.map((chapter, index) => {
           const stages = path.filter((point) => point.chapter.id === chapter.id);
@@ -93,27 +95,29 @@ const styles = StyleSheet.create({
   scroll: { flex: 1, minHeight: 0 },
   content: { gap: 18, maxWidth: 980, width: "100%", alignSelf: "center", paddingBottom: 24 },
   heading: { gap: 8 },
-  kicker: { color: colors.cyan, fontFamily: font, fontSize: 11, fontWeight: "800", flexShrink: 1 },
-  title: { color: colors.text, fontFamily: font, fontSize: 24, lineHeight: 32, fontWeight: "900" },
-  body: { color: colors.muted, fontFamily: font, fontSize: 13, lineHeight: 21 },
-  summary: { color: colors.cyan, fontFamily: font, fontSize: 12, lineHeight: 18 },
-  regions: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
-  region: { backgroundColor: colors.panel, borderColor: colors.border, borderWidth: 2, borderRadius: 10, padding: 14, flexGrow: 1, flexBasis: 220, minHeight: 120, gap: 6 },
+  landscape: { ...pixelPanel, overflow: "hidden" },
+  landscapeLabel: { padding: 12, backgroundColor: colors.panel, borderTopWidth: 2, borderColor: colors.shadow },
+  kicker: { color: colors.cyan, fontFamily: font, fontSize: 15, flexShrink: 1 },
+  title: { color: colors.text, fontFamily: font, fontSize: 30, lineHeight: 32 },
+  body: { color: colors.muted, fontFamily: font, fontSize: 15, lineHeight: 22 },
+  summary: { color: colors.cyan, fontFamily: font, fontSize: 15, lineHeight: 22 },
+  regions: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+  region: { backgroundColor: colors.panel, borderColor: colors.border, borderWidth: 2, borderRadius: 0, padding: 8, flexGrow: 1, flexBasis: "28%", minWidth: 0, minHeight: 120, gap: 6 },
   regionActive: { borderColor: colors.cyan, backgroundColor: colors.panelRaised },
-  regionNumber: { color: colors.blue, fontFamily: font, fontSize: 11, lineHeight: 17 },
-  regionName: { color: colors.text, fontFamily: font, fontSize: 17, fontWeight: "800", lineHeight: 25 },
-  map: { backgroundColor: colors.panel, borderColor: colors.border, borderWidth: 1, borderRadius: 12, padding: 16, gap: 12 },
+  regionNumber: { color: colors.blue, fontFamily: font, fontSize: 15, lineHeight: 22 },
+  regionName: { color: colors.text, fontFamily: font, fontSize: 15, lineHeight: 25 },
+  map: { ...pixelPanel, padding: 16, gap: 12 },
   trail: { paddingVertical: 8 },
   trailRow: { flexDirection: "row", gap: 14, minHeight: 88 },
   connectorColumn: { width: 38, alignItems: "center" },
-  node: { width: 38, height: 38, borderWidth: 2, borderColor: colors.border, backgroundColor: colors.background, alignItems: "center", justifyContent: "center", borderRadius: 6, marginTop: 12 },
+  node: { width: 38, height: 38, borderWidth: 2, borderColor: colors.border, backgroundColor: colors.background, alignItems: "center", justifyContent: "center", borderRadius: 0, marginTop: 12 },
   nodeActive: { borderColor: colors.amber },
   nodeCleared: { borderColor: colors.cyan, backgroundColor: colors.grass },
-  nodeText: { color: colors.text, fontFamily: font, fontSize: 18, fontWeight: "900" },
+  nodeText: { color: colors.text, fontFamily: font, fontSize: 30 },
   connector: { width: 4, flex: 1, backgroundColor: colors.border, minHeight: 30 },
-  checkpoint: { flex: 1, minHeight: 64, padding: 12, gap: 4, backgroundColor: colors.panelRaised, borderWidth: 2, borderColor: colors.border, borderRadius: 8, marginBottom: 12 },
+  checkpoint: { flex: 1, minHeight: 64, padding: 12, gap: 4, backgroundColor: colors.panelRaised, borderWidth: 2, borderColor: colors.border, borderRadius: 0, marginBottom: 12 },
   checkpointActive: { borderColor: colors.amber },
-  checkpointName: { color: colors.text, fontFamily: font, fontSize: 14, lineHeight: 21, fontWeight: "700" },
+  checkpointName: { color: colors.text, fontFamily: font, fontSize: 15, lineHeight: 22 },
   locked: { opacity: 0.55 },
-  notice: { color: colors.amber, fontFamily: font, fontSize: 13, lineHeight: 21 },
+  notice: { color: colors.amber, fontFamily: font, fontSize: 15, lineHeight: 22 },
 });

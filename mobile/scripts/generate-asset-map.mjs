@@ -1,15 +1,16 @@
 import { readFile, writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
+import { WALLPAPERS } from "../../packages/game-assets/src/visuals.ts";
 
 const mobileRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const repositoryRoot = path.resolve(mobileRoot, "..");
 const manifestPath = path.join(repositoryRoot, "packages/game-assets/src/manifest.generated.ts");
 const outputPath = path.join(mobileRoot, "src/assets.generated.ts");
 const manifest = await readFile(manifestPath, "utf8");
-// Native screens only render monster art. Wallpapers, archives and web sheets stay out of Metro.
+// Share the four web originals; keep unrelated career archives out of Metro.
 const keys = [...manifest.matchAll(/^  "([^"]+)",$/gm)].map((match) => match[1])
-  .filter((key) => key.startsWith("monsters/") && !/-(?:evolution-(?:guide|sheet)-v\d+|specimen(?:-v\d+)?)\.png$/.test(key));
+  .filter((key) => (key.startsWith("monsters/") && !/-(?:evolution-(?:guide|sheet)-v\d+|specimen(?:-v\d+)?)\.png$/.test(key)) || Object.values(WALLPAPERS).includes(key));
 
 if (keys.length === 0) throw new Error(`No asset keys found in ${manifestPath}`);
 

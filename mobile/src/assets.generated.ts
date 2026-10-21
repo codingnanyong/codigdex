@@ -168,4 +168,8 @@ export const MOBILE_ASSETS = {
   "monsters/ch22.bi-tools/kpi-oracle-lv4.png": require("../../packages/game-assets/files/monsters/ch22.bi-tools/kpi-oracle-lv4.png"),
   "monsters/ch22.bi-tools/metric-firefly-lv1.png": require("../../packages/game-assets/files/monsters/ch22.bi-tools/metric-firefly-lv1.png"),
   "monsters/ch22.bi-tools/report-scout-lv2.png": require("../../packages/game-assets/files/monsters/ch22.bi-tools/report-scout-lv2.png"),
+  "wallpapers/codigdex-title-archive-v1.png": require("../../packages/game-assets/files/wallpapers/codigdex-title-archive-v1.png"),
+  "wallpapers/git-battle-arena-v1.png": require("../../packages/game-assets/files/wallpapers/git-battle-arena-v1.png"),
+  "wallpapers/linux-battle-arena-v1.png": require("../../packages/game-assets/files/wallpapers/linux-battle-arena-v1.png"),
+  "wallpapers/tutorial-loop-forest-v1.png": require("../../packages/game-assets/files/wallpapers/tutorial-loop-forest-v1.png"),
 } satisfies Readonly<Partial<Record<AssetKey, ImageSourcePropType>>>;

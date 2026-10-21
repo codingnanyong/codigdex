@@ -18,6 +18,7 @@ interface NativeProps {
   onPress?(): void;
 }
 const native = vi.hoisted(() => ({ controls: [] as NativeProps[] }));
+vi.mock("../ui/PixelScene", () => ({ PixelScene: () => null }));
 vi.mock("react-native", async () => {
   const R = await import("react");
   function css(value: unknown): Record<string, unknown> {

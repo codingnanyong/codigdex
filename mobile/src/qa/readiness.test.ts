@@ -7,6 +7,7 @@ import { createEmptySave } from "@codigdex/game-core/save/schema";
 import { SAVE_STORAGE_KEYS } from "@codigdex/game-core/save/storage";
 import { createAsyncSaveStorage } from "../storage/saveStorage";
 import { createQaFaults, isQaEnabled } from "./runtime";
+import { WALLPAPERS } from "@codigdex/game-assets/visuals";
 
 describe("QA isolation and deliberate failures", () => {
   it("requires both a development bundle and the explicit QA flag", () => {
@@ -38,15 +39,16 @@ describe("QA isolation and deliberate failures", () => {
 });
 
 describe("mobile asset completeness", () => {
-  it("bundles every released monster and excludes non-native wallpapers/archives", () => {
+  it("bundles every released monster and the same common-path wallpapers as web", () => {
     const map = readFileSync(new URL("../assets.generated.ts", import.meta.url), "utf8");
     const keys = new Set([...map.matchAll(/^  "([^"]+)": require\(/gm)].map((match) => match[1]));
     for (const monster of DEX_MONSTERS) {
       expect(keys.has(monster.assetKey), monster.assetKey).toBe(true);
       expect(existsSync(fileURLToPath(new URL(`../../../packages/game-assets/files/${monster.assetKey}`, import.meta.url)))).toBe(true);
     }
-    expect([...keys].every((key) => key.startsWith("monsters/"))).toBe(true);
-    expect(map).not.toContain("wallpapers/");
+    const wallpapers = new Set<string>(Object.values(WALLPAPERS));
+    expect([...keys].every((key) => key.startsWith("monsters/") || wallpapers.has(key))).toBe(true);
+    for (const key of wallpapers) expect(keys.has(key)).toBe(true);
     expect(map).not.toContain("evolution-sheet");
     expect(map).not.toContain("evolution-guide");
     expect(map).not.toContain("-specimen");

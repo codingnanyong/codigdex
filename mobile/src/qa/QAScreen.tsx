@@ -70,8 +70,8 @@ export function QAScreen({ onBack, onBattle, onDex, onWorld, checked, onToggleCh
 
 const styles = StyleSheet.create({
   content: { gap: 12, maxWidth: 720, width: "100%", alignSelf: "center", paddingBottom: 24 },
-  title: { color: colors.cyan, fontFamily: font, fontSize: 20, fontWeight: "800" },
-  body: { color: colors.text, fontFamily: font, fontSize: 13, lineHeight: 21 },
-  info: { color: colors.muted, fontFamily: font, fontSize: 12, lineHeight: 18 },
-  error: { color: colors.danger, fontFamily: font, fontSize: 13 },
+  title: { color: colors.cyan, fontFamily: font, fontSize: 30 },
+  body: { color: colors.text, fontFamily: font, fontSize: 15, lineHeight: 22 },
+  info: { color: colors.muted, fontFamily: font, fontSize: 15, lineHeight: 22 },
+  error: { color: colors.danger, fontFamily: font, fontSize: 15 },
 });

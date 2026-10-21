@@ -7,6 +7,7 @@ import { localize, type Locale } from "@codigdex/game-core/i18n/locale";
 import { PixelButton } from "../ui/PixelButton";
 import { colors, font } from "../ui/theme";
 import { battleMeters, expectedAnswer, keyboardAnswer, quizCopy } from "./battlePresentation";
+import { PixelScene, type PixelScenery } from "../ui/PixelScene";
 
 export interface BattleFeedback { nextBattle: BattleState; attempt: BattleAttempt }
 
@@ -64,12 +65,18 @@ export function BattleView(props: BattleViewProps) {
 
     <View style={styles.layout}>
       {!compact ? <View style={styles.specimen}>
+        <PixelScene backdrop scene={monster.quizPackId.startsWith("linux.") ? "linux" : monster.quizPackId.startsWith("git.") ? "git" : "tutorial"} />
         <Image accessibilityLabel={localize(monster.name, locale)} resizeMode="contain" source={monsterImage} style={styles.monsterImage} />
         <Text style={styles.specimenTitle}>LV.{monster.level}</Text>
-        <Text style={styles.caption}>{localize(monster.classification, locale)}</Text>
+        <Text style={[styles.caption, styles.specimenCaption]}>{localize(monster.classification, locale)}</Text>
       </View> : null}
       <ScrollView ref={props.scrollRef} style={styles.conversation} contentContainerStyle={[styles.conversationContent, keyboardVisible && styles.typingContent]}
         keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag" onContentSizeChange={props.onContentSizeChange}>
+        {compact && !keyboardVisible ? <View style={styles.compactStage}>
+          <PixelScene backdrop scene={(monster.quizPackId.split(".")[0] === "linux" ? "linux" : monster.quizPackId.split(".")[0] === "git" ? "git" : "tutorial") as PixelScenery} />
+          <Image accessibilityLabel={localize(monster.name, locale)} resizeMode="contain" source={monsterImage} style={styles.compactMonster} />
+          <Text style={styles.stageLabel}>LV.{monster.level}</Text>
+        </View> : null}
         <View style={[styles.bubble, styles.guideBubble]}>
           <Text style={styles.kicker}>{question.type === "freeText" ? (ko ? "단답형" : "TYPE AN ANSWER") : (ko ? "객관식" : "CHOOSE AN ANSWER")}</Text>
           <Text style={styles.prompt}>{quizCopy(localize(question.prompt, locale))}</Text>
@@ -146,45 +153,49 @@ const styles = StyleSheet.create({
   typingInput: { flex: 1, minWidth: 0 },
   header: { flexDirection: "row", alignItems: "center", gap: 12, minHeight: 48 },
   headerCopy: { flex: 1, gap: 3, minWidth: 0 },
-  kicker: { color: colors.cyan, fontFamily: font, fontSize: 10, fontWeight: "700", letterSpacing: 1 },
-  monsterName: { color: colors.text, fontFamily: font, fontSize: 15, fontWeight: "800" },
-  passLine: { color: colors.amber, fontFamily: font, fontSize: 10, lineHeight: 16, textAlign: "right", maxWidth: 130 },
+  kicker: { color: colors.cyan, fontFamily: font, fontSize: 15 },
+  monsterName: { color: colors.text, fontFamily: font, fontSize: 15 },
+  passLine: { color: colors.amber, fontFamily: font, fontSize: 15, lineHeight: 22, textAlign: "right", maxWidth: 130 },
   meters: { flexDirection: "row", gap: 12 },
-  meter: { flex: 1, minWidth: 0, gap: 7, padding: 10, backgroundColor: colors.panel, borderWidth: 1, borderColor: colors.border, borderRadius: 8 },
+  meter: { flex: 1, minWidth: 0, gap: 7, padding: 10, backgroundColor: colors.panel, borderWidth: 1, borderColor: colors.border, borderRadius: 0 },
   meterCopy: { gap: 3 },
-  meterLabel: { color: colors.text, fontFamily: font, fontSize: 11, fontWeight: "700" },
-  meterDetail: { color: colors.muted, fontFamily: font, fontSize: 10, lineHeight: 14 },
-  meterTrack: { height: 7, overflow: "hidden", borderRadius: 2, backgroundColor: colors.background },
+  meterLabel: { color: colors.text, fontFamily: font, fontSize: 15 },
+  meterDetail: { color: colors.muted, fontFamily: font, fontSize: 15, lineHeight: 22 },
+  meterTrack: { height: 7, overflow: "hidden", borderRadius: 0, backgroundColor: colors.background },
   meterFill: { height: "100%", backgroundColor: colors.amber },
   playerFill: { backgroundColor: colors.cyan },
   layout: { flex: 1, flexDirection: "row", gap: 14, minHeight: 0 },
-  specimen: { width: 200, backgroundColor: colors.panel, borderWidth: 1, borderColor: colors.border, borderRadius: 12, alignItems: "center", justifyContent: "center", gap: 10, padding: 14 },
+  specimen: { width: 200, backgroundColor: colors.panel, borderWidth: 1, borderColor: colors.border, borderRadius: 0, alignItems: "center", justifyContent: "center", gap: 10, padding: 14 },
+  compactStage: { height: 112, borderWidth: 2, borderColor: colors.shadow, overflow: "hidden", alignItems: "center", justifyContent: "center" },
+  compactMonster: { width: 104, height: 104 },
+  stageLabel: { position: "absolute", left: 6, bottom: 6, padding: 4, backgroundColor: colors.panel, color: colors.text, fontFamily: font, fontSize: 15 },
   monsterImage: { width: 148, height: 148 },
-  specimenTitle: { color: colors.cyan, fontFamily: font, fontSize: 16, fontWeight: "800" },
-  caption: { color: colors.muted, fontFamily: font, fontSize: 11, lineHeight: 17 },
-  conversation: { flex: 1, minWidth: 0, backgroundColor: colors.panel, borderWidth: 1, borderColor: colors.border, borderRadius: 12 },
+  specimenTitle: { color: colors.cyan, fontFamily: font, fontSize: 15, backgroundColor: colors.panel, padding: 6 },
+  specimenCaption: { backgroundColor: colors.panel, padding: 6 },
+  caption: { color: colors.muted, fontFamily: font, fontSize: 15, lineHeight: 22 },
+  conversation: { flex: 1, minWidth: 0, backgroundColor: colors.panel, borderWidth: 1, borderColor: colors.border, borderRadius: 0 },
   conversationContent: { padding: 14, gap: 12, paddingBottom: 24 },
-  bubble: { padding: 14, borderWidth: 1, borderColor: colors.border, borderRadius: 10, gap: 8, maxWidth: "100%" },
-  guideBubble: { alignSelf: "stretch", backgroundColor: colors.panelRaised, borderTopLeftRadius: 2 },
-  prompt: { color: colors.text, fontFamily: font, fontSize: 16, lineHeight: 24, fontWeight: "700" },
-  hintBubble: { backgroundColor: colors.background, borderColor: colors.amber, borderTopLeftRadius: 2 },
-  hintLabel: { color: colors.amber, fontFamily: font, fontSize: 11, fontWeight: "700" },
-  body: { color: colors.text, fontFamily: font, fontSize: 14, lineHeight: 22 },
+  bubble: { padding: 14, borderWidth: 1, borderColor: colors.border, borderRadius: 0, gap: 8, maxWidth: "100%" },
+  guideBubble: { alignSelf: "stretch", backgroundColor: colors.panelRaised, borderRadius: 0 },
+  prompt: { color: colors.text, fontFamily: font, fontSize: 15, lineHeight: 24 },
+  hintBubble: { backgroundColor: colors.background, borderColor: colors.amber, borderRadius: 0 },
+  hintLabel: { color: colors.amber, fontFamily: font, fontSize: 15 },
+  body: { color: colors.text, fontFamily: font, fontSize: 15, lineHeight: 22 },
   choices: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
-  choice: { flexGrow: 1, flexBasis: "46%", minHeight: 54, backgroundColor: colors.panelRaised, borderWidth: 1, borderColor: colors.border, borderRadius: 8, flexDirection: "row", alignItems: "center", padding: 12, gap: 10 },
+  choice: { flexGrow: 1, flexBasis: "46%", minHeight: 54, backgroundColor: colors.panelRaised, borderWidth: 1, borderColor: colors.border, borderRadius: 0, flexDirection: "row", alignItems: "center", padding: 12, gap: 10 },
   fullChoice: { flexBasis: "100%" },
   pressed: { borderColor: colors.cyan, opacity: 0.8 },
-  choiceKey: { color: colors.cyan, fontFamily: font, fontSize: 14, fontWeight: "800" },
-  choiceText: { flex: 1, color: colors.text, fontFamily: font, fontSize: 14, lineHeight: 21 },
+  choiceKey: { color: colors.cyan, fontFamily: font, fontSize: 15 },
+  choiceText: { flex: 1, color: colors.text, fontFamily: font, fontSize: 15, lineHeight: 22 },
   answerForm: { gap: 10 },
-  inputLabel: { color: colors.muted, fontFamily: font, fontSize: 11, fontWeight: "700" },
-  input: { backgroundColor: colors.background, borderWidth: 1, borderColor: colors.cyan, borderRadius: 8, minHeight: 52, paddingHorizontal: 12, paddingVertical: 10, color: colors.text, fontFamily: font, fontSize: 16 },
+  inputLabel: { color: colors.muted, fontFamily: font, fontSize: 15 },
+  input: { backgroundColor: colors.background, borderWidth: 1, borderColor: colors.cyan, borderRadius: 0, minHeight: 52, paddingHorizontal: 12, paddingVertical: 10, color: colors.text, fontFamily: font, fontSize: 15 },
   hintActions: { gap: 6 },
-  playerBubble: { alignSelf: "flex-end", backgroundColor: colors.panelRaised, borderColor: colors.cyan, borderTopRightRadius: 2 },
-  playerLabel: { color: colors.cyan, fontFamily: font, fontSize: 10, fontWeight: "700" },
-  feedbackBubble: { borderColor: colors.cyan, backgroundColor: colors.background, borderTopLeftRadius: 2 },
+  playerBubble: { alignSelf: "flex-end", backgroundColor: colors.panelRaised, borderColor: colors.cyan, borderRadius: 0 },
+  playerLabel: { color: colors.cyan, fontFamily: font, fontSize: 15 },
+  feedbackBubble: { borderColor: colors.cyan, backgroundColor: colors.background, borderRadius: 0 },
   missedBubble: { borderColor: colors.danger },
-  feedbackTitle: { color: colors.cyan, fontFamily: font, fontSize: 15, fontWeight: "800" },
+  feedbackTitle: { color: colors.cyan, fontFamily: font, fontSize: 15 },
   missedText: { color: colors.danger },
-  ready: { color: colors.amber, fontFamily: font, fontSize: 14, lineHeight: 21, fontWeight: "700" },
+  ready: { color: colors.amber, fontFamily: font, fontSize: 15, lineHeight: 22 },
 });

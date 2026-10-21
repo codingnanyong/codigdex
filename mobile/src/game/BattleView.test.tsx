@@ -28,6 +28,7 @@ interface NativeProps {
 }
 
 const native = vi.hoisted(() => ({ controls: [] as { kind: string; props: NativeProps }[] }));
+vi.mock("../ui/PixelScene", () => ({ PixelScene: () => null }));
 
 // Render the actual native view through lightweight hosts, retaining callbacks and accessibility props.
 // This verifies UI states and produces layout previews; it does not simulate the native IME/runtime.
