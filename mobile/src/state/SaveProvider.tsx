@@ -1,10 +1,12 @@
 import type { Locale } from "@codigdex/game-core/i18n/locale";
 import { createEmptySave, type StoredGameStateV3 } from "@codigdex/game-core/save/schema";
-import { applyBattleCapture } from "@codigdex/game-core/save/battleCapture";
+import { captureCheckpoint, rememberCheckpoint } from "../game/progression";
 import type { BattleState } from "@codigdex/game-core/domain/dex/battle";
 import { createContext, useContext, useEffect, useMemo, useRef, useState, type PropsWithChildren } from "react";
 import { mobileSaveStorage } from "@/storage/asyncStorage";
 import { createSaveWriter } from "@/storage/saveWriter";
+import { QA_ENABLED } from "../qa/runtime";
+import { createQaProgress, type QaProgress } from "../qa/progress";
 
 interface SaveContextValue {
   capture(monsterId: string, battle: BattleState): void;
@@ -17,6 +19,8 @@ interface SaveContextValue {
   saveError: boolean;
   retrySave(): void;
   setLocale(locale: Locale): void;
+  selectCheckpoint(id: string): void;
+  loadQAProgress(scenario: QaProgress): void;
 }
 
 const SaveContext = createContext<SaveContextValue | undefined>(undefined);
@@ -58,7 +62,7 @@ export function SaveProvider({ children }: PropsWithChildren) {
 
   const value = useMemo<SaveContextValue>(() => ({
     capture(monsterId, battle) {
-      update((current) => applyBattleCapture(current, monsterId, battle));
+      update((current) => captureCheckpoint(current, monsterId, battle));
     },
     clearProgress() {
       update((current) => createEmptySave(current.ui.locale ?? "ko"));
@@ -72,6 +76,13 @@ export function SaveProvider({ children }: PropsWithChildren) {
     retrySave() { persist(currentSave.current); },
     setLocale(locale) {
       update((current) => ({ ...current, ui: { ...current.ui, locale } }));
+    },
+    selectCheckpoint(id) {
+      update((current) => rememberCheckpoint(current, id));
+    },
+    loadQAProgress(scenario) {
+      if (!QA_ENABLED) return;
+      update((current) => createQaProgress(QA_ENABLED, scenario, current.ui.locale ?? "ko") ?? current);
     },
   }), [hydrated, loadError, save, saveError]);
 

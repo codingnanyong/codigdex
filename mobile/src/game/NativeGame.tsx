@@ -2,7 +2,7 @@ import { CHAPTERS, DEX_MONSTERS } from "@codigdex/game-content/domain/chapters";
 import type { MonsterDefinition } from "@codigdex/game-core/domain/chapters/types";
 import { localize } from "@codigdex/game-core/i18n/locale";
 import { useMemo, useState } from "react";
-import { ActivityIndicator, FlatList, Image, Pressable, StyleSheet, Text, View, useWindowDimensions } from "react-native";
+import { ActivityIndicator, Alert, FlatList, Image, Pressable, StyleSheet, Text, View, useWindowDimensions } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { mobileAssetSource } from "@/assets";
 import { useSave } from "@/state/SaveProvider";
@@ -12,7 +12,7 @@ import { colors, font } from "@/ui/theme";
 import { battlePercent } from "./battle";
 import { BattleScreen } from "./BattleScreen";
 import { WorldMapScreen } from "./WorldMapScreen";
-import { canEnterCheckpoint, selectedCheckpoint } from "./progression";
+import { canEnterCheckpoint, checkpoints, nextCheckpoint, resumeCheckpoint, selectedCheckpoint } from "./progression";
 import { QAScreen } from "../qa/QAScreen";
 import { QA_ENABLED } from "../qa/runtime";
 
@@ -21,7 +21,7 @@ type Route = "title" | "world" | "battle" | "result" | "dex" | "detail" | "setti
 interface BattleResult { correct: number; monster: MonsterDefinition; total: number; passed: boolean }
 
 export function NativeGame() {
-  const { capture, hydrated, locale, loadError, retryLoad, save } = useSave();
+  const { capture, hydrated, locale, loadError, retryLoad, save, selectCheckpoint } = useSave();
   const [route, setRoute] = useState<Route>("title");
   const [monster, setMonster] = useState<MonsterDefinition>(() => CHAPTERS[0].stages[0]);
   const [result, setResult] = useState<BattleResult>();
@@ -36,11 +36,11 @@ export function NativeGame() {
   const captured = new Set(save.progress.captures.map(({ id }) => id));
   const startBattle = (next: MonsterDefinition) => {
     if (!canEnterCheckpoint(captured, next.id)) return;
-    setWorldStageId(next.id); setMonster(next); setRoute("battle");
+    selectCheckpoint(next.id); setWorldStageId(next.id); setMonster(next); setRoute("battle");
   };
-  if (QA_ENABLED && route === "qa") return <QAScreen checked={qaChecks} onToggleCheck={(check) => setQaChecks((items) => items.includes(check) ? items.filter((item) => item !== check) : [...items, check])} onBack={() => setRoute("title")} onBattle={(next) => { setWorldStageId(next.id); setMonster(next); setRoute("battle"); }} onWorld={() => setRoute("world")} onDex={() => setRoute("dex")} />;
-  if (route === "title") return <TitleScreen onQA={() => setRoute("qa")} onDex={() => setRoute("dex")} onPlay={() => setRoute("world")} onSettings={() => setRoute("settings")} />;
-  if (route === "world") return <WorldMapScreen selectedId={worldStageId} onSelect={setWorldStageId} onBack={() => setRoute("title")} onBattle={(id) => startBattle(selectedCheckpoint(captured, id).monster)} onDex={() => setRoute("dex")} />;
+  if (QA_ENABLED && route === "qa") return <QAScreen checked={qaChecks} onToggleCheck={(check) => setQaChecks((items) => items.includes(check) ? items.filter((item) => item !== check) : [...items, check])} onBack={() => setRoute("title")} onBattle={(next) => { setWorldStageId(next.id); setMonster(next); setRoute("battle"); }} onWorld={() => { setWorldStageId(resumeCheckpoint(save).monster.id); setRoute("world"); }} onDex={() => setRoute("dex")} />;
+  if (route === "title") return <TitleScreen onQA={() => setRoute("qa")} onDex={() => setRoute("dex")} onPlay={() => { setWorldStageId(resumeCheckpoint(save).monster.id); setRoute("world"); }} onSettings={() => setRoute("settings")} />;
+  if (route === "world") return <WorldMapScreen selectedId={worldStageId} onSelect={(id) => { setWorldStageId(id); selectCheckpoint(id); }} onBack={() => setRoute("title")} onBattle={(id) => startBattle(selectedCheckpoint(captured, id).monster)} onDex={() => setRoute("dex")} />;
   if (route === "dex") return <DexScreen onBack={() => setRoute(QA_ENABLED ? "qa" : "title")} onSelect={(next) => { setMonster(next); setRoute("detail"); }} />;
   if (route === "detail") return <MonsterDetail monster={monster} onBack={() => setRoute("dex")} onBattle={() => startBattle(monster)} />;
   if (route === "settings") return <SettingsScreen onBack={() => setRoute("title")} />;
@@ -52,11 +52,13 @@ export function NativeGame() {
       setRoute("result");
     }} />;
   }
-  return <ResultScreen result={result!} onRetry={() => setRoute("battle")} onQA={() => setRoute("qa")} onDex={() => setRoute("dex")} onWorld={() => setRoute("world")} />;
+  return <ResultScreen result={result!} onRetry={() => { selectCheckpoint(monster.id); setRoute("battle"); }} onContinue={() => { const next = nextCheckpoint(captured); selectCheckpoint(next.monster.id); setWorldStageId(next.monster.id); setRoute("world"); }} onQA={() => setRoute("qa")} onDex={() => setRoute("dex")} onWorld={() => setRoute("world")} />;
 }
 
 function TitleScreen({ onDex, onPlay, onSettings, onQA }: { onDex(): void; onPlay(): void; onSettings(): void; onQA(): void }) {
-  const { locale, save } = useSave();
+  const { locale, save, saveError, retrySave } = useSave();
+  const resume = resumeCheckpoint(save);
+  const continuing = save.progress.captures.length > 0 || !!save.ui.checkpointId;
   const { width, height } = useWindowDimensions();
   const narrow = width < 680 || height > width;
   const ko = locale === "ko";
@@ -71,7 +73,9 @@ function TitleScreen({ onDex, onPlay, onSettings, onQA }: { onDex(): void; onPla
           <Text style={styles.muted}>{ko ? `포획 ${save.progress.captures.length}마리 · React Native + Skia` : `${save.progress.captures.length} captured · React Native + Skia`}</Text>
         </View>
         <View style={styles.titleActions}>
-          <PixelButton onPress={onPlay}>{ko ? "게임 시작" : "PLAY"}</PixelButton>
+          <PixelButton onPress={onPlay}>{continuing ? (ko ? "이어하기" : "CONTINUE") : (ko ? "게임 시작" : "PLAY")}</PixelButton>
+          <Text style={styles.hint}>{localize(resume.chapter.name, locale)} · Lv.{resume.monster.level}{"\n"}{localize(resume.monster.name, locale)}</Text>
+          {saveError ? <><Text accessibilityRole="alert" style={styles.wrong}>{ko ? "저장 실패 · 종료 전 다시 저장하세요." : "Save failed. Retry before closing."}</Text><PixelButton onPress={retrySave}>{ko ? "다시 저장" : "RETRY SAVE"}</PixelButton></> : null}
           <PixelButton onPress={onDex} variant="secondary">{ko ? "코디덱스" : "CODIGDEX"}</PixelButton>
           <PixelButton compact onPress={onSettings} variant="quiet">{ko ? "설정" : "SETTINGS"}</PixelButton>
           {QA_ENABLED ? <PixelButton onPress={onQA} variant="secondary">QA · 기기 테스트</PixelButton> : null}
@@ -81,8 +85,14 @@ function TitleScreen({ onDex, onPlay, onSettings, onQA }: { onDex(): void; onPla
   );
 }
 
-function ResultScreen({ onDex, onWorld, onRetry, onQA, result }: { onDex(): void; onWorld(): void; onRetry(): void; onQA(): void; result: BattleResult }) {
-  const { locale, saveError, retrySave } = useSave();
+function ResultScreen({ onDex, onWorld, onRetry, onQA, onContinue, result }: { onDex(): void; onWorld(): void; onRetry(): void; onQA(): void; onContinue(): void; result: BattleResult }) {
+  const { locale, saveError, retrySave, save } = useSave();
+  const captured = new Set(save.progress.captures.map(({ id }) => id));
+  const path = checkpoints(captured);
+  const chapter = path.find(({ monster }) => monster.id === result.monster.id)?.chapter;
+  const chapterComplete = result.passed && chapter?.stages.every(({ id }) => captured.has(id));
+  const allComplete = path.every(({ status }) => status === "cleared");
+  const next = nextCheckpoint(captured);
   const { width, height } = useWindowDimensions();
   const narrow = width < 680 || height > width;
   const ko = locale === "ko";
@@ -95,13 +105,15 @@ function ResultScreen({ onDex, onWorld, onRetry, onQA, result }: { onDex(): void
           <Text style={styles.logo}>{battlePercent(result.correct, result.total)}%</Text>
           <Text style={styles.body}>{result.correct}/{result.total} · {localize(result.monster.name, locale)}</Text>
           <Text style={styles.muted}>{result.passed ? (ko ? "코디덱스에 새 카드가 등록되었습니다." : "A new card was registered.") : (ko ? "60% 이상 맞히면 포획할 수 있습니다." : "Score at least 60% to capture it.")}</Text>
+          {chapterComplete ? <Text accessibilityLiveRegion="polite" style={styles.hint}>{allComplete ? (ko ? "튜토리얼 · Git · Linux 공통 경로 완료!" : "Tutorial · Git · Linux common path complete!") : `${localize(chapter!.name, locale)} ${ko ? "지역 완료! 다음 지역이 열렸습니다." : "complete! The next region is open."}`}</Text> : null}
         </View>
         <View style={styles.titleActions}>
           {saveError ? <>
             <Text accessibilityRole="alert" style={styles.wrong}>{ko ? "기기에 저장하지 못했습니다. 앱을 닫기 전에 다시 저장하세요." : "Could not save to this device. Retry before closing the app."}</Text>
             <PixelButton onPress={retrySave}>{ko ? "다시 저장" : "RETRY SAVE"}</PixelButton>
           </> : null}
-          <PixelButton onPress={onWorld}>{ko ? "월드로" : "WORLD"}</PixelButton>
+          {result.passed && !allComplete ? <PixelButton onPress={onContinue}>{ko ? "다음 체크포인트" : "NEXT CHECKPOINT"}{"\n"}{localize(next.chapter.name, locale)} · Lv.{next.monster.level}</PixelButton> : null}
+          <PixelButton onPress={onWorld}>{ko ? "월드맵으로" : "WORLD MAP"}</PixelButton>
           <PixelButton onPress={onRetry} variant="secondary">{ko ? "다시 도전" : "RETRY BATTLE"}</PixelButton>
           <PixelButton onPress={onDex} variant="secondary">{ko ? "도감 보기" : "OPEN DEX"}</PixelButton>
           {QA_ENABLED ? <PixelButton onPress={onQA} variant="quiet">QA · 기기 테스트</PixelButton> : null}
@@ -166,7 +178,7 @@ function SettingsScreen({ onBack }: { onBack(): void }) {
           <PixelButton onPress={() => setLocale("en")} variant={locale === "en" ? "primary" : "secondary"}>English</PixelButton>
         </View>
         <Text style={styles.hudTitle}>{ko ? "저장 데이터" : "SAVE DATA"}</Text>
-        <PixelButton onPress={clearProgress} variant="danger">{ko ? "진행도 초기화" : "RESET PROGRESS"}</PixelButton>
+        <PixelButton onPress={() => Alert.alert(ko ? "처음부터 시작할까요?" : "Start over?", ko ? "이 기기의 포획 기록과 체크포인트가 초기화됩니다." : "Captures and checkpoints on this device will be reset.", [{ text: ko ? "취소" : "Cancel", style: "cancel" }, { text: ko ? "초기화" : "Reset", style: "destructive", onPress: clearProgress }])} variant="danger">{ko ? "진행도 초기화" : "RESET PROGRESS"}</PixelButton>
         <Text style={styles.hint}>{ko ? "게임 진행도는 기기에 자동 저장됩니다." : "Progress is saved automatically on this device."}</Text>
         {saveError ? <>
           <Text accessibilityRole="alert" style={styles.wrong}>{ko ? "저장 실패 · 진행 기록은 앱에 남아 있습니다." : "Save failed. Progress is still in memory."}</Text>
