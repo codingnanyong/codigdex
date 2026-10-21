@@ -1,8 +1,8 @@
-import { CHAPTERS, DEX_MONSTERS, findStage, stageStatus } from "@codigdex/game-content/domain/chapters";
+import { CHAPTERS, DEX_MONSTERS } from "@codigdex/game-content/domain/chapters";
 import type { MonsterDefinition } from "@codigdex/game-core/domain/chapters/types";
 import { localize } from "@codigdex/game-core/i18n/locale";
 import { useMemo, useState } from "react";
-import { ActivityIndicator, FlatList, Image, Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from "react-native";
+import { ActivityIndicator, FlatList, Image, Pressable, StyleSheet, Text, View, useWindowDimensions } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { mobileAssetSource } from "@/assets";
 import { useSave } from "@/state/SaveProvider";
@@ -11,8 +11,8 @@ import { Screen } from "@/ui/Screen";
 import { colors, font } from "@/ui/theme";
 import { battlePercent } from "./battle";
 import { BattleScreen } from "./BattleScreen";
-import { DPad } from "./DPad";
-import { WorldCanvas, type WorldPosition } from "./WorldCanvas";
+import { WorldMapScreen } from "./WorldMapScreen";
+import { canEnterCheckpoint, selectedCheckpoint } from "./progression";
 import { QAScreen } from "../qa/QAScreen";
 import { QA_ENABLED } from "../qa/runtime";
 
@@ -21,21 +21,26 @@ type Route = "title" | "world" | "battle" | "result" | "dex" | "detail" | "setti
 interface BattleResult { correct: number; monster: MonsterDefinition; total: number; passed: boolean }
 
 export function NativeGame() {
-  const { capture, hydrated, locale, loadError, retryLoad } = useSave();
+  const { capture, hydrated, locale, loadError, retryLoad, save } = useSave();
   const [route, setRoute] = useState<Route>("title");
   const [monster, setMonster] = useState<MonsterDefinition>(() => CHAPTERS[0].stages[0]);
   const [result, setResult] = useState<BattleResult>();
   const [qaChecks, setQaChecks] = useState<string[]>([]);
+  const [worldStageId, setWorldStageId] = useState<string>();
 
   if (!hydrated) {
     if (loadError) return <Screen><View style={styles.loading}><Text accessibilityRole="alert" style={styles.wrong}>저장 데이터를 읽지 못했습니다. / Could not read save data.</Text><PixelButton onPress={retryLoad}>다시 불러오기 / RETRY</PixelButton></View></Screen>;
     return <Screen><View style={styles.loading}><ActivityIndicator color={colors.cyan} /><Text style={styles.muted}>SAVE DATA LOADING</Text></View></Screen>;
   }
 
-  const startBattle = (next: MonsterDefinition) => { setMonster(next); setRoute("battle"); };
-  if (QA_ENABLED && route === "qa") return <QAScreen checked={qaChecks} onToggleCheck={(check) => setQaChecks((items) => items.includes(check) ? items.filter((item) => item !== check) : [...items, check])} onBack={() => setRoute("title")} onBattle={startBattle} onDex={() => setRoute("dex")} />;
+  const captured = new Set(save.progress.captures.map(({ id }) => id));
+  const startBattle = (next: MonsterDefinition) => {
+    if (!canEnterCheckpoint(captured, next.id)) return;
+    setWorldStageId(next.id); setMonster(next); setRoute("battle");
+  };
+  if (QA_ENABLED && route === "qa") return <QAScreen checked={qaChecks} onToggleCheck={(check) => setQaChecks((items) => items.includes(check) ? items.filter((item) => item !== check) : [...items, check])} onBack={() => setRoute("title")} onBattle={(next) => { setWorldStageId(next.id); setMonster(next); setRoute("battle"); }} onWorld={() => setRoute("world")} onDex={() => setRoute("dex")} />;
   if (route === "title") return <TitleScreen onQA={() => setRoute("qa")} onDex={() => setRoute("dex")} onPlay={() => setRoute("world")} onSettings={() => setRoute("settings")} />;
-  if (route === "world") return <WorldScreen onBack={() => setRoute("title")} onBattle={(next) => { setMonster(next); setRoute("battle"); }} onDex={() => setRoute("dex")} />;
+  if (route === "world") return <WorldMapScreen selectedId={worldStageId} onSelect={setWorldStageId} onBack={() => setRoute("title")} onBattle={(id) => startBattle(selectedCheckpoint(captured, id).monster)} onDex={() => setRoute("dex")} />;
   if (route === "dex") return <DexScreen onBack={() => setRoute(QA_ENABLED ? "qa" : "title")} onSelect={(next) => { setMonster(next); setRoute("detail"); }} />;
   if (route === "detail") return <MonsterDetail monster={monster} onBack={() => setRoute("dex")} onBattle={() => startBattle(monster)} />;
   if (route === "settings") return <SettingsScreen onBack={() => setRoute("title")} />;
@@ -71,46 +76,6 @@ function TitleScreen({ onDex, onPlay, onSettings, onQA }: { onDex(): void; onPla
           <PixelButton compact onPress={onSettings} variant="quiet">{ko ? "설정" : "SETTINGS"}</PixelButton>
           {QA_ENABLED ? <PixelButton onPress={onQA} variant="secondary">QA · 기기 테스트</PixelButton> : null}
         </View>
-      </View>
-    </Screen>
-  );
-}
-
-function WorldScreen({ onBack, onBattle, onDex }: { onBack(): void; onBattle(monster: MonsterDefinition): void; onDex(): void }) {
-  const { height, width } = useWindowDimensions();
-  const insets = useSafeAreaInsets();
-  const narrow = width < 680 || height > width;
-  const { locale, save } = useSave();
-  const captured = useMemo(() => new Set(save.progress.captures.map(({ id }) => id)), [save.progress.captures]);
-  const available = CHAPTERS.flatMap((chapter) => chapter.stages.map((stage, index) => ({ chapter, stage, status: stageStatus(chapter, index, captured) })))
-    .find(({ status }) => status === "available") ?? { chapter: CHAPTERS.at(-1)!, stage: CHAPTERS.at(-1)!.stages.at(-1)!, status: "cleared" as const };
-  const [position, setPosition] = useState<WorldPosition>({ x: 0.2, y: 0.5 });
-  const availableWidth = Math.max(1, width - insets.left - insets.right - 36);
-  const canvasWidth = narrow ? availableWidth : Math.max(1, availableWidth * 0.60);
-  const canvasHeight = narrow ? Math.min(220, height * 0.28) : Math.max(120, height - insets.top - insets.bottom - 100);
-  const nearQuest = Math.abs(position.x - 0.83) < 0.16 && Math.abs(position.y - 0.5) < 0.2;
-  const ko = locale === "ko";
-  return (
-    <Screen>
-      <View style={styles.topbar}>
-        <PixelButton compact onPress={onBack} variant="quiet">← {ko ? "메뉴" : "MENU"}</PixelButton>
-        <Text style={styles.topbarTitle}>{localize(available.chapter.place, locale)}</Text>
-        <PixelButton compact onPress={onDex} variant="secondary">{ko ? "도감" : "DEX"}</PixelButton>
-      </View>
-      <View style={[styles.worldLayout, narrow && styles.worldColumn]}>
-        <WorldCanvas height={canvasHeight} position={position} width={canvasWidth} />
-        <ScrollView style={styles.worldHud} contentContainerStyle={styles.worldHudContent}>
-          <Text style={styles.kicker}>{available.chapter.label}</Text>
-          <Text style={styles.hudTitle}>{localize(available.stage.name, locale)}</Text>
-          <Text style={styles.body}>{localize(available.stage.briefing, locale)}</Text>
-          <View style={styles.hudSpacer} />
-          <DPad onMove={(delta) => setPosition((current) => ({
-            x: Math.min(0.94, Math.max(0.06, current.x + delta.x)),
-            y: Math.min(0.88, Math.max(0.12, current.y + delta.y)),
-          }))} />
-          <Text style={styles.hint}>{nearQuest ? (ko ? "의뢰 지점에 도착했습니다!" : "Quest marker reached!") : (ko ? "방향키로 빛나는 표식까지 이동하세요" : "Move to the glowing marker")}</Text>
-          <PixelButton disabled={!nearQuest} onPress={() => onBattle(available.stage)}>{ko ? "배틀 시작" : "START BATTLE"}</PixelButton>
-        </ScrollView>
       </View>
     </Screen>
   );
@@ -176,8 +141,7 @@ function MonsterDetail({ monster, onBack, onBattle }: { monster: MonsterDefiniti
   const { locale, save } = useSave();
   const ko = locale === "ko";
   const captured = new Set(save.progress.captures.map(({ id }) => id));
-  const { chapter, index } = findStage(monster.id);
-  const available = CHAPTERS.includes(chapter) && stageStatus(chapter, index, captured) !== "locked";
+  const available = canEnterCheckpoint(captured, monster.id);
   return <Screen scroll><View style={styles.detail}>
     <PixelButton onPress={onBack} variant="quiet">{ko ? "도감으로" : "BACK TO DEX"}</PixelButton>
     <Text style={styles.kicker}>NO.{monster.dexNumber} · LV.{monster.level}</Text>
