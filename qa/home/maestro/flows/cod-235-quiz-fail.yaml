@@ -9,7 +9,6 @@ tags:
       id: qa-tutorial
     direction: DOWN
     timeout: 20000
-    centerElement: true
 - tapOn:
     id: qa-tutorial
 - scrollUntilVisible:
@@ -17,7 +16,6 @@ tags:
       id: battle-choice-1
     direction: DOWN
     timeout: 20000
-    centerElement: true
 - tapOn:
     id: battle-choice-1
 - scrollUntilVisible:
@@ -25,7 +23,6 @@ tags:
       id: battle-feedback
     direction: DOWN
     timeout: 20000
-    centerElement: true
 - assertVisible:
     id: battle-feedback
     text: LET’S REVIEW
@@ -34,7 +31,6 @@ tags:
       id: battle-next
     direction: DOWN
     timeout: 20000
-    centerElement: true
 - tapOn:
     id: battle-next
 - scrollUntilVisible:
@@ -42,7 +38,6 @@ tags:
       id: battle-submit
     direction: DOWN
     timeout: 20000
-    centerElement: true
 - assertVisible:
     id: battle-submit
     enabled: false
@@ -51,7 +46,6 @@ tags:
       id: battle-answer
     direction: UP
     timeout: 20000
-    centerElement: true
 - tapOn:
     id: battle-answer
 - inputText: definitely-wrong-answer
@@ -60,7 +54,6 @@ tags:
       id: battle-submit
     direction: DOWN
     timeout: 20000
-    centerElement: true
 - tapOn:
     id: battle-submit
 - scrollUntilVisible:
@@ -68,7 +61,6 @@ tags:
       id: battle-feedback
     direction: DOWN
     timeout: 20000
-    centerElement: true
 - assertVisible:
     id: battle-feedback
     text: LET’S REVIEW
@@ -77,7 +69,6 @@ tags:
       id: battle-next
     direction: DOWN
     timeout: 20000
-    centerElement: true
 - tapOn:
     id: battle-next
 - assertVisible:
@@ -88,7 +79,6 @@ tags:
       id: result-qa
     direction: DOWN
     timeout: 20000
-    centerElement: true
 - tapOn:
     id: result-qa
 - assertVisible:

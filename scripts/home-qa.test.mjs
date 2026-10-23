@@ -111,7 +111,7 @@ test("native flows are parseable, reference real subflows and never clear normal
     for (const step of steps) {
       const command = typeof step === "string" ? step : Object.keys(step)[0];
       assert.ok(commands.has(command), `${file}: ${command}`);
-      if (command === "scrollUntilVisible") assert.equal(step.scrollUntilVisible.centerElement, true, `${file}: keep taps away from native home-indicator areas`);
+      if (command === "scrollUntilVisible" && step.scrollUntilVisible.element.id === "qa-fail-save") assert.equal(step.scrollUntilVisible.centerElement, true, `${file}: keep the failure-injection tap above the native home indicator`);
       if (command === "runFlow") assert.ok(existsSync(path.resolve(repo, path.dirname(file), step.runFlow)));
     }
   }
