@@ -9,6 +9,7 @@ tags:
       id: qa-world
     direction: DOWN
     timeout: 60000
+    speed: 20
     centerElement: true
 - tapOn:
     id: qa-world
@@ -19,6 +20,7 @@ tags:
       id: world-region-linux
     direction: DOWN
     timeout: 60000
+    speed: 20
 - tapOn:
     id: world-region-linux
 - scrollUntilVisible:
@@ -26,6 +28,7 @@ tags:
       id: world-battle
     direction: DOWN
     timeout: 60000
+    speed: 20
 - assertVisible:
     id: world-battle
     enabled: false
@@ -36,6 +39,7 @@ tags:
       id: world-menu
     direction: UP
     timeout: 60000
+    speed: 20
 - tapOn:
     id: world-menu
 - scrollUntilVisible:
@@ -43,6 +47,7 @@ tags:
       id: home-qa
     direction: DOWN
     timeout: 60000
+    speed: 20
 - tapOn:
     id: home-qa
 - scrollUntilVisible:
@@ -50,6 +55,7 @@ tags:
       id: qa-preset-tutorial
     direction: DOWN
     timeout: 60000
+    speed: 20
 - tapOn:
     id: qa-preset-tutorial
 - scrollUntilVisible:
@@ -57,6 +63,7 @@ tags:
       id: qa-save-status
     direction: UP
     timeout: 60000
+    speed: 20
 - assertVisible:
     id: qa-save-status
     text: SAVED
@@ -68,6 +75,7 @@ tags:
       id: qa-world
     direction: DOWN
     timeout: 60000
+    speed: 20
     centerElement: true
 - tapOn:
     id: qa-world
@@ -76,6 +84,7 @@ tags:
       id: world-checkpoint-git-sprout
     direction: DOWN
     timeout: 60000
+    speed: 20
 - tapOn:
     id: world-checkpoint-git-sprout
 - scrollUntilVisible:
@@ -83,6 +92,7 @@ tags:
       id: world-battle
     direction: DOWN
     timeout: 60000
+    speed: 20
 - tapOn:
     id: world-battle
 - assertVisible:

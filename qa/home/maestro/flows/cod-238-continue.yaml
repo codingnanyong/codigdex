@@ -9,6 +9,7 @@ tags:
       id: qa-preset-git
     direction: DOWN
     timeout: 60000
+    speed: 20
 - tapOn:
     id: qa-preset-git
 - scrollUntilVisible:
@@ -16,6 +17,7 @@ tags:
       id: qa-save-status
     direction: UP
     timeout: 60000
+    speed: 20
 - assertVisible:
     id: qa-save-status
     text: SAVED
@@ -27,6 +29,7 @@ tags:
       id: qa-menu
     direction: UP
     timeout: 60000
+    speed: 20
 - tapOn:
     id: qa-menu
 - stopApp
@@ -40,6 +43,7 @@ tags:
       id: home-play
     direction: DOWN
     timeout: 60000
+    speed: 20
 - tapOn:
     id: home-play
 - assertVisible:
@@ -49,6 +53,7 @@ tags:
       id: world-checkpoint-linux-shell-scout
     direction: DOWN
     timeout: 60000
+    speed: 20
 - assertVisible:
     id: world-checkpoint-linux-shell-scout
 - scrollUntilVisible:
@@ -56,6 +61,7 @@ tags:
       id: world-menu
     direction: UP
     timeout: 60000
+    speed: 20
 - tapOn:
     id: world-menu
 - scrollUntilVisible:
@@ -63,6 +69,7 @@ tags:
       id: home-qa
     direction: DOWN
     timeout: 60000
+    speed: 20
 - tapOn:
     id: home-qa
 - assertVisible:

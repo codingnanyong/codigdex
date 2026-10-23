@@ -10,6 +10,7 @@ tags:
       id: qa-preset-complete
     direction: DOWN
     timeout: 60000
+    speed: 20
 - tapOn:
     id: qa-preset-complete
 - scrollUntilVisible:
@@ -17,6 +18,7 @@ tags:
       id: qa-save-status
     direction: UP
     timeout: 60000
+    speed: 20
 - assertVisible:
     id: qa-save-status
     text: SAVED
@@ -28,6 +30,7 @@ tags:
       id: qa-menu
     direction: UP
     timeout: 60000
+    speed: 20
 - tapOn:
     id: qa-menu
 - scrollUntilVisible:
@@ -35,6 +38,7 @@ tags:
       id: home-careers
     direction: DOWN
     timeout: 60000
+    speed: 20
 - tapOn:
     id: home-careers
 - scrollUntilVisible:
@@ -42,6 +46,7 @@ tags:
       id: career-select-devops
     direction: DOWN
     timeout: 60000
+    speed: 20
 - tapOn:
     id: career-select-devops
 - assertVisible:
@@ -52,6 +57,7 @@ tags:
       id: career-checkpoint-packet-crab
     direction: DOWN
     timeout: 60000
+    speed: 20
 - tapOn:
     id: career-checkpoint-packet-crab
 - assertVisible:
@@ -61,6 +67,7 @@ tags:
       id: battle-exit
     direction: UP
     timeout: 60000
+    speed: 20
 - tapOn:
     id: battle-exit
 - assertVisible:
@@ -70,6 +77,7 @@ tags:
       id: career-menu
     direction: UP
     timeout: 60000
+    speed: 20
 - tapOn:
     id: career-menu
 - scrollUntilVisible:
@@ -77,6 +85,7 @@ tags:
       id: home-qa
     direction: DOWN
     timeout: 60000
+    speed: 20
 - tapOn:
     id: home-qa
 - assertVisible:
@@ -90,6 +99,7 @@ tags:
       id: qa-menu
     direction: UP
     timeout: 60000
+    speed: 20
 - tapOn:
     id: qa-menu
 - stopApp
@@ -103,6 +113,7 @@ tags:
       id: home-play
     direction: DOWN
     timeout: 60000
+    speed: 20
 - tapOn:
     id: home-play
 - assertVisible:
@@ -112,6 +123,7 @@ tags:
       id: career-select-devops
     direction: DOWN
     timeout: 60000
+    speed: 20
 - assertVisible:
     id: career-select-devops
     text: CURRENT CAREER
