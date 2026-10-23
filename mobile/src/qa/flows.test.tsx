@@ -6,6 +6,7 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import { parseAllDocuments } from "yaml";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
+import { Alert } from "react-native";
 import { NativeGame } from "../game/NativeGame";
 import { SaveProvider } from "../state/SaveProvider";
 
@@ -77,7 +78,7 @@ async function element(selector: Selector) {
   throw new Error(`Missing UI selector ${JSON.stringify(selector)}. Actual text: ${container.textContent}`);
 }
 
-async function flow(file: string) {
+async function flow(file: string, observe?: (name: string, value: unknown) => void) {
   const documents = parseAllDocuments(readFileSync(path.join(qaRoot, file), "utf8"));
   const commands = documents[1].toJSON() as Command[];
   for (const command of commands) {
@@ -87,7 +88,7 @@ async function flow(file: string) {
     else if (name === "stopApp") { await act(async () => root?.unmount()); root = undefined; }
     else if (name === "runFlow") {
       const subflow = path.resolve(qaRoot, path.dirname(file), String(value));
-      await flow(path.relative(qaRoot, subflow));
+      await flow(path.relative(qaRoot, subflow), observe);
     } else if (name === "assertVisible") await element(value as Selector);
     else if (name === "extendedWaitUntil") await element((value as { visible: Selector }).visible);
     else if (name === "scrollUntilVisible") await element((value as { element: Selector }).element);
@@ -103,6 +104,7 @@ async function flow(file: string) {
         input.dispatchEvent(new Event("input", { bubbles: true }));
       });
     } else if (name !== "takeScreenshot") throw new Error(`Unhandled flow command ${name}`);
+    observe?.(name, value);
   }
 }
 
@@ -128,3 +130,35 @@ for (const { file } of cases.nativeFlows) {
     expect(storage.get("codigdex:save:v3")).toBe("normal-progress-sentinel");
   }, 20000);
 }
+
+it("distinguishes repeat captures and keeps undiscovered names private", async () => {
+  let results = 0;
+  await flow("qa/home/maestro/flows/cod-234-capture-replay.yaml", (name, value) => {
+    if (name !== "assertVisible" || (value as Selector)?.id !== "result-title") return;
+    results += 1;
+    expect(container.textContent).toContain(results === 1 ? "A new card was registered." : "This card is already in your Codigdex.");
+    if (results === 2) expect(container.textContent).not.toContain("complete!");
+  });
+  expect(results).toBe(2);
+  const dex = [...container.querySelectorAll("button")].find((button) => button.textContent?.includes("도감 · 포획/재시작 복원 확인"));
+  expect(dex).toBeDefined();
+  await act(async () => dex!.click());
+  const labels = [...container.querySelectorAll("button[aria-label]")].map((button) => button.getAttribute("aria-label"));
+  expect(labels.some((label) => label?.includes("Undiscovered"))).toBe(true);
+});
+
+it("keeps QA progress until reset is explicitly confirmed", async () => {
+  await flow("qa/home/maestro/flows/cod-234-capture-replay.yaml");
+  const alert = vi.spyOn(Alert, "alert");
+  const reset = [...container.querySelectorAll("button")].find((button) => button.textContent === "테스트 진행도만 초기화");
+  expect(reset).toBeDefined();
+  await act(async () => reset!.click());
+  expect(container.querySelector('[data-testid="qa-captures"]')?.textContent).toBe("1");
+  const buttons = alert.mock.calls[0][2]!;
+  expect(buttons.find((button) => button.style === "cancel")).toBeDefined();
+  await act(async () => buttons.find((button) => button.style === "destructive")!.onPress!());
+  await tick();
+  expect(container.querySelector('[data-testid="qa-captures"]')?.textContent).toBe("0");
+  expect(storage.get("codigdex:save:v3")).toBe("normal-progress-sentinel");
+  alert.mockRestore();
+});

@@ -1,7 +1,7 @@
 import { CHAPTERS } from "@codigdex/game-content/domain/chapters";
 import type { MonsterDefinition } from "@codigdex/game-core/domain/chapters/types";
 import { useEffect, useState } from "react";
-import { Platform, Share, StyleSheet, Text, View, useWindowDimensions } from "react-native";
+import { Alert, Platform, Share, StyleSheet, Text, View, useWindowDimensions } from "react-native";
 import { useSave } from "../state/SaveProvider";
 import { Screen } from "../ui/Screen";
 import { PixelButton } from "../ui/PixelButton";
@@ -74,7 +74,7 @@ export function QAScreen({ onBack, onBattle, onDex, onWorld, checked, onToggleCh
     {checks.map((check) => <PixelButton key={check} accessibilityLabel={`${checked.includes(check) ? "확인 완료" : "미확인"}: ${check}`} variant={checked.includes(check) ? "primary" : "quiet"}
       onPress={() => onToggleCheck(check)}>{checked.includes(check) ? "✓ " : "□ "}{check}</PixelButton>)}
     <PixelButton variant="secondary" onPress={() => { void Share.share({ message: JSON.stringify({ sprint: "04/05", at: new Date().toISOString(), platform: Platform.OS, version: Platform.Version, dimensions, locale, captures: save.progress.captures, checkpointId: save.ui.checkpointId, saveError, checked, remaining: checks.filter((check) => !checked.includes(check)) }, null, 2) }).catch(() => setNotice("공유를 완료하지 못했습니다. 체크 상태를 화면에서 확인하세요.")); }}>테스트 결과 복사/공유</PixelButton>
-    <PixelButton variant="danger" onPress={clearProgress}>테스트 진행도만 초기화</PixelButton>
+    <PixelButton variant="danger" onPress={() => Alert.alert("테스트 진행도를 초기화할까요?", "QA 저장 공간의 포획 기록과 체크포인트가 초기화됩니다.", [{ text: "취소", style: "cancel" }, { text: "초기화", style: "destructive", onPress: () => { clearProgress(); setNotice("테스트 진행도를 초기화했습니다. 메뉴에서 게임 시작 상태를 확인하세요."); } }])}>테스트 진행도만 초기화</PixelButton>
   </View></Screen>;
 }
 
