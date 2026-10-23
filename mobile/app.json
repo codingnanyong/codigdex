@@ -2,6 +2,7 @@
   "expo": {
     "name": "Codigdex",
     "slug": "codigdex",
+    "icon": "../packages/game-assets/files/icons/codigdex-main-icon.png",
     "version": "1.0.1",
     "orientation": "default",
     "scheme": "codigdex",
