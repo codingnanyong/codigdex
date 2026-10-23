@@ -106,6 +106,7 @@ describe("career-region monster checkpoints", () => {
         expect(new Set(prompts).size, monster.id).toBe(prompts.length);
       });
       pool.forEach((question) => {
+        if (question.type === "freeText") throw new Error("The released career pools must remain multiple choice");
         expect(question.choices).toHaveLength(4);
         expect(question.answerIndex).toBeGreaterThanOrEqual(0);
         expect(question.answerIndex).toBeLessThan(4);
@@ -115,7 +116,7 @@ describe("career-region monster checkpoints", () => {
       // the stored position never reaches a player.
       expect(new Set(pool.map((question) => question.answerIndex)).size).toBeGreaterThan(0);
       const choiceSets = pool.map((question) =>
-        question.choices
+        (question.type === "freeText" ? [] : question.choices)
           .map((choice) => choice.en)
           .sort()
           .join("|")

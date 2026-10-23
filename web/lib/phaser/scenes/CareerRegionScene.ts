@@ -183,7 +183,7 @@ export class CareerRegionScene extends Phaser.Scene {
     };
     const select = () => this.startCareerBattle(monster, region);
 
-    if (isActive) {
+    if (isActive || isCaptured) {
       image.setInteractive({ useHandCursor: true });
       image.on("pointerover", activate);
       image.on("pointerout", deactivate);

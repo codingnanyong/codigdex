@@ -5,6 +5,7 @@ import type Phaser from "phaser";
 import { DEFAULT_LOCALE, isLocale, type Locale } from "@codigdex/game-core/i18n/locale";
 import { devicePixelsPerGamePixel, imageRenderingFor } from "@/lib/phaser/displayScale";
 import { LOCALE_CHANGE_EVENT } from "@/lib/phaser/i18nEvents";
+import { AccountPanel } from "./AccountPanel";
 
 const ACCESSIBLE_COPY: Readonly<
   Record<Locale, { label: string; controls: string; loading: string; ready: string; failed: string }>
@@ -28,6 +29,8 @@ const ACCESSIBLE_COPY: Readonly<
 export default function PhaserGame() {
   const containerRef = useRef<HTMLDivElement>(null);
   const gameRef = useRef<Phaser.Game | null>(null);
+  const [runtime, setRuntime] = useState<Phaser.Game | null>(null);
+  const [activeScene, setActiveScene] = useState("");
   const [locale, setLocale] = useState<Locale>(DEFAULT_LOCALE);
   const [bootState, setBootState] = useState<"loading" | "ready" | "failed">("loading");
 
@@ -65,9 +68,17 @@ export default function PhaserGame() {
       if (cancelled || !containerRef.current) return;
       const game = new PhaserLib.Game(createGameConfig(containerRef.current));
       gameRef.current = game;
+      let previousScene = "";
+      game.events.on(PhaserLib.Core.Events.POST_STEP, () => {
+        if (cancelled) return;
+        const current = game.scene.getScenes(true).at(-1)?.sys.settings.key ?? "";
+        if (!current || current === previousScene) return;
+        if (!previousScene) { setBootState("ready"); setRuntime(game); }
+        previousScene = current;
+        setActiveScene(current);
+      });
       game.events.once(PhaserLib.Core.Events.READY, () => {
         if (cancelled || !containerRef.current) return;
-        setBootState("ready");
         observer = new ResizeObserver(() => {
           game.scale.refresh();
           syncRendering();
@@ -100,6 +111,7 @@ export default function PhaserGame() {
 
   return (
     <>
+      {runtime ? <AccountPanel game={runtime} locale={locale} /> : null}
       <div
         ref={containerRef}
         className="pixel-canvas mx-auto"
@@ -108,6 +120,7 @@ export default function PhaserGame() {
         aria-label={copy.label}
         aria-describedby="codigdex-controls codigdex-status"
         aria-busy={bootState === "loading"}
+        data-scene={activeScene}
       />
       <p id="codigdex-controls" className="sr-only">
         {copy.controls}

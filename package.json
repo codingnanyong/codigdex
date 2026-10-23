@@ -17,7 +17,7 @@
   ],
   "scripts": {
     "build:web": "npm run build --workspace @codigdex/web",
-    "build:mobile": "npm run export:android --workspace @codigdex/mobile && npm run export:ios --workspace @codigdex/mobile",
+    "build:mobile": "node mobile/scripts/check-native.mjs && npm run export:android --workspace @codigdex/mobile && npm run export:ios --workspace @codigdex/mobile && node mobile/scripts/check-bundle.mjs",
     "postinstall": "node scripts/link-agent-workspace.mjs",
     "setup:agents": "node scripts/link-agent-workspace.mjs",
     "check:agents": "node scripts/link-agent-workspace.mjs --check && node scripts/check-agent-setup.mjs && node scripts/check-agent-hooks.mjs",
@@ -27,10 +27,20 @@
     "test:e2e": "npm run test:e2e --workspace @codigdex/web",
     "mobile:android": "npm run open:android --workspace @codigdex/mobile",
     "mobile:ios": "npm run open:ios --workspace @codigdex/mobile",
+    "mobile:qa": "node scripts/mobile-qa.mjs",
+    "mobile:qa:check": "node scripts/mobile-qa.mjs --check",
+    "qa:home": "node scripts/home-qa.mjs",
+    "qa:report": "node scripts/home-qa-report.mjs",
+    "qa:generate": "tsx scripts/generate-home-qa.mts",
+    "qa:check": "tsx scripts/generate-home-qa.mts --check && node --test scripts/home-qa.test.mjs",
     "typecheck": "npm run check:boundaries && npm run typecheck --workspaces --if-present"
   },
   "dependencies": {
     "react": "19.2.3",
     "react-dom": "19.2.3"
+  },
+  "devDependencies": {
+    "tsx": "4.23.15",
+    "yaml": "2.9.1"
   }
 }

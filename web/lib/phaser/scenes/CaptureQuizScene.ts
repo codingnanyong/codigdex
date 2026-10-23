@@ -12,7 +12,8 @@ import { resolveCaptureSuccessFlow, type CaptureReturnTarget } from "../capture/
 import { createHomeButton } from "../navigation";
 import { describeUnlock } from "../capture/unlockNotice";
 import { lt, sceneLocale, t } from "../i18n";
-import { readDexState, reconcileCareerDexRegistry, writeDexState } from "../registryAdapter";
+import { readDexState, reconcileCareerDexRegistry, writeDexState, snapshotRegistry, applySaveToRegistry } from "../registryAdapter";
+import { nextPlayableCheckpoint, rememberCheckpoint } from "@codigdex/game-content/domain/gameProgress";
 import { addShade, applyPixelFontToScene } from "../ui";
 import { didUnlockPrimaryJobSelection } from "../worldMap/progression";
 import { findJob, JOB_REGISTRY_KEY } from "@codigdex/game-content/domain/player/jobs";
@@ -123,6 +124,10 @@ export class CaptureQuizScene extends Phaser.Scene {
     }
     writeDexState(this.registry, after);
     reconcileCareerDexRegistry(this.registry);
+    if (after !== before) {
+      const save = snapshotRegistry(this.registry);
+      applySaveToRegistry(this.registry, rememberCheckpoint(save, nextPlayableCheckpoint(save).monster.id));
+    }
     return { isNewEntry: after !== before, beforeCaptured, afterCaptured };
   }
 }

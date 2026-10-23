@@ -64,10 +64,14 @@ export function stageStatus(
   capturedIds: ReadonlySet<string>
 ): ChapterStatus {
   if (capturedIds.has(chapter.stages[index].id)) return "cleared";
-  const unlocked =
-    index === 0
-      ? !chapter.requires || isChapterComplete(getChapter(chapter.requires), capturedIds)
-      : capturedIds.has(chapter.stages[index - 1].id);
+  let prerequisitesComplete = true;
+  let prerequisite = chapter.requires;
+  while (prerequisite) {
+    const required = getChapter(prerequisite);
+    prerequisitesComplete = prerequisitesComplete && isChapterComplete(required, capturedIds);
+    prerequisite = required.requires;
+  }
+  const unlocked = prerequisitesComplete && chapter.stages.slice(0, index).every(({ id }) => capturedIds.has(id));
   return unlocked ? "available" : "locked";
 }
 

@@ -1,5 +1,6 @@
 # OS
 .DS_Store
+qa-results/
 Thumbs.db
 
 # Editor
@@ -15,14 +16,24 @@ CLAUDE.local.md
 .claude/output-styles/
 .claude/rules/
 .claude/skills/
+# Match generated POSIX symlinks as well as directory adapters.
+.claude/agents
+.claude/commands
+.claude/output-styles
+.claude/rules
+.claude/skills
 .agents/
 .codex/agents/
 .codex/skills/
+.codex/agents
+.codex/skills
 .codex/*.local.*
 
 # Env & secrets
 .env
 .env.*
+!web/.env.example
+!mobile/.env.example
 
 # Logs
 *.log

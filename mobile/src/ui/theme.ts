@@ -1,17 +1,28 @@
+import { PALETTE_HEX } from "@codigdex/game-assets/visuals";
+
 export const colors = {
-  background: "#06131e",
-  panel: "#0d2232",
-  panelRaised: "#123247",
-  cyan: "#57f1d2",
-  blue: "#71b8ff",
-  amber: "#ffd166",
-  text: "#f0f8ff",
-  muted: "#91a9b9",
-  border: "#285269",
-  danger: "#ff7b86",
-  shadow: "#02090e",
-  grass: "#173b36",
-  path: "#775f45"
+  background: PALETTE_HEX.cream,
+  panel: "#fff2d5",
+  panelRaised: PALETTE_HEX.sand,
+  cyan: PALETTE_HEX.wood,
+  blue: PALETTE_HEX.wood,
+  amber: PALETTE_HEX.maroon,
+  text: PALETTE_HEX.ink,
+  muted: PALETTE_HEX.mutedBrown,
+  border: PALETTE_HEX.mutedBrown,
+  danger: PALETTE_HEX.maroon,
+  shadow: PALETTE_HEX.ink,
+  highlight: "#fff9e8",
+  grass: "#bdd1a2",
+  path: "#c5a56b"
 } as const;
 
-export const font = "monospace";
+export const font = "Galmuri14";
+
+export const pixelPanel = {
+  backgroundColor: colors.panel,
+  borderColor: colors.shadow,
+  borderWidth: 2,
+  borderBottomWidth: 4,
+  borderRadius: 0,
+} as const;

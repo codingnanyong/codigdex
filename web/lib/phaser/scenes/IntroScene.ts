@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import { WALLPAPERS } from "@codigdex/game-assets/visuals";
 import { assetUrl } from "../../assets";
 import { playAmbience } from "../ambience";
 import { breathe } from "../ambience/effects";
@@ -20,7 +21,7 @@ export class IntroScene extends Phaser.Scene {
   }
 
   preload() {
-    this.load.image("codigdex-title-archive", assetUrl("wallpapers/codigdex-title-archive-v1.png"));
+    this.load.image("codigdex-title-archive", assetUrl(WALLPAPERS.field));
   }
 
   create() {

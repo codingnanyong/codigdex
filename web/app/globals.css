@@ -2,7 +2,7 @@
 
 @font-face {
   font-family: "Galmuri7";
-  src: url("/fonts/Galmuri7.woff2") format("woff2");
+  src: url("/assets/fonts/Galmuri7.woff2") format("woff2");
   font-weight: normal;
   font-style: normal;
   font-display: swap;
@@ -10,7 +10,7 @@
 
 @font-face {
   font-family: "Galmuri14";
-  src: url("/fonts/Galmuri14.woff2") format("woff2");
+  src: url("/assets/fonts/Galmuri14.woff2") format("woff2");
   font-weight: normal;
   font-style: normal;
   font-display: swap;
@@ -72,10 +72,49 @@ body {
    the 16:9 canvas contained and centered; CSS does not need to guess the
    header height or perform unsupported aspect-ratio arithmetic. */
 .pixel-canvas {
+  position: relative;
   flex: 1 1 auto;
   min-height: 0;
   width: 100%;
 }
+
+.battle-controls {
+  box-sizing: border-box;
+  width: 860px;
+  height: 300px;
+  padding: 14px 18px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  color: #2a1d14;
+  background: #f1e4cb;
+  border: 4px solid #684525;
+  box-shadow: inset 0 0 0 2px #c9a876;
+  font: 16px/1.5 Galmuri14, monospace;
+  pointer-events: auto;
+}
+.battle-controls p { margin: 0 0 8px; }
+.battle-progress { color: #684525; }
+.battle-prompt, .battle-feedback { white-space: pre-wrap; overflow-wrap: anywhere; }
+.battle-prompt { font-size: 18px; }
+.battle-hint { padding: 6px; background: #e3cda7; }
+.battle-feedback { padding: 10px; background: #e3cda7; margin-bottom: 8px; }
+.battle-choices { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
+.battle-controls button, .battle-controls input {
+  min-height: 48px; border: 2px solid #684525; border-radius: 0;
+  padding: 8px 12px; font: inherit; color: #f1e4cb; background: #49301c;
+}
+.battle-controls button { cursor: pointer; white-space: normal; overflow-wrap: anywhere; }
+.battle-controls button:disabled { opacity: .5; cursor: default; }
+.battle-controls button:focus-visible, .battle-controls input:focus-visible { outline: 3px solid #a33422; outline-offset: 2px; }
+.battle-answer-form { display: flex; gap: 8px; margin-bottom: 8px; }
+.battle-controls input { flex: 1; min-width: 0; background: #fff8e8; color: #2a1d14; }
+
+.account-menu { position: absolute; z-index: 50; top: 8px; right: 8px; font: 14px/1.5 Galmuri14, monospace; }
+.account-menu button { cursor: pointer; padding: 10px; min-height: 44px; color: #f1e4cb; background: #49301c; border: 2px solid #c9a876; }
+.account-menu button:disabled { opacity: .5; }
+.account-menu button:focus-visible { outline: 3px solid #a33422; }
+.account-panel { display: flex; flex-direction: column; gap: 10px; padding: 16px; width: min(380px, calc(100vw - 16px)); max-height: calc(100dvh - 64px); overflow: auto; color: #2a1d14; background: #f1e4cb; border: 4px solid #684525; box-shadow: 4px 4px #2a1d14; }
+.account-panel p { overflow-wrap: anywhere; }
 
 /* The game renders into a 960x540 buffer that the browser scales to the element
    size and the device pixel ratio. Pixelated keeps sprites and bitmap glyphs
