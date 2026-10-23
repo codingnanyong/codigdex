@@ -4,8 +4,9 @@ import { readFileSync, existsSync, mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
+import net from "node:net";
 import { parseAllDocuments } from "yaml";
-import { cases, repo, parseOptions, plan, selectDevice, reportCounts, commandFor } from "./home-qa.mjs";
+import { cases, repo, parseOptions, plan, selectDevice, reportCounts, commandFor, plannedWebTestCount, unusedPort } from "./home-qa.mjs";
 import { matrix } from "./home-qa-report.mjs";
 
 test("selects one feature on each supported platform without modifying branches", () => {
@@ -26,6 +27,25 @@ test("rejects ambiguous, unsupported or unsafe requests", () => {
   assert.throws(() => parseOptions(["--platform", "ios"], "win32"), /macOS/);
   assert.throws(() => parseOptions(["--platform", "all"], "linux"), /macOS/);
   assert.equal(parseOptions(["--platform", "ios", "--dry-run"], "win32").dryRun, true);
+});
+
+test("custom Metro ports require an installed build and a valid port", () => {
+  assert.equal(parseOptions(["--platform", "android", "--metro-port", "8083", "--skip-build"]).metroPort, 8083);
+  for (const port of ["0", "80", "65536", "x", "8083.5"]) assert.throws(() => parseOptions(["--metro-port", port, "--skip-build"]), /metro-port/);
+  assert.throws(() => parseOptions(["--metro-port", "8083"]), /requires --skip-build/);
+});
+
+test("port check detects a server bound to all interfaces", async () => {
+  const server = net.createServer();
+  await new Promise((resolve) => server.listen(0, resolve));
+  try { await assert.rejects(unusedPort(server.address().port), /already in use/); }
+  finally { await new Promise((resolve) => server.close(resolve)); }
+});
+
+test("web coverage comes from the selected Playwright plan independently of native flows", () => {
+  assert.equal(plannedWebTestCount({ suites: [{ specs: [{ tests: [{}, {}] }], suites: [{ specs: [{ tests: [{}] }] }] }] }), 3);
+  assert.throws(() => plannedWebTestCount({ suites: [] }), /nonempty/);
+  assert.throws(() => plannedWebTestCount({ suites: [{ specs: [{ tests: [{}] }] }], errors: [{}] }), /nonempty/);
 });
 
 test("never silently chooses the wrong emulator or physical iOS device", () => {

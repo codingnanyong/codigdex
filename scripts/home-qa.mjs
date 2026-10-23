@@ -9,8 +9,8 @@ export const cases = JSON.parse(readFileSync(path.join(repo, "qa/home/cases.json
 const children = new Set();
 
 export function parseOptions(args, os = process.platform) {
-  const options = { platform: "web", feature: "all", device: undefined, doctor: false, dryRun: false, skipBuild: false, help: false, list: false };
-  const values = new Map([["--platform", "platform"], ["--feature", "feature"], ["--device", "device"]]);
+  const options = { platform: "web", feature: "all", device: undefined, metroPort: 8081, doctor: false, dryRun: false, skipBuild: false, help: false, list: false };
+  const values = new Map([["--platform", "platform"], ["--feature", "feature"], ["--device", "device"], ["--metro-port", "metroPort"]]);
   const flags = new Map([["--doctor", "doctor"], ["--dry-run", "dryRun"], ["--skip-build", "skipBuild"], ["--help", "help"], ["--list", "list"]]);
   const seen = new Set();
   for (let index = 0; index < args.length; index++) {
@@ -30,6 +30,9 @@ export function parseOptions(args, os = process.platform) {
   if (options.device && !/^[a-zA-Z0-9_.:-]+$/.test(options.device)) throw new Error("Invalid device identifier.");
   if (!options.help && !options.list && !options.dryRun && ["ios", "all"].includes(options.platform) && os !== "darwin") throw new Error("iOS Simulator requires macOS + Xcode. Run Web/Android here and iOS on your Mac.");
   if (options.platform === "all" && options.device) throw new Error("Use --device with one native platform at a time.");
+  if (!/^\d+$/.test(String(options.metroPort)) || Number(options.metroPort) < 1024 || Number(options.metroPort) > 65535) throw new Error("Choose --metro-port 1024..65535.");
+  options.metroPort = Number(options.metroPort);
+  if (options.metroPort !== 8081 && !options.skipBuild) throw new Error("A custom --metro-port requires --skip-build; build/install the native app first.");
   return options;
 }
 
@@ -80,6 +83,22 @@ function capture(command, args = [], cwd = repo) {
   return (result.stdout || result.stderr).trim();
 }
 
+export function plannedWebTestCount(report) {
+  const count = (suite) => (suite.specs ?? []).reduce((sum, spec) => sum + (spec.tests ?? []).length, 0) + (suite.suites ?? []).reduce((sum, child) => sum + count(child), 0);
+  const total = count(report);
+  if (!total || report.errors?.length) throw new Error("Playwright did not list a valid nonempty test plan.");
+  return total;
+}
+
+function androidBuildDevice(adb, serial) {
+  // Expo's --device accepts a name, while adb and Maestro accept the serial.
+  const name = serial.startsWith("emulator-")
+    ? capture(adb, ["-s", serial, "emu", "avd", "name"]).split(/[\r\n]+/)[0]
+    : /\bmodel:(\S+)/.exec(capture(adb, ["devices", "-l"]).split(/\r?\n/).find((line) => line.startsWith(`${serial}\t`) || line.startsWith(`${serial} `)) ?? "")?.[1];
+  if (!name) throw new Error(`Cannot resolve Expo device name for ${serial}.`);
+  return name;
+}
+
 function start(command, args, { cwd = repo, env, log }) {
   const [binary, argv] = commandFor(command, args);
   const output = createWriteStream(log);
@@ -107,20 +126,20 @@ function stop(child) {
   else child.kill("SIGTERM");
 }
 
-async function unusedPort(port) {
+export async function unusedPort(port) {
   await new Promise((resolve, reject) => {
     const server = net.createServer();
     server.once("error", () => reject(new Error(`Port ${port} is already in use. Stop the existing test/Metro server first.`)));
-    server.listen(port, "127.0.0.1", () => server.close(resolve));
+    server.listen(port, () => server.close(resolve));
   });
 }
 
-async function waitMetro(child) {
+async function waitMetro(child, port) {
   const deadline = Date.now() + 180000;
   while (Date.now() < deadline) {
     if (!children.has(child)) throw new Error("Metro stopped before it was ready. See metro.log.");
     try {
-      const response = await fetch("http://127.0.0.1:8081/status", { signal: AbortSignal.timeout(1500) });
+      const response = await fetch(`http://127.0.0.1:${port}/status`, { signal: AbortSignal.timeout(1500) });
       if ((await response.text()).includes("packager-status:running")) return;
     } catch { /* Startup is asynchronous. */ }
     await new Promise((resolve) => setTimeout(resolve, 500));
@@ -168,7 +187,7 @@ function doctor(platforms) {
 export async function main(args) {
   const options = parseOptions(args);
   if (options.help) {
-    console.log(`Home feature QA (Node 22.x)\n\nnpm run qa:home -- --list\nnpm run qa:home -- --platform web --feature cod-235\nnpm run qa:home -- --platform android --feature all\nnpm run qa:home -- --platform ios --feature all\nnpm run qa:home -- --platform all --feature all  (Mac with Android SDK + Xcode)\n\nOptions: --doctor, --dry-run, --device ID, --skip-build (installed native app required).\nBoot the emulator/simulator first. Native tests build/install a debug app and manage Metro automatically.\nInstall once: npm ci; npx playwright install chromium. Native: Maestro CLI 2.11+, Java 17+, Android Studio or Mac/Xcode/CocoaPods.\nMaestro setup: https://docs.maestro.dev/maestro-cli/how-to-install-maestro-cli\nResults: qa-results/ (logs, screenshots, JUnit, HTML and run.json). Cloud login/sync remains deferred.`);
+    console.log(`Home feature QA (Node 22.x)\n\nnpm run qa:home -- --list\nnpm run qa:home -- --platform web --feature cod-235\nnpm run qa:home -- --platform android --feature all\nnpm run qa:home -- --platform ios --feature all\nnpm run qa:home -- --platform all --feature all  (Mac with Android SDK + Xcode)\n\nOptions: --doctor, --dry-run, --device ID, --skip-build (installed native app required), --metro-port PORT (requires --skip-build; Android app must already target this port).\nBoot the emulator/simulator first. Native tests build/install a debug app and manage Metro automatically.\nInstall once: npm ci; npx playwright install chromium. Native: Maestro CLI 2.11+, Java 17+, Android Studio or Mac/Xcode/CocoaPods.\nMaestro setup: https://docs.maestro.dev/maestro-cli/how-to-install-maestro-cli\nResults: qa-results/ (logs, screenshots, JUnit, HTML and run.json). Cloud login/sync remains deferred.`);
     return;
   }
   if (options.list) { console.table(cases.features); return; }
@@ -204,24 +223,35 @@ export async function main(args) {
         if (platform === "web") {
           await unusedPort(3002);
           const webEnv = { ...env, QA_RESULTS_DIR: folder };
-          await run(process.execPath, [path.join(repo, "node_modules/@playwright/test/cli.js"), "test", "--config", "web/playwright.home.config.ts", ...(options.feature === "all" ? [] : ["--grep", `@${options.feature}\\b`])], { env: webEnv, log: path.join(folder, "test.log") });
+          const args = [path.join(repo, "node_modules/@playwright/test/cli.js"), "test", "--config", "web/playwright.home.config.ts", ...(options.feature === "all" ? [] : ["--grep", `@${options.feature}\\b`])];
+          const listing = capture(process.execPath, [...args, "--list", "--reporter", "json"]);
+          writeFileSync(path.join(folder, "plan.json"), listing);
+          result.expectedTests = plannedWebTestCount(JSON.parse(listing));
+          await run(process.execPath, args, { env: webEnv, log: path.join(folder, "test.log") });
         } else {
           const listing = platform === "android" ? capture(tools.adb, ["devices"]) : capture(tools.xcrun, ["simctl", "list", "devices", "booted", "--json"]);
           result.device = selectDevice(platform, listing, options.device);
-          await unusedPort(8081);
+          await unusedPort(options.metroPort);
           const mobile = path.join(repo, "mobile");
           await run(process.execPath, ["scripts/generate-asset-map.mjs"], { cwd: mobile, env, log: path.join(folder, "assets.log") });
-          metro = start(process.execPath, [path.join(repo, "node_modules/expo/bin/cli"), "start", "--dev-client", "--localhost", "--port", "8081", "--clear"], { cwd: mobile, env: { ...env, EXPO_OFFLINE: "1" }, log: path.join(folder, "metro.log") });
-          await waitMetro(metro);
-          if (platform === "android") capture(tools.adb, ["-s", result.device, "reverse", "tcp:8081", "tcp:8081"]);
+          metro = start(process.execPath, [path.join(repo, "node_modules/expo/bin/cli"), "start", "--dev-client", "--localhost", "--port", String(options.metroPort), "--clear"], { cwd: mobile, env: { ...env, EXPO_OFFLINE: "1" }, log: path.join(folder, "metro.log") });
+          await waitMetro(metro, options.metroPort);
+          if (platform === "android") capture(tools.adb, ["-s", result.device, "reverse", `tcp:${options.metroPort}`, `tcp:${options.metroPort}`]);
           if (!options.skipBuild) {
             if (platform === "ios") await run(tools.pod, ["install"], { cwd: path.join(mobile, "ios"), env, log: path.join(folder, "pods.log") });
-            await run(process.execPath, [path.join(repo, "node_modules/expo/bin/cli"), `run:${platform}`, "--device", result.device, "--no-bundler"], { cwd: mobile, env, log: path.join(folder, "build.log") });
+            const buildDevice = platform === "android" ? androidBuildDevice(tools.adb, result.device) : result.device;
+            await run(process.execPath, [path.join(repo, "node_modules/expo/bin/cli"), `run:${platform}`, "--device", buildDevice, "--no-bundler"], { cwd: mobile, env, log: path.join(folder, "build.log") });
+          }
+          // This app has no expo-dev-client URL handler. Use the native debug
+          // server setting instead of opening a development-client deep link.
+          if (platform === "ios") {
+            capture(tools.xcrun, ["simctl", "spawn", result.device, "defaults", "write", cases.appId, "RCT_jsLocation", "-string", `127.0.0.1:${options.metroPort}`]);
+            capture(tools.xcrun, ["simctl", "launch", "--terminate-running-process", result.device, cases.appId]);
           }
           await run(tools.maestro, ["--device", result.device, "--platform", platform, "test", "--format", "JUNIT", "--output", path.join(folder, "junit.xml"), "--test-output-dir", path.join(folder, "screenshots"), "--debug-output", path.join(folder, "debug"), "-e", `QA_BUILD=${revision}`, ...execution.nativeFlows.map((file) => path.join(repo, file))], { env, log: path.join(folder, "test.log") });
         }
         result.counts = reportCounts(readFileSync(path.join(folder, "junit.xml"), "utf8"));
-        result.expectedTests = execution.nativeFlows.length;
+        if (platform !== "web") result.expectedTests = execution.nativeFlows.length;
         if (result.counts.failures || result.counts.skipped || result.counts.passed !== result.expectedTests) throw new Error(`Expected ${result.expectedTests} passing tests without skips; got ${JSON.stringify(result.counts)}.`);
         result.status = "passed";
       } catch (error) {
