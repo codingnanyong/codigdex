@@ -21,7 +21,12 @@ export function createSaveSync(options: {
   let running: Promise<SyncResult> | undefined;
   let activeUser: string | undefined;
   let tail: Promise<unknown> = Promise.resolve();
-  const stable = (save: StoredGameStateV3) => JSON.stringify(save);
+  // Registries render in catalog order; merge results use ID order. Those
+  // representations contain the same progress and must not trigger retries.
+  const byId = <T extends { id: string }>(records: readonly T[]) => [...records].sort((a, b) => a.id.localeCompare(b.id));
+  const stable = (save: StoredGameStateV3) => JSON.stringify({ ...save, progress: {
+    captures: byId(save.progress.captures), careers: byId(save.progress.careers),
+  } });
   async function run(userId: string, importGuest: boolean, resolve?: "local" | "remote"): Promise<SyncResult> {
     const turn = generation;
     const alive = () => turn === generation && activeUser === userId;

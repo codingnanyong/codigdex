@@ -33,6 +33,9 @@ export const LOCALE_REGISTRY_KEY = "locale";
 export const CHECKPOINT_REGISTRY_KEY = "checkpointId";
 export const SAVE_CHANGE_EVENT = "codigdex-save-changed";
 const applying = new WeakSet<Phaser.Data.DataManager>();
+// Unknown content stays in the save without fabricating renderable dex cards.
+// Keep it per registry so applying another account's snapshot replaces it.
+const unrecognizedProgress = new WeakMap<Phaser.Data.DataManager, StoredGameStateV3["progress"]>();
 export const SAVE_STORAGE_KEY = SAVE_STORAGE_KEYS.current;
 export const PREVIOUS_SAVE_STORAGE_KEY = SAVE_STORAGE_KEYS.previous;
 export const LEGACY_SAVE_STORAGE_KEY = SAVE_STORAGE_KEYS.legacy;
@@ -74,6 +77,12 @@ export function hydrateRegistry(
     const previousSave = previousRaw ? parseSave(previousRaw) : undefined;
     const save = currentSave ?? previousSave ?? (legacyRaw ? parseSave(legacyRaw) : undefined);
     if (!save) return;
+
+    const knownMonsters = new Set(CAPTURABLE_MONSTERS.map(({ id }) => id));
+    unrecognizedProgress.set(registry, {
+      captures: save.progress.captures.filter(({ id }) => !knownMonsters.has(id)),
+      careers: save.progress.careers.filter(({ id }) => !isCareerId(id)),
+    });
 
     const capturedAtById = new Map(
       save.progress.captures
@@ -127,9 +136,10 @@ export function persistRegistry(registry: Phaser.Data.DataManager, storage = bro
 
 export function snapshotRegistry(registry: Phaser.Data.DataManager): StoredGameStateV3 {
   const state = readDexState(registry);
+  const unrecognized = unrecognizedProgress.get(registry);
   return createSave({
-    captures: state.cards.map(({ id, capturedAt }) => ({ id, capturedAt })),
-    careers: readCareerDexState(registry).careers,
+    captures: [...state.cards.map(({ id, capturedAt }) => ({ id, capturedAt })), ...(unrecognized?.captures ?? [])],
+    careers: [...readCareerDexState(registry).careers, ...(unrecognized?.careers ?? [])],
     primaryJobId: findJob(registry.get(JOB_REGISTRY_KEY) as string | undefined).id,
     secondaryJobId:
       findSecondaryJob(registry.get(SECONDARY_JOB_REGISTRY_KEY) as string | null | undefined)?.id ?? null,
@@ -164,6 +174,7 @@ export function hasSavedProgress(registry: Phaser.Data.DataManager): boolean {
   );
   return (
     readDexState(registry).cards.length > 0 ||
+    Boolean(unrecognizedProgress.get(registry)?.captures.length || unrecognizedProgress.get(registry)?.careers.length) ||
     careerProgress ||
     registry.get(TUTORIAL_ONBOARDING_SEEN_KEY) === true
   );
@@ -171,6 +182,7 @@ export function hasSavedProgress(registry: Phaser.Data.DataManager): boolean {
 
 /** Clears the current adventure while leaving the game's code and asset cache intact. */
 export function resetGameProgress(registry: Phaser.Data.DataManager, storage = browserStorage()) {
+  unrecognizedProgress.delete(registry);
   try {
     storage?.removeItem(SAVE_STORAGE_KEY);
     storage?.removeItem(PREVIOUS_SAVE_STORAGE_KEY);

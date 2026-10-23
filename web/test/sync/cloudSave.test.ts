@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { createEmptySave, parseSave, type StoredGameStateV3 } from "@codigdex/game-core/save/schema";
 import { mergeSaves } from "@codigdex/game-core/save/merge";
 import { createSaveSync, SYNC_METADATA_KEY, type CloudSave, type CloudSaveRemote } from "@codigdex/game-core/save/sync";
+import { normalizeGameSave } from "@codigdex/game-content/domain/gameProgress";
 
 const at = "2026-10-23T00:00:00.000Z";
 function saved(...ids: string[]): StoredGameStateV3 {
@@ -24,15 +25,31 @@ function backend() {
   };
   return { rows, remote };
 }
-function device(remote: CloudSaveRemote, initial = saved()) {
+function device(remote: CloudSaveRemote, initial = saved(), normalize = (save: StoredGameStateV3) => clone(save)) {
   let local = initial;
   const entries = new Map<string, string>();
   let writes = 0;
-  const sync = createSaveSync({ remote, storage: { async getItem(key) { return entries.get(key) ?? null; }, async setItem(key, value) { entries.set(key, value); } }, readLocal: () => local, async writeLocal(save) { writes += 1; local = save; }, normalize: (save) => clone(save) });
+  const sync = createSaveSync({ remote, storage: { async getItem(key) { return entries.get(key) ?? null; }, async setItem(key, value) { entries.set(key, value); } }, readLocal: () => local, async writeLocal(save) { writes += 1; local = save; }, normalize });
   return { sync, entries, get save() { return local; }, set save(value) { local = value; }, get writes() { return writes; } };
 }
 
 describe("cross-device saves", () => {
+  it("preserves records from other content versions through a normalized cloud write", async () => {
+    const { remote, rows } = backend();
+    const cloud = saved("future-cloud-monster");
+    const career = { id: "future-cloud-career", unlockedAt: at, masteredAt: at };
+    cloud.progress.careers.push(career);
+    rows.set("user", { revision: 1, payload: cloud });
+    const client = device(remote, saved("local-legacy-monster"), normalizeGameSave);
+    expect(await client.sync.sync("user", true)).toBe("synced");
+    expect(client.save.progress.captures.map(({ id }) => id)).toEqual(["future-cloud-monster", "local-legacy-monster"]);
+    expect(client.save.progress.careers).toContainEqual(career);
+    client.save.progress.captures.push({ id: "another-content-version", capturedAt: at });
+    expect(await client.sync.sync("user")).toBe("synced");
+    expect(rows.get("user")!.payload.progress.captures).toEqual(expect.arrayContaining(client.save.progress.captures));
+    expect(rows.get("user")!.payload.progress.captures).toHaveLength(client.save.progress.captures.length);
+    expect(rows.get("user")!.payload.progress.careers).toContainEqual(career);
+  });
   it("requires attribution and restores both devices' offline captures", async () => {
     const { remote, rows } = backend();
     const web = device(remote, saved("web-first"));

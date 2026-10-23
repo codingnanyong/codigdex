@@ -52,4 +52,22 @@ describe("one released game contract for Web and Mobile", () => {
     expect(save.progress.careers.find(({ id }) => id === "backend")?.masteredAt).toBeUndefined();
     expect(selectGameCareer(save, "backend")).toBe(save);
   });
+  it("preserves unrecognized records without letting them unlock released content", () => {
+    const save = createEmptySave("en");
+    const capture = { id: "future-monster", capturedAt: "2026-10-23T00:00:00.000Z" };
+    const career = { id: "future-career", unlockedAt: "2026-10-23", masteredAt: "2026-10-23" };
+    save.progress.captures.push(capture);
+    save.progress.careers.push(career);
+    const normalized = normalizeGameSave(save);
+    expect(normalized.progress.captures).toContainEqual(capture);
+    expect(normalized.progress.careers).toContainEqual(career);
+    expect(normalized.player.primaryJobId).toBe("junior");
+    expect(canEnterBattle(normalized, CHAPTERS[1].stages[0].id)).toBe(false);
+    expect(normalizeGameSave(normalized)).toEqual(normalized);
+    expect(captureCheckpoint(normalized, common[0].id, win).progress.captures).toContainEqual(capture);
+    expect(captureCheckpoint(normalized, common[0].id, win).progress.careers).toContainEqual(career);
+    const complete = completedCommon();
+    complete.progress.careers.push(career);
+    expect(selectGameCareer(complete, "frontend").progress.careers).toContainEqual(career);
+  });
 });
