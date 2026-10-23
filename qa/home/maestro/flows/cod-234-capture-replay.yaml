@@ -8,21 +8,21 @@ tags:
     element:
       id: qa-tutorial
     direction: DOWN
-    timeout: 20000
+    timeout: 60000
 - tapOn:
     id: qa-tutorial
 - scrollUntilVisible:
     element:
       id: battle-choice-0
     direction: DOWN
-    timeout: 20000
+    timeout: 60000
 - tapOn:
     id: battle-choice-0
 - scrollUntilVisible:
     element:
       id: battle-feedback
     direction: DOWN
-    timeout: 20000
+    timeout: 60000
 - assertVisible:
     id: battle-feedback
     text: CORRECT!
@@ -30,14 +30,14 @@ tags:
     element:
       id: battle-next
     direction: DOWN
-    timeout: 20000
+    timeout: 60000
 - tapOn:
     id: battle-next
 - scrollUntilVisible:
     element:
       id: battle-submit
     direction: DOWN
-    timeout: 20000
+    timeout: 60000
 - assertVisible:
     id: battle-submit
     enabled: false
@@ -45,7 +45,7 @@ tags:
     element:
       id: battle-answer
     direction: UP
-    timeout: 20000
+    timeout: 60000
 - tapOn:
     id: battle-answer
 - inputText: while
@@ -53,14 +53,14 @@ tags:
     element:
       id: battle-submit
     direction: DOWN
-    timeout: 20000
+    timeout: 60000
 - tapOn:
     id: battle-submit
 - scrollUntilVisible:
     element:
       id: battle-feedback
     direction: DOWN
-    timeout: 20000
+    timeout: 60000
 - assertVisible:
     id: battle-feedback
     text: CORRECT!
@@ -68,7 +68,7 @@ tags:
     element:
       id: battle-next
     direction: DOWN
-    timeout: 20000
+    timeout: 60000
 - tapOn:
     id: battle-next
 - assertVisible:
@@ -78,21 +78,21 @@ tags:
     element:
       id: result-retry
     direction: DOWN
-    timeout: 20000
+    timeout: 60000
 - tapOn:
     id: result-retry
 - scrollUntilVisible:
     element:
       id: battle-choice-0
     direction: DOWN
-    timeout: 20000
+    timeout: 60000
 - tapOn:
     id: battle-choice-0
 - scrollUntilVisible:
     element:
       id: battle-feedback
     direction: DOWN
-    timeout: 20000
+    timeout: 60000
 - assertVisible:
     id: battle-feedback
     text: CORRECT!
@@ -100,14 +100,14 @@ tags:
     element:
       id: battle-next
     direction: DOWN
-    timeout: 20000
+    timeout: 60000
 - tapOn:
     id: battle-next
 - scrollUntilVisible:
     element:
       id: battle-submit
     direction: DOWN
-    timeout: 20000
+    timeout: 60000
 - assertVisible:
     id: battle-submit
     enabled: false
@@ -115,7 +115,7 @@ tags:
     element:
       id: battle-answer
     direction: UP
-    timeout: 20000
+    timeout: 60000
 - tapOn:
     id: battle-answer
 - inputText: while
@@ -123,14 +123,14 @@ tags:
     element:
       id: battle-submit
     direction: DOWN
-    timeout: 20000
+    timeout: 60000
 - tapOn:
     id: battle-submit
 - scrollUntilVisible:
     element:
       id: battle-feedback
     direction: DOWN
-    timeout: 20000
+    timeout: 60000
 - assertVisible:
     id: battle-feedback
     text: CORRECT!
@@ -138,7 +138,7 @@ tags:
     element:
       id: battle-next
     direction: DOWN
-    timeout: 20000
+    timeout: 60000
 - tapOn:
     id: battle-next
 - assertVisible:
@@ -148,7 +148,7 @@ tags:
     element:
       id: result-qa
     direction: DOWN
-    timeout: 20000
+    timeout: 60000
 - tapOn:
     id: result-qa
 - assertVisible:

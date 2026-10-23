@@ -9,14 +9,14 @@ tags:
     element:
       id: qa-preset-complete
     direction: DOWN
-    timeout: 20000
+    timeout: 60000
 - tapOn:
     id: qa-preset-complete
 - scrollUntilVisible:
     element:
       id: qa-save-status
     direction: UP
-    timeout: 20000
+    timeout: 60000
 - assertVisible:
     id: qa-save-status
     text: SAVED
@@ -27,21 +27,21 @@ tags:
     element:
       id: qa-menu
     direction: UP
-    timeout: 20000
+    timeout: 60000
 - tapOn:
     id: qa-menu
 - scrollUntilVisible:
     element:
       id: home-careers
     direction: DOWN
-    timeout: 20000
+    timeout: 60000
 - tapOn:
     id: home-careers
 - scrollUntilVisible:
     element:
       id: career-select-devops
     direction: DOWN
-    timeout: 20000
+    timeout: 60000
 - tapOn:
     id: career-select-devops
 - assertVisible:
@@ -51,7 +51,7 @@ tags:
     element:
       id: career-checkpoint-packet-crab
     direction: DOWN
-    timeout: 20000
+    timeout: 60000
 - tapOn:
     id: career-checkpoint-packet-crab
 - assertVisible:
@@ -60,7 +60,7 @@ tags:
     element:
       id: battle-exit
     direction: UP
-    timeout: 20000
+    timeout: 60000
 - tapOn:
     id: battle-exit
 - assertVisible:
@@ -69,14 +69,14 @@ tags:
     element:
       id: career-menu
     direction: UP
-    timeout: 20000
+    timeout: 60000
 - tapOn:
     id: career-menu
 - scrollUntilVisible:
     element:
       id: home-qa
     direction: DOWN
-    timeout: 20000
+    timeout: 60000
 - tapOn:
     id: home-qa
 - assertVisible:
@@ -89,7 +89,7 @@ tags:
     element:
       id: qa-menu
     direction: UP
-    timeout: 20000
+    timeout: 60000
 - tapOn:
     id: qa-menu
 - stopApp
@@ -102,7 +102,7 @@ tags:
     element:
       id: home-play
     direction: DOWN
-    timeout: 20000
+    timeout: 60000
 - tapOn:
     id: home-play
 - assertVisible:
@@ -111,7 +111,7 @@ tags:
     element:
       id: career-select-devops
     direction: DOWN
-    timeout: 20000
+    timeout: 60000
 - assertVisible:
     id: career-select-devops
     text: CURRENT CAREER

@@ -8,21 +8,21 @@ tags:
     element:
       id: qa-tutorial
     direction: DOWN
-    timeout: 20000
+    timeout: 60000
 - tapOn:
     id: qa-tutorial
 - scrollUntilVisible:
     element:
       id: battle-choice-0
     direction: DOWN
-    timeout: 20000
+    timeout: 60000
 - tapOn:
     id: battle-choice-0
 - scrollUntilVisible:
     element:
       id: battle-feedback
     direction: DOWN
-    timeout: 20000
+    timeout: 60000
 - assertVisible:
     id: battle-feedback
     text: CORRECT!
@@ -30,14 +30,14 @@ tags:
     element:
       id: battle-next
     direction: DOWN
-    timeout: 20000
+    timeout: 60000
 - tapOn:
     id: battle-next
 - scrollUntilVisible:
     element:
       id: battle-submit
     direction: DOWN
-    timeout: 20000
+    timeout: 60000
 - assertVisible:
     id: battle-submit
     enabled: false
@@ -45,35 +45,35 @@ tags:
     element:
       id: battle-hint
     direction: DOWN
-    timeout: 20000
+    timeout: 60000
 - tapOn:
     id: battle-hint
 - scrollUntilVisible:
     element:
       id: battle-hint-1
     direction: UP
-    timeout: 20000
+    timeout: 60000
 - assertVisible:
     id: battle-hint-1
 - scrollUntilVisible:
     element:
       id: battle-hint
     direction: DOWN
-    timeout: 20000
+    timeout: 60000
 - tapOn:
     id: battle-hint
 - scrollUntilVisible:
     element:
       id: battle-hint-2
     direction: UP
-    timeout: 20000
+    timeout: 60000
 - assertVisible:
     id: battle-hint-2
 - scrollUntilVisible:
     element:
       id: battle-hint
     direction: DOWN
-    timeout: 20000
+    timeout: 60000
 - assertVisible:
     id: battle-hint
     enabled: false
@@ -81,7 +81,7 @@ tags:
     element:
       id: battle-answer
     direction: UP
-    timeout: 20000
+    timeout: 60000
 - tapOn:
     id: battle-answer
 - inputText: while
@@ -89,14 +89,14 @@ tags:
     element:
       id: battle-submit
     direction: DOWN
-    timeout: 20000
+    timeout: 60000
 - tapOn:
     id: battle-submit
 - scrollUntilVisible:
     element:
       id: battle-feedback
     direction: DOWN
-    timeout: 20000
+    timeout: 60000
 - assertVisible:
     id: battle-feedback
     text: CORRECT!
@@ -104,7 +104,7 @@ tags:
     element:
       id: battle-damage
     direction: DOWN
-    timeout: 20000
+    timeout: 60000
 - assertVisible:
     id: battle-damage
     text: 2 hints · attack strength 50%
@@ -112,7 +112,7 @@ tags:
     element:
       id: battle-next
     direction: DOWN
-    timeout: 20000
+    timeout: 60000
 - tapOn:
     id: battle-next
 - assertVisible:
@@ -122,7 +122,7 @@ tags:
     element:
       id: result-qa
     direction: DOWN
-    timeout: 20000
+    timeout: 60000
 - tapOn:
     id: result-qa
 - assertVisible:

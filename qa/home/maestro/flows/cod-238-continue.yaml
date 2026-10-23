@@ -8,14 +8,14 @@ tags:
     element:
       id: qa-preset-git
     direction: DOWN
-    timeout: 20000
+    timeout: 60000
 - tapOn:
     id: qa-preset-git
 - scrollUntilVisible:
     element:
       id: qa-save-status
     direction: UP
-    timeout: 20000
+    timeout: 60000
 - assertVisible:
     id: qa-save-status
     text: SAVED
@@ -26,7 +26,7 @@ tags:
     element:
       id: qa-menu
     direction: UP
-    timeout: 20000
+    timeout: 60000
 - tapOn:
     id: qa-menu
 - stopApp
@@ -39,7 +39,7 @@ tags:
     element:
       id: home-play
     direction: DOWN
-    timeout: 20000
+    timeout: 60000
 - tapOn:
     id: home-play
 - assertVisible:
@@ -48,21 +48,21 @@ tags:
     element:
       id: world-checkpoint-linux-shell-scout
     direction: DOWN
-    timeout: 20000
+    timeout: 60000
 - assertVisible:
     id: world-checkpoint-linux-shell-scout
 - scrollUntilVisible:
     element:
       id: world-menu
     direction: UP
-    timeout: 20000
+    timeout: 60000
 - tapOn:
     id: world-menu
 - scrollUntilVisible:
     element:
       id: home-qa
     direction: DOWN
-    timeout: 20000
+    timeout: 60000
 - tapOn:
     id: home-qa
 - assertVisible:

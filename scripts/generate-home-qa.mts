@@ -30,7 +30,9 @@ function yaml(file: string, name: string, tags: string[], commands: Command[]) {
 const id = (value: string) => ({ id: value });
 const visible = (value: string, text?: string) => ({ assertVisible: { ...id(value), ...(text === undefined ? {} : { text }) } });
 const saved = () => visible("qa-save-status", "SAVED");
-const scroll = (value: string, direction = "DOWN") => ({ scrollUntilVisible: { element: id(value), direction, timeout: 20000, ...(["qa-fail-save", "qa-world"].includes(value) ? { centerElement: true } : {}) } });
+// Emulator UI hierarchy/swipe calls can take >10s under native test load.
+// Allow several swipes without weakening the element or result assertions.
+const scroll = (value: string, direction = "DOWN") => ({ scrollUntilVisible: { element: id(value), direction, timeout: 60000, ...(["qa-fail-save", "qa-world"].includes(value) ? { centerElement: true } : {}) } });
 const tap = (value: string, direction = "DOWN"): Command[] => [scroll(value, direction), { tapOn: id(value) }];
 const start: Command[] = [{ runFlow: "../helpers/start.yaml" }];
 const tutorial = CHAPTERS[0].stages[0];

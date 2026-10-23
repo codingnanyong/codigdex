@@ -8,7 +8,7 @@ tags:
     element:
       id: qa-fail-save
     direction: DOWN
-    timeout: 20000
+    timeout: 60000
     centerElement: true
 - tapOn:
     id: qa-fail-save
@@ -16,14 +16,14 @@ tags:
     element:
       id: qa-retry-save
     direction: DOWN
-    timeout: 20000
+    timeout: 60000
 - tapOn:
     id: qa-retry-save
 - scrollUntilVisible:
     element:
       id: qa-save-status
     direction: UP
-    timeout: 20000
+    timeout: 60000
 - assertVisible:
     id: qa-save-status
     text: SAVED
@@ -34,14 +34,14 @@ tags:
     element:
       id: qa-fail-quiz
     direction: DOWN
-    timeout: 20000
+    timeout: 60000
 - tapOn:
     id: qa-fail-quiz
 - scrollUntilVisible:
     element:
       id: qa-tutorial
     direction: UP
-    timeout: 20000
+    timeout: 60000
 - tapOn:
     id: qa-tutorial
 - assertVisible:
@@ -50,7 +50,7 @@ tags:
     element:
       id: battle-retry-load
     direction: DOWN
-    timeout: 20000
+    timeout: 60000
 - tapOn:
     id: battle-retry-load
 - assertVisible:
@@ -59,14 +59,14 @@ tags:
     element:
       id: battle-exit
     direction: UP
-    timeout: 20000
+    timeout: 60000
 - tapOn:
     id: battle-exit
 - scrollUntilVisible:
     element:
       id: world-menu
     direction: UP
-    timeout: 20000
+    timeout: 60000
 - tapOn:
     id: world-menu
 - stopApp
@@ -79,7 +79,7 @@ tags:
     element:
       id: home-qa
     direction: DOWN
-    timeout: 20000
+    timeout: 60000
 - tapOn:
     id: home-qa
 - assertVisible:
