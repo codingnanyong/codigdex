@@ -30,7 +30,7 @@ function yaml(file: string, name: string, tags: string[], commands: Command[]) {
 const id = (value: string) => ({ id: value });
 const visible = (value: string, text?: string) => ({ assertVisible: { ...id(value), ...(text === undefined ? {} : { text }) } });
 const saved = () => visible("qa-save-status", "SAVED");
-const scroll = (value: string, direction = "DOWN") => ({ scrollUntilVisible: { element: id(value), direction, timeout: 20000 } });
+const scroll = (value: string, direction = "DOWN") => ({ scrollUntilVisible: { element: id(value), direction, timeout: 20000, centerElement: true } });
 const tap = (value: string, direction = "DOWN"): Command[] => [scroll(value, direction), { tapOn: id(value) }];
 const start: Command[] = [{ runFlow: "../helpers/start.yaml" }];
 const tutorial = CHAPTERS[0].stages[0];

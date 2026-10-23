@@ -13,6 +13,7 @@ tags:
       id: home-qa
     direction: DOWN
     timeout: 20000
+    centerElement: true
 - tapOn:
     id: home-qa
 - extendedWaitUntil:
@@ -25,6 +26,7 @@ tags:
       id: qa-reset
     direction: DOWN
     timeout: 20000
+    centerElement: true
 - tapOn:
     id: qa-reset
 - assertVisible:
