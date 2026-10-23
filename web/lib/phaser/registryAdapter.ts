@@ -1,4 +1,4 @@
-import Phaser from "phaser";
+import type Phaser from "phaser";
 import { isCommonPathComplete } from "@codigdex/game-content/domain/chapters";
 import {
   EMPTY_CAREER_DEX_STATE,
@@ -22,7 +22,7 @@ import {
   TERTIARY_JOB_REGISTRY_KEY,
 } from "@codigdex/game-content/domain/player/jobs";
 import { DEFAULT_LOCALE, detectLocale, isLocale, type Locale } from "@codigdex/game-core/i18n/locale";
-import { createSave, parseSave } from "@codigdex/game-core/save/schema";
+import { createSave, parseSave, type StoredGameStateV3 } from "@codigdex/game-core/save/schema";
 import { SAVE_STORAGE_KEYS } from "@codigdex/game-core/save/storage";
 import { completedCareerPathIds } from "./worldMap/careerPaths";
 
@@ -30,6 +30,12 @@ const CARDS_KEY = "cards";
 const CAREER_DEX_KEY = "careerDex";
 export const TUTORIAL_ONBOARDING_SEEN_KEY = "tutorialOnboardingSeen";
 export const LOCALE_REGISTRY_KEY = "locale";
+export const CHECKPOINT_REGISTRY_KEY = "checkpointId";
+export const SAVE_CHANGE_EVENT = "codigdex-save-changed";
+const applying = new WeakSet<Phaser.Data.DataManager>();
+// Unknown content stays in the save without fabricating renderable dex cards.
+// Keep it per registry so applying another account's snapshot replaces it.
+const unrecognizedProgress = new WeakMap<Phaser.Data.DataManager, StoredGameStateV3["progress"]>();
 export const SAVE_STORAGE_KEY = SAVE_STORAGE_KEYS.current;
 export const PREVIOUS_SAVE_STORAGE_KEY = SAVE_STORAGE_KEYS.previous;
 export const LEGACY_SAVE_STORAGE_KEY = SAVE_STORAGE_KEYS.legacy;
@@ -72,6 +78,12 @@ export function hydrateRegistry(
     const save = currentSave ?? previousSave ?? (legacyRaw ? parseSave(legacyRaw) : undefined);
     if (!save) return;
 
+    const knownMonsters = new Set(CAPTURABLE_MONSTERS.map(({ id }) => id));
+    unrecognizedProgress.set(registry, {
+      captures: save.progress.captures.filter(({ id }) => !knownMonsters.has(id)),
+      careers: save.progress.careers.filter(({ id }) => !isCareerId(id)),
+    });
+
     const capturedAtById = new Map(
       save.progress.captures
         .map((entry) => [entry.id, entry.capturedAt])
@@ -100,6 +112,7 @@ export function hydrateRegistry(
     registry.set(SECONDARY_JOB_REGISTRY_KEY, findSecondaryJob(save.player.secondaryJobId)?.id ?? null);
     registry.set(TERTIARY_JOB_REGISTRY_KEY, findTertiaryJob(save.player.tertiaryJobId)?.id ?? null);
     registry.set(TUTORIAL_ONBOARDING_SEEN_KEY, save.ui.tutorialOnboardingSeen);
+    registry.set(CHECKPOINT_REGISTRY_KEY, save.ui.checkpointId);
     if (save.ui.locale) registry.set(LOCALE_REGISTRY_KEY, save.ui.locale);
 
     // Copy a valid legacy save into the current slot without deleting the fallback.
@@ -110,11 +123,23 @@ export function hydrateRegistry(
 }
 
 export function persistRegistry(registry: Phaser.Data.DataManager, storage = browserStorage()) {
+  if (applying.has(registry)) return;
   if (!storage) return;
+  const save = snapshotRegistry(registry);
+  try {
+    storage.setItem(SAVE_STORAGE_KEY, JSON.stringify(save));
+    if (typeof window !== "undefined") window.dispatchEvent(new Event(SAVE_CHANGE_EVENT));
+  } catch {
+    if (typeof window !== "undefined") window.dispatchEvent(new Event("codigdex-save-error"));
+  }
+}
+
+export function snapshotRegistry(registry: Phaser.Data.DataManager): StoredGameStateV3 {
   const state = readDexState(registry);
-  const save = createSave({
-    captures: state.cards.map(({ id, capturedAt }) => ({ id, capturedAt })),
-    careers: readCareerDexState(registry).careers,
+  const unrecognized = unrecognizedProgress.get(registry);
+  return createSave({
+    captures: [...state.cards.map(({ id, capturedAt }) => ({ id, capturedAt })), ...(unrecognized?.captures ?? [])],
+    careers: [...readCareerDexState(registry).careers, ...(unrecognized?.careers ?? [])],
     primaryJobId: findJob(registry.get(JOB_REGISTRY_KEY) as string | undefined).id,
     secondaryJobId:
       findSecondaryJob(registry.get(SECONDARY_JOB_REGISTRY_KEY) as string | null | undefined)?.id ?? null,
@@ -122,20 +147,25 @@ export function persistRegistry(registry: Phaser.Data.DataManager, storage = bro
       findTertiaryJob(registry.get(TERTIARY_JOB_REGISTRY_KEY) as string | null | undefined)?.id ?? null,
     tutorialOnboardingSeen: registry.get(TUTORIAL_ONBOARDING_SEEN_KEY) === true,
     locale: readLocale(registry),
+    checkpointId: registry.get(CHECKPOINT_REGISTRY_KEY) as string | undefined,
   });
+}
+
+/** Apply an entire shared snapshot without persisting intermediate registry fields. */
+export function applySaveToRegistry(registry: Phaser.Data.DataManager, save: StoredGameStateV3) {
+  applying.add(registry);
   try {
-    storage.setItem(SAVE_STORAGE_KEY, JSON.stringify(save));
-  } catch {
-    // Private browsing and full storage can reject writes; play can continue in memory.
-  }
+    hydrateRegistry(registry, { getItem: (key: string) => key === SAVE_STORAGE_KEY ? JSON.stringify(save) : null } as Storage);
+  } finally { applying.delete(registry); }
+  persistRegistry(registry);
 }
 
 /** Hydrates once, then mirrors every registry mutation to browser storage. */
 export function initializeRegistryPersistence(registry: Phaser.Data.DataManager) {
   hydrateRegistry(registry);
   const save = () => persistRegistry(registry);
-  registry.events.on(Phaser.Data.Events.SET_DATA, save);
-  registry.events.on(Phaser.Data.Events.CHANGE_DATA, save);
+  registry.events.on("setdata", save);
+  registry.events.on("changedata", save);
 }
 
 export function hasSavedProgress(registry: Phaser.Data.DataManager): boolean {
@@ -144,6 +174,7 @@ export function hasSavedProgress(registry: Phaser.Data.DataManager): boolean {
   );
   return (
     readDexState(registry).cards.length > 0 ||
+    Boolean(unrecognizedProgress.get(registry)?.captures.length || unrecognizedProgress.get(registry)?.careers.length) ||
     careerProgress ||
     registry.get(TUTORIAL_ONBOARDING_SEEN_KEY) === true
   );
@@ -151,6 +182,7 @@ export function hasSavedProgress(registry: Phaser.Data.DataManager): boolean {
 
 /** Clears the current adventure while leaving the game's code and asset cache intact. */
 export function resetGameProgress(registry: Phaser.Data.DataManager, storage = browserStorage()) {
+  unrecognizedProgress.delete(registry);
   try {
     storage?.removeItem(SAVE_STORAGE_KEY);
     storage?.removeItem(PREVIOUS_SAVE_STORAGE_KEY);
@@ -164,6 +196,7 @@ export function resetGameProgress(registry: Phaser.Data.DataManager, storage = b
   registry.set(SECONDARY_JOB_REGISTRY_KEY, null);
   registry.set(TERTIARY_JOB_REGISTRY_KEY, null);
   registry.set(TUTORIAL_ONBOARDING_SEEN_KEY, false);
+  registry.set(CHECKPOINT_REGISTRY_KEY, undefined);
   persistRegistry(registry, storage);
 }
 

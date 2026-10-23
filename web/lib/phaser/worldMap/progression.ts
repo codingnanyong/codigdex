@@ -6,6 +6,7 @@ import type { AmbienceId, ChapterDefinition } from "@codigdex/game-core/domain/c
 import { CAREER_PATHS } from "./careerPaths";
 import type { JobId } from "@codigdex/game-content/domain/player/jobs";
 import { text, type LocalizedText } from "@codigdex/game-core/i18n/locale";
+import { WALLPAPERS } from "@codigdex/game-assets/visuals";
 
 export interface WorldBackdrop {
   textureKey: string;
@@ -16,21 +17,21 @@ export interface WorldBackdrop {
 
 const TUTORIAL_BACKDROP: WorldBackdrop = {
   textureKey: "world-tutorial",
-  assetKey: "wallpapers/tutorial-loop-forest-v1.png",
+  assetKey: WALLPAPERS.tutorial,
   title: text("튜토리얼 · 반복문의 숲", "Tutorial · Loop Forest"),
   ambience: "loop-forest",
 };
 
 const GIT_BACKDROP: WorldBackdrop = {
   textureKey: "world-git",
-  assetKey: "wallpapers/git-battle-arena-v1.png",
+  assetKey: WALLPAPERS.git,
   title: text("CH.01 · Git 기록의 들판", "CH.01 · Git Field of Records"),
   ambience: "git-field",
 };
 
 const LINUX_BACKDROP: WorldBackdrop = {
   textureKey: "world-linux",
-  assetKey: "wallpapers/linux-battle-arena-v1.png",
+  assetKey: WALLPAPERS.linux,
   title: text("CH.02 · Linux 셸 동굴", "CH.02 · Linux Shell Cave"),
   ambience: "linux-cave",
 };

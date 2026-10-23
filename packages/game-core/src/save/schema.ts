@@ -34,6 +34,8 @@ export interface StoredGameStateV3 {
     tutorialOnboardingSeen: boolean;
     /** Chosen in settings; absent until the player (or their browser) picks one. */
     locale?: Locale;
+    /** Last playable checkpoint. Clients that do not use map navigation may omit it. */
+    checkpointId?: string;
   };
 }
 
@@ -45,6 +47,7 @@ export interface SaveSnapshot {
   tertiaryJobId: string | null;
   tutorialOnboardingSeen: boolean;
   locale?: Locale;
+  checkpointId?: string;
 }
 
 export function createEmptySave(locale?: Locale): StoredGameStateV3 {
@@ -71,6 +74,7 @@ export function createSave(snapshot: SaveSnapshot): StoredGameStateV3 {
     ui: {
       tutorialOnboardingSeen: snapshot.tutorialOnboardingSeen,
       ...(snapshot.locale ? { locale: snapshot.locale } : {}),
+      ...(snapshot.checkpointId ? { checkpointId: snapshot.checkpointId } : {}),
     },
   };
 }
@@ -100,6 +104,7 @@ export function parseSave(raw: string): StoredGameStateV3 | undefined {
     tertiaryJobId: typeof value.player.tertiaryJobId === "string" ? value.player.tertiaryJobId : null,
     tutorialOnboardingSeen: value.ui.tutorialOnboardingSeen === true,
     locale: isLocale(value.ui.locale) ? value.ui.locale : undefined,
+    checkpointId: typeof value.ui.checkpointId === "string" && value.ui.checkpointId.length <= 128 ? value.ui.checkpointId : undefined,
   });
 }
 
@@ -132,6 +137,7 @@ function migrateV2(value: Record<string, unknown>): StoredGameStateV3 | undefine
     secondaryJobId,
     tertiaryJobId,
     tutorialOnboardingSeen: value.ui.tutorialOnboardingSeen === true,
+    locale: isLocale(value.ui.locale) ? value.ui.locale : undefined,
   });
 }
 

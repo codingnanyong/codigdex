@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 const packageRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const filesRoot = path.join(packageRoot, "files");
 const manifestPath = path.join(packageRoot, "src/manifest.generated.ts");
-const assetExtensions = new Set([".png", ".webp", ".jpg", ".svg"]);
+const assetExtensions = new Set([".png", ".webp", ".jpg", ".svg", ".ttf", ".woff2"]);
 
 async function collectKeys(directory) {
   const entries = await readdir(directory, { withFileTypes: true });

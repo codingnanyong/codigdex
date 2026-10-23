@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { currentStageIndex, isCommonPathComplete } from "@codigdex/game-content/domain/chapters";
+import { CHAPTERS, isCommonPathComplete } from "@codigdex/game-content/domain/chapters";
 import { TUTORIAL_MONSTER, TUTORIAL_ONBOARDING_LINES } from "@codigdex/game-content/domain/chapters/tutorial";
 import type { ChapterDefinition, MonsterDefinition } from "@codigdex/game-core/domain/chapters/types";
 import { capturedIds } from "@codigdex/game-core/domain/dex/capture";
@@ -19,7 +19,9 @@ import {
   ensureDexDefaults,
   readDexState,
   TUTORIAL_ONBOARDING_SEEN_KEY,
+  snapshotRegistry,
 } from "../registryAdapter";
+import { resumeCheckpoint } from "@codigdex/game-content/domain/gameProgress";
 import { applyPixelFontToScene, showToast } from "../ui";
 import { drawCareerAtlas } from "../worldMap/careerAtlas";
 import { routePointsFor } from "../worldMap/chapterRoute";
@@ -35,6 +37,7 @@ import {
   selectActiveChapter,
   selectWorldBackdrop,
   shouldEnterPrimaryJobSelection,
+  WORLD_BACKDROPS,
 } from "../worldMap/progression";
 import { showQuestDialog } from "../worldMap/questDialog";
 import { QuestMarker } from "../worldMap/questMarker";
@@ -85,9 +88,10 @@ export class WorldMapScene extends Phaser.Scene {
         })
       );
     }
-    const activeChapter = selectActiveChapter(captured);
+    const resume = resumeCheckpoint(snapshotRegistry(this.registry));
+    const activeChapter = this.commonResumeChapter() ?? selectActiveChapter(captured);
     if (activeChapter) {
-      const activeIndex = currentStageIndex(activeChapter, captured);
+      const activeIndex = activeChapter.stages.findIndex(({ id }) => id === resume.monster.id);
       queued += preloadMonsterArt(
         this,
         activeChapter.stages.filter(
@@ -104,7 +108,18 @@ export class WorldMapScene extends Phaser.Scene {
     const storedJob = findJob(this.registry.get(JOB_REGISTRY_KEY) as string | undefined);
     const selectedJob = isCommonPathComplete(captured) ? storedJob : findJob(undefined);
     const careerId = selectedJob.id === "junior" ? undefined : (selectedJob.id as JobId);
-    return { captured, storedJob, selectedJob, backdrop: selectWorldBackdrop(captured, careerId) };
+    const backdrop = selectWorldBackdrop(captured, careerId);
+    const common = this.commonResumeChapter();
+    const resumeBackdrop = common ? WORLD_BACKDROPS[CHAPTERS.indexOf(common)] : backdrop;
+    return { captured, storedJob, selectedJob, backdrop: resumeBackdrop };
+  }
+
+  private commonResumeChapter() {
+    const save = snapshotRegistry(this.registry);
+    const resume = resumeCheckpoint(save);
+    const index = CHAPTERS.indexOf(resume.chapter);
+    const commonComplete = isCommonPathComplete(new Set(save.progress.captures.map(({ id }) => id)));
+    return index >= 0 && (!commonComplete || (!!save.ui.checkpointId && save.player.primaryJobId !== "junior")) ? resume.chapter : undefined;
   }
 
   create() {
@@ -118,9 +133,11 @@ export class WorldMapScene extends Phaser.Scene {
       this.scene.start("job-select");
       return;
     }
-    this.activeChapter = selectActiveChapter(this.captured);
-    this.activeMonster = this.activeChapter?.stages[currentStageIndex(this.activeChapter, this.captured)];
-    this.selectedCareerId = selectedJob.id === "junior" ? undefined : (selectedJob.id as JobId);
+    const resume = resumeCheckpoint(snapshotRegistry(this.registry));
+    this.activeChapter = this.commonResumeChapter() ?? selectActiveChapter(this.captured);
+    this.activeMonster = this.activeChapter?.stages.find(({ id }) => id === resume.monster.id);
+    this.selectedCareerId = this.activeChapter || selectedJob.id === "junior" ? undefined : (selectedJob.id as JobId);
+    if (this.selectedCareerId && resume.chapter.id.startsWith("career:")) this.registry.set(`career-atlas-region:${this.selectedCareerId}`, resume.chapter.id.slice(7));
 
     if (storedJob.id !== selectedJob.id) this.registry.set(JOB_REGISTRY_KEY, selectedJob.id);
     this.add.image(width / 2, height / 2, backdrop.textureKey).setDisplaySize(width, height);
@@ -278,7 +295,7 @@ export class WorldMapScene extends Phaser.Scene {
   private showHint() {
     if (this.guideHint || !this.activeMonster) return;
     const activeIndex = this.activeChapter
-      ? currentStageIndex(this.activeChapter, this.captured)
+      ? this.activeChapter.stages.findIndex(({ id }) => id === this.activeMonster?.id)
       : 0;
     const routePoint = this.activeChapter
       ? routePointsFor(this.activeChapter)?.[activeIndex]

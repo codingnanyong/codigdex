@@ -20,6 +20,9 @@ on:
       - "rules/**"
       - "scripts/check-agent-*.mjs"
       - "scripts/link-agent-workspace.mjs"
+      - "scripts/home-qa*"
+      - "scripts/generate-home-qa*"
+      - "qa/**"
       - "skills/**"
       - "templates/**"
       - ".github/workflows/ci.yml"
@@ -39,6 +42,7 @@ jobs:
           cache-dependency-path: package-lock.json
       - run: npm ci
       - run: npm run check:agents
+      - run: npm run qa:check
       - run: npm run typecheck
       - run: npm run lint
       - run: npm test
@@ -54,3 +58,12 @@ jobs:
           key: ${{ runner.os }}-playwright-${{ hashFiles('package-lock.json') }}
       - run: npx playwright install --with-deps chromium
       - run: npm run test:e2e
+      - name: Verify feature-level Web journeys
+        run: npm run qa:home -- --platform web --feature all
+      - name: Upload feature QA results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: feature-qa-results
+          path: qa-results/
+          if-no-files-found: ignore

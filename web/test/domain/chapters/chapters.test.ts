@@ -176,6 +176,7 @@ describe.each(
   it.each(LOCALES)("gives every question four distinct %s choices with the answer among them", async (locale) => {
     const pool = (await loadQuizPack(monster.quizPackId)).questions;
     for (const question of pool) {
+      if (question.type === "freeText") throw new Error("These legacy pools must remain multiple choice");
       expect(question.choices).toHaveLength(4);
       expect(new Set(question.choices.map((choice) => choice[locale])).size).toBe(4);
       expect(question.choices[question.answerIndex]).toBeDefined();

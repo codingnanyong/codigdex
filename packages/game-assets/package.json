@@ -5,6 +5,7 @@
   "type": "module",
   "exports": {
     "./manifest": "./src/manifest.ts",
+    "./visuals": "./src/visuals.ts",
     "./files/*": "./files/*",
     "./package.json": "./package.json"
   },

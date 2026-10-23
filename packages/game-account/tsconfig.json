@@ -1,0 +1,4 @@
+{
+  "extends": "../game-core/tsconfig.json",
+  "include": ["src/**/*.ts"]
+}

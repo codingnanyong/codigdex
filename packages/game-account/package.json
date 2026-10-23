@@ -1,0 +1,15 @@
+{
+  "name": "@codigdex/game-account",
+  "version": "1.0.1",
+  "private": true,
+  "type": "module",
+  "exports": { ".": "./src/index.ts" },
+  "scripts": { "typecheck": "tsc --noEmit -p tsconfig.json" },
+  "dependencies": {
+    "@codigdex/game-core": "*",
+    "@codigdex/game-content": "*",
+    "@supabase/supabase-js": "^2.118.0",
+    "react": "19.2.3"
+  },
+  "devDependencies": { "@types/react": "^19", "typescript": "^5" }
+}

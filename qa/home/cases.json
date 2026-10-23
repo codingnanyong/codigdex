@@ -1,0 +1,536 @@
+{
+  "seed": 238,
+  "appId": "com.codingnanyong.codigdex",
+  "features": [
+    {
+      "id": "cod-235",
+      "branch": "test/cod-235-mixed-quiz",
+      "name": "Mixed quiz, hints and grading"
+    },
+    {
+      "id": "cod-234",
+      "branch": "test/cod-234-mobile-battle-ui",
+      "name": "Battle UI and capture"
+    },
+    {
+      "id": "cod-236",
+      "branch": "test/cod-236-mobile-qa",
+      "name": "Startup, locale and error recovery"
+    },
+    {
+      "id": "cod-237",
+      "branch": "test/cod-237-mobile-world-map",
+      "name": "World map and sequential unlocks"
+    },
+    {
+      "id": "cod-238",
+      "branch": "test/cod-238-mobile-continue",
+      "name": "Persistence, continuation and careers"
+    }
+  ],
+  "battles": {
+    "tutorial": {
+      "monsterId": "infinite-loop-slime",
+      "quizPackId": "tutorial.infinite-loop-slime.v1",
+      "level": 1,
+      "questions": [
+        {
+          "prompt": {
+            "ko": "`for i in range(2):`\n`    for j in range(3):`\n안쪽 코드는 총 몇 번 실행되나요?",
+            "en": "`for i in range(2):`\n`    for j in range(3):`\nHow many times does the inner code run in total?"
+          },
+          "choices": [
+            {
+              "ko": "6",
+              "en": "6"
+            },
+            {
+              "ko": "2",
+              "en": "2"
+            },
+            {
+              "ko": "5",
+              "en": "5"
+            },
+            {
+              "ko": "3",
+              "en": "3"
+            }
+          ],
+          "answerIndex": 0,
+          "id": "tutorial.infinite-loop-slime.mixed.v1.q17",
+          "difficulty": 1,
+          "tags": [
+            "tutorial",
+            "infinite-loop-slime"
+          ]
+        },
+        {
+          "type": "freeText",
+          "prompt": {
+            "ko": "단답: 반복 횟수 대신 조건이 참인 동안 반복하는 Python 키워드는?",
+            "en": "Type the Python keyword that repeats while a condition is true."
+          },
+          "acceptedAnswers": [
+            "while"
+          ],
+          "normalization": "trim-collapse-case",
+          "hints": [
+            {
+              "ko": "반복할 횟수를 미리 알지 못할 때 사용할 수 있어요.",
+              "en": "It can be used when the iteration count is not known in advance."
+            },
+            {
+              "ko": "값들을 순회하는 대신 매번 조건을 확인하는 반복문이에요.",
+              "en": "This loop checks a condition instead of visiting a sequence."
+            }
+          ],
+          "explanation": {
+            "ko": "while 반복문은 조건이 참인 동안 본문을 반복해요.",
+            "en": "A while loop repeats its body as long as its condition is true."
+          },
+          "id": "tutorial.infinite-loop-slime.mixed.v1.q08",
+          "difficulty": 1,
+          "tags": [
+            "tutorial",
+            "infinite-loop-slime"
+          ]
+        },
+        {
+          "prompt": {
+            "ko": "`for` 다음 줄이 반복문 안에 들어가려면 무엇이 필요한가요?",
+            "en": "What does the line after `for` need to be inside the loop?"
+          },
+          "choices": [
+            {
+              "ko": "쉼표",
+              "en": "A comma"
+            },
+            {
+              "ko": "들여쓰기",
+              "en": "Indentation"
+            },
+            {
+              "ko": "괄호",
+              "en": "Parentheses"
+            },
+            {
+              "ko": "세미콜론",
+              "en": "A semicolon"
+            }
+          ],
+          "answerIndex": 1,
+          "id": "tutorial.infinite-loop-slime.mixed.v1.q09",
+          "difficulty": 1,
+          "tags": [
+            "tutorial",
+            "infinite-loop-slime"
+          ]
+        }
+      ]
+    },
+    "level5": {
+      "monsterId": "infinite-loop-slime",
+      "quizPackId": "tutorial.infinite-loop-slime.v1",
+      "level": 5,
+      "questions": [
+        {
+          "prompt": {
+            "ko": "`for i in range(2):`\n`    for j in range(3):`\n안쪽 코드는 총 몇 번 실행되나요?",
+            "en": "`for i in range(2):`\n`    for j in range(3):`\nHow many times does the inner code run in total?"
+          },
+          "choices": [
+            {
+              "ko": "6",
+              "en": "6"
+            },
+            {
+              "ko": "2",
+              "en": "2"
+            },
+            {
+              "ko": "5",
+              "en": "5"
+            },
+            {
+              "ko": "3",
+              "en": "3"
+            }
+          ],
+          "answerIndex": 0,
+          "id": "tutorial.infinite-loop-slime.mixed.v1.q17",
+          "difficulty": 1,
+          "tags": [
+            "tutorial",
+            "infinite-loop-slime"
+          ]
+        },
+        {
+          "type": "freeText",
+          "prompt": {
+            "ko": "단답: 반복 횟수 대신 조건이 참인 동안 반복하는 Python 키워드는?",
+            "en": "Type the Python keyword that repeats while a condition is true."
+          },
+          "acceptedAnswers": [
+            "while"
+          ],
+          "normalization": "trim-collapse-case",
+          "hints": [
+            {
+              "ko": "반복할 횟수를 미리 알지 못할 때 사용할 수 있어요.",
+              "en": "It can be used when the iteration count is not known in advance."
+            },
+            {
+              "ko": "값들을 순회하는 대신 매번 조건을 확인하는 반복문이에요.",
+              "en": "This loop checks a condition instead of visiting a sequence."
+            }
+          ],
+          "explanation": {
+            "ko": "while 반복문은 조건이 참인 동안 본문을 반복해요.",
+            "en": "A while loop repeats its body as long as its condition is true."
+          },
+          "id": "tutorial.infinite-loop-slime.mixed.v1.q08",
+          "difficulty": 1,
+          "tags": [
+            "tutorial",
+            "infinite-loop-slime"
+          ]
+        },
+        {
+          "prompt": {
+            "ko": "`for` 다음 줄이 반복문 안에 들어가려면 무엇이 필요한가요?",
+            "en": "What does the line after `for` need to be inside the loop?"
+          },
+          "choices": [
+            {
+              "ko": "쉼표",
+              "en": "A comma"
+            },
+            {
+              "ko": "들여쓰기",
+              "en": "Indentation"
+            },
+            {
+              "ko": "괄호",
+              "en": "Parentheses"
+            },
+            {
+              "ko": "세미콜론",
+              "en": "A semicolon"
+            }
+          ],
+          "answerIndex": 1,
+          "id": "tutorial.infinite-loop-slime.mixed.v1.q09",
+          "difficulty": 1,
+          "tags": [
+            "tutorial",
+            "infinite-loop-slime"
+          ]
+        },
+        {
+          "prompt": {
+            "ko": "`for 물통 in [10, 20, 30]:` 첫 반복에서 물통의 값은?",
+            "en": "In `for bucket in [10, 20, 30]:`, what is bucket on the first loop?"
+          },
+          "choices": [
+            {
+              "ko": "0",
+              "en": "0"
+            },
+            {
+              "ko": "30",
+              "en": "30"
+            },
+            {
+              "ko": "10",
+              "en": "10"
+            },
+            {
+              "ko": "[10, 20, 30]",
+              "en": "[10, 20, 30]"
+            }
+          ],
+          "answerIndex": 2,
+          "id": "tutorial.infinite-loop-slime.mixed.v1.q16",
+          "difficulty": 1,
+          "tags": [
+            "tutorial",
+            "infinite-loop-slime"
+          ]
+        },
+        {
+          "type": "freeText",
+          "prompt": {
+            "ko": "단답: range(5)의 값 개수를 숫자로 적으세요.",
+            "en": "Type the number of values produced by range(5)."
+          },
+          "acceptedAnswers": [
+            "5"
+          ],
+          "normalization": "trim-collapse-case",
+          "hints": [
+            {
+              "ko": "시작값을 생략하면 음수가 아닌 가장 작은 정수부터 시작해요.",
+              "en": "With no start value, begin at the smallest nonnegative integer."
+            },
+            {
+              "ko": "끝값은 포함되지 않아요. 그 직전까지의 개수를 세어 보세요.",
+              "en": "The stop value is excluded. Count the values before it."
+            }
+          ],
+          "explanation": {
+            "ko": "range(5)는 0, 1, 2, 3, 4의 다섯 값을 만들어요.",
+            "en": "range(5) produces five values: 0, 1, 2, 3 and 4."
+          },
+          "id": "tutorial.infinite-loop-slime.mixed.v1.q01",
+          "difficulty": 1,
+          "tags": [
+            "tutorial",
+            "infinite-loop-slime"
+          ]
+        },
+        {
+          "prompt": {
+            "ko": "`for 물통 in 우물:` 에서 반복할 때마다 바뀌는 것은?",
+            "en": "In `for bucket in well:`, what changes on every loop?"
+          },
+          "choices": [
+            {
+              "ko": "물통",
+              "en": "bucket"
+            },
+            {
+              "ko": "for",
+              "en": "for"
+            },
+            {
+              "ko": "둘 다",
+              "en": "Both"
+            },
+            {
+              "ko": "우물",
+              "en": "well"
+            }
+          ],
+          "answerIndex": 0,
+          "id": "tutorial.infinite-loop-slime.mixed.v1.q10",
+          "difficulty": 1,
+          "tags": [
+            "tutorial",
+            "infinite-loop-slime"
+          ]
+        },
+        {
+          "prompt": {
+            "ko": "`for i in range(0):` 안의 코드는 어떻게 되나요?",
+            "en": "What happens to the code inside `for i in range(0):`?"
+          },
+          "choices": [
+            {
+              "ko": "에러가 난다",
+              "en": "It raises an error"
+            },
+            {
+              "ko": "한 번도 실행되지 않는다",
+              "en": "It never runs"
+            },
+            {
+              "ko": "무한 반복된다",
+              "en": "It loops forever"
+            },
+            {
+              "ko": "한 번 실행된다",
+              "en": "It runs once"
+            }
+          ],
+          "answerIndex": 1,
+          "id": "tutorial.infinite-loop-slime.mixed.v1.q06",
+          "difficulty": 1,
+          "tags": [
+            "tutorial",
+            "infinite-loop-slime"
+          ]
+        }
+      ]
+    },
+    "git": {
+      "monsterId": "git-sprout",
+      "quizPackId": "git.git-sprout.v1",
+      "level": 1,
+      "questions": [
+        {
+          "type": "multipleChoice",
+          "prompt": {
+            "ko": "`git status`의 'Untracked files'가 뜻하는 것은?",
+            "en": "What does 'Untracked files' mean in `git status`?"
+          },
+          "choices": [
+            {
+              "ko": "충돌이 난 파일",
+              "en": "Files with conflicts"
+            },
+            {
+              "ko": "아직 추적하지 않는 새 파일",
+              "en": "New files Git is not tracking yet"
+            },
+            {
+              "ko": "원격에만 있는 파일",
+              "en": "Files that exist only on the remote"
+            },
+            {
+              "ko": "삭제된 파일",
+              "en": "Deleted files"
+            }
+          ],
+          "answerIndex": 1,
+          "id": "git.git-sprout.mixed.v1.q17",
+          "difficulty": 1,
+          "tags": [
+            "git",
+            "git-sprout"
+          ]
+        },
+        {
+          "type": "freeText",
+          "prompt": {
+            "ko": "단답: 현재 폴더와 하위 폴더의 변경을 스테이징하는 명령어는? 경로는 점 하나로 적으세요.",
+            "en": "Type the command to stage changes in this folder and its children, using a single dot for the path."
+          },
+          "acceptedAnswers": [
+            "git add ."
+          ],
+          "normalization": "trim-collapse-case",
+          "hints": [
+            {
+              "ko": "커밋에 넣기 전에 변경을 스테이징 영역에 올려요.",
+              "en": "Move changes into the staging area before committing."
+            },
+            {
+              "ko": "git 다음에 추가 명령과 현재 폴더를 나타내는 경로를 적으세요.",
+              "en": "After git, use the add subcommand followed by the current-folder path."
+            }
+          ],
+          "explanation": {
+            "ko": "git add .은 현재 폴더와 하위 폴더의 변경을 스테이징해요.",
+            "en": "git add . stages changes in the current folder and its descendants."
+          },
+          "id": "git.git-sprout.mixed.v1.q11",
+          "difficulty": 1,
+          "tags": [
+            "git",
+            "git-sprout"
+          ]
+        },
+        {
+          "type": "multipleChoice",
+          "prompt": {
+            "ko": "Git이 추적하지 않을 파일을 적어 두는 파일은?",
+            "en": "Which file lists the files Git should not track?"
+          },
+          "choices": [
+            {
+              "ko": "package.json",
+              "en": "package.json"
+            },
+            {
+              "ko": ".gitignore",
+              "en": ".gitignore"
+            },
+            {
+              "ko": "README.md",
+              "en": "README.md"
+            },
+            {
+              "ko": ".gitconfig",
+              "en": ".gitconfig"
+            }
+          ],
+          "answerIndex": 1,
+          "id": "git.git-sprout.mixed.v1.q08",
+          "difficulty": 1,
+          "tags": [
+            "git",
+            "git-sprout"
+          ]
+        }
+      ]
+    }
+  },
+  "careers": [
+    {
+      "jobId": "frontend",
+      "firstMonsterId": "structure-sprout",
+      "firstRegionId": "html-css"
+    },
+    {
+      "jobId": "backend",
+      "firstMonsterId": "message-pair",
+      "firstRegionId": "http-api"
+    },
+    {
+      "jobId": "devops",
+      "firstMonsterId": "packet-crab",
+      "firstRegionId": "network"
+    },
+    {
+      "jobId": "data-engineer",
+      "firstMonsterId": "script-snake",
+      "firstRegionId": "python"
+    },
+    {
+      "jobId": "data-analyst",
+      "firstMonsterId": "query-mole",
+      "firstRegionId": "sql"
+    }
+  ],
+  "nativeFlows": [
+    {
+      "file": "qa/home/maestro/flows/cod-235-quiz-pass.yaml",
+      "feature": "cod-235"
+    },
+    {
+      "file": "qa/home/maestro/flows/cod-235-quiz-fail.yaml",
+      "feature": "cod-235"
+    },
+    {
+      "file": "qa/home/maestro/flows/cod-234-capture-replay.yaml",
+      "feature": "cod-234"
+    },
+    {
+      "file": "qa/home/maestro/flows/cod-236-recovery.yaml",
+      "feature": "cod-236"
+    },
+    {
+      "file": "qa/home/maestro/flows/cod-237-world-map.yaml",
+      "feature": "cod-237"
+    },
+    {
+      "file": "qa/home/maestro/flows/cod-238-continue.yaml",
+      "feature": "cod-238"
+    },
+    {
+      "file": "qa/home/maestro/flows/cod-238-career-frontend.yaml",
+      "feature": "cod-238"
+    },
+    {
+      "file": "qa/home/maestro/flows/cod-238-career-backend.yaml",
+      "feature": "cod-238"
+    },
+    {
+      "file": "qa/home/maestro/flows/cod-238-career-devops.yaml",
+      "feature": "cod-238"
+    },
+    {
+      "file": "qa/home/maestro/flows/cod-238-career-data-engineer.yaml",
+      "feature": "cod-238"
+    },
+    {
+      "file": "qa/home/maestro/flows/cod-238-career-data-analyst.yaml",
+      "feature": "cod-238"
+    }
+  ],
+  "deferred": [
+    "Live OAuth and cross-device cloud sync require a dedicated Supabase project.",
+    "Real IME, physical touch comfort, accessibility and device performance still need manual review."
+  ]
+}

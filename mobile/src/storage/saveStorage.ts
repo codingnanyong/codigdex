@@ -7,29 +7,27 @@ export interface AsyncStringStorage {
   removeItem(key: string): Promise<void>;
 }
 
-const readableKeys = [SAVE_STORAGE_KEYS.current, SAVE_STORAGE_KEYS.previous, SAVE_STORAGE_KEYS.legacy] as const;
-
-export function createAsyncSaveStorage(storage: AsyncStringStorage): SaveStorage {
+export function createAsyncSaveStorage(storage: AsyncStringStorage, namespace?: string): SaveStorage {
+  const readableKeys = [SAVE_STORAGE_KEYS.current, SAVE_STORAGE_KEYS.previous, SAVE_STORAGE_KEYS.legacy]
+    .map((key) => namespace ? `${namespace}:${key}` : key);
+  const currentKey = readableKeys[0];
   return {
     async load() {
       for (const key of readableKeys) {
         let raw: string | null;
-        try {
-          raw = await storage.getItem(key);
-        } catch {
-          return createEmptySave();
-        }
+        // A read failure is not an empty save. Let the app retry before allowing new writes.
+        raw = await storage.getItem(key);
         const save = raw ? parseSave(raw) : undefined;
         if (!save) continue;
-        if (key !== SAVE_STORAGE_KEYS.current) {
-          await storage.setItem(SAVE_STORAGE_KEYS.current, JSON.stringify(save)).catch(() => undefined);
+        if (key !== currentKey) {
+          await storage.setItem(currentKey, JSON.stringify(save)).catch(() => undefined);
         }
         return save;
       }
       return createEmptySave();
     },
     async save(value: StoredGameStateV3) {
-      await storage.setItem(SAVE_STORAGE_KEYS.current, JSON.stringify(value));
+      await storage.setItem(currentKey, JSON.stringify(value));
     },
     async clear() {
       await Promise.all(readableKeys.map((key) => storage.removeItem(key)));
