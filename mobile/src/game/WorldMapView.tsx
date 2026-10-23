@@ -28,8 +28,8 @@ export function WorldMapView({ captured, locale, selectedId, onSelect, onBattle,
   const stateLabel = (status: string) => status === "cleared" ? (ko ? "완료" : "CLEARED") : status === "available" ? (ko ? "현재" : "CURRENT") : (ko ? "잠금" : "LOCKED");
   return <>
     <View style={styles.topbar}>
-      <PixelButton compact variant="quiet" onPress={onBack}>{ko ? "메뉴" : "MENU"}</PixelButton>
-      <Text accessibilityRole="header" style={styles.kicker}>WORLD MAP</Text>
+      <PixelButton testID="world-menu" compact variant="quiet" onPress={onBack}>{ko ? "메뉴" : "MENU"}</PixelButton>
+      <Text testID="world-title" accessibilityRole="header" style={styles.kicker}>WORLD MAP</Text>
       <PixelButton compact variant="secondary" onPress={onDex}>{ko ? "도감" : "DEX"}</PixelButton>
     </View>
     <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
@@ -45,7 +45,7 @@ export function WorldMapView({ captured, locale, selectedId, onSelect, onBattle,
           const count = stages.filter(({ status }) => status === "cleared").length;
           const status = count === stages.length ? "cleared" : stages.some((stage) => stage.status === "available") ? "available" : "locked";
           const active = chapter.id === selected.chapter.id;
-          return <Pressable key={chapter.id} accessibilityRole="button" accessibilityLabel={`${localize(chapter.name, locale)}, ${stateLabel(status)}, ${count}/${stages.length}`}
+          return <Pressable testID={`world-region-${chapter.id}`} key={chapter.id} accessibilityRole="button" accessibilityLabel={`${localize(chapter.name, locale)}, ${stateLabel(status)}, ${count}/${stages.length}`}
             accessibilityState={{ selected: active }} onPress={() => onSelect((stages.find((stage) => stage.status !== "cleared") ?? stages.at(-1)!).monster.id)}
             style={[styles.region, active && styles.regionActive]}>
             <Text style={styles.regionNumber}>0{index + 1} · {stateLabel(status)}</Text>
@@ -67,7 +67,7 @@ export function WorldMapView({ captured, locale, selectedId, onSelect, onBattle,
                 <View style={[styles.node, status === "cleared" && styles.nodeCleared, active && styles.nodeActive]}><Text style={styles.nodeText}>{status === "cleared" ? "✓" : status === "locked" ? "×" : "◆"}</Text></View>
                 {index < region.length - 1 ? <View style={styles.connector} /> : null}
               </View>
-              <Pressable accessibilityRole="button" accessibilityLabel={`Lv.${monster.level} ${localize(monster.name, locale)}, ${stateLabel(status)}`}
+              <Pressable testID={`world-checkpoint-${monster.id}`} accessibilityRole="button" accessibilityLabel={`Lv.${monster.level} ${localize(monster.name, locale)}, ${stateLabel(status)}`}
                 accessibilityState={{ selected: active, disabled: status === "locked" }} disabled={status === "locked"}
                 onPress={() => onSelect(monster.id)} style={[styles.checkpoint, active && styles.checkpointActive, status === "locked" && styles.locked]}>
                 <Text style={styles.regionNumber}>LV.{monster.level} · {stateLabel(status)}</Text>
@@ -76,11 +76,11 @@ export function WorldMapView({ captured, locale, selectedId, onSelect, onBattle,
             </View>;
           })}
         </View>
-        {selected.status === "locked" ? <Text accessibilityRole="alert" style={styles.notice}>{ko ? "앞선 지역과 체크포인트를 완료하면 열립니다." : "Complete the preceding regions and checkpoints to unlock this stage."}</Text> : <>
+        {selected.status === "locked" ? <Text testID="world-locked" accessibilityRole="alert" style={styles.notice}>{ko ? "앞선 지역과 체크포인트를 완료하면 열립니다." : "Complete the preceding regions and checkpoints to unlock this stage."}</Text> : <>
           <Text accessibilityLiveRegion="polite" style={styles.regionName}>{localize(selected.monster.name, locale)}</Text>
           <Text style={styles.body}>{localize(selected.monster.briefing, locale)}</Text>
         </>}
-        <PixelButton accessibilityLabel={ko ? "선택한 체크포인트 전투" : "Battle selected checkpoint"} disabled={selected.status === "locked"} onPress={() => { if (selected.status !== "locked") onBattle(selected.monster.id); }}>
+        <PixelButton testID="world-battle" accessibilityLabel={ko ? "선택한 체크포인트 전투" : "Battle selected checkpoint"} disabled={selected.status === "locked"} onPress={() => { if (selected.status !== "locked") onBattle(selected.monster.id); }}>
           {selected.status === "cleared" ? (ko ? "완료한 체크포인트 재도전" : "REPLAY CHECKPOINT") : (ko ? "체크포인트 전투 시작" : "START CHECKPOINT BATTLE")}
         </PixelButton>
         {!allComplete && selected.monster.id !== next.monster.id ? <PixelButton accessibilityLabel={ko ? "다음 미션으로 이동" : "Go to next mission"} variant="secondary" onPress={() => onSelect(next.monster.id)}>{ko ? "다음 미션으로 이동" : "GO TO NEXT MISSION"}</PixelButton> : null}

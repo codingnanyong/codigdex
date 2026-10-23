@@ -18,6 +18,7 @@ interface SaveContextValue {
   locale: Locale;
   save: StoredGameStateV3;
   saveError: boolean;
+  saving: boolean;
   retrySave(): void;
   setLocale(locale: Locale): void;
   selectCheckpoint(id: string): void;
@@ -34,6 +35,8 @@ export function SaveProvider({ children }: PropsWithChildren) {
   const [loadError, setLoadError] = useState(false);
   const [loadAttempt, setLoadAttempt] = useState(0);
   const [saveError, setSaveError] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const pendingWrites = useRef(0);
   const currentSave = useRef(save);
   const writer = useMemo(() => createSaveWriter(mobileSaveStorage), []);
 
@@ -56,8 +59,17 @@ export function SaveProvider({ children }: PropsWithChildren) {
     persist(next);
   };
 
+  const write = (next: StoredGameStateV3) => {
+    pendingWrites.current++;
+    setSaving(true);
+    return writer.save(next).finally(() => {
+      pendingWrites.current--;
+      setSaving(pendingWrites.current > 0);
+    });
+  };
+
   const persist = (next: StoredGameStateV3) => {
-    void writer.save(next).then(
+    void write(next).then(
       () => { if (currentSave.current === next) setSaveError(false); },
       () => setSaveError(true)
     );
@@ -76,6 +88,7 @@ export function SaveProvider({ children }: PropsWithChildren) {
     locale: save.ui.locale ?? "ko",
     save,
     saveError,
+    saving,
     retrySave() { persist(currentSave.current); },
     setLocale(locale) {
       update((current) => ({ ...current, ui: { ...current.ui, locale } }));
@@ -88,7 +101,7 @@ export function SaveProvider({ children }: PropsWithChildren) {
       currentSave.current = next;
       setSave(next);
       try {
-        await writer.save(next);
+        await write(next);
         if (currentSave.current === next) setSaveError(false);
       } catch (error) { setSaveError(true); throw error; }
     },
@@ -96,7 +109,7 @@ export function SaveProvider({ children }: PropsWithChildren) {
       if (!QA_ENABLED) return;
       update((current) => createQaProgress(QA_ENABLED, scenario, current.ui.locale ?? "ko") ?? current);
     },
-  }), [hydrated, loadError, save, saveError]);
+  }), [hydrated, loadError, save, saveError, saving]);
 
   return <SaveContext.Provider value={value}>{children}</SaveContext.Provider>;
 }

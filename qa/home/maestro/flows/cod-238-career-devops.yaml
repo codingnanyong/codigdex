@@ -1,0 +1,118 @@
+appId: com.codingnanyong.codigdex
+name: COD-238 devops selection and career resume
+tags:
+  - cod-238
+  - careers
+---
+- runFlow: ../helpers/start.yaml
+- scrollUntilVisible:
+    element:
+      id: qa-preset-complete
+    direction: DOWN
+    timeout: 20000
+- tapOn:
+    id: qa-preset-complete
+- scrollUntilVisible:
+    element:
+      id: qa-save-status
+    direction: UP
+    timeout: 20000
+- assertVisible:
+    id: qa-save-status
+    text: SAVED
+- assertVisible:
+    id: qa-captures
+    text: "11"
+- scrollUntilVisible:
+    element:
+      id: qa-menu
+    direction: UP
+    timeout: 20000
+- tapOn:
+    id: qa-menu
+- scrollUntilVisible:
+    element:
+      id: home-careers
+    direction: DOWN
+    timeout: 20000
+- tapOn:
+    id: home-careers
+- scrollUntilVisible:
+    element:
+      id: career-select-devops
+    direction: DOWN
+    timeout: 20000
+- tapOn:
+    id: career-select-devops
+- assertVisible:
+    id: career-select-devops
+    text: CURRENT CAREER
+- scrollUntilVisible:
+    element:
+      id: career-checkpoint-packet-crab
+    direction: DOWN
+    timeout: 20000
+- tapOn:
+    id: career-checkpoint-packet-crab
+- assertVisible:
+    id: battle-prompt
+- scrollUntilVisible:
+    element:
+      id: battle-exit
+    direction: UP
+    timeout: 20000
+- tapOn:
+    id: battle-exit
+- assertVisible:
+    id: career-title
+- scrollUntilVisible:
+    element:
+      id: career-menu
+    direction: UP
+    timeout: 20000
+- tapOn:
+    id: career-menu
+- scrollUntilVisible:
+    element:
+      id: home-qa
+    direction: DOWN
+    timeout: 20000
+- tapOn:
+    id: home-qa
+- assertVisible:
+    id: qa-career
+    text: devops
+- assertVisible:
+    id: qa-save-status
+    text: SAVED
+- scrollUntilVisible:
+    element:
+      id: qa-menu
+    direction: UP
+    timeout: 20000
+- tapOn:
+    id: qa-menu
+- stopApp
+- launchApp
+- extendedWaitUntil:
+    visible:
+      id: home-title
+    timeout: 90000
+- scrollUntilVisible:
+    element:
+      id: home-play
+    direction: DOWN
+    timeout: 20000
+- tapOn:
+    id: home-play
+- assertVisible:
+    id: career-title
+- scrollUntilVisible:
+    element:
+      id: career-select-devops
+    direction: DOWN
+    timeout: 20000
+- assertVisible:
+    id: career-select-devops
+    text: CURRENT CAREER
+- takeScreenshot: cod-238-career-devops

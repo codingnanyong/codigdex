@@ -74,18 +74,18 @@ function TitleScreen({ onDex, onPlay, onSettings, onQA, onCareer }: { onDex(): v
         <View style={styles.titleArt}><PixelScene scene="field" height={180} /><View style={styles.artLabel}><Text style={styles.kicker}>FIELD GUIDE · 01</Text></View></View>
         <View style={styles.titleCopy}>
           <Text style={styles.kicker}>A PIXEL CODING ADVENTURE</Text>
-          <Text accessibilityRole="header" style={styles.logo}>CODIGDEX</Text>
+          <Text testID="home-title" accessibilityRole="header" style={styles.logo}>CODIGDEX</Text>
           <Text style={styles.subtitle}>{ko ? "코드로 버그를 잡고 지식을 수집하세요" : "Catch bugs with code and collect knowledge"}</Text>
           <Text style={styles.muted}>{ko ? `나의 필드 가이드 · 포획 ${save.progress.captures.length}마리` : `MY FIELD GUIDE · ${save.progress.captures.length} CAPTURED`}</Text>
         </View>
         <View style={styles.titleActions}>
-          <PixelButton onPress={onPlay}>{continuing ? (ko ? "이어하기" : "CONTINUE") : (ko ? "게임 시작" : "PLAY")}</PixelButton>
-          <Text style={styles.hint}>{localize(resume.chapter.name, locale)} · Lv.{resume.monster.level}{"\n"}{localize(resume.monster.name, locale)}</Text>
+          <PixelButton testID="home-play" onPress={onPlay}>{continuing ? (ko ? "이어하기" : "CONTINUE") : (ko ? "게임 시작" : "PLAY")}</PixelButton>
+          <Text testID="home-checkpoint" style={styles.hint}>{localize(resume.chapter.name, locale)} · Lv.{resume.monster.level}{"\n"}{localize(resume.monster.name, locale)}</Text>
           {saveError ? <><Text accessibilityRole="alert" style={styles.wrong}>{ko ? "저장 실패 · 종료 전 다시 저장하세요." : "Save failed. Retry before closing."}</Text><PixelButton onPress={retrySave}>{ko ? "다시 저장" : "RETRY SAVE"}</PixelButton></> : null}
           <PixelButton onPress={onDex} variant="secondary">{ko ? "코디덱스" : "CODIGDEX"}</PixelButton>
-          <PixelButton onPress={onCareer} variant="secondary">{ko ? "전직 · 직업 경로" : "CAREERS · PATHS"}</PixelButton>
+          <PixelButton testID="home-careers" onPress={onCareer} variant="secondary">{ko ? "전직 · 직업 경로" : "CAREERS · PATHS"}</PixelButton>
           <PixelButton compact onPress={onSettings} variant="quiet">{ko ? "설정" : "SETTINGS"}</PixelButton>
-          {QA_ENABLED ? <PixelButton onPress={onQA} variant="secondary">QA · 기기 테스트</PixelButton> : null}
+          {QA_ENABLED ? <PixelButton testID="home-qa" onPress={onQA} variant="secondary">QA · 기기 테스트</PixelButton> : null}
         </View>
       </View>
     </Screen>
@@ -109,7 +109,7 @@ function ResultScreen({ onDex, onWorld, onRetry, onQA, onContinue, result }: { o
       <View style={[styles.resultLayout, narrow && styles.verticalLayout]}>
         <View style={styles.resultStage}><PixelScene backdrop scene={(chapter?.id ?? "field") as PixelScenery} /><Image resizeMode="contain" source={mobileAssetSource(result.monster.assetKey)} style={styles.resultMonster} /></View>
         <View style={styles.resultCopy}>
-          <Text style={[styles.resultGrade, result.passed ? styles.correct : styles.wrong]}>{result.passed ? (ko ? "포획 성공" : "CAPTURED") : (ko ? "재도전" : "TRY AGAIN")}</Text>
+          <Text testID="result-title" style={[styles.resultGrade, result.passed ? styles.correct : styles.wrong]}>{result.passed ? (ko ? "포획 성공" : "CAPTURED") : (ko ? "재도전" : "TRY AGAIN")}</Text>
           <Text style={styles.logo}>{battlePercent(result.correct, result.total)}%</Text>
           <Text style={styles.body}>{result.correct}/{result.total} · {localize(result.monster.name, locale)}</Text>
           <Text style={styles.muted}>{result.passed ? (ko ? "코디덱스에 새 카드가 등록되었습니다." : "A new card was registered.") : (ko ? "60% 이상 맞히면 포획할 수 있습니다." : "Score at least 60% to capture it.")}</Text>
@@ -120,11 +120,11 @@ function ResultScreen({ onDex, onWorld, onRetry, onQA, onContinue, result }: { o
             <Text accessibilityRole="alert" style={styles.wrong}>{ko ? "기기에 저장하지 못했습니다. 앱을 닫기 전에 다시 저장하세요." : "Could not save to this device. Retry before closing the app."}</Text>
             <PixelButton onPress={retrySave}>{ko ? "다시 저장" : "RETRY SAVE"}</PixelButton>
           </> : null}
-          {result.passed && !allComplete ? <PixelButton onPress={onContinue}>{ko ? "다음 체크포인트" : "NEXT CHECKPOINT"}{"\n"}{localize(next.chapter.name, locale)} · Lv.{next.monster.level}</PixelButton> : null}
-          <PixelButton onPress={onWorld}>{ko ? "월드맵으로" : "WORLD MAP"}</PixelButton>
-          <PixelButton onPress={onRetry} variant="secondary">{ko ? "다시 도전" : "RETRY BATTLE"}</PixelButton>
+          {result.passed && !allComplete ? <PixelButton testID="result-continue" onPress={onContinue}>{ko ? "다음 체크포인트" : "NEXT CHECKPOINT"}{"\n"}{localize(next.chapter.name, locale)} · Lv.{next.monster.level}</PixelButton> : null}
+          <PixelButton testID="result-world" onPress={onWorld}>{ko ? "월드맵으로" : "WORLD MAP"}</PixelButton>
+          <PixelButton testID="result-retry" onPress={onRetry} variant="secondary">{ko ? "다시 도전" : "RETRY BATTLE"}</PixelButton>
           <PixelButton onPress={onDex} variant="secondary">{ko ? "도감 보기" : "OPEN DEX"}</PixelButton>
-          {QA_ENABLED ? <PixelButton onPress={onQA} variant="quiet">QA · 기기 테스트</PixelButton> : null}
+          {QA_ENABLED ? <PixelButton testID="result-qa" onPress={onQA} variant="quiet">QA · 기기 테스트</PixelButton> : null}
         </View>
       </View>
     </Screen>

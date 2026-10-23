@@ -6,10 +6,33 @@ import { DEX_MONSTERS } from "@codigdex/game-content/domain/chapters";
 import { createEmptySave } from "@codigdex/game-core/save/schema";
 import { SAVE_STORAGE_KEYS } from "@codigdex/game-core/save/storage";
 import { createAsyncSaveStorage } from "../storage/saveStorage";
-import { createQaFaults, isQaEnabled } from "./runtime";
+import { createQaFaults, isE2eEnabled, isQaEnabled } from "./runtime";
 import { WALLPAPERS } from "@codigdex/game-assets/visuals";
 
 describe("QA isolation and deliberate failures", () => {
+  it("cannot enable automation in a release or ordinary QA session", () => {
+    expect(isE2eEnabled(isQaEnabled(false, "1"), "1")).toBe(false);
+    expect(isE2eEnabled(isQaEnabled(true, undefined), "1")).toBe(false);
+    expect(isE2eEnabled(isQaEnabled(true, "1"), undefined)).toBe(false);
+    expect(isE2eEnabled(isQaEnabled(true, "1"), "1")).toBe(true);
+  });
+  it("automation reset preserves both normal saves and manual QA progress", async () => {
+    const normal = createEmptySave("ko");
+    const values = new Map([[SAVE_STORAGE_KEYS.current as string, JSON.stringify(normal)]]);
+    const io = { async getItem(key: string) { return values.get(key) ?? null; }, async setItem(key: string, value: string) { values.set(key, value); }, async removeItem(key: string) { values.delete(key); } };
+    const manual = createAsyncSaveStorage(io, "qa-sprint04");
+    const automation = createAsyncSaveStorage(io, "qa-home-e2e");
+    const manualSave = createEmptySave("en");
+    manualSave.ui.checkpointId = "infinite-loop-slime";
+    await manual.save(manualSave);
+    await automation.save(createEmptySave("en"));
+    await automation.clear();
+    expect(await manual.load()).toEqual(manualSave);
+    expect(JSON.parse(values.get(SAVE_STORAGE_KEYS.current)!)).toEqual(normal);
+    const faults = createQaFaults(true);
+    faults.failNextSave(); faults.failNextQuiz(); faults.reset();
+    expect(() => { faults.beforeSave(); faults.beforeQuiz(); }).not.toThrow();
+  });
   it("requires both a development bundle and the explicit QA flag", () => {
     expect(isQaEnabled(true, "1")).toBe(true);
     for (const [dev, flag] of [[false, "1"], [true, undefined], [true, "0"]] as const) expect(isQaEnabled(dev, flag)).toBe(false);

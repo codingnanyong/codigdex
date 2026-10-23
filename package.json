@@ -29,10 +29,18 @@
     "mobile:ios": "npm run open:ios --workspace @codigdex/mobile",
     "mobile:qa": "node scripts/mobile-qa.mjs",
     "mobile:qa:check": "node scripts/mobile-qa.mjs --check",
+    "qa:home": "node scripts/home-qa.mjs",
+    "qa:report": "node scripts/home-qa-report.mjs",
+    "qa:generate": "tsx scripts/generate-home-qa.mts",
+    "qa:check": "tsx scripts/generate-home-qa.mts --check && node --test scripts/home-qa.test.mjs",
     "typecheck": "npm run check:boundaries && npm run typecheck --workspaces --if-present"
   },
   "dependencies": {
     "react": "19.2.3",
     "react-dom": "19.2.3"
+  },
+  "devDependencies": {
+    "tsx": "4.23.15",
+    "yaml": "2.9.1"
   }
 }

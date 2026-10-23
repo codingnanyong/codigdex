@@ -1,0 +1,134 @@
+appId: com.codingnanyong.codigdex
+name: COD-235 real mixed quiz, blank input and two hints
+tags:
+  - cod-235
+---
+- runFlow: ../helpers/start.yaml
+- scrollUntilVisible:
+    element:
+      id: qa-tutorial
+    direction: DOWN
+    timeout: 20000
+- tapOn:
+    id: qa-tutorial
+- scrollUntilVisible:
+    element:
+      id: battle-choice-0
+    direction: DOWN
+    timeout: 20000
+- tapOn:
+    id: battle-choice-0
+- scrollUntilVisible:
+    element:
+      id: battle-feedback
+    direction: DOWN
+    timeout: 20000
+- assertVisible:
+    id: battle-feedback
+    text: CORRECT!
+- scrollUntilVisible:
+    element:
+      id: battle-next
+    direction: DOWN
+    timeout: 20000
+- tapOn:
+    id: battle-next
+- scrollUntilVisible:
+    element:
+      id: battle-submit
+    direction: DOWN
+    timeout: 20000
+- assertVisible:
+    id: battle-submit
+    enabled: false
+- scrollUntilVisible:
+    element:
+      id: battle-hint
+    direction: DOWN
+    timeout: 20000
+- tapOn:
+    id: battle-hint
+- scrollUntilVisible:
+    element:
+      id: battle-hint-1
+    direction: UP
+    timeout: 20000
+- assertVisible:
+    id: battle-hint-1
+- scrollUntilVisible:
+    element:
+      id: battle-hint
+    direction: DOWN
+    timeout: 20000
+- tapOn:
+    id: battle-hint
+- scrollUntilVisible:
+    element:
+      id: battle-hint-2
+    direction: UP
+    timeout: 20000
+- assertVisible:
+    id: battle-hint-2
+- scrollUntilVisible:
+    element:
+      id: battle-hint
+    direction: DOWN
+    timeout: 20000
+- assertVisible:
+    id: battle-hint
+    enabled: false
+- scrollUntilVisible:
+    element:
+      id: battle-answer
+    direction: UP
+    timeout: 20000
+- tapOn:
+    id: battle-answer
+- inputText: while
+- scrollUntilVisible:
+    element:
+      id: battle-submit
+    direction: DOWN
+    timeout: 20000
+- tapOn:
+    id: battle-submit
+- scrollUntilVisible:
+    element:
+      id: battle-feedback
+    direction: DOWN
+    timeout: 20000
+- assertVisible:
+    id: battle-feedback
+    text: CORRECT!
+- scrollUntilVisible:
+    element:
+      id: battle-damage
+    direction: DOWN
+    timeout: 20000
+- assertVisible:
+    id: battle-damage
+    text: 2 hints · attack strength 50%
+- scrollUntilVisible:
+    element:
+      id: battle-next
+    direction: DOWN
+    timeout: 20000
+- tapOn:
+    id: battle-next
+- assertVisible:
+    id: result-title
+    text: CAPTURED
+- scrollUntilVisible:
+    element:
+      id: result-qa
+    direction: DOWN
+    timeout: 20000
+- tapOn:
+    id: result-qa
+- assertVisible:
+    id: qa-captures
+    text: "1"
+- assertVisible:
+    id: qa-save-status
+    text: SAVED
+- takeScreenshot: cod-235-pass

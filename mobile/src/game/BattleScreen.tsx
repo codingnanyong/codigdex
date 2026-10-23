@@ -12,7 +12,8 @@ import { colors, font } from "../ui/theme";
 import { battleQuestions } from "./battle";
 import { compactBattle } from "./battlePresentation";
 import { BattleView, type BattleFeedback } from "./BattleView";
-import { qaFaults } from "../qa/runtime";
+import { E2E_ENABLED, qaFaults } from "../qa/runtime";
+import { createQaRandom } from "@codigdex/game-core/domain/dex/qaRandom";
 
 interface Props {
   monster: MonsterDefinition;
@@ -56,7 +57,7 @@ export function BattleScreen({ monster, monsterImage, locale, onExit, onFinish }
     closed.current = false;
     void Promise.resolve().then(() => { qaFaults.beforeQuiz(); return loadMixedQuizPack(monster.quizPackId); }).then((pack) => {
       if (!active || closed.current) return;
-      const next = createBattleState(battleQuestions(monster, pack.questions));
+      const next = createBattleState(battleQuestions(monster, pack.questions, E2E_ENABLED ? createQaRandom() : Math.random));
       current.current = next;
       setBattle(next);
     }).catch(() => { if (active && !closed.current) setLoadFailed(true); });
@@ -113,8 +114,8 @@ export function BattleScreen({ monster, monsterImage, locale, onExit, onFinish }
 
   if (loadFailed || !battle) return <Screen><View style={styles.loading}>
     {loadFailed ? <>
-      <Text accessibilityRole="alert" style={styles.error}>{ko ? "문제를 불러오지 못했습니다." : "Could not load the quiz."}</Text>
-      <PixelButton onPress={() => { setLoadFailed(false); setRetry((value) => value + 1); }}>{ko ? "다시 시도" : "RETRY"}</PixelButton>
+      <Text testID="battle-load-error" accessibilityRole="alert" style={styles.error}>{ko ? "문제를 불러오지 못했습니다." : "Could not load the quiz."}</Text>
+      <PixelButton testID="battle-retry-load" onPress={() => { setLoadFailed(false); setRetry((value) => value + 1); }}>{ko ? "다시 시도" : "RETRY"}</PixelButton>
       <PixelButton onPress={exit} variant="quiet">{ko ? "월드로" : "WORLD"}</PixelButton>
     </> : <><ActivityIndicator color={colors.cyan} /><Text style={styles.caption}>{ko ? "문제 불러오는 중" : "LOADING QUIZ"}</Text></>}
   </View></Screen>;

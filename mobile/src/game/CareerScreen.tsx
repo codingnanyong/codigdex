@@ -23,8 +23,8 @@ export function CareerScreen({ onBack, onBattle }: { onBack(): void; onBattle(id
   const normalized = normalizeGameSave(save);
   const careerDex = { careers: normalized.progress.careers.flatMap((record) => isCareerId(record.id) ? [{ ...record, id: record.id }] : []) };
   return <Screen scroll>
-    <PixelButton onPress={onBack} variant="quiet">← {ko ? "메뉴" : "MENU"}</PixelButton>
-    <Text accessibilityRole="header" style={styles.heading}>{ko ? "전직 계보 · 직업 경로" : "CAREER LINEAGE · PATHS"}</Text>
+    <PixelButton testID="career-menu" onPress={onBack} variant="quiet">← {ko ? "메뉴" : "MENU"}</PixelButton>
+    <Text testID="career-title" accessibilityRole="header" style={styles.heading}>{ko ? "전직 계보 · 직업 경로" : "CAREER LINEAGE · PATHS"}</Text>
     <Text style={styles.body}>{localize(current.name, locale)} · {ko ? "완성한 경로" : "Mastered paths"} {complete.size}/{JOB_OPTIONS.length}</Text>
     {!commonComplete ? <Text style={styles.hint}>{ko ? "튜토리얼 · Git · Linux 공통 경로를 완료하면 1차 전직이 열립니다." : "Complete Tutorial · Git · Linux to unlock primary careers."}</Text> : null}
     <View style={styles.panel}>
@@ -33,7 +33,7 @@ export function CareerScreen({ onBack, onBattle }: { onBack(): void; onBattle(id
         return <View key={job.id} style={styles.item}>
           <Text style={styles.title}>{complete.has(job.id) ? "★ " : ""}{localize(job.name, locale)}{current.id === job.id ? (ko ? " · 현재" : " · ACTIVE") : ""}</Text>
           <Text style={styles.body}>{localize(job.tagline, locale)}</Text>
-          <PixelButton disabled={!selectable} onPress={() => { selectJob(job.id); setRegionId(undefined); }} variant={current.id === job.id ? "primary" : "secondary"}>{current.id === job.id ? (ko ? "현재 직업" : "CURRENT CAREER") : (ko ? "이 직업 선택" : "SELECT CAREER")}</PixelButton>
+          <PixelButton testID={`career-select-${job.id}`} disabled={!selectable} onPress={() => { selectJob(job.id); setRegionId(undefined); }} variant={current.id === job.id ? "primary" : "secondary"}>{current.id === job.id ? (ko ? "현재 직업" : "CURRENT CAREER") : (ko ? "이 직업 선택" : "SELECT CAREER")}</PixelButton>
         </View>;
       })}
       {commonComplete && current.id !== "junior" && !complete.has(current.id) ? <Text style={styles.hint}>{ko ? "현재 경로를 모두 완료하면 다른 1차 직업을 선택할 수 있습니다." : "Finish the current path before choosing another primary career."}</Text> : null}
@@ -62,11 +62,11 @@ function CareerRegions({ jobId, regionId, onRegion, onBattle }: { jobId: JobId; 
   return <>
     <Text style={styles.heading}>{localize(path.title, locale)}</Text>
     <View style={styles.panel}>
-      {progression.map(({ region, status }) => <PixelButton key={region.id} disabled={status === "locked"} onPress={() => onRegion(region.id)} variant={region.id === selected.region.id ? "primary" : "secondary"}>{status === "completed" ? "✓ " : status === "locked" ? "🔒 " : ""}{localize(region.label, locale)}</PixelButton>)}
+      {progression.map(({ region, status }) => <PixelButton testID={`career-region-${region.id}`} key={region.id} disabled={status === "locked"} onPress={() => onRegion(region.id)} variant={region.id === selected.region.id ? "primary" : "secondary"}>{status === "completed" ? "✓ " : status === "locked" ? "🔒 " : ""}{localize(region.label, locale)}</PixelButton>)}
     </View>
     <View style={styles.panel}>
       <Text style={styles.title}>{localize(selected.region.label, locale)}</Text>
-      {careerCheckpoints(save, jobId).filter(({ chapter }) => chapter.id === `career:${selected.region.id}`).map(({ monster, status }) => <PixelButton key={monster.id} disabled={status === "locked"} onPress={() => onBattle(monster.id)} variant={status === "cleared" ? "secondary" : "primary"}>Lv.{monster.level} · {status === "locked" ? "???" : localize(monster.name, locale)}{status === "cleared" ? " ✓" : ""}</PixelButton>)}
+      {careerCheckpoints(save, jobId).filter(({ chapter }) => chapter.id === `career:${selected.region.id}`).map(({ monster, status }) => <PixelButton testID={`career-checkpoint-${monster.id}`} key={monster.id} disabled={status === "locked"} onPress={() => onBattle(monster.id)} variant={status === "cleared" ? "secondary" : "primary"}>Lv.{monster.level} · {status === "locked" ? "???" : localize(monster.name, locale)}{status === "cleared" ? " ✓" : ""}</PixelButton>)}
       <Text style={styles.hint}>{ko ? "포획 후 이 경로로 돌아옵니다. 완료한 체크포인트는 다시 도전할 수 있습니다." : "Return here after capture. Cleared checkpoints can be replayed."}</Text>
     </View>
   </>;

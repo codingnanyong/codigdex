@@ -48,9 +48,9 @@ export function BattleView(props: BattleViewProps) {
 
   return <View style={[styles.root, keyboardVisible && styles.typingRoot]}>
     <View style={styles.header}>
-      <PixelButton accessibilityLabel={ko ? "배틀 나가기" : "Exit battle"} onPress={props.onExit} variant="quiet">×</PixelButton>
+      <PixelButton testID="battle-exit" accessibilityLabel={ko ? "배틀 나가기" : "Exit battle"} onPress={props.onExit} variant="quiet">×</PixelButton>
       <View style={styles.headerCopy}>
-        <Text style={styles.kicker}>{ko ? "코드 배틀" : "CODE BATTLE"} · {index + 1}/{battle.questions.length}</Text>
+        <Text testID="battle-progress" style={styles.kicker}>{ko ? "코드 배틀" : "CODE BATTLE"} · {index + 1}/{battle.questions.length}</Text>
         {!keyboardVisible ? <Text accessibilityRole="header" style={styles.monsterName}>{localize(monster.name, locale)}</Text> : null}
       </View>
       {keyboardVisible ? <PixelButton accessibilityLabel={ko ? "키보드 닫기" : "Hide keyboard"} variant="quiet" onPress={props.onKeyboardDismiss}>{ko ? "키보드 닫기" : "HIDE KEYBOARD"}</PixelButton> : <Text style={styles.passLine}>{ko ? "포획 기준 60%" : "CAPTURE AT 60%"}{"\n"}{ko ? `정답 ${settled.correctCount}/${meters.required}` : `${settled.correctCount}/${meters.required} correct`}</Text>}
@@ -70,7 +70,7 @@ export function BattleView(props: BattleViewProps) {
         <Text style={styles.specimenTitle}>LV.{monster.level}</Text>
         <Text style={[styles.caption, styles.specimenCaption]}>{localize(monster.classification, locale)}</Text>
       </View> : null}
-      <ScrollView ref={props.scrollRef} style={styles.conversation} contentContainerStyle={[styles.conversationContent, keyboardVisible && styles.typingContent]}
+      <ScrollView testID="battle-scroll" ref={props.scrollRef} style={styles.conversation} contentContainerStyle={[styles.conversationContent, keyboardVisible && styles.typingContent]}
         keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag" onContentSizeChange={props.onContentSizeChange}>
         {compact && !keyboardVisible ? <View style={styles.compactStage}>
           <PixelScene backdrop scene={(monster.quizPackId.split(".")[0] === "linux" ? "linux" : monster.quizPackId.split(".")[0] === "git" ? "git" : "tutorial") as PixelScenery} />
@@ -79,16 +79,16 @@ export function BattleView(props: BattleViewProps) {
         </View> : null}
         <View style={[styles.bubble, styles.guideBubble]}>
           <Text style={styles.kicker}>{question.type === "freeText" ? (ko ? "단답형" : "TYPE AN ANSWER") : (ko ? "객관식" : "CHOOSE AN ANSWER")}</Text>
-          <Text style={styles.prompt}>{quizCopy(localize(question.prompt, locale))}</Text>
+          <Text testID="battle-prompt" style={styles.prompt}>{quizCopy(localize(question.prompt, locale))}</Text>
         </View>
 
         {hints.slice(0, battle.hintsUsed).map((hint, hintIndex) => <View key={`${index}-hint-${hintIndex}`} style={[styles.bubble, styles.hintBubble]}>
           <Text style={styles.hintLabel}>{ko ? "힌트" : "HINT"} {hintIndex + 1}/{hintCount}</Text>
-          <Text accessibilityLiveRegion="polite" style={styles.body}>{quizCopy(localize(hint, locale))}</Text>
+          <Text testID={`battle-hint-${hintIndex + 1}`} accessibilityLiveRegion="polite" style={styles.body}>{quizCopy(localize(hint, locale))}</Text>
         </View>)}
 
         {!locked && question.type !== "freeText" ? <View style={styles.choices}>
-          {question.choices.map((choice, choiceIndex) => <Pressable key={`${index}-${choiceIndex}`} accessibilityRole="button"
+          {question.choices.map((choice, choiceIndex) => <Pressable testID={`battle-choice-${choiceIndex}`} key={`${index}-${choiceIndex}`} accessibilityRole="button"
             accessibilityLabel={`${String.fromCharCode(65 + choiceIndex)}. ${localize(choice, locale)}`}
             onPress={() => props.onAnswer(index, choiceIndex)}
             style={({ pressed }) => [styles.choice, compact && styles.fullChoice, pressed && styles.pressed]}>
@@ -99,19 +99,19 @@ export function BattleView(props: BattleViewProps) {
 
         {!locked && question.type === "freeText" ? <View style={[styles.answerForm, keyboardVisible && styles.typingForm]}>
           {!keyboardVisible ? <Text style={styles.inputLabel}>{ko ? "나의 답변" : "YOUR ANSWER"}</Text> : null}
-          <TextInput key={index} accessibilityLabel={ko ? "단답 답안" : "Short answer"} value={draft}
+          <TextInput testID="battle-answer" key={index} accessibilityLabel={ko ? "단답 답안" : "Short answer"} value={draft}
             onChangeText={(value) => props.onDraftChange(index, value)} onFocus={props.onInputFocus}
             onSubmitEditing={(event) => { const answer = keyboardAnswer(event); if (answer !== undefined) props.onAnswer(index, answer); }}
             autoCorrect={false} autoCapitalize="none" spellCheck={false} returnKeyType="send" submitBehavior="submit"
             placeholder={ko ? "명령어 또는 키워드를 입력하세요" : "Enter a command or keyword"}
             placeholderTextColor={colors.muted} style={[styles.input, keyboardVisible && styles.typingInput]} />
-          <PixelButton accessibilityLabel={ko ? "답안 제출" : "Submit answer"} disabled={!normalizeQuizAnswer(draft)} onPress={() => props.onAnswer(index, draft)}>
+          <PixelButton testID="battle-submit" accessibilityLabel={ko ? "답안 제출" : "Submit answer"} disabled={!normalizeQuizAnswer(draft)} onPress={() => props.onAnswer(index, draft)}>
             {keyboardVisible ? (ko ? "보내기" : "SEND") : (ko ? "답변 보내기" : "SEND ANSWER")}
           </PixelButton>
         </View> : null}
 
         {!locked && !keyboardVisible && hintCount > 0 ? <View style={styles.hintActions}>
-          <PixelButton variant="secondary" accessibilityLabel={ko ? `다음 힌트, ${battle.hintsUsed}/${hintCount} 사용` : `Next hint, ${battle.hintsUsed}/${hintCount} used`}
+          <PixelButton testID="battle-hint" variant="secondary" accessibilityLabel={ko ? `다음 힌트, ${battle.hintsUsed}/${hintCount} 사용` : `Next hint, ${battle.hintsUsed}/${hintCount} used`}
             disabled={battle.hintsUsed >= hintCount} onPress={() => props.onHint(index)}>
             {ko ? `힌트 보기 ${battle.hintsUsed}/${hintCount}` : `HINT ${battle.hintsUsed}/${hintCount}`}
           </PixelButton>
@@ -121,13 +121,13 @@ export function BattleView(props: BattleViewProps) {
         {feedback ? <>
           <View style={[styles.bubble, styles.playerBubble]}><Text style={styles.playerLabel}>{ko ? "나의 답변" : "YOUR ANSWER"}</Text><Text style={styles.body}>{playerAnswer}</Text></View>
           <View accessibilityLiveRegion="polite" style={[styles.bubble, styles.feedbackBubble, !feedback.attempt.correct && styles.missedBubble]}>
-            <Text style={[styles.feedbackTitle, !feedback.attempt.correct && styles.missedText]}>{feedback.attempt.correct ? (ko ? "정답이에요!" : "CORRECT!") : (ko ? "다시 살펴봐요" : "LET’S REVIEW")}</Text>
+            <Text testID="battle-feedback" style={[styles.feedbackTitle, !feedback.attempt.correct && styles.missedText]}>{feedback.attempt.correct ? (ko ? "정답이에요!" : "CORRECT!") : (ko ? "다시 살펴봐요" : "LET’S REVIEW")}</Text>
             <Text selectable style={styles.body}>{ko ? "정답: " : "Answer: "}{expectedAnswer(question, locale)}</Text>
             {question.explanation ? <Text style={styles.body}>{quizCopy(localize(question.explanation, locale))}</Text> : null}
-            {feedback.attempt.correct && hintCount > 0 ? <Text style={styles.caption}>{ko ? `힌트 ${feedback.attempt.hintsUsed}회 · 공격 위력 ${feedback.attempt.damage}%` : `${feedback.attempt.hintsUsed} hints · attack strength ${feedback.attempt.damage}%`}</Text> : null}
+            {feedback.attempt.correct && hintCount > 0 ? <Text testID="battle-damage" style={styles.caption}>{ko ? `힌트 ${feedback.attempt.hintsUsed}회 · 공격 위력 ${feedback.attempt.damage}%` : `${feedback.attempt.hintsUsed} hints · attack strength ${feedback.attempt.damage}%`}</Text> : null}
             {settled.status === "passed" ? <Text style={styles.ready}>{ko ? "포획 준비 완료! 결과를 확인하세요." : "Ready to capture! Check your result."}</Text> : null}
           </View>
-          <PixelButton accessibilityLabel={finished ? (ko ? "배틀 결과 확인" : "View battle result") : (ko ? "다음 문제" : "Next question")} onPress={props.onNext}>
+          <PixelButton testID="battle-next" accessibilityLabel={finished ? (ko ? "배틀 결과 확인" : "View battle result") : (ko ? "다음 문제" : "Next question")} onPress={props.onNext}>
             {finished ? (ko ? "결과 확인" : "VIEW RESULT") : (ko ? "다음 문제" : "NEXT QUESTION")}
           </PixelButton>
         </> : null}

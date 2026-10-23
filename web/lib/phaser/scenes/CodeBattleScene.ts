@@ -4,6 +4,7 @@ import type { ChapterDefinition, MonsterDefinition } from "@codigdex/game-core/d
 import { createBattleState, revealBattleHint, submitBattleAnswer, type BattleState } from "@codigdex/game-core/domain/dex/battle";
 import { drawMixedQuizQuestions, quizCountForLevel, type QuizAnswer } from "@codigdex/game-core/domain/dex/quiz";
 import { loadMixedQuizPack } from "@codigdex/quiz-content";
+import { createQaRandom } from "@codigdex/game-core/domain/dex/qaRandom";
 import { canEnterBattle, rememberCheckpoint } from "@codigdex/game-content/domain/gameProgress";
 import { applySaveToRegistry, snapshotRegistry } from "../registryAdapter";
 import { assetUrl } from "../../assets";
@@ -91,7 +92,8 @@ export class CodeBattleScene extends Phaser.Scene {
     try {
       const pack = await loadMixedQuizPack(this.monster.quizPackId);
       if (!this.sys.isActive() || generation !== this.loadGeneration) return;
-      this.battle = createBattleState(drawMixedQuizQuestions(pack.questions, quizCountForLevel(this.monster.level)));
+      const rng = process.env.NODE_ENV === "development" && process.env.NEXT_PUBLIC_E2E === "1" ? createQaRandom() : Math.random;
+      this.battle = createBattleState(drawMixedQuizQuestions(pack.questions, quizCountForLevel(this.monster.level), rng));
       loading.destroy();
     } catch (error) {
       console.error(`[CodeBattleScene] failed to load ${this.monster.quizPackId}`, error);

@@ -1,0 +1,38 @@
+appId: com.codingnanyong.codigdex
+name: Check QA build and reset only QA progress
+tags:
+  - helper
+---
+- launchApp
+- extendedWaitUntil:
+    visible:
+      id: home-title
+    timeout: 90000
+- scrollUntilVisible:
+    element:
+      id: home-qa
+    direction: DOWN
+    timeout: 20000
+- tapOn:
+    id: home-qa
+- extendedWaitUntil:
+    visible:
+      id: qa-automation
+      text: ${QA_BUILD}
+    timeout: 15000
+- scrollUntilVisible:
+    element:
+      id: qa-reset
+    direction: DOWN
+    timeout: 20000
+- tapOn:
+    id: qa-reset
+- assertVisible:
+    id: qa-save-status
+    text: SAVED
+- assertVisible:
+    id: qa-locale
+    text: en
+- assertVisible:
+    id: qa-captures
+    text: "0"

@@ -6,7 +6,8 @@ import { useSave } from "../state/SaveProvider";
 import { Screen } from "../ui/Screen";
 import { PixelButton } from "../ui/PixelButton";
 import { colors, font } from "../ui/theme";
-import { QA_ENABLED, qaFaults } from "./runtime";
+import { E2E_ENABLED, E2E_REVISION, QA_ENABLED, qaFaults } from "./runtime";
+import { createEmptySave } from "@codigdex/game-core/save/schema";
 
 const checks = [
   "객관식 → 단답 · 빈 답안/연속 제출 차단",
@@ -22,7 +23,7 @@ const checks = [
 ] as const;
 
 export function QAScreen({ onBack, onBattle, onDex, onWorld, checked, onToggleCheck }: { onBack(): void; onBattle(monster: MonsterDefinition): void; onDex(): void; onWorld(): void; checked: readonly string[]; onToggleCheck(check: string): void }) {
-  const { locale, setLocale, save, saveError, retrySave, clearProgress, loadQAProgress } = useSave();
+  const { locale, setLocale, save, saveError, saving, retrySave, clearProgress, loadQAProgress, replaceSave } = useSave();
   const dimensions = useWindowDimensions();
   const [frames, setFrames] = useState(0);
   const [notice, setNotice] = useState("");
@@ -42,25 +43,34 @@ export function QAScreen({ onBack, onBattle, onDex, onWorld, checked, onToggleCh
   if (!QA_ENABLED) return null;
   const tutorial = CHAPTERS[0].stages[0];
   return <Screen scroll><View style={styles.content}>
-    <PixelButton onPress={onBack} variant="quiet">메뉴</PixelButton>
+    <PixelButton testID="qa-menu" onPress={onBack} variant="quiet">메뉴</PixelButton>
+    {E2E_ENABLED ? <>
+      <Text testID="qa-automation" style={styles.info}>{E2E_REVISION}</Text>
+      <PixelButton testID="qa-reset" onPress={() => { qaFaults.reset(); void replaceSave(createEmptySave("en")).catch(() => setNotice("QA reset could not be saved.")); }}>자동 테스트 초기화 · English</PixelButton>
+    </> : null}
+    <Text testID="qa-save-status" style={styles.info}>{saving ? "SAVING" : saveError ? "SAVE_FAILED" : "SAVED"}</Text>
+    <Text testID="qa-captures" style={styles.info}>{save.progress.captures.length}</Text>
+    <Text testID="qa-checkpoint" style={styles.info}>{save.ui.checkpointId ?? "none"}</Text>
+    <Text testID="qa-locale" style={styles.info}>{locale}</Text>
+    <Text testID="qa-career" style={styles.info}>{save.player.primaryJobId}</Text>
     <Text accessibilityRole="header" style={styles.title}>SPRINT 04/05 · 기기 테스트</Text>
     <Text style={styles.body}>테스트 전용 저장 공간입니다. 일반 진행도와 분리됩니다. 체크 항목은 직접 확인한 뒤 선택하세요.</Text>
     <Text style={styles.info}>{Platform.OS} {String(Platform.Version)} · {Math.round(dimensions.width)}×{Math.round(dimensions.height)} · {locale} · 포획 {save.progress.captures.length}</Text>
     <Text style={styles.info}>이 화면의 JS 프레임 콜백: {frames}/s (기기 GPU FPS 측정값이 아님)</Text>
-    <PixelButton onPress={() => onBattle(tutorial)}>튜토리얼 Lv.1 · 혼합 전투</PixelButton>
-    <PixelButton onPress={() => onBattle({ ...tutorial, level: 5 })}>튜토리얼 Lv.5 · 7문항 전투</PixelButton>
-    <PixelButton onPress={() => onBattle(CHAPTERS[1].stages[0])}>Git · 명령어 단답 전투</PixelButton>
-    <PixelButton variant="secondary" onPress={onWorld}>월드맵 · 지역/체크포인트 테스트</PixelButton>
+    <PixelButton testID="qa-tutorial" onPress={() => onBattle(tutorial)}>튜토리얼 Lv.1 · 혼합 전투</PixelButton>
+    <PixelButton testID="qa-level5" onPress={() => onBattle({ ...tutorial, level: 5 })}>튜토리얼 Lv.5 · 7문항 전투</PixelButton>
+    <PixelButton testID="qa-git" onPress={() => onBattle(CHAPTERS[1].stages[0])}>Git · 명령어 단답 전투</PixelButton>
+    <PixelButton testID="qa-world" variant="secondary" onPress={onWorld}>월드맵 · 지역/체크포인트 테스트</PixelButton>
     <Text style={styles.body}>아래 프리셋은 테스트 진행도와 체크포인트를 교체합니다. 적용 후 월드맵을 열거나 앱을 재시작해 이어하기를 확인하세요.</Text>
-    <PixelButton variant="quiet" onPress={() => { loadQAProgress("tutorial"); setNotice("튜토리얼 완료 · Git Lv.1에서 이어하기를 확인하세요."); }}>QA 진행도 · 튜토리얼 완료</PixelButton>
-    <PixelButton variant="quiet" onPress={() => { loadQAProgress("git"); setNotice("Git 완료 · Linux Lv.1에서 이어하기를 확인하세요."); }}>QA 진행도 · Git 완료</PixelButton>
-    <PixelButton variant="quiet" onPress={() => { loadQAProgress("complete"); setNotice("공통 경로 완료 · 11개 체크포인트 재도전을 확인하세요."); }}>QA 진행도 · 공통 경로 완료</PixelButton>
+    <PixelButton testID="qa-preset-tutorial" variant="quiet" onPress={() => { loadQAProgress("tutorial"); setNotice("튜토리얼 완료 · Git Lv.1에서 이어하기를 확인하세요."); }}>QA 진행도 · 튜토리얼 완료</PixelButton>
+    <PixelButton testID="qa-preset-git" variant="quiet" onPress={() => { loadQAProgress("git"); setNotice("Git 완료 · Linux Lv.1에서 이어하기를 확인하세요."); }}>QA 진행도 · Git 완료</PixelButton>
+    <PixelButton testID="qa-preset-complete" variant="quiet" onPress={() => { loadQAProgress("complete"); setNotice("공통 경로 완료 · 11개 체크포인트 재도전을 확인하세요."); }}>QA 진행도 · 공통 경로 완료</PixelButton>
     <PixelButton variant="secondary" onPress={onDex}>도감 · 포획/재시작 복원 확인</PixelButton>
-    <PixelButton variant="secondary" onPress={() => setLocale(locale === "ko" ? "en" : "ko")}>언어 전환 · {locale === "ko" ? "English" : "한국어"}</PixelButton>
-    <PixelButton variant="secondary" onPress={() => { qaFaults.failNextQuiz(); setNotice("다음 전투에서 로딩 실패 후 다시 시도를 확인하세요."); }}>다음 문제 로딩 1회 실패</PixelButton>
-    <PixelButton variant="secondary" onPress={() => { qaFaults.failNextSave(); setLocale(locale === "ko" ? "en" : "ko"); setNotice("언어 저장 실패를 발생시켰습니다. 다시 저장한 뒤 재시작해 확인하세요."); }}>저장 실패 1회 발생</PixelButton>
+    <PixelButton testID="qa-language" variant="secondary" onPress={() => setLocale(locale === "ko" ? "en" : "ko")}>언어 전환 · {locale === "ko" ? "English" : "한국어"}</PixelButton>
+    <PixelButton testID="qa-fail-quiz" variant="secondary" onPress={() => { qaFaults.failNextQuiz(); setNotice("다음 전투에서 로딩 실패 후 다시 시도를 확인하세요."); }}>다음 문제 로딩 1회 실패</PixelButton>
+    <PixelButton testID="qa-fail-save" variant="secondary" onPress={() => { qaFaults.failNextSave(); setLocale(locale === "ko" ? "en" : "ko"); setNotice("언어 저장 실패를 발생시켰습니다. 다시 저장한 뒤 재시작해 확인하세요."); }}>저장 실패 1회 발생</PixelButton>
     {notice ? <Text accessibilityLiveRegion="polite" style={styles.body}>{notice}</Text> : null}
-    {saveError ? <><Text accessibilityRole="alert" style={styles.error}>저장 실패 · 메모리 진행도 유지 중</Text><PixelButton onPress={retrySave}>다시 저장</PixelButton></> : null}
+    {saveError ? <><Text accessibilityRole="alert" style={styles.error}>저장 실패 · 메모리 진행도 유지 중</Text><PixelButton testID="qa-retry-save" onPress={retrySave}>다시 저장</PixelButton></> : null}
     {checks.map((check) => <PixelButton key={check} accessibilityLabel={`${checked.includes(check) ? "확인 완료" : "미확인"}: ${check}`} variant={checked.includes(check) ? "primary" : "quiet"}
       onPress={() => onToggleCheck(check)}>{checked.includes(check) ? "✓ " : "□ "}{check}</PixelButton>)}
     <PixelButton variant="secondary" onPress={() => { void Share.share({ message: JSON.stringify({ sprint: "04/05", at: new Date().toISOString(), platform: Platform.OS, version: Platform.Version, dimensions, locale, captures: save.progress.captures, checkpointId: save.ui.checkpointId, saveError, checked, remaining: checks.filter((check) => !checked.includes(check)) }, null, 2) }).catch(() => setNotice("공유를 완료하지 못했습니다. 체크 상태를 화면에서 확인하세요.")); }}>테스트 결과 복사/공유</PixelButton>

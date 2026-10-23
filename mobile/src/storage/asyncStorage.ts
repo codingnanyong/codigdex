@@ -1,6 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { createAsyncSaveStorage } from "./saveStorage";
-import { QA_ENABLED, qaFaults } from "../qa/runtime";
+import { E2E_ENABLED, QA_ENABLED, qaFaults } from "../qa/runtime";
 
 export const mobileSaveStorage = createAsyncSaveStorage({
   getItem: (key) => AsyncStorage.getItem(key),
@@ -9,4 +9,4 @@ export const mobileSaveStorage = createAsyncSaveStorage({
     qaFaults.beforeSave();
     await AsyncStorage.setItem(key, value);
   },
-}, QA_ENABLED ? "qa-sprint04" : undefined);
+}, E2E_ENABLED ? "qa-home-e2e" : QA_ENABLED ? "qa-sprint04" : undefined);

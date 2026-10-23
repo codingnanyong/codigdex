@@ -1,0 +1,89 @@
+appId: com.codingnanyong.codigdex
+name: COD-235 incorrect answers do not capture
+tags:
+  - cod-235
+---
+- runFlow: ../helpers/start.yaml
+- scrollUntilVisible:
+    element:
+      id: qa-tutorial
+    direction: DOWN
+    timeout: 20000
+- tapOn:
+    id: qa-tutorial
+- scrollUntilVisible:
+    element:
+      id: battle-choice-1
+    direction: DOWN
+    timeout: 20000
+- tapOn:
+    id: battle-choice-1
+- scrollUntilVisible:
+    element:
+      id: battle-feedback
+    direction: DOWN
+    timeout: 20000
+- assertVisible:
+    id: battle-feedback
+    text: LET’S REVIEW
+- scrollUntilVisible:
+    element:
+      id: battle-next
+    direction: DOWN
+    timeout: 20000
+- tapOn:
+    id: battle-next
+- scrollUntilVisible:
+    element:
+      id: battle-submit
+    direction: DOWN
+    timeout: 20000
+- assertVisible:
+    id: battle-submit
+    enabled: false
+- scrollUntilVisible:
+    element:
+      id: battle-answer
+    direction: UP
+    timeout: 20000
+- tapOn:
+    id: battle-answer
+- inputText: definitely-wrong-answer
+- scrollUntilVisible:
+    element:
+      id: battle-submit
+    direction: DOWN
+    timeout: 20000
+- tapOn:
+    id: battle-submit
+- scrollUntilVisible:
+    element:
+      id: battle-feedback
+    direction: DOWN
+    timeout: 20000
+- assertVisible:
+    id: battle-feedback
+    text: LET’S REVIEW
+- scrollUntilVisible:
+    element:
+      id: battle-next
+    direction: DOWN
+    timeout: 20000
+- tapOn:
+    id: battle-next
+- assertVisible:
+    id: result-title
+    text: TRY AGAIN
+- scrollUntilVisible:
+    element:
+      id: result-qa
+    direction: DOWN
+    timeout: 20000
+- tapOn:
+    id: result-qa
+- assertVisible:
+    id: qa-captures
+    text: "0"
+- assertVisible:
+    id: qa-save-status
+    text: SAVED

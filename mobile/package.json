@@ -48,7 +48,9 @@
   "devDependencies": {
     "@types/react": "19.2.18",
     "babel-preset-expo": "~57.0.9",
+    "happy-dom": "21.0.4",
     "typescript": "~6.0.3",
-    "vitest": "^5.0.1"
+    "vitest": "^5.0.1",
+    "yaml": "2.9.1"
   }
 }

@@ -1,0 +1,74 @@
+appId: com.codingnanyong.codigdex
+name: COD-238 saved checkpoint survives full process restart
+tags:
+  - cod-238
+---
+- runFlow: ../helpers/start.yaml
+- scrollUntilVisible:
+    element:
+      id: qa-preset-git
+    direction: DOWN
+    timeout: 20000
+- tapOn:
+    id: qa-preset-git
+- scrollUntilVisible:
+    element:
+      id: qa-save-status
+    direction: UP
+    timeout: 20000
+- assertVisible:
+    id: qa-save-status
+    text: SAVED
+- assertVisible:
+    id: qa-checkpoint
+    text: linux-shell-scout
+- scrollUntilVisible:
+    element:
+      id: qa-menu
+    direction: UP
+    timeout: 20000
+- tapOn:
+    id: qa-menu
+- stopApp
+- launchApp
+- extendedWaitUntil:
+    visible:
+      id: home-title
+    timeout: 90000
+- scrollUntilVisible:
+    element:
+      id: home-play
+    direction: DOWN
+    timeout: 20000
+- tapOn:
+    id: home-play
+- assertVisible:
+    id: world-title
+- scrollUntilVisible:
+    element:
+      id: world-checkpoint-linux-shell-scout
+    direction: DOWN
+    timeout: 20000
+- assertVisible:
+    id: world-checkpoint-linux-shell-scout
+- scrollUntilVisible:
+    element:
+      id: world-menu
+    direction: UP
+    timeout: 20000
+- tapOn:
+    id: world-menu
+- scrollUntilVisible:
+    element:
+      id: home-qa
+    direction: DOWN
+    timeout: 20000
+- tapOn:
+    id: home-qa
+- assertVisible:
+    id: qa-checkpoint
+    text: linux-shell-scout
+- assertVisible:
+    id: qa-save-status
+    text: SAVED
+- takeScreenshot: cod-238-restored

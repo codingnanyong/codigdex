@@ -2,14 +2,15 @@ import React, { type PropsWithChildren } from "react";
 import { Pressable, StyleSheet, Text, type PressableProps } from "react-native";
 import { colors, font } from "./theme";
 
-interface PixelButtonProps extends PropsWithChildren, Pick<PressableProps, "accessibilityLabel" | "disabled" | "onPress"> {
+interface PixelButtonProps extends PropsWithChildren, Pick<PressableProps, "accessibilityLabel" | "disabled" | "onPress" | "testID"> {
   compact?: boolean;
   variant?: "primary" | "secondary" | "quiet" | "danger";
 }
 
-export function PixelButton({ accessibilityLabel, children, compact = false, disabled, onPress, variant = "primary" }: PixelButtonProps) {
+export function PixelButton({ accessibilityLabel, children, compact = false, disabled, onPress, testID, variant = "primary" }: PixelButtonProps) {
   return (
     <Pressable
+      testID={testID}
       accessibilityLabel={accessibilityLabel}
       accessibilityRole="button"
       accessibilityState={{ disabled: disabled ?? false }}
