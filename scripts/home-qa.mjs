@@ -234,7 +234,9 @@ export async function main(args) {
           await unusedPort(options.metroPort);
           const mobile = path.join(repo, "mobile");
           await run(process.execPath, ["scripts/generate-asset-map.mjs"], { cwd: mobile, env, log: path.join(folder, "assets.log") });
-          metro = start(process.execPath, [path.join(repo, "node_modules/expo/bin/cli"), "start", "--dev-client", "--localhost", "--port", String(options.metroPort), "--clear"], { cwd: mobile, env: { ...env, EXPO_OFFLINE: "1" }, log: path.join(folder, "metro.log") });
+          // macOS resolves localhost to ::1. Bind both address families so
+          // IPv4 adb reverse and the readiness probe reach this same server.
+          metro = start(process.execPath, [path.join(repo, "node_modules/expo/bin/cli"), "start", "--dev-client", "--lan", "--port", String(options.metroPort), "--clear"], { cwd: mobile, env: { ...env, EXPO_OFFLINE: "1", REACT_NATIVE_PACKAGER_HOSTNAME: "127.0.0.1" }, log: path.join(folder, "metro.log") });
           await waitMetro(metro, options.metroPort);
           if (platform === "android") capture(tools.adb, ["-s", result.device, "reverse", `tcp:${options.metroPort}`, `tcp:${options.metroPort}`]);
           if (!options.skipBuild) {
