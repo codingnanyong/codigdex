@@ -9,6 +9,7 @@ tags:
       id: qa-world
     direction: DOWN
     timeout: 20000
+    centerElement: true
 - tapOn:
     id: qa-world
 - assertVisible:
@@ -67,6 +68,7 @@ tags:
       id: qa-world
     direction: DOWN
     timeout: 20000
+    centerElement: true
 - tapOn:
     id: qa-world
 - scrollUntilVisible:
