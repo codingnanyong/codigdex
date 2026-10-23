@@ -2,6 +2,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   transpilePackages: [
+    "@codigdex/game-account",
     "@codigdex/game-assets",
     "@codigdex/game-core",
     "@codigdex/game-content",

@@ -19,4 +19,7 @@ check(delegate.includes("reactNativeFactory = factory") && !delegate.includes("f
 check(app.plugins?.some((plugin) => Array.isArray(plugin) && plugin[0] === "expo-build-properties" && plugin[1]?.ios?.enableSceneSupport), "Prebuild must preserve UIScene support");
 check(app.orientation === "default" && info.UISupportedInterfaceOrientations.includes("UIInterfaceOrientationPortrait"), "iOS portrait support is missing");
 check(android.includes('android:screenOrientation="unspecified"') && android.includes('android:windowSoftInputMode="adjustResize"'), "Android rotation/keyboard resize configuration is missing");
+check(android.includes('android:fullBackupContent="@xml/secure_store_backup_rules"') && android.includes('android:dataExtractionRules="@xml/secure_store_data_extraction_rules"'), "Secure session storage must be excluded from Android backups");
+check(app.plugins?.includes("expo-secure-store"), "Prebuild must preserve secure session backup rules");
+check(info.CFBundleURLTypes.some((entry) => entry.CFBundleURLSchemes?.includes("codigdex")) && android.includes('android:scheme="codigdex"'), "OAuth callback scheme is missing");
 console.log("Native configuration checks passed (static checks; no native compilation or device launch).");

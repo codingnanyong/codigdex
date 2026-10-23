@@ -1,4 +1,4 @@
-import { CHAPTERS, DEX_MONSTERS } from "@codigdex/game-content/domain/chapters";
+import { CHAPTERS, DEX_MONSTERS, findStage, isCommonPathComplete } from "@codigdex/game-content/domain/chapters";
 import type { MonsterDefinition } from "@codigdex/game-core/domain/chapters/types";
 import { localize } from "@codigdex/game-core/i18n/locale";
 import { useMemo, useState } from "react";
@@ -13,11 +13,13 @@ import { PixelScene, type PixelScenery } from "../ui/PixelScene";
 import { battlePercent } from "./battle";
 import { BattleScreen } from "./BattleScreen";
 import { WorldMapScreen } from "./WorldMapScreen";
-import { canEnterCheckpoint, checkpoints, nextCheckpoint, resumeCheckpoint, selectedCheckpoint } from "./progression";
+import { canEnterBattle, playableCheckpoints, nextPlayableCheckpoint, resumeCheckpoint } from "./progression";
+import { CareerScreen } from "./CareerScreen";
 import { QAScreen } from "../qa/QAScreen";
 import { QA_ENABLED } from "../qa/runtime";
+import { AccountPanel } from "../account/AccountPanel";
 
-type Route = "title" | "world" | "battle" | "result" | "dex" | "detail" | "settings" | "qa";
+type Route = "title" | "world" | "career" | "battle" | "result" | "dex" | "detail" | "settings" | "qa";
 
 interface BattleResult { correct: number; monster: MonsterDefinition; total: number; passed: boolean }
 
@@ -36,27 +38,30 @@ export function NativeGame() {
 
   const captured = new Set(save.progress.captures.map(({ id }) => id));
   const startBattle = (next: MonsterDefinition) => {
-    if (!canEnterCheckpoint(captured, next.id)) return;
+    if (!canEnterBattle(save, next.id)) return;
     selectCheckpoint(next.id); setWorldStageId(next.id); setMonster(next); setRoute("battle");
   };
   if (QA_ENABLED && route === "qa") return <QAScreen checked={qaChecks} onToggleCheck={(check) => setQaChecks((items) => items.includes(check) ? items.filter((item) => item !== check) : [...items, check])} onBack={() => setRoute("title")} onBattle={(next) => { setWorldStageId(next.id); setMonster(next); setRoute("battle"); }} onWorld={() => { setWorldStageId(resumeCheckpoint(save).monster.id); setRoute("world"); }} onDex={() => setRoute("dex")} />;
-  if (route === "title") return <TitleScreen onQA={() => setRoute("qa")} onDex={() => setRoute("dex")} onPlay={() => { setWorldStageId(resumeCheckpoint(save).monster.id); setRoute("world"); }} onSettings={() => setRoute("settings")} />;
-  if (route === "world") return <WorldMapScreen selectedId={worldStageId} onSelect={(id) => { setWorldStageId(id); selectCheckpoint(id); }} onBack={() => setRoute("title")} onBattle={(id) => startBattle(selectedCheckpoint(captured, id).monster)} onDex={() => setRoute("dex")} />;
-  if (route === "dex") return <DexScreen onBack={() => setRoute(QA_ENABLED ? "qa" : "title")} onSelect={(next) => { setMonster(next); setRoute("detail"); }} />;
+  const destinationRoute = (id: string): "world" | "career" => findStage(id).chapter.id.startsWith("career:") || (isCommonPathComplete(captured) && save.player.primaryJobId === "junior") ? "career" : "world";
+  const mapRoute = destinationRoute(monster.id);
+  if (route === "title") return <TitleScreen onCareer={() => setRoute("career")} onQA={() => setRoute("qa")} onDex={() => setRoute("dex")} onPlay={() => { const next = resumeCheckpoint(save); setWorldStageId(next.monster.id); setRoute(destinationRoute(next.monster.id)); }} onSettings={() => setRoute("settings")} />;
+  if (route === "career") return <CareerScreen onBack={() => setRoute("title")} onBattle={(id) => startBattle(findStage(id).monster)} />;
+  if (route === "world") return <WorldMapScreen selectedId={worldStageId} onSelect={(id) => { setWorldStageId(id); selectCheckpoint(id); }} onBack={() => setRoute("title")} onBattle={(id) => startBattle(findStage(id).monster)} onDex={() => setRoute("dex")} />;
+  if (route === "dex") return <DexScreen onCareer={() => setRoute("career")} onBack={() => setRoute(QA_ENABLED ? "qa" : "title")} onSelect={(next) => { setMonster(next); setRoute("detail"); }} />;
   if (route === "detail") return <MonsterDetail monster={monster} onBack={() => setRoute("dex")} onBattle={() => startBattle(monster)} />;
   if (route === "settings") return <SettingsScreen onBack={() => setRoute("title")} />;
   if (route === "battle") {
-    return <BattleScreen monster={monster} monsterImage={mobileAssetSource(monster.assetKey)} locale={locale} onExit={() => setRoute("world")} onFinish={(battle) => {
+    return <BattleScreen monster={monster} monsterImage={mobileAssetSource(monster.assetKey)} locale={locale} onExit={() => setRoute(mapRoute)} onFinish={(battle) => {
       const passed = battle.status === "passed";
       if (passed) capture(monster.id, battle);
       setResult({ correct: battle.correctCount, monster, passed, total: battle.questions.length });
       setRoute("result");
     }} />;
   }
-  return <ResultScreen result={result!} onRetry={() => { selectCheckpoint(monster.id); setRoute("battle"); }} onContinue={() => { const next = nextCheckpoint(captured); selectCheckpoint(next.monster.id); setWorldStageId(next.monster.id); setRoute("world"); }} onQA={() => setRoute("qa")} onDex={() => setRoute("dex")} onWorld={() => setRoute("world")} />;
+  return <ResultScreen result={result!} onRetry={() => { selectCheckpoint(monster.id); setRoute("battle"); }} onContinue={() => { const next = nextPlayableCheckpoint(save); selectCheckpoint(next.monster.id); setWorldStageId(next.monster.id); setRoute(destinationRoute(next.monster.id)); }} onQA={() => setRoute("qa")} onDex={() => setRoute("dex")} onWorld={() => setRoute(mapRoute)} />;
 }
 
-function TitleScreen({ onDex, onPlay, onSettings, onQA }: { onDex(): void; onPlay(): void; onSettings(): void; onQA(): void }) {
+function TitleScreen({ onDex, onPlay, onSettings, onQA, onCareer }: { onDex(): void; onPlay(): void; onSettings(): void; onQA(): void; onCareer(): void }) {
   const { locale, save, saveError, retrySave } = useSave();
   const resume = resumeCheckpoint(save);
   const continuing = save.progress.captures.length > 0 || !!save.ui.checkpointId;
@@ -78,6 +83,7 @@ function TitleScreen({ onDex, onPlay, onSettings, onQA }: { onDex(): void; onPla
           <Text style={styles.hint}>{localize(resume.chapter.name, locale)} · Lv.{resume.monster.level}{"\n"}{localize(resume.monster.name, locale)}</Text>
           {saveError ? <><Text accessibilityRole="alert" style={styles.wrong}>{ko ? "저장 실패 · 종료 전 다시 저장하세요." : "Save failed. Retry before closing."}</Text><PixelButton onPress={retrySave}>{ko ? "다시 저장" : "RETRY SAVE"}</PixelButton></> : null}
           <PixelButton onPress={onDex} variant="secondary">{ko ? "코디덱스" : "CODIGDEX"}</PixelButton>
+          <PixelButton onPress={onCareer} variant="secondary">{ko ? "전직 · 직업 경로" : "CAREERS · PATHS"}</PixelButton>
           <PixelButton compact onPress={onSettings} variant="quiet">{ko ? "설정" : "SETTINGS"}</PixelButton>
           {QA_ENABLED ? <PixelButton onPress={onQA} variant="secondary">QA · 기기 테스트</PixelButton> : null}
         </View>
@@ -89,11 +95,12 @@ function TitleScreen({ onDex, onPlay, onSettings, onQA }: { onDex(): void; onPla
 function ResultScreen({ onDex, onWorld, onRetry, onQA, onContinue, result }: { onDex(): void; onWorld(): void; onRetry(): void; onQA(): void; onContinue(): void; result: BattleResult }) {
   const { locale, saveError, retrySave, save } = useSave();
   const captured = new Set(save.progress.captures.map(({ id }) => id));
-  const path = checkpoints(captured);
+  const path = playableCheckpoints(save);
   const chapter = path.find(({ monster }) => monster.id === result.monster.id)?.chapter;
   const chapterComplete = result.passed && chapter?.stages.every(({ id }) => captured.has(id));
   const allComplete = path.every(({ status }) => status === "cleared");
-  const next = nextCheckpoint(captured);
+  const commonComplete = CHAPTERS.every(({ stages }) => stages.every(({ id }) => captured.has(id)));
+  const next = nextPlayableCheckpoint(save);
   const { width, height } = useWindowDimensions();
   const narrow = width < 680 || height > width;
   const ko = locale === "ko";
@@ -106,7 +113,7 @@ function ResultScreen({ onDex, onWorld, onRetry, onQA, onContinue, result }: { o
           <Text style={styles.logo}>{battlePercent(result.correct, result.total)}%</Text>
           <Text style={styles.body}>{result.correct}/{result.total} · {localize(result.monster.name, locale)}</Text>
           <Text style={styles.muted}>{result.passed ? (ko ? "코디덱스에 새 카드가 등록되었습니다." : "A new card was registered.") : (ko ? "60% 이상 맞히면 포획할 수 있습니다." : "Score at least 60% to capture it.")}</Text>
-          {chapterComplete ? <Text accessibilityLiveRegion="polite" style={styles.hint}>{allComplete ? (ko ? "튜토리얼 · Git · Linux 공통 경로 완료!" : "Tutorial · Git · Linux common path complete!") : `${localize(chapter!.name, locale)} ${ko ? "지역 완료! 다음 지역이 열렸습니다." : "complete! The next region is open."}`}</Text> : null}
+          {chapterComplete ? <Text accessibilityLiveRegion="polite" style={styles.hint}>{commonComplete && save.player.primaryJobId === "junior" ? (ko ? "공통 경로 완료! 1차 직업을 선택하세요." : "Common path complete! Choose a primary career.") : `${localize(chapter!.name, locale)} ${ko ? "지역 완료!" : "complete!"}`}</Text> : null}
         </View>
         <View style={styles.titleActions}>
           {saveError ? <>
@@ -124,7 +131,7 @@ function ResultScreen({ onDex, onWorld, onRetry, onQA, onContinue, result }: { o
   );
 }
 
-function DexScreen({ onBack, onSelect }: { onBack(): void; onSelect(monster: MonsterDefinition): void }) {
+function DexScreen({ onBack, onSelect, onCareer }: { onBack(): void; onSelect(monster: MonsterDefinition): void; onCareer(): void }) {
   const { locale, save } = useSave();
   const { width } = useWindowDimensions();
   const insets = useSafeAreaInsets();
@@ -134,6 +141,7 @@ function DexScreen({ onBack, onSelect }: { onBack(): void; onSelect(monster: Mon
   return (
     <Screen>
       <View style={styles.topbar}><PixelButton compact onPress={onBack} variant="quiet">← {ko ? "메뉴" : "MENU"}</PixelButton><Text style={styles.topbarTitle}>CODIGDEX · {captured.size}/{DEX_MONSTERS.length}</Text><View style={styles.topbarGap} /></View>
+      <PixelButton compact onPress={onCareer} variant="secondary">{ko ? "직업 도감 · 전직 계보" : "CAREER DEX · LINEAGE"}</PixelButton>
       <FlatList key={columns} data={DEX_MONSTERS} numColumns={columns} keyExtractor={(entry) => entry.id}
         initialNumToRender={12} maxToRenderPerBatch={12} windowSize={3} columnWrapperStyle={styles.dexRow}
         contentContainerStyle={styles.dexGrid} renderItem={({ item: entry }) => {
@@ -154,14 +162,15 @@ function MonsterDetail({ monster, onBack, onBattle }: { monster: MonsterDefiniti
   const { locale, save } = useSave();
   const ko = locale === "ko";
   const captured = new Set(save.progress.captures.map(({ id }) => id));
-  const available = canEnterCheckpoint(captured, monster.id);
+  const available = canEnterBattle(save, monster.id);
   return <Screen scroll><View style={styles.detail}>
     <PixelButton onPress={onBack} variant="quiet">{ko ? "도감으로" : "BACK TO DEX"}</PixelButton>
     <Text style={styles.kicker}>NO.{monster.dexNumber} · LV.{monster.level}</Text>
     <Text accessibilityRole="header" style={styles.hudTitle}>{localize(monster.name, locale)}</Text>
     <View style={styles.resultStage}><PixelScene backdrop scene="field" /><Image accessibilityLabel={localize(monster.name, locale)} source={mobileAssetSource(monster.assetKey)} resizeMode="contain" style={styles.resultMonster} /></View>
     <Text style={styles.body}>{localize(monster.briefing, locale)}</Text>
-    <Text style={styles.hint}>{available ? (ko ? "정답 60% 이상이면 포획할 수 있어요. 힌트를 사용해도 정답으로 인정해요." : "Get at least 60% correct to capture. Answers with hints count too.") : (ko ? "공통 과정의 앞선 몬스터부터 완료하세요. 직업 지역 전투는 다음 단계에서 연결됩니다." : "Complete the earlier common stages first. Career battles are coming later.")}</Text>
+    {captured.has(monster.id) ? <><Text style={styles.body}>{localize(monster.classification, locale)} · {localize(monster.trait, locale)}</Text><Text style={styles.body}>{localize(monster.description, locale)}</Text><Text selectable style={styles.hint}>{localize(monster.snippet, locale)}</Text></> : null}
+    <Text style={styles.hint}>{available ? (ko ? "정답 60% 이상이면 포획할 수 있어요. 힌트를 사용해도 정답으로 인정해요." : "Get at least 60% correct to capture. Answers with hints count too.") : (ko ? "선행 체크포인트를 완료하고 해당 직업 경로를 선택하세요." : "Complete preceding checkpoints and select this career path.")}</Text>
     <PixelButton disabled={!available} onPress={onBattle}>{captured.has(monster.id) ? (ko ? "다시 도전" : "BATTLE AGAIN") : (ko ? "배틀 시작" : "START BATTLE")}</PixelButton>
   </View></Screen>;
 }
@@ -173,6 +182,7 @@ function SettingsScreen({ onBack }: { onBack(): void }) {
     <Screen scroll>
       <View style={styles.topbar}><PixelButton compact onPress={onBack} variant="quiet">← {ko ? "메뉴" : "MENU"}</PixelButton><Text style={styles.topbarTitle}>{ko ? "설정" : "SETTINGS"}</Text><View style={styles.topbarGap} /></View>
       <View style={styles.settingsPanel}>
+        <AccountPanel />
         <Text style={styles.hudTitle}>{ko ? "언어" : "LANGUAGE"}</Text>
         <View style={styles.settingsRow}>
           <PixelButton onPress={() => setLocale("ko")} variant={locale === "ko" ? "primary" : "secondary"}>한국어</PixelButton>

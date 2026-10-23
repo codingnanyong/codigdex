@@ -34,5 +34,9 @@
   "dependencies": {
     "react": "19.2.3",
     "react-dom": "19.2.3"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "^0.5.11",
+    "happy-dom": "^21.0.4"
   }
 }

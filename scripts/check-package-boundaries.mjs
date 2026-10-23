@@ -3,6 +3,11 @@ import path from "node:path";
 
 const packageRules = [
   {
+    directory: "packages/game-account/src",
+    allowedWorkspaces: new Set(["@codigdex/game-core", "@codigdex/game-content"]),
+    allowedPlatformPackages: new Set(["react"]),
+  },
+  {
     directory: "packages/game-assets/src",
     allowedWorkspaces: new Set(),
   },
@@ -63,7 +68,7 @@ for (const rule of packageRules) {
       if (dependency && !rule.allowedWorkspaces.has(dependency)) {
         violations.push(`${file}: workspace dependency ${dependency} is not allowed`);
       }
-      if (platformPackages.has(topLevelPackage)) {
+      if (platformPackages.has(topLevelPackage) && !rule.allowedPlatformPackages?.has(topLevelPackage)) {
         violations.push(`${file}: platform dependency ${topLevelPackage} is not allowed`);
       }
     }

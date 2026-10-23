@@ -7,6 +7,7 @@
     "scheme": "codigdex",
     "userInterfaceStyle": "dark",
     "plugins": [
+      "expo-secure-store",
       ["expo-build-properties", { "ios": { "enableSceneSupport": true } }]
     ],
     "ios": {

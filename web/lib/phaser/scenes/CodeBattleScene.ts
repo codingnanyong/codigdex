@@ -1,19 +1,16 @@
 import Phaser from "phaser";
 import { findStage } from "@codigdex/game-content/domain/chapters";
-import type { ChapterDefinition, MonsterDefinition, MultipleChoiceQuestion } from "@codigdex/game-core/domain/chapters/types";
-import {
-  isSuccessfulCapture,
-  requiredCorrectAnswers,
-  shouldContinueBattle,
-} from "@codigdex/game-core/domain/dex/capture";
-import { drawQuizQuestions, isMultipleChoiceQuestion, quizCountForLevel } from "@codigdex/game-core/domain/dex/quiz";
-import { loadQuizPack } from "@codigdex/quiz-content/loader";
+import type { ChapterDefinition, MonsterDefinition } from "@codigdex/game-core/domain/chapters/types";
+import { createBattleState, revealBattleHint, submitBattleAnswer, type BattleState } from "@codigdex/game-core/domain/dex/battle";
+import { drawMixedQuizQuestions, quizCountForLevel, type QuizAnswer } from "@codigdex/game-core/domain/dex/quiz";
+import { loadMixedQuizPack } from "@codigdex/quiz-content";
+import { canEnterBattle, rememberCheckpoint } from "@codigdex/game-content/domain/gameProgress";
+import { applySaveToRegistry, snapshotRegistry } from "../registryAdapter";
 import { assetUrl } from "../../assets";
 import { playAmbience } from "../ambience";
-import { AnswerGrid } from "../battle/answerGrid";
+import { MixedControls } from "../battle/mixedControls";
 import { drawNpcBanner } from "../battle/banner";
-import { lt, t } from "../i18n";
-import { MessagePanel } from "../battle/messagePanel";
+import { lt, sceneLocale, t } from "../i18n";
 import { Opponent } from "../battle/opponent";
 import { StatusPanel } from "../battle/statusPanel";
 import { preloadMonsterArt } from "../monsterArt";
@@ -31,14 +28,12 @@ export interface CodeBattleData {
 export class CodeBattleScene extends Phaser.Scene {
   private chapter!: ChapterDefinition;
   private monster!: MonsterDefinition;
-  private questions: MultipleChoiceQuestion[] = [];
-  private questionIndex = 0;
-  private correctCount = 0;
+  private battle?: BattleState;
+  private feedback?: BattleState;
   private locked = false;
   private status!: StatusPanel;
   private opponent!: Opponent;
-  private message!: MessagePanel;
-  private answers!: AnswerGrid;
+  private controls!: MixedControls;
   private returnTo?: CodeBattleData["returnTo"];
   private battleArena?: ChapterDefinition["arena"];
   private loadGeneration = 0;
@@ -51,11 +46,10 @@ export class CodeBattleScene extends Phaser.Scene {
     const { chapter, monster } = findStage(data.monsterId);
     this.chapter = chapter;
     this.monster = monster;
-    this.questions = [];
+    this.battle = undefined;
+    this.feedback = undefined;
     this.returnTo = data.returnTo;
     this.battleArena = data.arena ?? chapter.arena;
-    this.questionIndex = 0;
-    this.correctCount = 0;
     this.locked = false;
     this.loadGeneration += 1;
   }
@@ -66,6 +60,13 @@ export class CodeBattleScene extends Phaser.Scene {
   }
 
   create() {
+    const save = snapshotRegistry(this.registry);
+    if (!canEnterBattle(save, this.monster.id)) {
+      this.scene.start("world-map");
+      return;
+    }
+    applySaveToRegistry(this.registry, rememberCheckpoint(save, this.monster.id));
+    this.events.once("shutdown", () => { this.loadGeneration += 1; this.locked = true; });
     const { width, height } = this.scale;
     const arena = this.battleArena;
 
@@ -88,14 +89,15 @@ export class CodeBattleScene extends Phaser.Scene {
 
   private async createBattleUi(generation: number, loading: Phaser.GameObjects.Text) {
     try {
-      const pack = await loadQuizPack(this.monster.quizPackId);
+      const pack = await loadMixedQuizPack(this.monster.quizPackId);
       if (!this.sys.isActive() || generation !== this.loadGeneration) return;
-      this.questions = drawQuizQuestions(pack.questions.filter(isMultipleChoiceQuestion), quizCountForLevel(this.monster.level));
+      this.battle = createBattleState(drawMixedQuizQuestions(pack.questions, quizCountForLevel(this.monster.level)));
       loading.destroy();
     } catch (error) {
       console.error(`[CodeBattleScene] failed to load ${this.monster.quizPackId}`, error);
       if (!this.sys.isActive() || generation !== this.loadGeneration) return;
       loading.setText(t(this, "battle.quizLoadFailed"));
+      loading.setInteractive({ useHandCursor: true }).once("pointerup", () => this.scene.restart({ monsterId: this.monster.id, returnTo: this.returnTo, arena: this.battleArena }));
       return;
     }
 
@@ -104,76 +106,50 @@ export class CodeBattleScene extends Phaser.Scene {
     drawNpcBanner(this, `${lt(this, npcName)}: ${lt(this, this.monster.preBattleLine)}`);
     this.status = new StatusPanel(this, this.monster);
     this.opponent = new Opponent(this, this.monster);
-    this.message = new MessagePanel(this);
-    this.answers = new AnswerGrid(this);
+    this.controls = new MixedControls(this);
 
     this.showQuestion();
     applyPixelFontToScene(this);
   }
 
   private showQuestion() {
-    const question = this.questions[this.questionIndex];
-    this.message.showQuestion({
-      index: this.questionIndex,
-      total: this.questions.length,
-      correct: this.correctCount,
-      required: requiredCorrectAnswers(this.questions.length),
-      prompt: lt(this, question.prompt),
-    });
-    this.answers.show(
-      question.choices.map((choice) => lt(this, choice)),
-      (index) => this.onAnswer(index, index === question.answerIndex)
-    );
+    if (!this.battle) return;
+    this.controls.show(this.battle, sceneLocale(this), {
+      answer: (index, value) => this.onAnswer(index, value),
+      hint: (index) => {
+        if (this.locked || !this.battle) return;
+        this.battle = revealBattleHint(this.battle, index);
+        this.showQuestion();
+      },
+      next: () => this.advance(),
+    }, this.feedback);
   }
 
-  private onAnswer(index: number, isCorrect: boolean) {
-    if (this.locked) return;
+  private onAnswer(index: number, answer: QuizAnswer) {
+    if (this.locked || !this.battle) return;
+    const next = submitBattleAnswer(this.battle, index, answer);
+    if (next === this.battle) return;
     this.locked = true;
-    this.answers.mark(index, isCorrect);
-
-    if (isCorrect) {
-      this.correctCount += 1;
-      this.message.say(t(this, "battle.hit"));
-      const required = requiredCorrectAnswers(this.questions.length);
-      this.status.setHealth(Math.max(0, required - this.correctCount) / required);
-      this.opponent.flinch();
-    } else {
-      this.message.say(t(this, "battle.miss"));
-    }
-
-    this.time.delayedCall(650, () => {
-      this.locked = false;
-      this.advance();
-    });
+    this.feedback = next;
+    const required = Math.ceil(next.questions.length * 0.6);
+    this.status.setHealth(Math.max(0, required - next.correctCount) / required);
+    if (next.attempts.at(-1)?.correct) this.opponent.flinch();
+    this.showQuestion();
   }
 
   private advance() {
-    this.questionIndex += 1;
-    if (shouldContinueBattle(this.correctCount, this.questionIndex, this.questions.length)) {
-      this.showQuestion();
+    if (!this.feedback) return;
+    const next = this.feedback;
+    this.feedback = undefined;
+    if (next.status !== 'active') {
+      this.scene.start('capture-quiz', {
+        monsterId: this.monster.id, correctCount: next.correctCount,
+        total: next.questions.length, returnTo: this.returnTo,
+      });
       return;
     }
-
-    this.answers.clear();
-    if (isSuccessfulCapture(this.correctCount, this.questions.length)) {
-      this.message.say(t(this, "battle.defeated", { name: lt(this, this.monster.name) }));
-      this.opponent.faint(() => this.finishBattle());
-    } else {
-      this.message.say(
-        this.questionIndex < this.questions.length
-          ? t(this, "battle.failedEarly")
-          : t(this, "battle.finished")
-      );
-      this.time.delayedCall(700, () => this.finishBattle());
-    }
-  }
-
-  private finishBattle() {
-    this.scene.start("capture-quiz", {
-      monsterId: this.monster.id,
-      correctCount: this.correctCount,
-      total: this.questions.length,
-      returnTo: this.returnTo,
-    });
+    this.battle = next;
+    this.locked = false;
+    this.showQuestion();
   }
 }
