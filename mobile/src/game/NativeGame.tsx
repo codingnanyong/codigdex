@@ -21,7 +21,7 @@ import { AccountPanel } from "../account/AccountPanel";
 
 type Route = "title" | "world" | "career" | "battle" | "result" | "dex" | "detail" | "settings" | "qa";
 
-interface BattleResult { correct: number; monster: MonsterDefinition; total: number; passed: boolean }
+interface BattleResult { correct: number; monster: MonsterDefinition; total: number; passed: boolean; newCapture: boolean }
 
 export function NativeGame() {
   const { capture, hydrated, locale, loadError, retryLoad, save, selectCheckpoint } = useSave();
@@ -53,8 +53,9 @@ export function NativeGame() {
   if (route === "battle") {
     return <BattleScreen monster={monster} monsterImage={mobileAssetSource(monster.assetKey)} locale={locale} onExit={() => setRoute(mapRoute)} onFinish={(battle) => {
       const passed = battle.status === "passed";
+      const newCapture = passed && !captured.has(monster.id);
       if (passed) capture(monster.id, battle);
-      setResult({ correct: battle.correctCount, monster, passed, total: battle.questions.length });
+      setResult({ correct: battle.correctCount, monster, passed, newCapture, total: battle.questions.length });
       setRoute("result");
     }} />;
   }
@@ -97,7 +98,7 @@ function ResultScreen({ onDex, onWorld, onRetry, onQA, onContinue, result }: { o
   const captured = new Set(save.progress.captures.map(({ id }) => id));
   const path = playableCheckpoints(save);
   const chapter = path.find(({ monster }) => monster.id === result.monster.id)?.chapter;
-  const chapterComplete = result.passed && chapter?.stages.every(({ id }) => captured.has(id));
+  const chapterComplete = result.newCapture && chapter?.stages.every(({ id }) => captured.has(id));
   const allComplete = path.every(({ status }) => status === "cleared");
   const commonComplete = CHAPTERS.every(({ stages }) => stages.every(({ id }) => captured.has(id)));
   const next = nextPlayableCheckpoint(save);
@@ -112,7 +113,7 @@ function ResultScreen({ onDex, onWorld, onRetry, onQA, onContinue, result }: { o
           <Text testID="result-title" style={[styles.resultGrade, result.passed ? styles.correct : styles.wrong]}>{result.passed ? (ko ? "포획 성공" : "CAPTURED") : (ko ? "재도전" : "TRY AGAIN")}</Text>
           <Text style={styles.logo}>{battlePercent(result.correct, result.total)}%</Text>
           <Text style={styles.body}>{result.correct}/{result.total} · {localize(result.monster.name, locale)}</Text>
-          <Text style={styles.muted}>{result.passed ? (ko ? "코디덱스에 새 카드가 등록되었습니다." : "A new card was registered.") : (ko ? "60% 이상 맞히면 포획할 수 있습니다." : "Score at least 60% to capture it.")}</Text>
+          <Text style={styles.muted}>{result.passed ? (result.newCapture ? (ko ? "코디덱스에 새 카드가 등록되었습니다." : "A new card was registered.") : (ko ? "이미 코디덱스에 등록된 카드입니다." : "This card is already in your Codigdex.")) : (ko ? "60% 이상 맞히면 포획할 수 있습니다." : "Score at least 60% to capture it.")}</Text>
           {chapterComplete ? <Text accessibilityLiveRegion="polite" style={styles.hint}>{commonComplete && save.player.primaryJobId === "junior" ? (ko ? "공통 경로 완료! 1차 직업을 선택하세요." : "Common path complete! Choose a primary career.") : `${localize(chapter!.name, locale)} ${ko ? "지역 완료!" : "complete!"}`}</Text> : null}
         </View>
         <View style={styles.titleActions}>
@@ -147,7 +148,7 @@ function DexScreen({ onBack, onSelect, onCareer }: { onBack(): void; onSelect(mo
         contentContainerStyle={styles.dexGrid} renderItem={({ item: entry }) => {
           const unlocked = captured.has(entry.id);
           return (
-            <Pressable accessibilityRole="button" accessibilityLabel={`NO.${entry.dexNumber} ${localize(entry.name, locale)}`} onPress={() => onSelect(entry)} style={[styles.dexCard, unlocked && styles.dexCardCaptured]}>
+            <Pressable accessibilityRole="button" accessibilityLabel={`NO.${entry.dexNumber} ${unlocked ? localize(entry.name, locale) : (ko ? "미발견" : "Undiscovered")}`} onPress={() => onSelect(entry)} style={[styles.dexCard, unlocked && styles.dexCardCaptured]}>
               <Text style={styles.number}>NO.{entry.dexNumber}</Text>
               {unlocked ? <Image resizeMode="contain" source={mobileAssetSource(entry.assetKey)} style={styles.dexMonster} /> : <View style={styles.dexUnknown}><Text style={styles.dexQuestion}>?</Text></View>}
               <Text numberOfLines={1} style={styles.dexName}>{unlocked ? localize(entry.name, locale) : "???"}</Text>
