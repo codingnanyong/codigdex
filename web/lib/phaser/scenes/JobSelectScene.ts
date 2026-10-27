@@ -34,6 +34,7 @@ import { PALETTE, PALETTE_HEX } from "../palette";
 import { pixelText } from "../pixelFont";
 import {
   activateCareerInRegistry,
+  CHECKPOINT_REGISTRY_KEY,
   readDexState,
   reconcileCareerDexRegistry,
 } from "../registryAdapter";
@@ -234,6 +235,7 @@ export class JobSelectScene extends Phaser.Scene {
   }
 
   private activatePrimaryJob(jobId: JobId) {
+    this.registry.set(CHECKPOINT_REGISTRY_KEY, undefined);
     this.registry.set(SECONDARY_JOB_REGISTRY_KEY, null);
     this.registry.set(TERTIARY_JOB_REGISTRY_KEY, null);
     activateCareerInRegistry(this.registry, jobId);
