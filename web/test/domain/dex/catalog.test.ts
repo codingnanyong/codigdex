@@ -11,8 +11,8 @@ describe("dex catalog roadmap", () => {
   it("publishes career monsters as released numbered entries", () => {
     expect(PLANNED_DEX_SLOTS).toHaveLength(0);
     expect(DEX_CATALOG.every((slot) => slot.kind === "released")).toBe(true);
-    expect(DEX_MONSTERS).toHaveLength(111);
-    expect(DEX_MONSTERS.at(-1)?.dexNumber).toBe("110");
+    expect(DEX_MONSTERS).toHaveLength(174);
+    expect(DEX_MONSTERS.at(-1)?.dexNumber).toBe("173");
   });
 
   it("builds one visible dex entry for every capturable monster", () => {

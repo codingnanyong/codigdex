@@ -151,12 +151,13 @@ describe("primary job changes", () => {
     expect(isSecondaryJobUnlocked(SECONDARY_JOB_OPTIONS[1], completed)).toBe(false);
   });
 
-  it("reveals eligible tier-two jobs without allowing selection before release", () => {
+  it("allows released tier-two jobs only after their required primary paths", () => {
     const completed = new Set<JobId>(["frontend", "backend"]);
     const fullstack = SECONDARY_JOB_OPTIONS[0];
 
     expect(isSecondaryJobUnlocked(fullstack, completed)).toBe(true);
-    expect(canSelectSecondaryJob(fullstack, completed)).toBe(false);
+    expect(canSelectSecondaryJob(fullstack, completed)).toBe(true);
+    expect(canSelectSecondaryJob(fullstack, new Set(["frontend"]))).toBe(false);
   });
 
   it("maps each tier-two job to one tier-three mastery path", () => {

@@ -30,6 +30,7 @@
     "mobile:qa": "node scripts/mobile-qa.mjs",
     "mobile:qa:check": "node scripts/mobile-qa.mjs --check",
     "qa:home": "node scripts/home-qa.mjs",
+    "qa:web": "node scripts/web-qa.mjs",
     "qa:report": "node scripts/home-qa-report.mjs",
     "qa:generate": "tsx scripts/generate-home-qa.mts",
     "qa:check": "tsx scripts/generate-home-qa.mts --check && node --test scripts/home-qa.test.mjs",

@@ -1,6 +1,6 @@
 import type { Locale } from "@codigdex/game-core/i18n/locale";
 import { createEmptySave, type StoredGameStateV3 } from "@codigdex/game-core/save/schema";
-import { captureCheckpoint, rememberCheckpoint, selectGameCareer } from "../game/progression";
+import { captureCheckpoint, rememberCheckpoint, selectGameCareer, selectSecondaryCareer } from "../game/progression";
 import type { JobId } from "@codigdex/game-content/domain/player/jobs";
 import type { BattleState } from "@codigdex/game-core/domain/dex/battle";
 import { createContext, useContext, useEffect, useMemo, useRef, useState, type PropsWithChildren } from "react";
@@ -24,6 +24,7 @@ interface SaveContextValue {
   selectCheckpoint(id: string): void;
   loadQAProgress(scenario: QaProgress): void;
   selectJob(id: JobId): void;
+  selectSecondaryJob(id: import("@codigdex/game-content/domain/player/jobs").SecondaryJobId): void;
   replaceSave(save: StoredGameStateV3): Promise<void>;
 }
 
@@ -97,6 +98,7 @@ export function SaveProvider({ children }: PropsWithChildren) {
       update((current) => rememberCheckpoint(current, id));
     },
     selectJob(id) { update((current) => selectGameCareer(current, id)); },
+    selectSecondaryJob(id) { update((current) => selectSecondaryCareer(current, id)); },
     async replaceSave(next) {
       currentSave.current = next;
       setSave(next);

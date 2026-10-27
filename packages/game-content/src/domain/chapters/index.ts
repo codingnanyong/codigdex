@@ -3,6 +3,8 @@ import { GIT_CHAPTER } from "./git";
 import { LINUX_CHAPTER } from "./linux";
 import { TUTORIAL_CHAPTER } from "./tutorial";
 import { CAREER_CHAPTERS } from "./career";
+import { PROMOTION_CHAPTERS } from "../promotionChapters";
+import { OPEN_SOURCE_CHAPTERS } from "../openSourceChapters";
 import type { ChapterDefinition, ChapterId, MonsterDefinition } from "@codigdex/game-core/domain/chapters/types";
 
 export type ChapterStatus = "locked" | "available" | "cleared";
@@ -15,7 +17,7 @@ export type Unlock =
 
 /** Play order. Each chapter's `requires` points at the one before it. */
 export const CHAPTERS: readonly ChapterDefinition[] = [TUTORIAL_CHAPTER, GIT_CHAPTER, LINUX_CHAPTER];
-export const ALL_CHAPTERS: readonly ChapterDefinition[] = [...CHAPTERS, ...CAREER_CHAPTERS];
+export const ALL_CHAPTERS: readonly ChapterDefinition[] = [...CHAPTERS, ...CAREER_CHAPTERS, ...PROMOTION_CHAPTERS, ...OPEN_SOURCE_CHAPTERS];
 
 /** The junior common path a player clears before choosing a job. */
 const COMMON_PATH: readonly ChapterId[] = ["git", "linux"];

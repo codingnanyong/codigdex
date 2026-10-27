@@ -41,7 +41,7 @@ export interface CapturedCard {
 }
 
 export type CommonChapterId = "tutorial" | "git" | "linux";
-export type ChapterId = CommonChapterId | `career:${string}`;
+export type ChapterId = CommonChapterId | `career:${string}` | `promotion:${string}` | `open-source:${string}`;
 
 /** Names the ambient animation layered over a painted background. */
 export type AmbienceId = "loop-forest" | "git-field" | "linux-cave" | "title-archive";
@@ -83,7 +83,7 @@ export interface ChapterDefinition {
   /** Battle backdrop. A chapter without one fights on the plain battle screen. */
   arena?: { textureKey: string; assetKey: string; ambience?: AmbienceId };
   /** Where a failed capture sends the player to try again. */
-  retryScene: "world-map" | "path-map" | "career-region";
+  retryScene: "world-map" | "path-map" | "career-region" | "promotion-chapter" | "open-source-chapter";
   /** Monsters in unlock order: each opens once the one before it is captured. */
   stages: readonly MonsterDefinition[];
 }

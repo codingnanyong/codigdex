@@ -26,7 +26,11 @@ if (args.has("--dry-run")) {
 }
 if (Number(process.versions.node.split(".")[0]) !== 22) throw new Error("Use Node.js 22.x (the repository's supported version).");
 if (mode === "--ios" && process.platform !== "darwin") throw new Error("Native iOS builds require macOS + Xcode. Use the default Expo Go QR for iPhone testing from Windows.");
-const env = { ...process.env, EXPO_PUBLIC_QA: "1" };
+const env = { ...process.env,
+  PATH: `${path.dirname(process.execPath)}${path.delimiter}${process.env.PATH ?? ""}`,
+  EXPO_PUBLIC_QA: "1", EXPO_PUBLIC_E2E: "0", EXPO_NO_TELEMETRY: "1",
+  EXPO_PUBLIC_SUPABASE_URL: "", EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY: "",
+};
 function run(command, commandArgs, cwd = repo) {
   const executable = command === "node" ? process.execPath : command;
   const result = spawnSync(executable, commandArgs, { cwd, env, stdio: "inherit", shell: command === "npm" && process.platform === "win32" });

@@ -1,5 +1,4 @@
 import type Phaser from "phaser";
-import { isCommonPathComplete } from "@codigdex/game-content/domain/chapters";
 import {
   EMPTY_CAREER_DEX_STATE,
   isCareerId,
@@ -11,20 +10,22 @@ import {
 } from "@codigdex/game-content/domain/careerDex";
 import { capturedIds, DexState, EMPTY_DEX_STATE } from "@codigdex/game-core/domain/dex/capture";
 import { CAPTURABLE_MONSTERS } from "@codigdex/game-content/domain/chapters";
+import { isCommonPathComplete } from "@codigdex/game-content/domain/chapters";
+import { completedCareerPathIds } from "@codigdex/game-content/domain/careerPaths";
 import {
-  completedSecondaryJobIds,
   findJob,
   findSecondaryJob,
   findTertiaryJob,
+  completedSecondaryJobIds,
+  canSelectSecondaryJob,
   JOB_REGISTRY_KEY,
   SECONDARY_JOB_REGISTRY_KEY,
-  SECONDARY_JOB_SELECTION_ENABLED,
   TERTIARY_JOB_REGISTRY_KEY,
 } from "@codigdex/game-content/domain/player/jobs";
 import { DEFAULT_LOCALE, detectLocale, isLocale, type Locale } from "@codigdex/game-core/i18n/locale";
 import { createSave, parseSave, type StoredGameStateV3 } from "@codigdex/game-core/save/schema";
 import { SAVE_STORAGE_KEYS } from "@codigdex/game-core/save/storage";
-import { completedCareerPathIds } from "./worldMap/careerPaths";
+import { normalizePromotionSelection } from "@codigdex/game-content/domain/gameProgress";
 
 const CARDS_KEY = "cards";
 const CAREER_DEX_KEY = "careerDex";
@@ -75,8 +76,9 @@ export function hydrateRegistry(
     const legacyRaw = storage.getItem(LEGACY_SAVE_STORAGE_KEY);
     const currentSave = currentRaw ? parseSave(currentRaw) : undefined;
     const previousSave = previousRaw ? parseSave(previousRaw) : undefined;
-    const save = currentSave ?? previousSave ?? (legacyRaw ? parseSave(legacyRaw) : undefined);
-    if (!save) return;
+    const restored = currentSave ?? previousSave ?? (legacyRaw ? parseSave(legacyRaw) : undefined);
+    if (!restored) return;
+    const save = normalizePromotionSelection(restored);
 
     const knownMonsters = new Set(CAPTURABLE_MONSTERS.map(({ id }) => id));
     unrecognizedProgress.set(registry, {
@@ -137,7 +139,7 @@ export function persistRegistry(registry: Phaser.Data.DataManager, storage = bro
 export function snapshotRegistry(registry: Phaser.Data.DataManager): StoredGameStateV3 {
   const state = readDexState(registry);
   const unrecognized = unrecognizedProgress.get(registry);
-  return createSave({
+  return normalizePromotionSelection(createSave({
     captures: [...state.cards.map(({ id, capturedAt }) => ({ id, capturedAt })), ...(unrecognized?.captures ?? [])],
     careers: [...readCareerDexState(registry).careers, ...(unrecognized?.careers ?? [])],
     primaryJobId: findJob(registry.get(JOB_REGISTRY_KEY) as string | undefined).id,
@@ -148,7 +150,7 @@ export function snapshotRegistry(registry: Phaser.Data.DataManager): StoredGameS
     tutorialOnboardingSeen: registry.get(TUTORIAL_ONBOARDING_SEEN_KEY) === true,
     locale: readLocale(registry),
     checkpointId: registry.get(CHECKPOINT_REGISTRY_KEY) as string | undefined,
-  });
+  }));
 }
 
 /** Apply an entire shared snapshot without persisting intermediate registry fields. */
@@ -231,27 +233,16 @@ export function activateCareerInRegistry(registry: Phaser.Data.DataManager, id: 
 
 /** Reconciles capture-based completion once, then lets lineage screens read career milestones. */
 export function reconcileCareerDexRegistry(registry: Phaser.Data.DataManager): CareerDexState {
-  const captured = capturedIds(readDexState(registry));
-  const completedPrimaryJobs = completedCareerPathIds(captured);
-  const primary = findJob(registry.get(JOB_REGISTRY_KEY) as string | undefined).id;
-  const secondary = SECONDARY_JOB_SELECTION_ENABLED
-    ? findSecondaryJob(
-        registry.get(SECONDARY_JOB_REGISTRY_KEY) as string | null | undefined
-      )?.id
-    : undefined;
-  const tertiary = SECONDARY_JOB_SELECTION_ENABLED
-    ? findTertiaryJob(
-        registry.get(TERTIARY_JOB_REGISTRY_KEY) as string | null | undefined
-      )?.id
-    : undefined;
   const current = readCareerDexState(registry);
+  const save = snapshotRegistry(registry);
+  const captured = capturedIds(readDexState(registry));
+  const commonPathComplete = isCommonPathComplete(captured);
+  const completedPrimaryJobs = completedCareerPathIds(captured);
   const next = reconcileCareerDex(current, {
-    commonPathComplete: isCommonPathComplete(captured),
-    completedPrimaryJobs,
-    completedSecondaryJobs: completedSecondaryJobIds(captured),
-    activePrimaryJob: primary,
-    activeSecondaryJob: secondary,
-    activeTertiaryJob: tertiary,
+    commonPathComplete, completedPrimaryJobs,
+    completedSecondaryJobs: new Set([...completedSecondaryJobIds(captured)].filter((id) => commonPathComplete && canSelectSecondaryJob(findSecondaryJob(id)!, completedPrimaryJobs))),
+    activePrimaryJob: findJob(save.player.primaryJobId).id,
+    activeSecondaryJob: findSecondaryJob(save.player.secondaryJobId)?.id,
   });
   if (JSON.stringify(next) !== JSON.stringify(current)) registry.set(CAREER_DEX_KEY, next);
   return next;

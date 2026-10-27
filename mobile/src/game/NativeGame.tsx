@@ -1,4 +1,5 @@
 import { CHAPTERS, DEX_MONSTERS, findStage, isCommonPathComplete } from "@codigdex/game-content/domain/chapters";
+import { promotionMissionFor } from "@codigdex/game-content/domain/promotionChapters";
 import type { MonsterDefinition } from "@codigdex/game-core/domain/chapters/types";
 import { localize } from "@codigdex/game-core/i18n/locale";
 import { useMemo, useState } from "react";
@@ -18,8 +19,9 @@ import { CareerScreen } from "./CareerScreen";
 import { QAScreen } from "../qa/QAScreen";
 import { QA_ENABLED } from "../qa/runtime";
 import { AccountPanel } from "../account/AccountPanel";
+import { OpenSourceScreen } from "./OpenSourceScreen";
 
-type Route = "title" | "world" | "career" | "battle" | "result" | "dex" | "detail" | "settings" | "qa";
+type Route = "title" | "world" | "career" | "battle" | "result" | "dex" | "detail" | "settings" | "qa" | "open-source";
 
 interface BattleResult { correct: number; monster: MonsterDefinition; total: number; passed: boolean; newCapture: boolean }
 
@@ -30,6 +32,9 @@ export function NativeGame() {
   const [result, setResult] = useState<BattleResult>();
   const [qaChecks, setQaChecks] = useState<string[]>([]);
   const [worldStageId, setWorldStageId] = useState<string>();
+  const [sourceIds, setSourceIds] = useState<readonly string[]>();
+  const [sourceReturn, setSourceReturn] = useState<"title" | "career">("title");
+  const [careerRegionId, setCareerRegionId] = useState<string>();
 
   if (!hydrated) {
     if (loadError) return <Screen><View style={styles.loading}><Text accessibilityRole="alert" style={styles.wrong}>저장 데이터를 읽지 못했습니다. / Could not read save data.</Text><PixelButton onPress={retryLoad}>다시 불러오기 / RETRY</PixelButton></View></Screen>;
@@ -39,13 +44,15 @@ export function NativeGame() {
   const captured = new Set(save.progress.captures.map(({ id }) => id));
   const startBattle = (next: MonsterDefinition) => {
     if (!canEnterBattle(save, next.id)) return;
+    if (next.id.startsWith("open-source:")) setSourceIds(findStage(next.id).chapter.stages.map(({ id }) => id.slice(12)));
     selectCheckpoint(next.id); setWorldStageId(next.id); setMonster(next); setRoute("battle");
   };
   if (QA_ENABLED && route === "qa") return <QAScreen checked={qaChecks} onToggleCheck={(check) => setQaChecks((items) => items.includes(check) ? items.filter((item) => item !== check) : [...items, check])} onBack={() => setRoute("title")} onBattle={(next) => { setWorldStageId(next.id); setMonster(next); setRoute("battle"); }} onWorld={() => { setWorldStageId(resumeCheckpoint(save).monster.id); setRoute("world"); }} onDex={() => setRoute("dex")} />;
-  const destinationRoute = (id: string): "world" | "career" => findStage(id).chapter.id.startsWith("career:") || (isCommonPathComplete(captured) && save.player.primaryJobId === "junior") ? "career" : "world";
+  const destinationRoute = (id: string): "world" | "career" | "open-source" => findStage(id).chapter.id.startsWith("open-source:") ? "open-source" : /^(career|promotion):/.test(findStage(id).chapter.id) || (isCommonPathComplete(captured) && save.player.primaryJobId === "junior") ? "career" : "world";
   const mapRoute = destinationRoute(monster.id);
-  if (route === "title") return <TitleScreen onCareer={() => setRoute("career")} onQA={() => setRoute("qa")} onDex={() => setRoute("dex")} onPlay={() => { const next = resumeCheckpoint(save); setWorldStageId(next.monster.id); setRoute(destinationRoute(next.monster.id)); }} onSettings={() => setRoute("settings")} />;
-  if (route === "career") return <CareerScreen onBack={() => setRoute("title")} onBattle={(id) => startBattle(findStage(id).monster)} />;
+  if (route === "open-source") return <OpenSourceScreen locale={locale} save={save} initialIds={sourceIds} onBattle={(id) => startBattle(findStage(id).monster)} onBack={() => setRoute(sourceReturn)} />;
+  if (route === "title") return <TitleScreen onOpenSources={() => { setSourceIds(undefined); setSourceReturn("title"); setRoute("open-source"); }} onCareer={() => setRoute("career")} onQA={() => setRoute("qa")} onDex={() => setRoute("dex")} onPlay={() => { const next = resumeCheckpoint(save); if (next.chapter.id.startsWith("open-source:")) setSourceIds(next.chapter.stages.map(({ id }) => id.slice(12))); setWorldStageId(next.monster.id); setRoute(destinationRoute(next.monster.id)); }} onSettings={() => setRoute("settings")} />;
+  if (route === "career") return <CareerScreen selectedRegionId={careerRegionId} onRegionChange={setCareerRegionId} onBack={() => setRoute("title")} onBattle={(id) => startBattle(findStage(id).monster)} onOpenSources={(ids) => { setSourceIds(ids); setSourceReturn("career"); setRoute("open-source"); }} />;
   if (route === "world") return <WorldMapScreen selectedId={worldStageId} onSelect={(id) => { setWorldStageId(id); selectCheckpoint(id); }} onBack={() => setRoute("title")} onBattle={(id) => startBattle(findStage(id).monster)} onDex={() => setRoute("dex")} />;
   if (route === "dex") return <DexScreen onCareer={() => setRoute("career")} onBack={() => setRoute(QA_ENABLED ? "qa" : "title")} onSelect={(next) => { setMonster(next); setRoute("detail"); }} />;
   if (route === "detail") return <MonsterDetail monster={monster} onBack={() => setRoute("dex")} onBattle={() => startBattle(monster)} />;
@@ -62,7 +69,7 @@ export function NativeGame() {
   return <ResultScreen result={result!} onRetry={() => { selectCheckpoint(monster.id); setRoute("battle"); }} onContinue={() => { const next = nextPlayableCheckpoint(save); selectCheckpoint(next.monster.id); setWorldStageId(next.monster.id); setRoute(destinationRoute(next.monster.id)); }} onQA={() => setRoute("qa")} onDex={() => setRoute("dex")} onWorld={() => setRoute(mapRoute)} />;
 }
 
-function TitleScreen({ onDex, onPlay, onSettings, onQA, onCareer }: { onDex(): void; onPlay(): void; onSettings(): void; onQA(): void; onCareer(): void }) {
+function TitleScreen({ onDex, onPlay, onSettings, onQA, onCareer, onOpenSources }: { onDex(): void; onPlay(): void; onSettings(): void; onQA(): void; onCareer(): void; onOpenSources(): void }) {
   const { locale, save, saveError, retrySave } = useSave();
   const resume = resumeCheckpoint(save);
   const continuing = save.progress.captures.length > 0 || !!save.ui.checkpointId;
@@ -85,6 +92,7 @@ function TitleScreen({ onDex, onPlay, onSettings, onQA, onCareer }: { onDex(): v
           {saveError ? <><Text accessibilityRole="alert" style={styles.wrong}>{ko ? "저장 실패 · 종료 전 다시 저장하세요." : "Save failed. Retry before closing."}</Text><PixelButton onPress={retrySave}>{ko ? "다시 저장" : "RETRY SAVE"}</PixelButton></> : null}
           <PixelButton onPress={onDex} variant="secondary">{ko ? "코디덱스" : "CODIGDEX"}</PixelButton>
           <PixelButton testID="home-careers" onPress={onCareer} variant="secondary">{ko ? "전직 · 직업 경로" : "CAREERS · PATHS"}</PixelButton>
+          <PixelButton testID="home-open-source" onPress={onOpenSources} variant="secondary">{ko ? "오픈소스 탐험" : "OPEN-SOURCE NOTES"}</PixelButton>
           <PixelButton compact onPress={onSettings} variant="quiet">{ko ? "설정" : "SETTINGS"}</PixelButton>
           {QA_ENABLED ? <PixelButton testID="home-qa" onPress={onQA} variant="secondary">QA · 기기 테스트</PixelButton> : null}
         </View>
@@ -99,7 +107,8 @@ function ResultScreen({ onDex, onWorld, onRetry, onQA, onContinue, result }: { o
   const path = playableCheckpoints(save);
   const chapter = path.find(({ monster }) => monster.id === result.monster.id)?.chapter;
   const chapterComplete = result.newCapture && chapter?.stages.every(({ id }) => captured.has(id));
-  const allComplete = path.every(({ status }) => status === "cleared");
+  const expedition = chapter?.id.startsWith("open-source:");
+  const allComplete = expedition && chapter ? chapter.stages.every(({ id }) => captured.has(id)) : path.filter(({ chapter }) => !chapter.id.startsWith("open-source:")).every(({ status }) => status === "cleared");
   const commonComplete = CHAPTERS.every(({ stages }) => stages.every(({ id }) => captured.has(id)));
   const next = nextPlayableCheckpoint(save);
   const { width, height } = useWindowDimensions();
@@ -108,13 +117,13 @@ function ResultScreen({ onDex, onWorld, onRetry, onQA, onContinue, result }: { o
   return (
     <Screen scroll>
       <View style={[styles.resultLayout, narrow && styles.verticalLayout]}>
-        <View style={styles.resultStage}><PixelScene backdrop scene={(chapter?.id ?? "field") as PixelScenery} /><Image resizeMode="contain" source={mobileAssetSource(result.monster.assetKey)} style={styles.resultMonster} /></View>
+        <View style={styles.resultStage}><PixelScene backdrop scene={(promotionMissionFor(chapter?.id.replace(/^promotion:/, ""))?.scenery ?? (chapter?.id.startsWith("career:") ? "field" : chapter?.id ?? "field")) as PixelScenery} /><Image resizeMode="contain" source={mobileAssetSource(result.monster.assetKey)} style={styles.resultMonster} /></View>
         <View style={styles.resultCopy}>
           <Text testID="result-title" style={[styles.resultGrade, result.passed ? styles.correct : styles.wrong]}>{result.passed ? (ko ? "포획 성공" : "CAPTURED") : (ko ? "재도전" : "TRY AGAIN")}</Text>
           <Text style={styles.logo}>{battlePercent(result.correct, result.total)}%</Text>
           <Text style={styles.body}>{result.correct}/{result.total} · {localize(result.monster.name, locale)}</Text>
           <Text style={styles.muted}>{result.passed ? (result.newCapture ? (ko ? "코디덱스에 새 카드가 등록되었습니다." : "A new card was registered.") : (ko ? "이미 코디덱스에 등록된 카드입니다." : "This card is already in your Codigdex.")) : (ko ? "60% 이상 맞히면 포획할 수 있습니다." : "Score at least 60% to capture it.")}</Text>
-          {chapterComplete ? <Text accessibilityLiveRegion="polite" style={styles.hint}>{commonComplete && save.player.primaryJobId === "junior" ? (ko ? "공통 경로 완료! 1차 직업을 선택하세요." : "Common path complete! Choose a primary career.") : `${localize(chapter!.name, locale)} ${ko ? "지역 완료!" : "complete!"}`}</Text> : null}
+          {chapterComplete ? <Text accessibilityLiveRegion="polite" style={styles.hint}>{!expedition && commonComplete && save.player.primaryJobId === "junior" ? (ko ? "공통 경로 완료! 1차 직업을 선택하세요." : "Common path complete! Choose a primary career.") : `${localize(chapter!.name, locale)} ${ko ? "지역 완료!" : "complete!"}`}</Text> : null}
         </View>
         <View style={styles.titleActions}>
           {saveError ? <>
@@ -122,7 +131,7 @@ function ResultScreen({ onDex, onWorld, onRetry, onQA, onContinue, result }: { o
             <PixelButton onPress={retrySave}>{ko ? "다시 저장" : "RETRY SAVE"}</PixelButton>
           </> : null}
           {result.passed && !allComplete ? <PixelButton testID="result-continue" onPress={onContinue}>{ko ? "다음 체크포인트" : "NEXT CHECKPOINT"}{"\n"}{localize(next.chapter.name, locale)} · Lv.{next.monster.level}</PixelButton> : null}
-          <PixelButton testID="result-world" onPress={onWorld}>{ko ? "월드맵으로" : "WORLD MAP"}</PixelButton>
+          <PixelButton testID="result-world" onPress={onWorld}>{expedition ? (ko ? "오픈소스 탐험으로" : "BACK TO EXPEDITION") : (ko ? "월드맵으로" : "WORLD MAP")}</PixelButton>
           <PixelButton testID="result-retry" onPress={onRetry} variant="secondary">{ko ? "다시 도전" : "RETRY BATTLE"}</PixelButton>
           <PixelButton onPress={onDex} variant="secondary">{ko ? "도감 보기" : "OPEN DEX"}</PixelButton>
           {QA_ENABLED ? <PixelButton testID="result-qa" onPress={onQA} variant="quiet">QA · 기기 테스트</PixelButton> : null}

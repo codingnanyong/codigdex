@@ -6,6 +6,7 @@ import { DEFAULT_LOCALE, isLocale, type Locale } from "@codigdex/game-core/i18n/
 import { devicePixelsPerGamePixel, imageRenderingFor } from "@/lib/phaser/displayScale";
 import { LOCALE_CHANGE_EVENT } from "@/lib/phaser/i18nEvents";
 import { AccountPanel } from "./AccountPanel";
+import { OpenSourcePanel } from "./OpenSourcePanel";
 
 const ACCESSIBLE_COPY: Readonly<
   Record<Locale, { label: string; controls: string; loading: string; ready: string; failed: string }>
@@ -112,6 +113,7 @@ export default function PhaserGame() {
   return (
     <>
       {runtime ? <AccountPanel game={runtime} locale={locale} /> : null}
+      {runtime ? <OpenSourcePanel game={runtime} locale={locale} /> : null}
       <div
         ref={containerRef}
         className="pixel-canvas mx-auto"

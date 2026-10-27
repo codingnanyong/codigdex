@@ -1,4 +1,5 @@
 import { joinText, text, type LocalizedText } from "@codigdex/game-core/i18n/locale";
+import { PLATFORM_STAGE_IDS, FULLSTACK_STAGE_IDS, ML_STAGE_IDS, MLOPS_STAGE_IDS, ANALYTICS_STAGE_IDS } from "../promotionIds";
 
 export type JobId = "frontend" | "backend" | "devops" | "data-engineer" | "data-analyst";
 export type SecondaryJobId =
@@ -158,7 +159,7 @@ export const SECONDARY_JOB_OPTIONS: readonly SecondaryJobOption[] = [
     guideTitle: text("경계의 설계자", "Boundary Architect"),
     guideName: text("아라", "Ara"),
     requires: ["frontend", "backend"],
-    masteryCaptureIds: [],
+    masteryCaptureIds: FULLSTACK_STAGE_IDS,
   },
   {
     id: "platform-engineer",
@@ -166,7 +167,7 @@ export const SECONDARY_JOB_OPTIONS: readonly SecondaryJobOption[] = [
     guideTitle: text("플랫폼 항해사", "Platform Navigator"),
     guideName: text("준", "Jun"),
     requires: ["backend", "devops"],
-    masteryCaptureIds: [],
+    masteryCaptureIds: PLATFORM_STAGE_IDS,
   },
   {
     id: "ml-developer",
@@ -174,7 +175,7 @@ export const SECONDARY_JOB_OPTIONS: readonly SecondaryJobOption[] = [
     guideTitle: text("모델 조련사", "Model Tamer"),
     guideName: text("유진", "Yujin"),
     requires: ["backend", "data-engineer"],
-    masteryCaptureIds: [],
+    masteryCaptureIds: ML_STAGE_IDS,
   },
   {
     id: "mlops-engineer",
@@ -182,7 +183,7 @@ export const SECONDARY_JOB_OPTIONS: readonly SecondaryJobOption[] = [
     guideTitle: text("모델 운영관", "Model Operator"),
     guideName: text("시우", "Siwoo"),
     requires: ["devops", "data-engineer"],
-    masteryCaptureIds: [],
+    masteryCaptureIds: MLOPS_STAGE_IDS,
   },
   {
     id: "analytics-engineer",
@@ -190,7 +191,7 @@ export const SECONDARY_JOB_OPTIONS: readonly SecondaryJobOption[] = [
     guideTitle: text("지표 번역가", "Metrics Translator"),
     guideName: text("소라", "Sora"),
     requires: ["data-engineer", "data-analyst"],
-    masteryCaptureIds: [],
+    masteryCaptureIds: ANALYTICS_STAGE_IDS,
   },
 ];
 
@@ -240,8 +241,10 @@ export function guideDisplayName(job: Pick<JobOption, "guideTitle" | "guideName"
 export const JOB_REGISTRY_KEY = "selectedJob";
 export const SECONDARY_JOB_REGISTRY_KEY = "selectedSecondaryJob";
 export const TERTIARY_JOB_REGISTRY_KEY = "selectedTertiaryJob";
-/** Tier-two identities can be revealed, but their playable content is not released yet. */
-export const SECONDARY_JOB_SELECTION_ENABLED = false;
+/** All five tier-two paths have released integration chapters. */
+export const SECONDARY_JOB_SELECTION_ENABLED = true;
+/** Identity and mastery may be revealed before tier-three gameplay ships. */
+export const TERTIARY_JOB_SELECTION_ENABLED = false;
 
 export function findJob(id: string | undefined): JobOption {
   if (!id) return DEFAULT_JOB;
@@ -267,7 +270,7 @@ export function canSelectSecondaryJob(
   job: SecondaryJobOption,
   completedPrimaryJobs: ReadonlySet<JobId>
 ): boolean {
-  return SECONDARY_JOB_SELECTION_ENABLED && isSecondaryJobUnlocked(job, completedPrimaryJobs);
+  return SECONDARY_JOB_SELECTION_ENABLED && job.masteryCaptureIds.length > 0 && isSecondaryJobUnlocked(job, completedPrimaryJobs);
 }
 
 export function completedSecondaryJobIds(
