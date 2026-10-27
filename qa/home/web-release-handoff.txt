@@ -19,3 +19,10 @@ Handoff — WEB release verification, 2026-10-28 (KST)
   - English/Korean repository documentation is tracked as Claude-owned COD-411 (Backlog).
   - Login, actual DB/OAuth/cloud round trips and tier-three gameplay remain deferred.
   - Overall QA and sprint acceptance remain pending mobile validation. WEB production acceptance is recorded separately.
+
+Additional pre-release recovery fixes (same WEB scope):
+- Owner: Codex. Reviewer: Claude and Codex GitHub reviews of release PR #123 confirmed both paths; the follow-up feature PR supplies review of these corrections.
+- Changed files: web/lib/phaser/scenes/OpenSourceChapterScene.ts adds a bilingual return-to-career button that clears only the expedition checkpoint; web/lib/phaser/scenes/CodeBattleScene.ts permits quiz success/failure initialization in a paused live scene while preserving shutdown/generation guards; web/e2e/game.expedition.spec.ts tests junior and selected-career return paths, capture preservation and reload; web/test/phaser/battleLoading.test.ts tests delayed success/failure while paused plus stopped/superseded scene rejection; this report.
+- Generated assets: None; the return button uses the existing pixel UI.
+- Checks: both return-to-career browser regressions failed before the fix; paused-load success/failure tests failed before the fix while stopped/superseded guards passed. After correction all 584 WEB tests (45 files), lint and production build/typecheck passed. The expanded 26-case production E2E and final CI/deployment results are recorded in PR/Linear after completion.
+- Mobile deployment remains excluded. The home test branch remains available; these corrections affect only WEB scenes/tests. Documentation remains COD-411.

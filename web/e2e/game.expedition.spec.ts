@@ -4,6 +4,36 @@ import { OPEN_SOURCE_EXPEDITIONS } from "@codigdex/game-content/domain/openSourc
 import { createEmptySave } from "@codigdex/game-core/save/schema";
 import { loadMixedQuizPack } from "@codigdex/quiz-content";
 
+for (const job of ["junior", "backend"] as const) test(`returns from an expedition to ${job} career progression without losing captures`, async ({ page }) => {
+  const save = createEmptySave("en");
+  save.progress.captures = [...CHAPTERS.flatMap(({ stages }) => stages), OPEN_SOURCE_EXPEDITIONS[0].chapter.stages[0]].map(({ id }) => ({ id, capturedAt: "2026-10-28T00:00:00.000Z" }));
+  save.player.primaryJobId = job;
+  save.ui.tutorialOnboardingSeen = true;
+  save.ui.checkpointId = OPEN_SOURCE_EXPEDITIONS[1].chapter.stages[0].id;
+  await page.addInitScript((seed) => {
+    if (sessionStorage.getItem("exit-seeded")) return;
+    localStorage.setItem("codigdex:save:v3", JSON.stringify(seed));
+    sessionStorage.setItem("exit-seeded", "1");
+  }, save);
+  await page.goto("/");
+  const game = page.getByRole("application");
+  await expect(game).toHaveAttribute("data-scene", "intro", { timeout: 20000 });
+  await page.keyboard.press("Enter");
+  await expect(game).toHaveAttribute("data-scene", "open-source-chapter");
+  const canvas = page.locator(".pixel-canvas canvas");
+  const box = (await canvas.boundingBox())!;
+  await canvas.click({ position: { x: 240 * box.width / 960, y: 463 * box.height / 540 } });
+  await expect(game).toHaveAttribute("data-scene", job === "junior" ? "job-select" : "world-map");
+  const stored = await page.evaluate(() => JSON.parse(localStorage.getItem("codigdex:save:v3")!));
+  expect(stored.progress.captures).toHaveLength(save.progress.captures.length);
+  expect(stored.progress.captures).toEqual(expect.arrayContaining(save.progress.captures));
+  expect(stored.ui.checkpointId).toBeUndefined();
+  await page.reload();
+  await expect(game).toHaveAttribute("data-scene", "intro");
+  await page.keyboard.press("Enter");
+  await expect(game).toHaveAttribute("data-scene", job === "junior" ? "job-select" : "world-map");
+});
+
 for (const { chapter } of OPEN_SOURCE_EXPEDITIONS) test(`captures and restores every mission in ${chapter.id}`, async ({ page }) => {
   test.setTimeout(180_000);
   const save = createEmptySave("en");
