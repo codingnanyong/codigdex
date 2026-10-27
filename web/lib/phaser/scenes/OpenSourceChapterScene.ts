@@ -1,7 +1,7 @@
 import Phaser from "phaser";
 import { openSourceExpeditionFor } from "@codigdex/game-content/domain/openSourceChapters";
 import { captureIds, openSourceCheckpoints, rememberCheckpoint } from "@codigdex/game-content/domain/gameProgress";
-import { applySaveToRegistry, snapshotRegistry } from "../registryAdapter";
+import { applySaveToRegistry, CHECKPOINT_REGISTRY_KEY, snapshotRegistry } from "../registryAdapter";
 import { assetUrl } from "../../assets";
 import { queueImages, showLoadingScreen } from "../assetLoader";
 import { lt, sceneLocale } from "../i18n";
@@ -62,6 +62,10 @@ export class OpenSourceChapterScene extends Phaser.Scene {
     createButton(this, 718, 509, 414, 36, selected.status === "cleared" ? (ko ? "이 의뢰 다시 도전" : "REPLAY MISSION") : (ko ? "의뢰 배틀 시작" : "START MISSION BATTLE"), () => this.scene.start("code-battle", {
       monsterId: selected.monster.id, returnTo: { scene: "open-source-chapter", data: { family: this.family } },
     }));
+    createButton(this, 240, 463, 420, 36, ko ? "직업 경로로 돌아가기" : "RETURN TO CAREER PATH", () => {
+      this.registry.set(CHECKPOINT_REGISTRY_KEY, undefined);
+      this.scene.start("world-map");
+    });
     createButton(this, 240, 509, 420, 36, ko ? "탐험 노트 · 다른 생태계" : "FIELD NOTES · OTHER ECOSYSTEMS", () => showOpenSourceNotes());
     createHomeButton(this).setDepth(30);
     applyPixelFontToScene(this);
