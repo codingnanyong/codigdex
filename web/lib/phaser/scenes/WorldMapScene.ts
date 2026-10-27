@@ -129,11 +129,20 @@ export class WorldMapScene extends Phaser.Scene {
 
     const { captured, storedJob, selectedJob, backdrop } = this.resolveProgress();
     this.captured = captured;
+    const expeditionResume = resumeCheckpoint(snapshotRegistry(this.registry));
+    if (expeditionResume.chapter.id.startsWith("open-source:")) {
+      this.scene.start("open-source-chapter", { family: expeditionResume.chapter.id.slice(12), monsterId: expeditionResume.monster.id });
+      return;
+    }
     if (shouldEnterPrimaryJobSelection(captured, selectedJob.id)) {
       this.scene.start("job-select");
       return;
     }
     const resume = resumeCheckpoint(snapshotRegistry(this.registry));
+    if (resume.chapter.id.startsWith("promotion:")) {
+      this.scene.start("promotion-chapter", { jobId: resume.chapter.id.slice("promotion:".length), monsterId: resume.monster.id });
+      return;
+    }
     this.activeChapter = this.commonResumeChapter() ?? selectActiveChapter(this.captured);
     this.activeMonster = this.activeChapter?.stages.find(({ id }) => id === resume.monster.id);
     this.selectedCareerId = this.activeChapter || selectedJob.id === "junior" ? undefined : (selectedJob.id as JobId);

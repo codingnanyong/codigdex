@@ -1,7 +1,7 @@
 import { unlockAfter } from "@codigdex/game-content/domain/chapters";
 
 export type CaptureReturnTarget = {
-  scene: "world-map" | "job-select" | "career-region";
+  scene: "world-map" | "job-select" | "career-region" | "promotion-chapter" | "open-source-chapter";
   data?: Record<string, unknown>;
 };
 
@@ -25,7 +25,7 @@ export function resolveCaptureSuccessFlow(
     target: careerCleared
       ? { scene: "job-select" }
       : regionCleared
-        ? { scene: "world-map" }
+        ? fallback.scene === "promotion-chapter" || fallback.scene === "open-source-chapter" ? fallback : { scene: "world-map" }
         : fallback,
   };
 }

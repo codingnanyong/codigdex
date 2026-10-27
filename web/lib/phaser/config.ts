@@ -7,6 +7,8 @@ import { CodeBattleScene } from "./scenes/CodeBattleScene";
 import { CaptureQuizScene } from "./scenes/CaptureQuizScene";
 import { CodigdexScene } from "./scenes/CodigdexScene";
 import { CareerRegionScene } from "./scenes/CareerRegionScene";
+import { PromotionChapterScene } from "./scenes/PromotionChapterScene";
+import { OpenSourceChapterScene } from "./scenes/OpenSourceChapterScene";
 import { SettingsScene } from "./scenes/SettingsScene";
 import { announceLocale } from "./i18n";
 import { initializeRegistryPersistence, readLocale } from "./registryAdapter";
@@ -41,6 +43,8 @@ export function createGameConfig(
       PathMapScene,
       WorldMapScene,
       CareerRegionScene,
+      PromotionChapterScene,
+      OpenSourceChapterScene,
       CodeBattleScene,
       CaptureQuizScene,
       CodigdexScene,

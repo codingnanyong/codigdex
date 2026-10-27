@@ -1,0 +1,41 @@
+Handoff — home emulator testing, 2026-10-28 (KST)
+
+- Owner: Codex
+- Reviewer: Claude review pending; Claude Code CLI is unavailable here. The previous source-transfer review restriction remains in effect. No external review was attempted.
+- Scope: Publish the existing weekly implementation on feat/cod-218-platform-story so the user can test later at home. Web is accepted by the user. Native runtime acceptance remains pending.
+- Changed files:
+  - package.json: mobile:qa:android and mobile:qa:ios entry points.
+  - scripts/mobile-qa.mjs: native device selection, automatic free Metro port, explicit --port validation, development QA environment and dotenv isolation. Native launch no longer forces an interactive device picker; Expo can use the running emulator.
+  - start-mobile-qa.cmd: optional local portable Node lookup and missing-runtime guidance.
+  - packages/game-core/src/save/sync.ts and web/test/sync/cloudSave.test.ts: include the already implemented 952016e save-request FIFO, cancellation and generation safeguards from the separate local save-stability branch. Source branch retained.
+  - qa/home/mobile-handoff.txt: this report.
+- Generated assets: None. Temporary runtimes, QR images, machine addresses, development bundles and local SDK configuration are ignored and are not required by this checkout.
+- Checks run:
+  - Mobile typecheck; 84 mobile tests in 14 files.
+  - Shared save/sync regression: 23 tests in 4 files; game-core typecheck.
+  - check:agents, check:boundaries, native static checks and image/font source budget.
+  - qa:check: 13 generated case files verified; 11 runner/report/flow tests passed. Sandbox Windows userInfo failed initially; the unchanged check passed outside that restriction.
+  - Android default emulator, named device with spaces, explicit port, and iOS named simulator command plans verified through --dry-run.
+  - Prior Android/iOS development bundle compilation and QA save isolation verified. This is not native runtime verification.
+  - git diff --check.
+- Weekly implementation included:
+  - Five secondary careers, 25 stages, 500 bilingual questions, promotion selection/progression and save restoration.
+  - Nine optional open-source expeditions, 38 collectible creatures, 266 bilingual questions; 174 dex entries total.
+  - Local save/sync queue stability and the existing mobile QA presets, isolated saves and failure/retry controls.
+- Home Android emulator steps:
+  1. Check out feat/cod-218-platform-story from origin.
+  2. Install Node.js 22.x, Android Studio/SDK and JDK 17+; configure JAVA_HOME and ANDROID_HOME for this computer.
+  3. From the repository root, run npm ci.
+  4. Start an Android virtual device in Android Studio Device Manager.
+  5. Run npm run mobile:qa:android. This builds, installs and launches the native debug app, then starts Metro with the isolated QA save.
+  6. Open QA on the title screen. Test tutorial, failure/retry, world progression, expeditions, secondary careers and close/reopen persistence.
+  - Optional: npm run mobile:qa:android -- --device Pixel_8
+  - Optional: npm run mobile:qa:android -- --port 8083
+  - Windows alternative: start-mobile-qa.cmd --android
+  - Automated native journeys additionally require Maestro 2.11+: npm run qa:home -- --platform android --feature all
+  - macOS/iOS alternative with Xcode and CocoaPods: npm run mobile:qa:ios
+- Remaining risks or review items:
+  - Native build/startup, touch/IME/rotation and persistence acceptance are for the user's home emulator session. No emulator/SDK or macOS/Xcode is available here.
+  - Independent Claude review and the existing stale English/Korean repository documentation remain pending.
+  - Login, actual DB/OAuth/cloud round trips and tier-three gameplay remain deferred under the existing user scope decision.
+  - The testing branch is for review/QA. This report does not assert production promotion or completed native acceptance.

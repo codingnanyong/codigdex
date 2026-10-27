@@ -21,7 +21,7 @@ import { applyPixelFontToScene } from "../ui";
 
 export interface CodeBattleData {
   monsterId: string;
-  returnTo?: { scene: "world-map" | "career-region"; data?: Record<string, unknown> };
+  returnTo?: { scene: "world-map" | "career-region" | "promotion-chapter" | "open-source-chapter"; data?: Record<string, unknown> };
   arena?: ChapterDefinition["arena"];
 }
 

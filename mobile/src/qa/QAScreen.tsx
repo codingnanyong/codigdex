@@ -1,6 +1,6 @@
 import { CHAPTERS } from "@codigdex/game-content/domain/chapters";
 import type { MonsterDefinition } from "@codigdex/game-core/domain/chapters/types";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Alert, Platform, Share, StyleSheet, Text, View, useWindowDimensions } from "react-native";
 import { useSave } from "../state/SaveProvider";
 import { Screen } from "../ui/Screen";
@@ -8,6 +8,7 @@ import { PixelButton } from "../ui/PixelButton";
 import { colors, font } from "../ui/theme";
 import { E2E_ENABLED, E2E_REVISION, QA_ENABLED, qaFaults } from "./runtime";
 import { createEmptySave } from "@codigdex/game-core/save/schema";
+import { gameQAPresets, type GameQAPreset } from "@codigdex/game-content/domain/qaPresets";
 
 const checks = [
   "객관식 → 단답 · 빈 답안/연속 제출 차단",
@@ -20,6 +21,8 @@ const checks = [
   "월드맵 · 지역 잠금 · Lv.1~5 선택 · 전투 후 지도 복귀",
   "튜토리얼 → Git → Linux · 챕터 완료 · 다음 체크포인트",
   "체크포인트 선택 → 앱 종료 → 이어하기 · 초기화 확인",
+  "오픈소스 9개 탐험 · 38종 · 전투/포획/재접속",
+  "2차 전직 5개 경로 · 다섯 의뢰 · MASTER",
 ] as const;
 
 export function QAScreen({ onBack, onBattle, onDex, onWorld, checked, onToggleCheck }: { onBack(): void; onBattle(monster: MonsterDefinition): void; onDex(): void; onWorld(): void; checked: readonly string[]; onToggleCheck(check: string): void }) {
@@ -27,6 +30,17 @@ export function QAScreen({ onBack, onBattle, onDex, onWorld, checked, onToggleCh
   const dimensions = useWindowDimensions();
   const [frames, setFrames] = useState(0);
   const [notice, setNotice] = useState("");
+  const applyingPreset = useRef(false);
+  const presets = useMemo(() => QA_ENABLED ? gameQAPresets(locale) : [], [locale]);
+  const applyPreset = async (preset: GameQAPreset) => {
+    if (!QA_ENABLED || applyingPreset.current) return;
+    applyingPreset.current = true;
+    try {
+      await replaceSave(preset.save);
+      if (preset.id === "dex") onDex(); else onBack();
+    } catch { setNotice("테스트 시작점을 저장하지 못했습니다. 다시 저장한 뒤 시도하세요."); }
+    finally { applyingPreset.current = false; }
+  };
   useEffect(() => {
     if (!QA_ENABLED) return;
     let count = 0;
@@ -53,7 +67,7 @@ export function QAScreen({ onBack, onBattle, onDex, onWorld, checked, onToggleCh
     <Text testID="qa-checkpoint" style={styles.info}>{save.ui.checkpointId ?? "none"}</Text>
     <Text testID="qa-locale" style={styles.info}>{locale}</Text>
     <Text testID="qa-career" style={styles.info}>{save.player.primaryJobId}</Text>
-    <Text accessibilityRole="header" style={styles.title}>SPRINT 04/05 · 기기 테스트</Text>
+    <Text accessibilityRole="header" style={styles.title}>CODIGDEX · 모바일 QA</Text>
     <Text style={styles.body}>테스트 전용 저장 공간입니다. 일반 진행도와 분리됩니다. 체크 항목은 직접 확인한 뒤 선택하세요.</Text>
     <Text style={styles.info}>{Platform.OS} {String(Platform.Version)} · {Math.round(dimensions.width)}×{Math.round(dimensions.height)} · {locale} · 포획 {save.progress.captures.length}</Text>
     <Text style={styles.info}>이 화면의 JS 프레임 콜백: {frames}/s (기기 GPU FPS 측정값이 아님)</Text>
@@ -65,6 +79,9 @@ export function QAScreen({ onBack, onBattle, onDex, onWorld, checked, onToggleCh
     <PixelButton testID="qa-preset-tutorial" variant="quiet" onPress={() => { loadQAProgress("tutorial"); setNotice("튜토리얼 완료 · Git Lv.1에서 이어하기를 확인하세요."); }}>QA 진행도 · 튜토리얼 완료</PixelButton>
     <PixelButton testID="qa-preset-git" variant="quiet" onPress={() => { loadQAProgress("git"); setNotice("Git 완료 · Linux Lv.1에서 이어하기를 확인하세요."); }}>QA 진행도 · Git 완료</PixelButton>
     <PixelButton testID="qa-preset-complete" variant="quiet" onPress={() => { loadQAProgress("complete"); setNotice("공통 경로 완료 · 11개 체크포인트 재도전을 확인하세요."); }}>QA 진행도 · 공통 경로 완료</PixelButton>
+    <Text accessibilityRole="header" style={styles.title}>챕터 바로 테스트</Text>
+    <Text style={styles.body}>시작점을 고르면 QA 진행도가 바뀝니다. 메뉴에서 이어하기를 누르면 선택한 챕터가 열립니다. 먼저 바람새의 시간표(Airflow)를 확인해 보세요.</Text>
+    {presets.map((preset) => <PixelButton key={preset.id} testID={`qa-start-${preset.id}`} disabled={saving} variant="secondary" onPress={() => { void applyPreset(preset); }}>{preset.group} · {preset.title}</PixelButton>)}
     <PixelButton variant="secondary" onPress={onDex}>도감 · 포획/재시작 복원 확인</PixelButton>
     <PixelButton testID="qa-language" variant="secondary" onPress={() => setLocale(locale === "ko" ? "en" : "ko")}>언어 전환 · {locale === "ko" ? "English" : "한국어"}</PixelButton>
     <PixelButton testID="qa-fail-quiz" variant="secondary" onPress={() => { qaFaults.failNextQuiz(); setNotice("다음 전투에서 로딩 실패 후 다시 시도를 확인하세요."); }}>다음 문제 로딩 1회 실패</PixelButton>

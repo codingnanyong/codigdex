@@ -17,6 +17,7 @@ import {
   JOB_REGISTRY_KEY,
   SECONDARY_JOB_REGISTRY_KEY,
   TERTIARY_JOB_REGISTRY_KEY,
+  TERTIARY_JOB_SELECTION_ENABLED,
   type JobId,
   type PrimaryJobOption,
   type SecondaryJobId,
@@ -24,7 +25,7 @@ import {
   type TertiaryJobOption,
 } from "@codigdex/game-content/domain/player/jobs";
 import { assetUrl } from "../../assets";
-import { lt, t } from "../i18n";
+import { lt, t, sceneLocale } from "../i18n";
 import { drawCareerTree } from "../jobSelect/careerTree";
 import { revealedTertiaryRequirement } from "../jobSelect/careerVisibility";
 import { createPromotionDialog } from "../jobSelect/promotionDialog";
@@ -130,7 +131,7 @@ export class JobSelectScene extends Phaser.Scene {
       this.registry.get(TERTIARY_JOB_REGISTRY_KEY) as string | null | undefined
     );
     this.selectedTertiaryJobId =
-      storedTertiaryJob && isTertiaryJobUnlocked(storedTertiaryJob, this.completedSecondaryJobIds)
+      TERTIARY_JOB_SELECTION_ENABLED && storedTertiaryJob && isTertiaryJobUnlocked(storedTertiaryJob, this.completedSecondaryJobIds)
         ? storedTertiaryJob.id
         : undefined;
   }
@@ -150,16 +151,7 @@ export class JobSelectScene extends Phaser.Scene {
       return;
     }
 
-    if (this.selectedSecondaryJobId !== job.id) {
-      this.registry.set(TERTIARY_JOB_REGISTRY_KEY, null);
-    }
-    activateCareerInRegistry(this.registry, job.id);
-    this.registry.set(SECONDARY_JOB_REGISTRY_KEY, job.id);
-    const selectedPrimary =
-      this.selectedJobId !== "junior" && job.requires.includes(this.selectedJobId)
-        ? this.selectedJobId
-        : job.requires[0];
-    this.scene.start("path-map", { careerId: selectedPrimary });
+    this.scene.start("promotion-chapter", { jobId: job.id });
   }
 
   private selectTertiaryJob(job: TertiaryJobOption) {
@@ -172,6 +164,11 @@ export class JobSelectScene extends Phaser.Scene {
         }),
         this.toast
       );
+      return;
+    }
+
+    if (!TERTIARY_JOB_SELECTION_ENABLED) {
+      this.toast = showToast(this, sceneLocale(this) === "ko" ? "3차 전직 챕터는 준비 중입니다." : "Tier-three promotion chapters are being prepared.", this.toast);
       return;
     }
 
@@ -237,6 +234,8 @@ export class JobSelectScene extends Phaser.Scene {
   }
 
   private activatePrimaryJob(jobId: JobId) {
+    this.registry.set(SECONDARY_JOB_REGISTRY_KEY, null);
+    this.registry.set(TERTIARY_JOB_REGISTRY_KEY, null);
     activateCareerInRegistry(this.registry, jobId);
     this.registry.set(JOB_REGISTRY_KEY, jobId);
     this.scene.start("world-map");

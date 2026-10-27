@@ -70,7 +70,7 @@ describe("mobile asset completeness", () => {
       expect(existsSync(fileURLToPath(new URL(`../../../packages/game-assets/files/${monster.assetKey}`, import.meta.url)))).toBe(true);
     }
     const wallpapers = new Set<string>(Object.values(WALLPAPERS));
-    expect([...keys].every((key) => key.startsWith("monsters/") || wallpapers.has(key))).toBe(true);
+    expect([...keys].every((key) => key.startsWith("monsters/") || key.startsWith("characters/promotion/") || key.startsWith("characters/open-source/") || wallpapers.has(key))).toBe(true);
     for (const key of wallpapers) expect(keys.has(key)).toBe(true);
     expect(map).not.toContain("evolution-sheet");
     expect(map).not.toContain("evolution-guide");

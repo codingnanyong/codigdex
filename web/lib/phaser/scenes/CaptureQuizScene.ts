@@ -23,7 +23,7 @@ export interface CaptureResultData {
   monsterId: string;
   correctCount: number;
   total: number;
-  returnTo?: { scene: "world-map" | "career-region"; data?: Record<string, unknown> };
+  returnTo?: { scene: "world-map" | "career-region" | "promotion-chapter" | "open-source-chapter"; data?: Record<string, unknown> };
 }
 
 /** Settles a finished battle: reaching the pass line registers the card, anything less offers a retry. */

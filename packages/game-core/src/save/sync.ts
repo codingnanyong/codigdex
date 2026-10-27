@@ -73,6 +73,7 @@ export function createSaveSync(options: {
       if (!alive()) return "cancelled";
       meta = { ownerId: userId, base: payload, revision: confirmed.revision };
       await options.storage.setItem(SYNC_METADATA_KEY, JSON.stringify(meta));
+      if (!alive()) return "cancelled";
       if (stable(options.readLocal()) !== stable(applied)) continue;
       if (changed && stable(applied) !== stable(payload)) continue;
       return "synced";
@@ -83,8 +84,16 @@ export function createSaveSync(options: {
     cancel() { generation += 1; activeUser = undefined; running = undefined; },
     sync(userId: string, importGuest = false, resolve?: "local" | "remote"): Promise<SyncResult> {
       if (activeUser !== userId) { generation += 1; activeUser = userId; running = undefined; }
-      if (running) return running;
-      const pending = tail.catch(() => undefined).then(() => run(userId, importGuest, resolve));
+      // Automatic retries can share the last request. Explicit consent and
+      // conflict decisions must run afterwards with their own arguments.
+      if (running && !importGuest && !resolve) return running;
+      const turn = generation;
+      const pending = tail.catch(() => undefined).then<SyncResult>(() => {
+        // Check the generation captured at enqueue time, so returning to the
+        // same account cannot revive requests cancelled in an earlier session.
+        if (turn !== generation || activeUser !== userId) return "cancelled";
+        return run(userId, importGuest, resolve);
+      });
       tail = pending;
       running = pending;
       void pending.finally(() => { if (running === pending) running = undefined; }).catch(() => undefined);

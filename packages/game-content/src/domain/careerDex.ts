@@ -5,6 +5,9 @@ import {
   JOB_OPTIONS,
   SECONDARY_JOB_OPTIONS,
   SECONDARY_JOB_SELECTION_ENABLED,
+  TERTIARY_JOB_SELECTION_ENABLED,
+  canSelectSecondaryJob,
+  findSecondaryJob,
   TERTIARY_JOB_OPTIONS,
   type JobId,
   type SecondaryJobId,
@@ -138,7 +141,7 @@ export function selectCareer(
 ): CareerDexState {
   const unlocked = unlockCareer(state, id, now);
   const tier = CAREER_CATALOG.find((career) => career.id === id)?.tier;
-  if (!SECONDARY_JOB_SELECTION_ENABLED && tier !== undefined && tier >= 2) {
+  if ((tier === 2 && (!SECONDARY_JOB_SELECTION_ENABLED || !canSelectSecondaryJob(findSecondaryJob(id)!, masteredPrimaryJobIds(state)))) || (tier === 3 && !TERTIARY_JOB_SELECTION_ENABLED)) {
     return unlocked;
   }
   const existing = careerRecord(unlocked, id)!;

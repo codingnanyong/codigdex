@@ -7,7 +7,7 @@ import { findJob, guideDisplayName, type JobId } from "@codigdex/game-content/do
 import { capturedIds } from "@codigdex/game-core/domain/dex/capture";
 import { queueImages, showLoadingScreen } from "../assetLoader";
 import { PALETTE, PALETTE_HEX } from "../palette";
-import { lt, t } from "../i18n";
+import { lt, t, sceneLocale } from "../i18n";
 import { createHomeButton } from "../navigation";
 import { createSettingsButton } from "../settings/settingsButton";
 import { fitTexture } from "../monsterArt";
@@ -25,6 +25,8 @@ import {
 } from "../worldMap/careerPaths";
 import { createDialogPortrait } from "../worldMap/dialogPortrait";
 import { careerRegionAssets } from "../worldMap/careerRegionAssets";
+import { openSourcesForRegion } from "@codigdex/game-content/domain/openSourceCatalog";
+import { showOpenSourceNotes } from "../openSourceNotes";
 
 interface CareerRegionData {
   careerId: JobId;
@@ -91,6 +93,8 @@ export class CareerRegionScene extends Phaser.Scene {
       })
     );
     createHomeButton(this).setDepth(30);
+    const tools = openSourcesForRegion(region.id, this.careerId);
+    if (tools.length) createButton(this, width / 2, height - 28, 300, 34, `${sceneLocale(this) === "ko" ? "관련 오픈소스" : "RELATED OPEN SOURCE"} · ${tools.length}`, () => showOpenSourceNotes(tools.map(({ id }) => id)));
     createSettingsButton(this).setDepth(30);
     applyPixelFontToScene(this);
   }
