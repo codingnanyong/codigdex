@@ -28,6 +28,8 @@
     "mobile:android": "npm run open:android --workspace @codigdex/mobile",
     "mobile:ios": "npm run open:ios --workspace @codigdex/mobile",
     "mobile:qa": "node scripts/mobile-qa.mjs",
+    "mobile:qa:android": "node scripts/mobile-qa.mjs --android",
+    "mobile:qa:ios": "node scripts/mobile-qa.mjs --ios",
     "mobile:qa:check": "node scripts/mobile-qa.mjs --check",
     "qa:home": "node scripts/home-qa.mjs",
     "qa:web": "node scripts/web-qa.mjs",
