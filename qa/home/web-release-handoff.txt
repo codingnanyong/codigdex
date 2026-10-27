@@ -1,0 +1,21 @@
+Handoff — WEB release verification, 2026-10-28 (KST)
+
+- Owner: Codex
+- Reviewer: Claude GitHub Action reviewed PR #122 and reported no blocking findings; additional Codex GitHub review identified the WEB primary-career bookmark regression fixed here. Follow-up PR automation supplies the review for this correction.
+- Scope: User explicitly requests WEB testing now, recording results and deploying WEB after success. Mobile release is excluded; home Android emulator acceptance remains pending.
+- Changed files:
+  - web/lib/phaser/scenes/JobSelectScene.ts: clear the old checkpoint when explicitly activating a primary career, so an expedition bookmark cannot override the selected career on WorldMap/Continue.
+  - web/test/phaser/primaryCareerSelection.test.ts: invoke the real Phaser scene action against registry/storage adapters, persist and reload, then assert the chosen career resumes and expedition captures survive.
+  - qa/home/web-release-handoff.txt: this report.
+- Generated assets: None. Existing source assets synchronized without changes. Ignored JUnit/HTML/screenshots remain under qa-results/ and mobile/.tmp-qa/.
+- Checks run:
+  - The new regression failed before the fix: resume returned open-source:orchestration instead of a career chapter.
+  - After the fix: all 580 WEB tests in 44 files passed; WEB lint and production build/typecheck passed; check:agents and diff checks passed.
+  - Before this final correction: full workspace types, lint, 579 WEB tests and production Chromium E2E 24/24 passed locally. Original CI also passed 24 WEB E2E plus 11 feature WEB journeys. A first local run used the wrong working directory and failed screenshot writes; rerunning from web/ passed all 24.
+  - Final remote CI and production smoke results are recorded in the PRs and Linear COD-222/COD-392. Do not infer their completion from this static report.
+- Release flow: implementation PR #122 to develop; this correction via a separate feature PR; deployment PR #123 from develop to main triggers Vercel WEB production. No native release workflow is invoked.
+- Remaining risks or review items:
+  - Mobile native build/startup, touch/IME/rotation and close/reopen persistence are for the user's home emulator test; mobile is not released.
+  - English/Korean repository documentation is tracked as Claude-owned COD-411 (Backlog).
+  - Login, actual DB/OAuth/cloud round trips and tier-three gameplay remain deferred.
+  - Overall QA and sprint acceptance remain pending mobile validation. WEB production acceptance is recorded separately.
