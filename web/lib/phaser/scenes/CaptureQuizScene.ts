@@ -18,9 +18,14 @@ import { addShade, applyPixelFontToScene } from "../ui";
 import { didUnlockPrimaryJobSelection } from "../worldMap/progression";
 import { findJob, JOB_REGISTRY_KEY } from "@codigdex/game-content/domain/player/jobs";
 import { careerPathFor, isCareerPathComplete } from "../worldMap/careerPaths";
+import type { StoredGameStateV3 } from "@codigdex/game-core/save/schema";
+import { sourceEvents } from "../openSourceEvents";
+import type { SourceReturnTarget } from "@codigdex/game-content/domain/openSourceEncounters";
 
 export interface CaptureResultData {
   monsterId: string;
+  sourceEventId?: string;
+  victoryId?: string;
   correctCount: number;
   total: number;
   returnTo?: { scene: "world-map" | "career-region" | "promotion-chapter" | "open-source-chapter"; data?: Record<string, unknown> };
@@ -33,6 +38,9 @@ export class CaptureQuizScene extends Phaser.Scene {
   private correctCount = 0;
   private total = 0;
   private nextTarget: CaptureReturnTarget = { scene: "world-map" };
+  private sourceEventId?: string;
+  private beforeCapture?: StoredGameStateV3;
+  private victoryId?: string;
 
   constructor() {
     super("capture-quiz");
@@ -44,6 +52,9 @@ export class CaptureQuizScene extends Phaser.Scene {
     this.monster = monster;
     this.correctCount = data.correctCount;
     this.total = data.total;
+    this.sourceEventId = data.sourceEventId;
+    this.victoryId = data.victoryId;
+    this.beforeCapture = undefined;
     this.nextTarget = data.returnTo ?? { scene: "world-map" };
   }
 
@@ -94,6 +105,17 @@ export class CaptureQuizScene extends Phaser.Scene {
       // Carry on where the player is headed: the newly opened stage or
       // chapter, or straight back into this chapter after a replay.
       onConfirm: () => {
+        const save = snapshotRegistry(this.registry);
+        const events = sourceEvents(this.registry);
+        if (this.sourceEventId) {
+          const target = events.finish(save, this.sourceEventId) ?? this.nextTarget;
+          this.scene.start(target.scene, target.data);
+          return;
+        }
+        if (this.beforeCapture && this.nextTarget.scene !== "open-source-chapter") {
+          const pending = events.queue(this.beforeCapture, save, monster.id, this.nextTarget as SourceReturnTarget, Math.random, this.victoryId);
+          if (pending) { this.scene.start("open-source-event"); return; }
+        }
         this.scene.start(this.nextTarget.scene, this.nextTarget.data);
       },
     });
@@ -109,12 +131,13 @@ export class CaptureQuizScene extends Phaser.Scene {
         required: requiredCorrectAnswers(this.total),
       }),
       npcLine: `${lt(this, chapter.npcName)}: ${lt(this, chapter.retryLine)}`,
-      onRetry: () => this.scene.start(this.nextTarget.scene, this.nextTarget.data),
+      onRetry: () => this.sourceEventId ? this.scene.start("open-source-event") : this.scene.start(this.nextTarget.scene, this.nextTarget.data),
     });
   }
 
   /** Registers the card and exposes the capture transition for milestone checks. */
   private registerCapture() {
+    this.beforeCapture = snapshotRegistry(this.registry);
     const before = readDexState(this.registry);
     const after = applyCapture(before, this.monster);
     const beforeCaptured = capturedIds(before);
@@ -124,7 +147,7 @@ export class CaptureQuizScene extends Phaser.Scene {
     }
     writeDexState(this.registry, after);
     reconcileCareerDexRegistry(this.registry);
-    if (after !== before) {
+    if (after !== before && !this.sourceEventId) {
       const save = snapshotRegistry(this.registry);
       applySaveToRegistry(this.registry, rememberCheckpoint(save, nextPlayableCheckpoint(save).monster.id));
     }

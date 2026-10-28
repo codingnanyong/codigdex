@@ -20,6 +20,7 @@ import {
   readDexState,
   TUTORIAL_ONBOARDING_SEEN_KEY,
   snapshotRegistry,
+  CHECKPOINT_REGISTRY_KEY,
 } from "../registryAdapter";
 import { resumeCheckpoint } from "@codigdex/game-content/domain/gameProgress";
 import { applyPixelFontToScene, showToast } from "../ui";
@@ -127,13 +128,11 @@ export class WorldMapScene extends Phaser.Scene {
     ensureDexDefaults(this.registry);
     this.resetSceneReferences();
 
+    // Old standalone-expedition bookmarks never trap a career after this migration.
+    if (String(this.registry.get(CHECKPOINT_REGISTRY_KEY) ?? "").startsWith("open-source:")) this.registry.set(CHECKPOINT_REGISTRY_KEY, undefined);
+
     const { captured, storedJob, selectedJob, backdrop } = this.resolveProgress();
     this.captured = captured;
-    const expeditionResume = resumeCheckpoint(snapshotRegistry(this.registry));
-    if (expeditionResume.chapter.id.startsWith("open-source:")) {
-      this.scene.start("open-source-chapter", { family: expeditionResume.chapter.id.slice(12), monsterId: expeditionResume.monster.id });
-      return;
-    }
     if (shouldEnterPrimaryJobSelection(captured, selectedJob.id)) {
       this.scene.start("job-select");
       return;

@@ -60,6 +60,8 @@ for (const job of SECONDARY_JOB_OPTIONS) test(`restores ${job.id}, plays all fiv
       if (await game.getAttribute("data-scene") !== "capture-quiz") break;
       await click(480, y);
     }
+    await expect(game).toHaveAttribute("data-scene", /^(promotion-chapter|open-source-event)$/);
+    if (await game.getAttribute("data-scene") === "open-source-event") await click(242, 501);
     await expect(game).toHaveAttribute("data-scene", "promotion-chapter");
     const stored = await page.evaluate(() => JSON.parse(localStorage.getItem("codigdex:save:v3")!));
     expect(stored.progress.captures.some(({ id }: { id: string }) => id === monster.id)).toBe(true);
