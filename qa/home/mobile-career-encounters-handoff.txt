@@ -1,0 +1,38 @@
+Handoff: mobile career encounters and changed WEB validation, 2026-10-28 (KST)
+
+- Owner: Codex
+- Reviewer: Claude GitHub Action on the implementation/release PRs. Final findings, CI and deployed WEB results are recorded on those PRs and Linear.
+- Scope: The user explicitly requests testing/deploying changed WEB code and preparing necessary mobile changes in Git for home Android emulator testing. Mobile now uses the same career surprise requests and discovery notebook as WEB. Native mobile publication is excluded.
+- Changed files:
+  - packages/game-content/src/domain/openSourceEncounterSession.ts, openSourceEncounterStorage.ts, careerQAPresets.ts: move the validated WEB lifecycle, persisted-history parser/key and 17 career QA presets into platform-independent shared modules.
+  - packages/game-content/src/domain/openSourceEncounters.ts: share discovered-tool selection including legacy captured cards.
+  - web/lib/phaser/openSourceEvents.ts, openSourceEventStorage.ts and web/lib/qa/presets.ts: retain the existing WEB APIs through small browser adapters/re-exports; gameplay and save format are preserved.
+  - mobile/src/storage/sourceEventStore.ts, asyncStorage.ts: hydrate adventure-scoped history before use; adapt shared synchronous rules to namespaced AsyncStorage with FIFO writes, failure recovery and retries. Normal, manual QA and automated QA data remain isolated.
+  - mobile/src/state/SaveProvider.tsx: hydrate both stores, validate encounter authorization before capturing, retain the normal career checkpoint, expose history/write errors, and guard asynchronous save replacement against intervening progress changes.
+  - mobile/src/game/navigation.ts and NativeGame.tsx: typed route payloads replace separate monster/result state; career/encounter continuation, decline, retry, reload and old expedition bookmark migration.
+  - mobile/src/game/TitleScreen.tsx, ResultScreen.tsx, DexScreen.tsx, MonsterDetail.tsx, SettingsScreen.tsx and gameScreenStyles.ts: split the existing screens and styles from the router while retaining their presentation and test selectors. Tool details no longer bypass request acceptance.
+  - mobile/src/game/OpenSourceEventScreen.tsx: bilingual optional request, role/workplace/tool clues, accept/later/retry and request-history save-error recovery.
+  - mobile/src/game/OpenSourceScreen.tsx and CareerScreen.tsx: discovered-only notes, relevant discovered tool links, old card visibility and career-screen save retries.
+  - mobile/src/qa/QAScreen.tsx: 17 shared starting states and updated home checks for ten career requests.
+  - mobile/src/game/navigation.test.ts, OpenSourceScreen.test.tsx, CareerScreen.test.tsx; mobile/src/storage/sourceEventStore.test.ts; mobile/src/qa/QAScreen.test.tsx and flows.test.tsx: legacy migration, notes, async persistence, all ten real career/request flows, failure/retry/restart and save isolation.
+  - qa/home/mobile-career-encounters-handoff.txt: this report.
+- Generated assets: No new game art. Existing 242 mobile asset imports regenerate without a tracked change; public WEB mirrors are not edited. Android/iOS JS/asset export artifacts, browser reports and build logs are ignored and are not native releases.
+- Checks run:
+  - WEB: 612/612 unit tests in 49 files, lint, production build/typecheck, production-build Chromium E2E 29/29 and feature WEB journeys 11/11 passed locally on the shared engine.
+  - Mobile: 114/114 tests in 16 files. The real-screen DOM-host suite includes 29 cases: existing native-flow contracts plus ten career requests and decline, failed battle/retry, offered/active/completed reload, quiz-load retry, history write/read/finish failures and old bookmark recovery. This does not assert native driver/runtime acceptance.
+  - A new result-background regression failed with the invalid open-source:application scenery key, then passed after using the valid field scenery for encounters.
+  - Android and iOS JS/asset bundles passed. Asset/font budget: 19,884,176 total bytes within 20,971,520; 14,260,104 bundled image bytes within 14,680,064. No SDK emulator build or launch was performed here.
+  - All workspace types and package boundaries, check:agents, 13 generated home QA cases and 11 runner checks passed. Cached diff is checked before commit.
+  - Independent final CI, review, deployment commit and live WEB verification are recorded after completion in the PRs and Linear; this report does not pre-claim them.
+- Home Android steps:
+  1. Fetch origin and use the latest main after the WEB release, or the published feat/mobile-career-encounters branch for the implementation snapshot.
+  2. Install Node.js 22.x, Android Studio/SDK and JDK 17+, configure this computer's SDK/JDK paths, and run npm ci at the repository root.
+  3. Boot an Android emulator, then run npm run mobile:qa:android (optional -- --device Pixel_8 or -- --port 8083).
+  4. Open QA on the title screen and choose each career encounter starting state. Continue, finish its first battle and confirm the result to see the role-specific request. Check help/later, failure/retry, notes, capture and normal-career return.
+  5. Close/reopen at offered, accepted and captured-before-confirm stages; verify the normal career bookmark and cards. Check touch, IME, hardware back, rotation, fonts, scenery and small-screen scrolling on the actual emulator.
+  6. Existing automated device flows remain available with Maestro 2.11+: npm run qa:home -- --platform android --feature all. The added encounter cases are also directly available through the 17 manual QA starting states.
+- Remaining risks or review items:
+  - Actual Android emulator/native build/startup, Skia/IME/touch/back/rotation/GPU behavior and OS-level persistence remain for home acceptance. No APK/IPA/EAS/store deployment is performed.
+  - Encounter/discovery history remains local to an adventure on each browser/device; captured cards stay in ordinary save-v3 import/export. First-capture timestamps identify adventures, as in the existing WEB implementation.
+  - Existing English/Korean player-facing documentation is Claude-owned COD-411 and needs the updated mobile encounter/QA flow. No docs/ or README file was rewritten by Codex.
+  - Login, real DB/OAuth/cloud acceptance and tier-three gameplay remain deferred under the prior scope. Overall QA/sprint completion remains pending mobile runtime acceptance.

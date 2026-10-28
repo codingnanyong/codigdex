@@ -17,9 +17,10 @@ import { mobileAssetSource } from "../assets";
 import { PixelScene } from "../ui/PixelScene";
 import { openSourcesForRegion } from "@codigdex/game-content/domain/openSourceCatalog";
 import { openSourcesForMonster } from "@codigdex/game-content/domain/openSourceLinks";
+import { discoveredSourceIds } from "@codigdex/game-content/domain/openSourceEncounters";
 
 export function CareerScreen({ onBack, onBattle, onOpenSources, selectedRegionId, onRegionChange }: { onBack(): void; onBattle(id: string): void; onOpenSources?(ids: readonly string[]): void; selectedRegionId?: string; onRegionChange?(id: string | undefined): void }) {
-  const { save, locale, selectJob, selectSecondaryJob } = useSave();
+  const { save, locale, selectJob, selectSecondaryJob, saveError, retrySave } = useSave();
   const [localRegionId, setLocalRegionId] = useState<string>();
   const regionId = selectedRegionId ?? localRegionId;
   const setRegionId = (id: string | undefined) => { setLocalRegionId(id); onRegionChange?.(id); };
@@ -34,6 +35,7 @@ export function CareerScreen({ onBack, onBattle, onOpenSources, selectedRegionId
   return <Screen scroll>
     <PixelButton testID="career-menu" onPress={onBack} variant="quiet">← {ko ? "메뉴" : "MENU"}</PixelButton>
     <Text testID="career-title" accessibilityRole="header" style={styles.heading}>{ko ? "전직 계보 · 직업 경로" : "CAREER LINEAGE · PATHS"}</Text>
+    {saveError ? <><Text accessibilityRole="alert" style={styles.hint}>{ko ? "진행 또는 의뢰 기록을 저장하지 못했습니다. 종료 전에 다시 저장하세요." : "Could not save progress or request history. Retry before closing."}</Text><PixelButton testID="career-retry-save" onPress={retrySave}>{ko ? "다시 저장" : "RETRY SAVE"}</PixelButton></> : null}
     <Text style={styles.body}>{localize(current.name, locale)} · {ko ? "완성한 경로" : "Mastered paths"} {complete.size}/{JOB_OPTIONS.length}</Text>
     {!commonComplete ? <Text style={styles.hint}>{ko ? "튜토리얼 · Git · Linux 공통 경로를 완료하면 1차 전직이 열립니다." : "Complete Tutorial · Git · Linux to unlock primary careers."}</Text> : null}
     <View style={styles.panel}>
@@ -69,7 +71,8 @@ export function CareerScreen({ onBack, onBattle, onOpenSources, selectedRegionId
 }
 
 function PromotionMission({ onBattle, onOpenSources }: { onBattle(id: string): void; onOpenSources?(ids: readonly string[]): void }) {
-  const { save, locale } = useSave();
+  const { save, locale, sourceHistory } = useSave();
+  const discovered = discoveredSourceIds(save, sourceHistory);
   const chapter = promotionChapterFor(save.player.secondaryJobId)!;
   const mission = promotionMissionFor(save.player.secondaryJobId)!;
   const path = promotionCheckpoints(save);
@@ -83,18 +86,21 @@ function PromotionMission({ onBattle, onOpenSources }: { onBattle(id: string): v
     <Text style={styles.title}>{localize(chapter.npcName, locale)}</Text>
     <Text testID="promotion-story" style={styles.body}>{localize(complete ? mission.story.ending : active?.monster.briefing ?? mission.story.intro, locale)}</Text>
     <Text style={styles.hint}>{complete ? (ko ? "★ 경로 MASTER · 3차 챕터는 준비 중입니다." : "★ PATH MASTER · Tier-three chapter coming later.") : `${path.filter(({ status }) => status === "cleared").length}/5`}</Text>
-    {path.map(({ monster, status }) => <View key={monster.id} style={styles.item}>
+    {path.map(({ monster, status }) => {
+      const tools = openSourcesForMonster(monster.id).filter(({ id }) => discovered.has(id));
+      return <View key={monster.id} style={styles.item}>
       {status !== "locked" ? <Image accessibilityLabel={localize(monster.name, locale)} source={mobileAssetSource(monster.assetKey)} style={styles.creature} resizeMode="contain" /> : null}
       <Text style={styles.title}>Lv.{monster.level} · {status === "locked" ? "???" : localize(monster.name, locale)}{status === "cleared" ? " ✓" : ""}</Text>
       {status !== "locked" ? <Text style={styles.body}>{localize(monster.classification, locale)}</Text> : null}
-      {status !== "locked" && onOpenSources ? <PixelButton compact variant="quiet" onPress={() => onOpenSources(openSourcesForMonster(monster.id).map(({ id }) => id))}>{ko ? "연관 도구" : "RELATED TOOLS"} · {openSourcesForMonster(monster.id).map(({ name }) => name).join(" · ")}</PixelButton> : null}
+      {status !== "locked" && onOpenSources && tools.length ? <PixelButton compact variant="quiet" onPress={() => onOpenSources(tools.map(({ id }) => id))}>{ko ? "연관 도구" : "RELATED TOOLS"} · {tools.map(({ name }) => name).join(" · ")}</PixelButton> : null}
       <PixelButton testID={`promotion-checkpoint-${monster.id}`} disabled={status === "locked"} onPress={() => onBattle(monster.id)} variant={status === "cleared" ? "secondary" : "primary"}>{status === "cleared" ? (ko ? "다시 도전" : "REPLAY") : status === "locked" ? (ko ? "이전 의뢰 완료 후 해금" : "FINISH THE PREVIOUS MISSION") : (ko ? "배틀 시작" : "START BATTLE")}</PixelButton>
-    </View>)}
+    </View>; })}
   </View>;
 }
 
 function CareerRegions({ jobId, regionId, onRegion, onBattle, onOpenSources }: { jobId: JobId; regionId?: string; onRegion(id: string): void; onBattle(id: string): void; onOpenSources?(ids: readonly string[]): void }) {
-  const { save, locale } = useSave();
+  const { save, locale, sourceHistory } = useSave();
+  const discovered = discoveredSourceIds(save, sourceHistory);
   const ko = locale === "ko";
   const path = careerPathFor(jobId);
   const progression = careerRegionProgression(path, captureIds(save));
@@ -102,6 +108,7 @@ function CareerRegions({ jobId, regionId, onRegion, onBattle, onOpenSources }: {
   const selected = progression.find(({ region }) => region.id === regionId)
     ?? progression.find(({ region }) => bookmarked?.chapter.id === `career:${region.id}`)
     ?? progression.find(({ status }) => status === "available") ?? progression[0];
+  const related = openSourcesForRegion(selected.region.id, jobId).filter(({ id }) => discovered.has(id));
   return <>
     <Text style={styles.heading}>{localize(path.title, locale)}</Text>
     <View style={styles.panel}>
@@ -109,7 +116,7 @@ function CareerRegions({ jobId, regionId, onRegion, onBattle, onOpenSources }: {
     </View>
     <View style={styles.panel}>
       <Text style={styles.title}>{localize(selected.region.label, locale)}</Text>
-      {onOpenSources && openSourcesForRegion(selected.region.id, jobId).length > 0 ? <PixelButton testID="career-region-open-source" compact variant="quiet" onPress={() => onOpenSources(openSourcesForRegion(selected.region.id, jobId).map(({ id }) => id))}>{ko ? "관련 오픈소스" : "RELATED OPEN SOURCE"} · {openSourcesForRegion(selected.region.id, jobId).length}</PixelButton> : null}
+      {onOpenSources && related.length > 0 ? <PixelButton testID="career-region-open-source" compact variant="quiet" onPress={() => onOpenSources(related.map(({ id }) => id))}>{ko ? "관련 오픈소스" : "RELATED OPEN SOURCE"} · {related.length}</PixelButton> : null}
       {careerCheckpoints(save, jobId).filter(({ chapter }) => chapter.id === `career:${selected.region.id}`).map(({ monster, status }) => <PixelButton testID={`career-checkpoint-${monster.id}`} key={monster.id} disabled={status === "locked"} onPress={() => onBattle(monster.id)} variant={status === "cleared" ? "secondary" : "primary"}>Lv.{monster.level} · {status === "locked" ? "???" : localize(monster.name, locale)}{status === "cleared" ? " ✓" : ""}</PixelButton>)}
       <Text style={styles.hint}>{ko ? "포획 후 이 경로로 돌아옵니다. 완료한 체크포인트는 다시 도전할 수 있습니다." : "Return here after capture. Cleared checkpoints can be replayed."}</Text>
     </View>

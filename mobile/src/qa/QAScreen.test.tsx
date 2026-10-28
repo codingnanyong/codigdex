@@ -21,12 +21,12 @@ function render(onBack = vi.fn(), onDex = vi.fn()) {
   return { html, onBack, onDex };
 }
 describe("mobile manual QA starting states", () => {
-  it("is absent without QA and shows all sixteen starting states when enabled", () => {
+  it("is absent without QA and shows all seventeen starting states when enabled", () => {
     state.enabled = false;
     expect(render().html).toBe("");
     state.enabled = true;
-    expect(render().html).toContain("바람새의 시간표");
-    expect(state.controls.filter(({ testID }) => testID?.startsWith("qa-start-"))).toHaveLength(16);
+    expect(render().html).toContain("돌발 의뢰");
+    expect(state.controls.filter(({ testID }) => testID?.startsWith("qa-start-"))).toHaveLength(17);
   });
   it("saves an earned promotion before returning to the title to continue", async () => {
     const { onBack } = render();
