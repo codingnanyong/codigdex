@@ -1,3 +1,4 @@
+import { clickGame as clickCanvas, frames } from "../test-support/game";
 import { expect, test } from "@playwright/test";
 
 test("plays mixed Web questions with hints, native text input and explicit feedback", async ({ page }) => {
@@ -7,17 +8,11 @@ test("plays mixed Web questions with hints, native text input and explicit feedb
     localStorage.setItem("codigdex:save:v3", JSON.stringify({ version: 3, progress: { captures: [], careers: [] }, player: { primaryJobId: "junior", secondaryJobId: null, tertiaryJobId: null }, ui: { tutorialOnboardingSeen: true, locale: "en" } }));
   });
   await page.goto("/");
-  const canvas = page.locator(".pixel-canvas canvas");
   const game = page.getByRole("application");
   await expect(game).toHaveAttribute("aria-busy", "false", { timeout: 15_000 });
   await expect(game).toHaveAttribute("data-scene", "intro");
   await page.keyboard.press("Enter");
-  const clickGame = async (x: number, y: number) => {
-    const box = (await canvas.boundingBox())!;
-    await canvas.click({ position: { x: x * box.width / 960, y: y * box.height / 540 } });
-    // Phaser consumes pointer events on its next frame, after the browser click returns.
-    await page.evaluate(() => new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
-  };
+  const clickGame = (x: number, y: number) => clickCanvas(page, x, y);
   await expect(game).toHaveAttribute("data-scene", "world-map", { timeout: 15_000 });
   await clickGame(480, 252);
   await clickGame(872, 516);
@@ -37,7 +32,7 @@ test("plays mixed Web questions with hints, native text input and explicit feedb
   await expect(submit).toBeEnabled();
   await input.press("Enter");
   await expect(controls.getByRole("status")).toContainText("Attack strength:");
-  await page.evaluate(() => new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
+  await frames(page);
   await page.screenshot({ path: "../mobile/.tmp-qa/parity-web-battle.png" });
   expect(errors).toEqual([]);
 });

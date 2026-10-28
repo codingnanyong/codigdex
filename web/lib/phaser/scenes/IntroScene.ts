@@ -163,6 +163,6 @@ export class IntroScene extends Phaser.Scene {
     this.leaving = true;
 
     this.cameras.main.fadeOut(450, 24, 15, 8);
-    this.time.delayedCall(450, () => this.scene.start(sourceEvents(this.registry).pending(snapshotRegistry(this.registry)) ? "open-source-event" : "world-map"));
+    this.time.delayedCall(450, () => this.scene.start(sourceEvents(this.registry).resolvePending(snapshotRegistry(this.registry)) ? "open-source-event" : "world-map"));
   }
 }

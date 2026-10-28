@@ -6,7 +6,7 @@ import { createEmptySave } from "@codigdex/game-core/save/schema";
 import { PROMOTION_MISSIONS } from "@codigdex/game-content/domain/promotionChapters";
 import { SECONDARY_JOB_OPTIONS, type SecondaryJobId } from "@codigdex/game-content/domain/player/jobs";
 import { selectSecondaryCareer } from "@codigdex/game-content/domain/gameProgress";
-import { loadMixedQuizPack } from "@codigdex/quiz-content";
+import { bootGame, clickGame, answerBattle, confirmResult, readSave } from "../test-support/game";
 
 function eligibleSave(jobId: SecondaryJobId = "platform-engineer") {
   const save = createEmptySave("en");
@@ -23,47 +23,19 @@ for (const job of SECONDARY_JOB_OPTIONS) test(`restores ${job.id}, plays all fiv
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
   const save = selectSecondaryCareer(eligibleSave(job.id), job.id);
-  await page.addInitScript((save) => {
-    if (!sessionStorage.getItem("promotion-seeded")) {
-      localStorage.setItem("codigdex:save:v3", JSON.stringify(save));
-      sessionStorage.setItem("promotion-seeded", "1");
-    }
-  }, save);
-  await page.goto("/");
+  await bootGame(page, save);
   const game = page.getByRole("application");
-  const canvas = page.locator(".pixel-canvas canvas");
-  const click = async (x: number, y: number) => {
-    const box = (await canvas.boundingBox())!;
-    await canvas.click({ position: { x: x * box.width / 960, y: y * box.height / 540 } });
-    await page.evaluate(() => new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
-  };
-  await expect(game).toHaveAttribute("data-scene", "intro", { timeout: 20_000 });
-  await page.keyboard.press("Enter");
+  const click = (x: number, y: number) => clickGame(page, x, y);
   await expect(game).toHaveAttribute("data-scene", "promotion-chapter");
   await page.screenshot({ path: `../mobile/.tmp-qa/${job.id}-mission-en.png` });
   for (const monster of PROMOTION_MISSIONS[job.id].chapter.stages) {
-    const pack = await loadMixedQuizPack(monster.quizPackId);
     await click(742, 509);
-    const controls = page.locator(".battle-controls");
-    await expect(controls).toBeVisible();
-    for (let answer = 0; answer < Math.ceil((monster.level + 2) * 0.6); answer++) {
-      const prompt = await controls.locator(".battle-prompt").innerText();
-      const question = pack.questions.find(({ prompt: copy }) => copy.en === prompt)!;
-      if (!question || question.type === "freeText") throw new Error(`Unexpected prompt: ${prompt}`);
-      await controls.getByRole("button", { name: new RegExp(question.choices[question.answerIndex].en.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "$") }).click();
-      const next = controls.getByRole("button", { name: /^(NEXT QUESTION|SHOW RESULT)$/ });
-      await next.click();
-    }
-    await expect(game).toHaveAttribute("data-scene", "capture-quiz");
-    // The captured panel fits within the game viewport; activate its confirm button.
-    for (let y = 505; y >= 310; y -= 12) {
-      if (await game.getAttribute("data-scene") !== "capture-quiz") break;
-      await click(480, y);
-    }
+    await answerBattle(page, monster.id);
+    await confirmResult(page);
     await expect(game).toHaveAttribute("data-scene", /^(promotion-chapter|open-source-event)$/);
     if (await game.getAttribute("data-scene") === "open-source-event") await click(242, 501);
     await expect(game).toHaveAttribute("data-scene", "promotion-chapter");
-    const stored = await page.evaluate(() => JSON.parse(localStorage.getItem("codigdex:save:v3")!));
+    const stored = await readSave(page);
     expect(stored.progress.captures.some(({ id }: { id: string }) => id === monster.id)).toBe(true);
   }
   await page.screenshot({ path: `../mobile/.tmp-qa/${job.id}-mastery-en.png` });
@@ -71,8 +43,8 @@ for (const job of SECONDARY_JOB_OPTIONS) test(`restores ${job.id}, plays all fiv
   await expect(game).toHaveAttribute("data-scene", "intro");
   await page.keyboard.press("Enter");
   await expect(game).toHaveAttribute("data-scene", "promotion-chapter");
-  const stored = await page.evaluate(() => JSON.parse(localStorage.getItem("codigdex:save:v3")!));
-  expect(stored.progress.careers.find(({ id }: { id: string }) => id === job.id).masteredAt).toBeTruthy();
+  const stored = await readSave(page);
+  expect(stored.progress.careers.find(({ id }) => id === job.id)?.masteredAt).toBeTruthy();
   expect(stored.player.tertiaryJobId).toBeNull();
   await page.evaluate(() => {
     const save = JSON.parse(localStorage.getItem("codigdex:save:v3")!);
@@ -88,17 +60,9 @@ for (const job of SECONDARY_JOB_OPTIONS) test(`restores ${job.id}, plays all fiv
 });
 
 test("keeps a promotion unchanged on cancel and equips it only after confirmation", async ({ page }) => {
-  await page.addInitScript((save) => localStorage.setItem("codigdex:save:v3", JSON.stringify(save)), eligibleSave());
-  await page.goto("/");
+  await bootGame(page, eligibleSave());
   const game = page.getByRole("application");
-  const canvas = page.locator(".pixel-canvas canvas");
-  const click = async (x: number, y: number) => {
-    const box = (await canvas.boundingBox())!;
-    await canvas.click({ position: { x: x * box.width / 960, y: y * box.height / 540 } });
-    await page.evaluate(() => new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
-  };
-  await expect(game).toHaveAttribute("data-scene", "intro", { timeout: 20_000 });
-  await page.keyboard.press("Enter");
+  const click = (x: number, y: number) => clickGame(page, x, y);
   await expect(game).toHaveAttribute("data-scene", "world-map");
   await click(480, 30);
   await expect(game).toHaveAttribute("data-scene", "path-map");

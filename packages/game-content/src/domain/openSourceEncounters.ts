@@ -75,6 +75,7 @@ export function emptyEncounterHistory(): SourceEncounterHistory {
   return { processed: [], discoveries: [], offeredCareers: [], sinceOffer: 0 };
 }
 
+export const MAX_PROCESSED_SOURCE_VICTORIES = 256;
 const MIN_BATTLE_GAP = 3;
 const MAX_BATTLE_GAP = 6;
 const ENCOUNTER_CHANCE = 0.25;
@@ -90,7 +91,7 @@ export function planSourceEncounter(before: StoredGameStateV3, after: StoredGame
   if (!careerId || !capture || triggerId.startsWith("open-source:") || (!victoryId && before.progress.captures.some(({ id }) => id === triggerId)) || history.pending) return history;
   const stamp = `${careerId}:${triggerId}:${victoryId ?? capture.capturedAt}`;
   if (history.processed.includes(stamp)) return history;
-  const next = { ...history, processed: [...history.processed, stamp].slice(-256), sinceOffer: history.sinceOffer + 1 };
+  const next = { ...history, processed: [...history.processed, stamp].slice(-MAX_PROCESSED_SOURCE_VICTORIES), sinceOffer: history.sinceOffer + 1 };
   const captured = new Set(after.progress.captures.map(({ id }) => id));
   const remaining = encounterTools(careerId).filter(({ id }) => !captured.has(`open-source:${id}`));
   if (!remaining.length) return next;
