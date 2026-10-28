@@ -3,13 +3,13 @@ import cases from "../../qa/home/cases.json" with { type: "json" };
 import { CHAPTERS } from "@codigdex/game-content/domain/chapters";
 import { careerPathFor } from "@codigdex/game-content/domain/careerPaths";
 import { nextPlayableCheckpoint, selectGameCareer } from "@codigdex/game-content/domain/gameProgress";
-import { createEmptySave, type StoredGameStateV3 } from "@codigdex/game-core/save/schema";
+import { createEmptySave } from "@codigdex/game-core/save/schema";
 import { createBattleState, revealBattleHint, submitBattleAnswer } from "@codigdex/game-core/domain/dex/battle";
 import type { QuizQuestion } from "@codigdex/game-core/domain/chapters/types";
 import type { JobId } from "@codigdex/game-content/domain/player/jobs";
 import { careerCheckpointLayout } from "../lib/phaser/worldMap/careerCheckpointLayout";
 
-const KEY = "codigdex:save:v3";
+import { SAVE_KEY as KEY, bootGame, scene, clickGame, frames, readSave } from "../test-support/game";
 const tutorial = cases.battles.tutorial as unknown as { monsterId: string; questions: QuizQuestion[] };
 
 function fixture(chapters = 0) {
@@ -20,37 +20,8 @@ function fixture(chapters = 0) {
   return save;
 }
 
-async function scene(page: Page, name: string) {
-  await expect(page.getByRole("application")).toHaveAttribute("data-scene", name, { timeout: 30000 });
-}
-
-async function clickGame(page: Page, x: number, y: number) {
-  const canvas = page.locator(".pixel-canvas canvas");
-  const box = (await canvas.boundingBox())!;
-  await canvas.click({ position: { x: x * box.width / 960, y: y * box.height / 540 } });
-  await frames(page);
-}
-
-async function frames(page: Page) {
-  await page.evaluate(() => new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
-}
-
-async function readSave(page: Page): Promise<StoredGameStateV3> {
-  return page.evaluate((key) => JSON.parse(localStorage.getItem(key) ?? "null"), KEY);
-}
-
 async function boot(page: Page, save = fixture()) {
-  await page.addInitScript(({ key, save }) => {
-    // Each test has a fresh browser context. Preserve subsequent saves on reload.
-    if (!sessionStorage.getItem("home-qa-seeded")) {
-      localStorage.setItem(key, JSON.stringify(save));
-      sessionStorage.setItem("home-qa-seeded", "1");
-    }
-  }, { key: KEY, save });
-  await page.goto("/");
-  await scene(page, "intro");
-  await expect(page.getByRole("application")).toHaveAttribute("aria-busy", "false");
-  await page.keyboard.press("Enter");
+  await bootGame(page, save);
   await scene(page, "world-map");
 }
 

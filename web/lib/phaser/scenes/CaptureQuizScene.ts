@@ -9,6 +9,7 @@ import {
 } from "@codigdex/game-core/domain/dex/capture";
 import { showCapturedPanel, showMissedPanel } from "../capture/resultPanels";
 import { resolveCaptureSuccessFlow, type CaptureReturnTarget } from "../capture/resultFlow";
+import { confirmCaptureTarget, retryCaptureTarget } from "../capture/resultNavigation";
 import { createHomeButton } from "../navigation";
 import { describeUnlock } from "../capture/unlockNotice";
 import { lt, sceneLocale, t } from "../i18n";
@@ -79,11 +80,11 @@ export class CaptureQuizScene extends Phaser.Scene {
       !isCareerPathComplete(careerPathFor(selectedJob.id), beforeCaptured) &&
       isCareerPathComplete(careerPathFor(selectedJob.id), afterCaptured);
     const unlock = describeUnlock(monster.id, sceneLocale(this));
-    const flow = this.sourceEventId ? { careerCleared: false, regionCleared: false, target: this.nextTarget } : resolveCaptureSuccessFlow(
+    const flow = resolveCaptureSuccessFlow(
       monster.id,
       isNewEntry,
       this.nextTarget,
-      careerCleared
+      { careerCleared, sourceEventId: this.sourceEventId }
     );
     this.nextTarget = flow.target;
 
@@ -105,18 +106,12 @@ export class CaptureQuizScene extends Phaser.Scene {
       // Carry on where the player is headed: the newly opened stage or
       // chapter, or straight back into this chapter after a replay.
       onConfirm: () => {
-        const save = snapshotRegistry(this.registry);
-        const events = sourceEvents(this.registry);
-        if (this.sourceEventId) {
-          const target = events.finish(save, this.sourceEventId) ?? this.nextTarget;
-          this.scene.start(target.scene, target.data);
-          return;
-        }
-        if (this.beforeCapture) {
-          const pending = events.queue(this.beforeCapture, save, monster.id, this.nextTarget, Math.random, this.victoryId);
-          if (pending) { this.scene.start("open-source-event"); return; }
-        }
-        this.scene.start(this.nextTarget.scene, this.nextTarget.data);
+        const target = confirmCaptureTarget({
+          save: snapshotRegistry(this.registry), beforeCapture: this.beforeCapture,
+          monsterId: monster.id, fallback: this.nextTarget,
+          sourceEventId: this.sourceEventId, victoryId: this.victoryId,
+        }, sourceEvents(this.registry));
+        this.scene.start(target.scene, target.data);
       },
     });
   }
@@ -131,7 +126,10 @@ export class CaptureQuizScene extends Phaser.Scene {
         required: requiredCorrectAnswers(this.total),
       }),
       npcLine: `${lt(this, chapter.npcName)}: ${lt(this, chapter.retryLine)}`,
-      onRetry: () => this.sourceEventId ? this.scene.start("open-source-event") : this.scene.start(this.nextTarget.scene, this.nextTarget.data),
+      onRetry: () => {
+        const target = retryCaptureTarget(this.sourceEventId, this.nextTarget);
+        this.scene.start(target.scene, target.data);
+      },
     });
   }
 

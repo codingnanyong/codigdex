@@ -1,9 +1,10 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { createEmptySave } from "@codigdex/game-core/save/schema";
 import { CHAPTERS } from "@codigdex/game-content/domain/chapters";
 import { CAREER_PATHS } from "@codigdex/game-content/domain/careerPaths";
 import { monstersForCareerRegion } from "@codigdex/game-content/domain/careerRegionMonsters";
-import { SourceEventSession, parseEncounterHistory, sourceEventStorageKey } from "@/lib/phaser/openSourceEvents";
+import { SourceEventSession } from "@/lib/phaser/openSourceEvents";
+import { parseEncounterHistory, sourceEventStorageKey } from "@/lib/phaser/openSourceEventStorage";
 
 function fixture() {
   const before = createEmptySave("ko");
@@ -18,6 +19,26 @@ function fixture() {
 }
 
 describe("local encounter session", () => {
+  it("keeps queries read-only and persists stale cleanup only when explicitly resolved", () => {
+    const { before, after, trigger, io } = fixture();
+    const notify = vi.fn();
+    const storage = { ...io, setItem: vi.fn(io.setItem) };
+    const session = new SourceEventSession(storage, notify);
+    session.queue(before, after, trigger, { scene: "world-map" });
+    storage.setItem.mockClear();
+    notify.mockClear();
+    const changed = { ...after, player: { ...after.player, primaryJobId: "backend" } };
+    expect(session.pending(changed)).toBeUndefined();
+    expect(session.canBattle(changed, "old-id", "open-source:tanstack-query")).toBe(false);
+    expect(storage.setItem).not.toHaveBeenCalled();
+    expect(notify).not.toHaveBeenCalled();
+    expect(session.resolvePending(changed)).toBeUndefined();
+    expect(storage.setItem).toHaveBeenCalledOnce();
+    expect(notify).toHaveBeenCalledOnce();
+    expect(new SourceEventSession(io).pending(after)).toBeUndefined();
+    session.resolvePending(changed);
+    expect(notify).toHaveBeenCalledOnce();
+  });
   it("restores offers and active requests after reload without modifying the game's save", () => {
     const { before, after, trigger, io, values } = fixture();
     const session = new SourceEventSession(io);
@@ -40,7 +61,7 @@ describe("local encounter session", () => {
     const session = new SourceEventSession(io);
     session.queue(before, after, trigger, { scene: "world-map" });
     const changed = { ...after, player: { ...after.player, primaryJobId: "backend" } };
-    expect(session.pending(changed)).toBeUndefined();
+    expect(session.resolvePending(changed)).toBeUndefined();
     expect(session.read(after).discoveries).toHaveLength(1);
     const fresh = structuredClone(after);
     fresh.progress.captures[0].capturedAt = "2026-10-29T00:00:00.000Z";
@@ -66,7 +87,7 @@ describe("local encounter session", () => {
   it("clears missing-trigger requests and preserves ordinary cards when local history is cleared", () => {
     const { before, after, trigger, io, values } = fixture();
     const pending = new SourceEventSession(io).queue(before, after, trigger, { scene: "world-map" })!;
-    expect(new SourceEventSession(io).pending(before)).toBeUndefined();
+    expect(new SourceEventSession(io).resolvePending(before)).toBeUndefined();
     expect(new SourceEventSession(io).read(after).discoveries).toHaveLength(1);
     after.progress.captures.push({ id: "open-source:tanstack-query", capturedAt: "2026-10-28T02:00:00.000Z" });
     const savedCards = JSON.stringify(after.progress.captures);
