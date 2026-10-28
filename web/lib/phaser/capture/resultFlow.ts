@@ -1,9 +1,7 @@
 import { unlockAfter } from "@codigdex/game-content/domain/chapters";
+import type { SourceReturnTarget } from "@codigdex/game-content/domain/openSourceEncounters";
 
-export type CaptureReturnTarget = {
-  scene: "world-map" | "job-select" | "career-region" | "promotion-chapter";
-  data?: Record<string, unknown>;
-};
+export type CaptureReturnTarget = SourceReturnTarget;
 
 export interface CaptureSuccessFlow {
   regionCleared: boolean;
@@ -16,8 +14,9 @@ export function resolveCaptureSuccessFlow(
   monsterId: string,
   isNewEntry: boolean,
   fallback: CaptureReturnTarget,
-  careerCleared = false
+  { careerCleared = false, sourceEventId }: { careerCleared?: boolean; sourceEventId?: string } = {}
 ): CaptureSuccessFlow {
+  if (sourceEventId) return { regionCleared: false, careerCleared: false, target: fallback };
   const regionCleared = isNewEntry && unlockAfter(monsterId).kind === "career-region-complete";
   return {
     regionCleared,

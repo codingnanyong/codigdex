@@ -16,7 +16,7 @@ export class OpenSourceEventScene extends Phaser.Scene {
   constructor() { super("open-source-event"); }
 
   preload() {
-    const pending = sourceEvents(this.registry).pending(snapshotRegistry(this.registry));
+    const pending = sourceEvents(this.registry).resolvePending(snapshotRegistry(this.registry));
     const stage = pending && openSourceStageFor(pending.toolId);
     if (stage) showLoadingScreen(this, queueImages(this, [{ key: stage.textureKey, url: assetUrl(stage.assetKey) }]), lt(this, stage.name));
   }
@@ -24,7 +24,7 @@ export class OpenSourceEventScene extends Phaser.Scene {
   create() {
     const save = snapshotRegistry(this.registry);
     const session = sourceEvents(this.registry);
-    const pending = session.pending(save);
+    const pending = session.resolvePending(save);
     const entry = pending && findOpenSource(pending.toolId);
     const stage = pending && openSourceStageFor(pending.toolId);
     if (!pending || !entry || !stage) { this.scene.start("world-map"); return; }

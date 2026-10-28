@@ -1,34 +1,14 @@
 import { test, expect, type Page } from "@playwright/test";
-import { CHAPTERS, findStage } from "@codigdex/game-content/domain/chapters";
+import { CHAPTERS } from "@codigdex/game-content/domain/chapters";
 import { CAREER_PATHS } from "@codigdex/game-content/domain/careerPaths";
 import { OPEN_SOURCE_EXPEDITIONS } from "@codigdex/game-content/domain/openSourceChapters";
 import { SOURCE_CAREERS } from "@codigdex/game-content/domain/openSourceEncounters";
 import { createEmptySave, type StoredGameStateV3 } from "@codigdex/game-core/save/schema";
-import { loadMixedQuizPack } from "@codigdex/quiz-content";
+import { scene, clickGame as click, readSave, bootGame as boot, reloadGame as reload, answerBattle, confirmResult } from "../test-support/game";
 import { webQAPresets } from "../lib/qa/presets";
 import { careerCheckpointLayout } from "../lib/phaser/worldMap/careerCheckpointLayout";
 import type { JobId } from "@codigdex/game-content/domain/player/jobs";
 
-const game = (page: Page) => page.getByRole("application");
-const readSave = (page: Page): Promise<StoredGameStateV3> => page.evaluate(() => JSON.parse(localStorage.getItem("codigdex:save:v3")!));
-async function scene(page: Page, value: string) { await expect(game(page)).toHaveAttribute("data-scene", value, { timeout: 20000 }); }
-async function click(page: Page, x: number, y: number) {
-  const canvas = page.locator(".pixel-canvas canvas");
-  const box = (await canvas.boundingBox())!;
-  await canvas.click({ position: { x: x * box.width / 960, y: y * box.height / 540 } });
-  await page.evaluate(() => new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
-}
-async function boot(page: Page, save: StoredGameStateV3) {
-  await page.addInitScript((save) => {
-    if (sessionStorage.getItem("encounter-seeded")) return;
-    localStorage.setItem("codigdex:save:v3", JSON.stringify(save));
-    sessionStorage.setItem("encounter-seeded", "1");
-  }, save);
-  await page.goto("/");
-  await scene(page, "intro");
-  await page.keyboard.press("Enter");
-}
-async function reload(page: Page) { await page.reload(); await scene(page, "intro"); await page.keyboard.press("Enter"); }
 async function firstCareerBattle(page: Page, save: StoredGameStateV3) {
   if (save.player.secondaryJobId) { await scene(page, "promotion-chapter"); await click(page, 742, 509); }
   else {
@@ -42,34 +22,6 @@ async function firstCareerBattle(page: Page, save: StoredGameStateV3) {
   }
   await scene(page, "code-battle");
 }
-async function answerBattle(page: Page, monsterId: string, pass = true) {
-  const pack = await loadMixedQuizPack(findStage(monsterId).monster.quizPackId);
-  const controls = page.locator(".battle-controls");
-  await expect(controls).toBeVisible();
-  for (let i = 0; i < 10 && await game(page).getAttribute("data-scene") === "code-battle"; i++) {
-    const prompt = await controls.locator(".battle-prompt").innerText();
-    const question = pack.questions.find(({ prompt: copy }) => copy.en === prompt || copy.ko === prompt);
-    if (!question) throw new Error(`Unexpected prompt: ${prompt}`);
-    if (question.type === "freeText") {
-      await controls.getByRole("textbox").fill(pass ? question.acceptedAnswers[0] : "definitely-wrong-answer");
-      await controls.getByRole("button", { name: /^(SUBMIT|제출)$/ }).click();
-    } else {
-      const answer = question.choices[pass ? question.answerIndex : (question.answerIndex + 1) % question.choices.length];
-      const text = question.prompt.en === prompt ? answer.en : answer.ko;
-      await controls.getByRole("button", { name: new RegExp(text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "$") }).click();
-    }
-    await controls.getByRole("button", { name: /^(NEXT QUESTION|SHOW RESULT|다음 문제|결과 확인)$/ }).click();
-    await page.evaluate(() => new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
-  }
-  await scene(page, "capture-quiz");
-}
-async function confirmResult(page: Page) {
-  for (let y = 505; y >= 280; y -= 10) {
-    if (await game(page).getAttribute("data-scene") !== "capture-quiz") break;
-    await click(page, 480, y);
-  }
-}
-
 for (const career of SOURCE_CAREERS) test(`meets ${career.firstTool} inside the ${career.id} adventure and returns with progress intact`, async ({ page }) => {
   test.setTimeout(90000);
   const errors: string[] = [];

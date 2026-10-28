@@ -1,0 +1,31 @@
+Handoff: WEB encounter and capture-flow refactor, 2026-10-28 (KST)
+
+- Owner: Codex
+- Reviewer: Claude GitHub Action on the feature/release PRs. Final independent findings and CI results are recorded on those PRs.
+- Scope: Implement the recommended WEB refactors while preserving gameplay, existing browser storage and save-v3 compatibility. Mobile screen decomposition is deferred until home Android emulator acceptance, as stated at task start.
+- Changed files:
+  - packages/game-content/src/domain/openSourceEncounters.ts: export the processed-victory retention limit for reuse by the planner and persisted-history parser.
+  - web/lib/phaser/openSourceEventStorage.ts: extract adventure key generation and bounded, typed validation of stored history, tool/career pairs, pending requests and allowed return data. Keep the v1 storage key and existing valid payloads.
+  - web/lib/phaser/openSourceEvents.ts: retain encounter lifecycle and notifications; pending() is a query without storage writes/notifications, resolvePending() explicitly reconciles stale requests at transition boundaries.
+  - web/lib/phaser/scenes/IntroScene.ts and OpenSourceEventScene.ts: explicitly reconcile pending state when continuing/resuming an adventure.
+  - web/lib/phaser/capture/resultFlow.ts and resultNavigation.ts: use one return-target type; separate success presentation decisions and confirm/retry routing from Phaser UI.
+  - web/lib/phaser/scenes/CaptureQuizScene.ts: delegate result routing, retain card writes and normal checkpoint preservation.
+  - web/test-support/game.ts: share save seeding that survives reloads, startup, scene waits, canvas scaling, frame waits, localized battle answers and result confirmation.
+  - web/e2e/game.expedition.spec.ts, game.promotion.spec.ts, game.mixed.spec.ts and web/home-e2e/features.spec.ts: reuse helpers while retaining their scenario assertions; specialized hint/input checks remain explicit.
+  - web/test/phaser/openSourceEvents.test.ts, openSourceEventStorage.test.ts, captureResultFlow.test.ts and captureResultNavigation.test.ts: query/command separation, persisted legacy state, malformed/unsafe payloads, real-session completion/retry/cooldown/fallback and checkpoint preservation.
+  - qa/home/web-encounter-refactor-handoff.txt: this report.
+- Generated assets: None. Existing game visuals and generated public mirrors are untouched. Ignored browser evidence lives in qa-results/ and mobile/.tmp-qa/.
+- Checks run:
+  - WEB unit tests: 612/612 in 49 files, including 17 additional behavior/compatibility cases.
+  - WEB production build and TypeScript passed; all workspace typechecks and package boundaries passed.
+  - check:agents passed (links/setup/hooks); home QA generation verified 13 case files and 11 runner checks passed.
+  - Browser production-build E2E: 29/29 passed, including all ten career encounters, all five full promotion paths, defer/retry/reload, legacy bookmarks and card preservation.
+  - Feature journeys: 11/11 passed with the shared helpers. Final WEB lint passed without warnings.
+  - Independent CI/review and deployed-production results are recorded in the PR after completion.
+  - git diff --check passed before staging; cached diff is checked before commit.
+- Remaining risks or review items:
+  - No gameplay/content, mobile UI, save schema or storage-key migration is introduced. The local encounter-history persistence limitations are unchanged.
+  - Android/iOS runtime acceptance remains for the user's home emulator. No native mobile release is performed.
+  - Mobile NativeGame.tsx screen/state decomposition remains a separate follow-up after that runtime baseline; it is not included in this change.
+  - Existing Claude-owned bilingual feature documentation remains tracked by COD-411; this refactor introduces no new player-facing behavior.
+  - WEB deployment follows the user's standing authorization to test WEB and deploy only after checks pass. Production verification and final commit are recorded in the release PR and QA issues.
