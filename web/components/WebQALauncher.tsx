@@ -48,7 +48,7 @@ export function WebQALauncher({ presets }: { presets: WebQAPreset[] }) {
     </header>
     <aside className={styles.checklist}>
       <strong>추천 확인 순서</strong>
-      <ol><li>바람새의 시간표: Airflow 전투 → 포획 → 새로고침</li><li>끊어진 전령길: Kafka부터 차례대로 포획 → 다음 의뢰 해금</li><li>플랫폼 엔지니어 / SRE: 다섯 의뢰 → MASTER → 재접속</li></ol>
+      <ol><li>데이터 엔지니어: 직무 전투 완료 → Airflow 돌발 의뢰 → 포획 → 원래 직무로 복귀</li><li>프론트엔드: 직무 전투 완료 → TanStack Query 의뢰를 나중으로 미루기 → 발견 노트 확인</li><li>플랫폼 엔지니어 / SRE: 돌발 의뢰와 본래 다섯 의뢰 → MASTER → 재접속</li></ol>
       <p>정답과 오답을 섞어 재도전도 확인하고, 화면이 잘리거나 흐름이 멈추면 시작점·문제 문구를 알려 주세요.</p>
     </aside>
     {groups.map((group) => <section key={group} className={styles.section}>

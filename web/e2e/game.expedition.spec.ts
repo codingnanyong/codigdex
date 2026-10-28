@@ -1,161 +1,166 @@
-import { test, expect } from "@playwright/test";
-import { CHAPTERS } from "@codigdex/game-content/domain/chapters";
+import { test, expect, type Page } from "@playwright/test";
+import { CHAPTERS, findStage } from "@codigdex/game-content/domain/chapters";
+import { CAREER_PATHS } from "@codigdex/game-content/domain/careerPaths";
 import { OPEN_SOURCE_EXPEDITIONS } from "@codigdex/game-content/domain/openSourceChapters";
-import { createEmptySave } from "@codigdex/game-core/save/schema";
+import { SOURCE_CAREERS } from "@codigdex/game-content/domain/openSourceEncounters";
+import { createEmptySave, type StoredGameStateV3 } from "@codigdex/game-core/save/schema";
 import { loadMixedQuizPack } from "@codigdex/quiz-content";
+import { webQAPresets } from "../lib/qa/presets";
+import { careerCheckpointLayout } from "../lib/phaser/worldMap/careerCheckpointLayout";
+import type { JobId } from "@codigdex/game-content/domain/player/jobs";
 
-for (const job of ["junior", "backend"] as const) test(`returns from an expedition to ${job} career progression without losing captures`, async ({ page }) => {
+const game = (page: Page) => page.getByRole("application");
+const readSave = (page: Page): Promise<StoredGameStateV3> => page.evaluate(() => JSON.parse(localStorage.getItem("codigdex:save:v3")!));
+async function scene(page: Page, value: string) { await expect(game(page)).toHaveAttribute("data-scene", value, { timeout: 20000 }); }
+async function click(page: Page, x: number, y: number) {
+  const canvas = page.locator(".pixel-canvas canvas");
+  const box = (await canvas.boundingBox())!;
+  await canvas.click({ position: { x: x * box.width / 960, y: y * box.height / 540 } });
+  await page.evaluate(() => new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
+}
+async function boot(page: Page, save: StoredGameStateV3) {
+  await page.addInitScript((save) => {
+    if (sessionStorage.getItem("encounter-seeded")) return;
+    localStorage.setItem("codigdex:save:v3", JSON.stringify(save));
+    sessionStorage.setItem("encounter-seeded", "1");
+  }, save);
+  await page.goto("/");
+  await scene(page, "intro");
+  await page.keyboard.press("Enter");
+}
+async function reload(page: Page) { await page.reload(); await scene(page, "intro"); await page.keyboard.press("Enter"); }
+async function firstCareerBattle(page: Page, save: StoredGameStateV3) {
+  if (save.player.secondaryJobId) { await scene(page, "promotion-chapter"); await click(page, 742, 509); }
+  else {
+    await scene(page, "world-map");
+    const job = save.player.primaryJobId as JobId;
+    const region = CAREER_PATHS[job].regions[0];
+    await click(page, region.lift.x, region.lift.y);
+    await scene(page, "career-region");
+    const point = careerCheckpointLayout(job, region.id)[0];
+    await click(page, point.x, point.y);
+  }
+  await scene(page, "code-battle");
+}
+async function answerBattle(page: Page, monsterId: string, pass = true) {
+  const pack = await loadMixedQuizPack(findStage(monsterId).monster.quizPackId);
+  const controls = page.locator(".battle-controls");
+  await expect(controls).toBeVisible();
+  for (let i = 0; i < 10 && await game(page).getAttribute("data-scene") === "code-battle"; i++) {
+    const prompt = await controls.locator(".battle-prompt").innerText();
+    const question = pack.questions.find(({ prompt: copy }) => copy.en === prompt || copy.ko === prompt);
+    if (!question) throw new Error(`Unexpected prompt: ${prompt}`);
+    if (question.type === "freeText") {
+      await controls.getByRole("textbox").fill(pass ? question.acceptedAnswers[0] : "definitely-wrong-answer");
+      await controls.getByRole("button", { name: /^(SUBMIT|제출)$/ }).click();
+    } else {
+      const answer = question.choices[pass ? question.answerIndex : (question.answerIndex + 1) % question.choices.length];
+      const text = question.prompt.en === prompt ? answer.en : answer.ko;
+      await controls.getByRole("button", { name: new RegExp(text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "$") }).click();
+    }
+    await controls.getByRole("button", { name: /^(NEXT QUESTION|SHOW RESULT|다음 문제|결과 확인)$/ }).click();
+    await page.evaluate(() => new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
+  }
+  await scene(page, "capture-quiz");
+}
+async function confirmResult(page: Page) {
+  for (let y = 505; y >= 280; y -= 10) {
+    if (await game(page).getAttribute("data-scene") !== "capture-quiz") break;
+    await click(page, 480, y);
+  }
+}
+
+for (const career of SOURCE_CAREERS) test(`meets ${career.firstTool} inside the ${career.id} adventure and returns with progress intact`, async ({ page }) => {
+  test.setTimeout(90000);
+  const errors: string[] = [];
+  page.on("pageerror", error => errors.push(error.message));
+  const seed = webQAPresets("en").find(({ id }) => id === `encounter:${career.id}`)!.save;
+  const normalMonster = seed.ui.checkpointId!;
+  await boot(page, seed);
+  await firstCareerBattle(page, seed);
+  await answerBattle(page, normalMonster);
+  const normalCheckpoint = (await readSave(page)).ui.checkpointId;
+  await confirmResult(page);
+  await scene(page, "open-source-event");
+  await page.screenshot({ path: `../mobile/.tmp-qa/encounter-${career.id}.png` });
+  await page.getByRole("button", { name: "OPEN-SOURCE NOTES", exact: true }).click();
+  const notes = page.getByRole("dialog");
+  await expect(notes.locator("article")).toHaveCount(1);
+  await expect(notes.locator(`[data-project="${career.firstTool}"]`)).toBeVisible();
+  await expect(notes.getByRole("button", { name: /START MISSION|REPLAY MISSION/ })).toHaveCount(0);
+  await page.keyboard.press("Escape");
+  if (career.id === "frontend") { await reload(page); await scene(page, "open-source-event"); }
+  await click(page, 718, 501);
+  await scene(page, "code-battle");
+  await answerBattle(page, `open-source:${career.firstTool}`);
+  const captured = await readSave(page);
+  expect(captured.ui.checkpointId).toBe(normalCheckpoint);
+  expect(captured.player).toEqual(seed.player);
+  expect(captured.progress.captures.filter(({ id }) => id === `open-source:${career.firstTool}`)).toHaveLength(1);
+  expect(captured.progress.captures).toEqual(expect.arrayContaining(seed.progress.captures));
+  if (career.id === "data-engineer") { await reload(page); await scene(page, "open-source-event"); await click(page, 718, 501); }
+  else await confirmResult(page);
+  await scene(page, seed.player.secondaryJobId ? "promotion-chapter" : "career-region");
+  await reload(page);
+  await scene(page, seed.player.secondaryJobId ? "promotion-chapter" : "world-map");
+  expect((await readSave(page)).ui.checkpointId).toBe(normalCheckpoint);
+  expect(errors).toEqual([]);
+});
+
+test("can postpone a request and keep its note without rerolling a replay", async ({ page }) => {
+  const seed = webQAPresets("en").find(({ id }) => id === "encounter:frontend")!.save;
+  await boot(page, seed);
+  await firstCareerBattle(page, seed);
+  await answerBattle(page, seed.ui.checkpointId!);
+  await confirmResult(page);
+  await scene(page, "open-source-event");
+  await click(page, 242, 501);
+  await scene(page, "career-region");
+  expect((await readSave(page)).progress.captures.some(({ id }) => id.startsWith("open-source:"))).toBe(false);
+  await reload(page);
+  await scene(page, "world-map");
+  await page.getByRole("button", { name: "OPEN-SOURCE NOTES", exact: true }).click();
+  await expect(page.getByRole("dialog").locator('[data-project="tanstack-query"]')).toBeVisible();
+  await page.keyboard.press("Escape");
+  await firstCareerBattle(page, seed);
+  await answerBattle(page, seed.ui.checkpointId!);
+  await confirmResult(page);
+  await scene(page, "career-region");
+});
+
+test("retries an event after failure and restores a pending request on reload", async ({ page }) => {
+  test.setTimeout(90000);
+  const seed = webQAPresets("ko").find(({ id }) => id === "encounter:frontend")!.save;
+  await page.setViewportSize({ width: 390, height: 844 });
+  await boot(page, seed);
+  await firstCareerBattle(page, seed);
+  await answerBattle(page, seed.ui.checkpointId!);
+  const checkpoint = (await readSave(page)).ui.checkpointId;
+  await confirmResult(page);
+  await scene(page, "open-source-event");
+  await page.screenshot({ path: "../mobile/.tmp-qa/encounter-narrow-ko.png" });
+  await click(page, 718, 501);
+  await answerBattle(page, "open-source:tanstack-query", false);
+  expect((await readSave(page)).progress.captures.some(({ id }) => id === "open-source:tanstack-query")).toBe(false);
+  await reload(page);
+  await scene(page, "open-source-event");
+  await click(page, 718, 501);
+  await answerBattle(page, "open-source:tanstack-query");
+  await confirmResult(page);
+  await scene(page, "career-region");
+  expect((await readSave(page)).ui.checkpointId).toBe(checkpoint);
+});
+
+for (const job of ["junior", "backend"] as const) test(`migrates old expedition bookmarks back into ${job} progression and keeps old cards`, async ({ page }) => {
   const save = createEmptySave("en");
   save.progress.captures = [...CHAPTERS.flatMap(({ stages }) => stages), OPEN_SOURCE_EXPEDITIONS[0].chapter.stages[0]].map(({ id }) => ({ id, capturedAt: "2026-10-28T00:00:00.000Z" }));
   save.player.primaryJobId = job;
   save.ui.tutorialOnboardingSeen = true;
   save.ui.checkpointId = OPEN_SOURCE_EXPEDITIONS[1].chapter.stages[0].id;
-  await page.addInitScript((seed) => {
-    if (sessionStorage.getItem("exit-seeded")) return;
-    localStorage.setItem("codigdex:save:v3", JSON.stringify(seed));
-    sessionStorage.setItem("exit-seeded", "1");
-  }, save);
-  await page.goto("/");
-  const game = page.getByRole("application");
-  await expect(game).toHaveAttribute("data-scene", "intro", { timeout: 20000 });
-  await page.keyboard.press("Enter");
-  await expect(game).toHaveAttribute("data-scene", "open-source-chapter");
-  const canvas = page.locator(".pixel-canvas canvas");
-  const box = (await canvas.boundingBox())!;
-  await canvas.click({ position: { x: 240 * box.width / 960, y: 463 * box.height / 540 } });
-  await expect(game).toHaveAttribute("data-scene", job === "junior" ? "job-select" : "world-map");
-  const stored = await page.evaluate(() => JSON.parse(localStorage.getItem("codigdex:save:v3")!));
-  expect(stored.progress.captures).toHaveLength(save.progress.captures.length);
-  expect(stored.progress.captures).toEqual(expect.arrayContaining(save.progress.captures));
-  expect(stored.ui.checkpointId).toBeUndefined();
-  await page.reload();
-  await expect(game).toHaveAttribute("data-scene", "intro");
-  await page.keyboard.press("Enter");
-  await expect(game).toHaveAttribute("data-scene", job === "junior" ? "job-select" : "world-map");
-});
-
-for (const { chapter } of OPEN_SOURCE_EXPEDITIONS) test(`captures and restores every mission in ${chapter.id}`, async ({ page }) => {
-  test.setTimeout(180_000);
-  const save = createEmptySave("en");
-  save.progress.captures = CHAPTERS.flatMap(({ stages }) => stages).map(({ id }) => ({ id, capturedAt: "2026-10-27T00:00:00.000Z" }));
-  save.ui.tutorialOnboardingSeen = true;
-  await page.addInitScript((save) => {
-    if (sessionStorage.getItem("expedition-seeded")) return;
-    localStorage.setItem("codigdex:save:v3", JSON.stringify(save));
-    sessionStorage.setItem("expedition-seeded", "1");
-  }, save);
-  const errors: string[] = [];
-  page.on("pageerror", (error) => errors.push(error.message));
-  await page.goto("/");
-  const game = page.getByRole("application");
-  await expect(game).toHaveAttribute("data-scene", "intro", { timeout: 20_000 });
+  await boot(page, save);
+  await scene(page, job === "junior" ? "job-select" : "world-map");
+  expect((await readSave(page)).progress.captures).toEqual(expect.arrayContaining(save.progress.captures));
+  expect((await readSave(page)).ui.checkpointId).toBeUndefined();
   await page.getByRole("button", { name: "OPEN-SOURCE NOTES", exact: true }).click();
-  const firstCard = page.locator(`[data-project="${chapter.stages[0].id.slice(12)}"]`);
-  await expect(firstCard.getByRole("button", { name: "STORY · START MISSION", exact: true })).toBeEnabled();
-  if (chapter.stages[1]) await expect(page.locator(`[data-project="${chapter.stages[1].id.slice(12)}"]`).getByRole("button", { name: "STORY · START MISSION", exact: true })).toBeDisabled();
-  await firstCard.getByRole("button", { name: "STORY · START MISSION", exact: true }).click();
-  await expect(game).toHaveAttribute("data-scene", "open-source-chapter");
-  const canvas = page.locator(".pixel-canvas canvas");
-  const click = async (x: number, y: number) => {
-    const box = (await canvas.boundingBox())!;
-    await canvas.click({ position: { x: x * box.width / 960, y: y * box.height / 540 } });
-    await page.evaluate(() => new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
-  };
-  for (const monster of chapter.stages) {
-    const pack = await loadMixedQuizPack(monster.quizPackId);
-    await click(718, 509);
-    const controls = page.locator(".battle-controls");
-    await expect(controls).toBeVisible();
-    for (let answered = 0; answered < 3; answered++) {
-      const prompt = await controls.locator(".battle-prompt").innerText();
-      const question = pack.questions.find(({ prompt: copy }) => copy.en === prompt);
-      if (!question || question.type === "freeText") throw new Error(`Unexpected expedition prompt: ${prompt}`);
-      const correct = question.choices[question.answerIndex].en;
-      // Choice numbering is randomized by the real battle; match its answer text.
-      const answer = controls.getByRole("button", { name: new RegExp(correct.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "$") });
-      await answer.click();
-      await controls.getByRole("button", { name: /^(NEXT QUESTION|SHOW RESULT)$/ }).click();
-    }
-    await expect(game).toHaveAttribute("data-scene", "capture-quiz");
-    for (let y = 505; y >= 290; y -= 12) {
-      if (await game.getAttribute("data-scene") !== "capture-quiz") break;
-      await click(480, y);
-    }
-    await expect(game).toHaveAttribute("data-scene", "open-source-chapter");
-    const stored = await page.evaluate(() => JSON.parse(localStorage.getItem("codigdex:save:v3")!));
-    expect(stored.progress.captures.some(({ id }: { id: string }) => id === monster.id)).toBe(true);
-    expect(stored.player.primaryJobId).toBe("junior");
-    expect(stored.player.secondaryJobId).toBeNull();
-    // The seeded common path already earns JUNIOR MASTER; expeditions must not earn another career.
-    expect(stored.progress.careers.some(({ id, masteredAt }: { id: string; masteredAt?: string }) => id !== "junior" && masteredAt)).toBe(false);
-  }
-  await page.screenshot({ path: `../mobile/.tmp-qa/expedition-${chapter.id.slice(12)}-complete-en.png` });
-  await page.reload();
-  await expect(game).toHaveAttribute("data-scene", "intro");
-  await page.keyboard.press("Enter");
-  await expect(game).toHaveAttribute("data-scene", "open-source-chapter");
-  const stored = await page.evaluate(() => JSON.parse(localStorage.getItem("codigdex:save:v3")!));
-  expect(stored.progress.captures.filter(({ id }: { id: string }) => id.startsWith("open-source:"))).toHaveLength(chapter.stages.length);
-  // Replays use the saved record and never register a duplicate capture.
-  await click(718, 509);
-  await expect(page.locator(".battle-controls")).toBeVisible();
-  await page.getByRole("button", { name: "OPEN-SOURCE NOTES", exact: true }).click();
-  await expect(page.getByRole("dialog").locator("article")).toHaveCount(38);
-  await firstCard.getByRole("button", { name: "REPLAY MISSION", exact: true }).click();
-  await expect(game).toHaveAttribute("data-scene", "open-source-chapter");
-  await expect(page.locator(".battle-controls")).toHaveCount(0);
-  await click(240, 509);
-  await expect(page.getByRole("dialog").locator("article")).toHaveCount(38);
-  await page.keyboard.press("Escape");
-  await expect(game).toHaveAttribute("data-scene", "open-source-chapter");
-  expect(errors).toEqual([]);
-});
-
-test("plays Korean failure, retry and capture on a narrow screen", async ({ page }) => {
-  test.setTimeout(60_000);
-  const save = createEmptySave("ko");
-  save.progress.captures = CHAPTERS.flatMap(({ stages }) => stages).map(({ id }) => ({ id, capturedAt: "2026-10-27T00:00:00.000Z" }));
-  save.ui.tutorialOnboardingSeen = true;
-  await page.addInitScript((save) => localStorage.setItem("codigdex:save:v3", JSON.stringify(save)), save);
-  await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto("/");
-  const game = page.getByRole("application");
-  await expect(game).toHaveAttribute("data-scene", "intro", { timeout: 20_000 });
-  await page.getByRole("button", { name: "오픈소스 탐험", exact: true }).click();
-  const dialog = page.getByRole("dialog");
-  await dialog.getByLabel("검색", { exact: true }).fill("airflow");
-  await dialog.getByRole("button", { name: "이야기 · 의뢰 시작", exact: true }).click();
-  await expect(game).toHaveAttribute("data-scene", "open-source-chapter");
-  const canvas = page.locator(".pixel-canvas canvas");
-  const click = async (x: number, y: number) => {
-    const box = (await canvas.boundingBox())!;
-    await canvas.click({ position: { x: x * box.width / 960, y: y * box.height / 540 } });
-    await page.evaluate(() => new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
-  };
-  const monster = OPEN_SOURCE_EXPEDITIONS.find(({ chapter }) => chapter.id === "open-source:orchestration")!.chapter.stages[0];
-  const pack = await loadMixedQuizPack(monster.quizPackId);
-  for (const succeed of [false, true]) {
-    await click(718, 509);
-    const controls = page.locator(".battle-controls");
-    await expect(controls).toBeVisible();
-    if (succeed) await page.screenshot({ path: "../mobile/.tmp-qa/expedition-battle-mobile-ko.png" });
-    const total = succeed ? 3 : 2;
-    for (let i = 0; i < total; i++) {
-      const prompt = await controls.locator(".battle-prompt").innerText();
-      const question = pack.questions.find(({ prompt: copy }) => copy.ko === prompt);
-      if (!question || question.type === "freeText") throw new Error(`Unexpected Korean prompt: ${prompt}`);
-      const choice = question.choices[succeed ? question.answerIndex : (question.answerIndex + 1) % 4].ko;
-      await controls.getByRole("button", { name: new RegExp(choice.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "$") }).click();
-      await controls.getByRole("button", { name: /^(다음 문제|결과 확인)$/ }).click();
-    }
-    await expect(game).toHaveAttribute("data-scene", "capture-quiz");
-    const stored = await page.evaluate(() => JSON.parse(localStorage.getItem("codigdex:save:v3")!));
-    expect(stored.progress.captures.some(({ id }: { id: string }) => id === monster.id)).toBe(succeed);
-    for (let y = 505; y >= 290; y -= 12) {
-      if (await game.getAttribute("data-scene") !== "capture-quiz") break;
-      await click(480, y);
-    }
-    await expect(game).toHaveAttribute("data-scene", "open-source-chapter");
-  }
-  await page.screenshot({ path: "../mobile/.tmp-qa/expedition-complete-mobile-ko.png" });
+  await expect(page.getByRole("dialog").locator('[data-project="hadoop"]')).toBeVisible();
 });

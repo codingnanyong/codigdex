@@ -92,7 +92,7 @@ describe.each(OPEN_SOURCE_EXPEDITIONS)("$chapter.id expedition", ({ chapter }) =
       expect(save.progress.captures.some(({ id }) => id === monster.id)).toBe(true);
     }
     expect(openSourceCheckpoints(save).filter(({ chapter: current }) => current.id === chapter.id).every(({ status }) => status === "cleared")).toBe(true);
-    const fallback = { scene: "open-source-chapter" as const, data: { family: chapter.id.slice(12) } };
+    const fallback = { scene: "world-map" as const };
     expect(resolveCaptureSuccessFlow(chapter.stages.at(-1)!.id, true, fallback).target).toEqual(fallback);
   });
   it("keeps failed battles replayable without advancing progress", async () => {

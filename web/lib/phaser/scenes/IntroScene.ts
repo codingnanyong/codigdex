@@ -8,7 +8,8 @@ import { PALETTE, PALETTE_HEX } from "../palette";
 import { createSettingsButton } from "../settings/settingsButton";
 import { pixelText } from "../pixelFont";
 import { addShade, applyPixelFontToScene, createButton, drawOrnateFrame } from "../ui";
-import { hasSavedProgress, resetGameProgress } from "../registryAdapter";
+import { hasSavedProgress, resetGameProgress, snapshotRegistry } from "../registryAdapter";
+import { sourceEvents } from "../openSourceEvents";
 
 /** Title screen: the archive painting, the wordmark, and PRESS START. */
 export class IntroScene extends Phaser.Scene {
@@ -162,6 +163,6 @@ export class IntroScene extends Phaser.Scene {
     this.leaving = true;
 
     this.cameras.main.fadeOut(450, 24, 15, 8);
-    this.time.delayedCall(450, () => this.scene.start("world-map"));
+    this.time.delayedCall(450, () => this.scene.start(sourceEvents(this.registry).pending(snapshotRegistry(this.registry)) ? "open-source-event" : "world-map"));
   }
 }

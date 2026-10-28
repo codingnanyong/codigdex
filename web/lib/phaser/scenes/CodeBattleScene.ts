@@ -18,10 +18,13 @@ import { preloadMonsterArt } from "../monsterArt";
 import { createHomeButton } from "../navigation";
 import { pixelText } from "../pixelFont";
 import { applyPixelFontToScene } from "../ui";
+import { sourceEvents } from "../openSourceEvents";
+import type { SourceReturnTarget } from "@codigdex/game-content/domain/openSourceEncounters";
 
 export interface CodeBattleData {
   monsterId: string;
-  returnTo?: { scene: "world-map" | "career-region" | "promotion-chapter" | "open-source-chapter"; data?: Record<string, unknown> };
+  sourceEventId?: string;
+  returnTo?: SourceReturnTarget;
   arena?: ChapterDefinition["arena"];
 }
 
@@ -38,6 +41,8 @@ export class CodeBattleScene extends Phaser.Scene {
   private returnTo?: CodeBattleData["returnTo"];
   private battleArena?: ChapterDefinition["arena"];
   private loadGeneration = 0;
+  private sourceEventId?: string;
+  private victoryId = "";
 
   constructor() {
     super("code-battle");
@@ -47,12 +52,14 @@ export class CodeBattleScene extends Phaser.Scene {
     const { chapter, monster } = findStage(data.monsterId);
     this.chapter = chapter;
     this.monster = monster;
+    this.sourceEventId = data.sourceEventId;
     this.battle = undefined;
     this.feedback = undefined;
     this.returnTo = data.returnTo;
     this.battleArena = data.arena ?? chapter.arena;
     this.locked = false;
     this.loadGeneration += 1;
+    this.victoryId = `${Date.now().toString(36)}:${this.loadGeneration}:${Math.random().toString(36).slice(2)}`;
   }
 
   preload() {
@@ -62,11 +69,11 @@ export class CodeBattleScene extends Phaser.Scene {
 
   create() {
     const save = snapshotRegistry(this.registry);
-    if (!canEnterBattle(save, this.monster.id)) {
+    if (this.sourceEventId ? !sourceEvents(this.registry).canBattle(save, this.sourceEventId, this.monster.id) : !canEnterBattle(save, this.monster.id)) {
       this.scene.start("world-map");
       return;
     }
-    applySaveToRegistry(this.registry, rememberCheckpoint(save, this.monster.id));
+    if (!this.sourceEventId) applySaveToRegistry(this.registry, rememberCheckpoint(save, this.monster.id));
     this.events.once("shutdown", () => { this.loadGeneration += 1; this.locked = true; });
     const { width, height } = this.scale;
     const arena = this.battleArena;
@@ -99,7 +106,7 @@ export class CodeBattleScene extends Phaser.Scene {
       console.error(`[CodeBattleScene] failed to load ${this.monster.quizPackId}`, error);
       if ((!this.sys.isActive() && !this.sys.isPaused()) || generation !== this.loadGeneration) return;
       loading.setText(t(this, "battle.quizLoadFailed"));
-      loading.setInteractive({ useHandCursor: true }).once("pointerup", () => this.scene.restart({ monsterId: this.monster.id, returnTo: this.returnTo, arena: this.battleArena }));
+      loading.setInteractive({ useHandCursor: true }).once("pointerup", () => this.scene.restart({ monsterId: this.monster.id, sourceEventId: this.sourceEventId, returnTo: this.returnTo, arena: this.battleArena }));
       return;
     }
 
@@ -147,6 +154,8 @@ export class CodeBattleScene extends Phaser.Scene {
       this.scene.start('capture-quiz', {
         monsterId: this.monster.id, correctCount: next.correctCount,
         total: next.questions.length, returnTo: this.returnTo,
+        sourceEventId: this.sourceEventId,
+        victoryId: this.victoryId,
       });
       return;
     }
