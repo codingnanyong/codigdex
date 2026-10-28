@@ -3,7 +3,7 @@ import { createEmptySave } from "@codigdex/game-core/save/schema";
 import { CHAPTERS, DEX_MONSTERS } from "@codigdex/game-content/domain/chapters";
 import { CAREER_PATHS } from "@codigdex/game-content/domain/careerPaths";
 import { monstersForCareerRegion } from "@codigdex/game-content/domain/careerRegionMonsters";
-import { SECONDARY_JOB_OPTIONS, type JobId } from "@codigdex/game-content/domain/player/jobs";
+import { JOB_OPTIONS, SECONDARY_JOB_OPTIONS, type JobId } from "@codigdex/game-content/domain/player/jobs";
 import { selectSecondaryCareer } from "@codigdex/game-content/domain/gameProgress";
 import { promotionChapterFor } from "@codigdex/game-content/domain/promotionChapters";
 import { SOURCE_CAREERS, activeSourceCareer, emptyEncounterHistory, encounterTools, planSourceEncounter } from "@codigdex/game-content/domain/openSourceEncounters";
@@ -22,6 +22,8 @@ export function encounterFixture(job: JobId = "frontend") {
 describe("career-integrated open-source encounters", () => {
   it("covers five primary and five earned secondary careers without changing tool identities", () => {
     expect(SOURCE_CAREERS).toHaveLength(10);
+    expect(new Set(SOURCE_CAREERS.map(({ id }) => id))).toEqual(new Set([...JOB_OPTIONS, ...SECONDARY_JOB_OPTIONS].map(({ id }) => id)));
+    expect(encounterTools("missing" as JobId)).toEqual([]);
     const covered = new Set<string>();
     for (const career of SOURCE_CAREERS) {
       const tools = encounterTools(career.id);

@@ -45,7 +45,8 @@ export function activeSourceCareer(save: StoredGameStateV3): SourceCareerId | un
 }
 
 export function encounterTools(id: SourceCareerId) {
-  const career = sourceCareer(id)!;
+  const career = sourceCareer(id);
+  if (!career) return [];
   const tools = career.tools
     ? career.tools.flatMap((tool) => { const entry = findOpenSource(tool); return entry ? [entry] : []; })
     : OPEN_SOURCE_CATALOG.filter((entry) => entry.paths.includes(id as JobId));
@@ -74,7 +75,11 @@ export function emptyEncounterHistory(): SourceEncounterHistory {
   return { processed: [], discoveries: [], offeredCareers: [], sinceOffer: 0 };
 }
 
-/** Each completed career battle can roll once. Replays allow collection after mastery; reloads never reroll. */
+const MIN_BATTLE_GAP = 3;
+const MAX_BATTLE_GAP = 6;
+const ENCOUNTER_CHANCE = 0.25;
+
+/** Each victory rolls once for timing; tool order is stable. An offer counts as discovery even if deferred. */
 export function planSourceEncounter(before: StoredGameStateV3, after: StoredGameStateV3, triggerId: string, returnTo: SourceReturnTarget, history: SourceEncounterHistory, random = Math.random, victoryId?: string): SourceEncounterHistory {
   try {
     const chapter = findStage(triggerId).chapter.id;
@@ -90,7 +95,7 @@ export function planSourceEncounter(before: StoredGameStateV3, after: StoredGame
   const remaining = encounterTools(careerId).filter(({ id }) => !captured.has(`open-source:${id}`));
   if (!remaining.length) return next;
   const first = !history.offeredCareers.includes(careerId);
-  if (!first && (next.sinceOffer < 3 || (next.sinceOffer < 6 && random() >= 0.25))) return next;
+  if (!first && (next.sinceOffer < MIN_BATTLE_GAP || (next.sinceOffer < MAX_BATTLE_GAP && random() >= ENCOUNTER_CHANCE))) return next;
   const undiscovered = remaining.filter(({ id }) => !history.discoveries.some((item) => item.toolId === id && item.careerId === careerId));
   const tool = (undiscovered.length ? undiscovered : remaining)[0];
   return {

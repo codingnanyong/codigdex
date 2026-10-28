@@ -8,8 +8,7 @@ import { PALETTE, PALETTE_HEX } from "../palette";
 import { createSettingsButton } from "../settings/settingsButton";
 import { pixelText } from "../pixelFont";
 import { addShade, applyPixelFontToScene, createButton, drawOrnateFrame } from "../ui";
-import { hasSavedProgress, resetGameProgress } from "../registryAdapter";
-import { snapshotRegistry } from "../registryAdapter";
+import { hasSavedProgress, resetGameProgress, snapshotRegistry } from "../registryAdapter";
 import { sourceEvents } from "../openSourceEvents";
 
 /** Title screen: the archive painting, the wordmark, and PRESS START. */

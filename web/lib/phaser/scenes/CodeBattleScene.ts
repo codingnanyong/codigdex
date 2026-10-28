@@ -19,11 +19,12 @@ import { createHomeButton } from "../navigation";
 import { pixelText } from "../pixelFont";
 import { applyPixelFontToScene } from "../ui";
 import { sourceEvents } from "../openSourceEvents";
+import type { SourceReturnTarget } from "@codigdex/game-content/domain/openSourceEncounters";
 
 export interface CodeBattleData {
   monsterId: string;
   sourceEventId?: string;
-  returnTo?: { scene: "world-map" | "career-region" | "promotion-chapter" | "open-source-chapter"; data?: Record<string, unknown> };
+  returnTo?: SourceReturnTarget;
   arena?: ChapterDefinition["arena"];
 }
 
@@ -105,7 +106,7 @@ export class CodeBattleScene extends Phaser.Scene {
       console.error(`[CodeBattleScene] failed to load ${this.monster.quizPackId}`, error);
       if ((!this.sys.isActive() && !this.sys.isPaused()) || generation !== this.loadGeneration) return;
       loading.setText(t(this, "battle.quizLoadFailed"));
-      loading.setInteractive({ useHandCursor: true }).once("pointerup", () => this.scene.restart({ monsterId: this.monster.id, returnTo: this.returnTo, arena: this.battleArena }));
+      loading.setInteractive({ useHandCursor: true }).once("pointerup", () => this.scene.restart({ monsterId: this.monster.id, sourceEventId: this.sourceEventId, returnTo: this.returnTo, arena: this.battleArena }));
       return;
     }
 

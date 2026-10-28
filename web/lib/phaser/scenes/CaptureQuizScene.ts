@@ -28,7 +28,7 @@ export interface CaptureResultData {
   victoryId?: string;
   correctCount: number;
   total: number;
-  returnTo?: { scene: "world-map" | "career-region" | "promotion-chapter" | "open-source-chapter"; data?: Record<string, unknown> };
+  returnTo?: SourceReturnTarget;
 }
 
 /** Settles a finished battle: reaching the pass line registers the card, anything less offers a retry. */
@@ -79,7 +79,7 @@ export class CaptureQuizScene extends Phaser.Scene {
       !isCareerPathComplete(careerPathFor(selectedJob.id), beforeCaptured) &&
       isCareerPathComplete(careerPathFor(selectedJob.id), afterCaptured);
     const unlock = describeUnlock(monster.id, sceneLocale(this));
-    const flow = resolveCaptureSuccessFlow(
+    const flow = this.sourceEventId ? { careerCleared: false, regionCleared: false, target: this.nextTarget } : resolveCaptureSuccessFlow(
       monster.id,
       isNewEntry,
       this.nextTarget,
@@ -112,8 +112,8 @@ export class CaptureQuizScene extends Phaser.Scene {
           this.scene.start(target.scene, target.data);
           return;
         }
-        if (this.beforeCapture && this.nextTarget.scene !== "open-source-chapter") {
-          const pending = events.queue(this.beforeCapture, save, monster.id, this.nextTarget as SourceReturnTarget, Math.random, this.victoryId);
+        if (this.beforeCapture) {
+          const pending = events.queue(this.beforeCapture, save, monster.id, this.nextTarget, Math.random, this.victoryId);
           if (pending) { this.scene.start("open-source-event"); return; }
         }
         this.scene.start(this.nextTarget.scene, this.nextTarget.data);

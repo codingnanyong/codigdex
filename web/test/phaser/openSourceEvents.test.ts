@@ -51,10 +51,30 @@ describe("local encounter session", () => {
   it("stays playable with damaged/unavailable optional history storage", () => {
     const { before, after, trigger } = fixture();
     for (const raw of [null, "{", "null", JSON.stringify({ pending: { careerId: "frontend", toolId: "postgresql", returnTo: { scene: "code-battle" } } })]) expect(parseEncounterHistory(raw).pending).toBeUndefined();
+    for (const raw of ["{", "x".repeat(128001)]) {
+      const damaged = new SourceEventSession({ getItem: () => raw, setItem() {} });
+      expect(damaged.pending(after)).toBeUndefined();
+      expect(damaged.read(after).discoveries).toEqual([]);
+    }
     const session = new SourceEventSession({ getItem() { throw new Error("unavailable"); }, setItem() { throw new Error("quota"); } });
     const pending = session.queue(before, after, trigger, { scene: "world-map" })!;
     expect(pending).toBeDefined();
     expect(session.accept(after, pending.id)).toBe(true);
     expect(session.finish(after, pending.id)).toEqual({ scene: "world-map" });
+  });
+
+  it("clears missing-trigger requests and preserves ordinary cards when local history is cleared", () => {
+    const { before, after, trigger, io, values } = fixture();
+    const pending = new SourceEventSession(io).queue(before, after, trigger, { scene: "world-map" })!;
+    expect(new SourceEventSession(io).pending(before)).toBeUndefined();
+    expect(new SourceEventSession(io).read(after).discoveries).toHaveLength(1);
+    after.progress.captures.push({ id: "open-source:tanstack-query", capturedAt: "2026-10-28T02:00:00.000Z" });
+    const savedCards = JSON.stringify(after.progress.captures);
+    values.delete(sourceEventStorageKey(after)!);
+    const cleared = new SourceEventSession(io);
+    expect(cleared.read(after).discoveries).toEqual([]);
+    expect(cleared.pending(after)).toBeUndefined();
+    expect(cleared.accept(after, pending.id)).toBe(false);
+    expect(JSON.stringify(after.progress.captures)).toBe(savedCards);
   });
 });
