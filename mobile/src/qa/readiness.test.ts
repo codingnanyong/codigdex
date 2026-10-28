@@ -10,6 +10,18 @@ import { createQaFaults, isE2eEnabled, isQaEnabled } from "./runtime";
 import { WALLPAPERS } from "@codigdex/game-assets/visuals";
 
 describe("QA isolation and deliberate failures", () => {
+  it("arms request-history failure independently and disables it outside QA", () => {
+    const faults = createQaFaults(true);
+    faults.failNextSourceSave();
+    expect(() => faults.beforeSave()).not.toThrow();
+    expect(() => faults.beforeSourceSave()).toThrow();
+    expect(() => faults.beforeSourceSave()).not.toThrow();
+    faults.failNextSourceSave(); faults.reset();
+    expect(() => faults.beforeSourceSave()).not.toThrow();
+    const ordinary = createQaFaults(false);
+    ordinary.failNextSourceSave();
+    expect(() => ordinary.beforeSourceSave()).not.toThrow();
+  });
   it("cannot enable automation in a release or ordinary QA session", () => {
     expect(isE2eEnabled(isQaEnabled(false, "1"), "1")).toBe(false);
     expect(isE2eEnabled(isQaEnabled(true, undefined), "1")).toBe(false);

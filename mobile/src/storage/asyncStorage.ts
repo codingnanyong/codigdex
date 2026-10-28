@@ -15,5 +15,5 @@ export const mobileSaveStorage = createAsyncSaveStorage({
 
 export const mobileSourceStorage = {
   getItem: (key: string) => AsyncStorage.getItem(key),
-  setItem: (key: string, value: string) => AsyncStorage.setItem(key, value),
+  async setItem(key: string, value: string) { qaFaults.beforeSourceSave(); await AsyncStorage.setItem(key, value); },
 };

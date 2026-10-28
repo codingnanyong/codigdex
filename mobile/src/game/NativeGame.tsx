@@ -89,9 +89,10 @@ export function NativeGame() {
     case "battle": {
       const context = route.battle;
       return <BattleScreen monster={context.monster} monsterImage={mobileAssetSource(context.monster.assetKey)} locale={locale} onExit={() => context.sourceEventId ? setRoute({ name: "encounter" }) : navigate(destinationFor(save, context.monster.id))} onFinish={(battle) => {
-        const passed = battle.status === "passed";
+        const after = battle.status === "passed" ? capture(context.monster.id, battle, context.sourceEventId) : save;
+        const authorized = !context.sourceEventId || sourceEvents.canBattle(after, context.sourceEventId, context.monster.id);
+        const passed = battle.status === "passed" && authorized && after.progress.captures.some(({ id }) => id === context.monster.id);
         const newCapture = passed && !captured.has(context.monster.id);
-        if (passed) capture(context.monster.id, battle, context.sourceEventId);
         setRoute({ name: "result", result: { ...context, beforeCapture: save, correct: battle.correctCount, passed, newCapture, total: battle.questions.length } });
       }} />;
     }

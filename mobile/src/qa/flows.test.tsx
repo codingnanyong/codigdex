@@ -8,7 +8,7 @@ import { parseAllDocuments } from "yaml";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { Alert } from "react-native";
 import { NativeGame } from "../game/NativeGame";
-import { SaveProvider } from "../state/SaveProvider";
+import { SaveProvider, useSave } from "../state/SaveProvider";
 import { careerQAPresets } from "@codigdex/game-content/domain/careerQAPresets";
 import { SOURCE_CAREERS } from "@codigdex/game-content/domain/openSourceEncounters";
 import { findStage } from "@codigdex/game-content/domain/chapters";
@@ -17,12 +17,13 @@ import { loadMixedQuizPack } from "@codigdex/quiz-content";
 import { quizCopy } from "../game/battlePresentation";
 import type { StoredGameStateV3 } from "@codigdex/game-core/save/schema";
 import { qaFaults } from "./runtime";
+import { sourceEventStorageKey } from "@codigdex/game-content/domain/openSourceEncounterStorage";
 
 const storage = vi.hoisted(() => new Map<string, string>());
-const sourceFaults = vi.hoisted(() => ({ write: false, read: false }));
+const sourceFaults = vi.hoisted(() => ({ read: false, blockKey: undefined as string | undefined, blockRead: undefined as Promise<void> | undefined }));
 vi.mock("@react-native-async-storage/async-storage", () => ({ default: {
-  async getItem(key: string) { if (sourceFaults.read && key.includes("source-events:")) { sourceFaults.read = false; throw Error("history read failed"); } return storage.get(key) ?? null; },
-  async setItem(key: string, value: string) { if (sourceFaults.write && key.includes("source-events:")) { sourceFaults.write = false; throw Error("history quota"); } storage.set(key, value); },
+  async getItem(key: string) { if (sourceFaults.read && key.includes("source-events:")) { sourceFaults.read = false; throw Error("history read failed"); } if (key === sourceFaults.blockKey) await sourceFaults.blockRead; return storage.get(key) ?? null; },
+  async setItem(key: string, value: string) { storage.set(key, value); },
   async removeItem(key: string) { storage.delete(key); },
 } }));
 vi.mock("./runtime", async (original) => {
@@ -61,12 +62,14 @@ const qaRoot = path.resolve(import.meta.dirname, "../../../");
 const cases = JSON.parse(readFileSync(path.join(qaRoot, "qa/home/cases.json"), "utf8")) as { nativeFlows: { file: string }[] };
 let root: Root | undefined;
 let container: HTMLDivElement;
+let controls: ReturnType<typeof useSave> | undefined;
+function SaveWitness() { controls = useSave(); return null; }
 
 async function tick() { await act(async () => { await new Promise((resolve) => setTimeout(resolve, 0)); }); }
 async function launch() {
   if (root) await act(async () => root?.unmount());
   root = createRoot(container);
-  await act(async () => root!.render(<SaveProvider><NativeGame /></SaveProvider>));
+  await act(async () => root!.render(<SaveProvider><SaveWitness /><NativeGame /></SaveProvider>));
   await tick();
 }
 
@@ -122,7 +125,8 @@ beforeEach(() => {
   container = document.createElement("div");
   document.body.append(container);
   storage.clear();
-  sourceFaults.read = false; sourceFaults.write = false;
+  sourceFaults.read = false; sourceFaults.blockKey = undefined; sourceFaults.blockRead = undefined;
+  qaFaults.reset();
   storage.set("codigdex:save:v3", "normal-progress-sentinel");
 });
 afterEach(async () => {
@@ -272,7 +276,7 @@ it("defers a request and keeps its discovery note without a standalone battle en
 }, 20000);
 
 it("keeps an unsaved offer usable, retries its storage and restores it after restart", async () => {
-  sourceFaults.write = true;
+  qaFaults.failNextSourceSave();
   await startCareer("frontend");
   await tap("source-event-retry-save");
   await vi.waitFor(() => expect(container.querySelector('[data-testid="source-event-retry-save"]')).toBeNull());
@@ -315,11 +319,65 @@ it("retries finishing-history writes from the career screen without repeating a 
   await startCareer("frontend");
   await tap("source-event-accept");
   await playBattle("open-source:tanstack-query");
-  sourceFaults.write = true;
+  qaFaults.failNextSourceSave();
   await tap("result-world");
   await tap("career-retry-save");
   await vi.waitFor(() => expect(container.querySelector('[data-testid="career-retry-save"]')).toBeNull());
   await launch(); await tap("home-play");
   await element({ id: "career-title" });
   expect(saved().progress.captures.filter(({ id }) => id === "open-source:tanstack-query")).toHaveLength(1);
+}, 20000);
+
+it("does not report a rejected encounter capture as successful", async () => {
+  await startCareer("frontend");
+  await tap("source-event-accept");
+  await act(async () => {
+    const current = controls!;
+    current.sourceEvents.finish(current.save, current.sourceEvents.pending(current.save)!.id);
+  });
+  await playBattle("open-source:tanstack-query");
+  expect((await element({ id: "result-title" })).textContent).toBe("TRY AGAIN");
+  expect(saved().progress.captures.some(({ id }) => id === "open-source:tanstack-query")).toBe(false);
+}, 20000);
+
+it("keeps a newer imported save when initial history hydration finishes late", async () => {
+  const old = careerQAPresets("en", "2026-10-26T00:00:00.000Z").find(({ id }) => id === "encounter:frontend")!.save;
+  const newer = careerQAPresets("en", "2026-10-27T00:00:00.000Z").find(({ id }) => id === "encounter:backend")!.save;
+  storage.set(qaSaveKey, JSON.stringify(old));
+  let release!: () => void;
+  sourceFaults.blockKey = `qa-home-e2e:${sourceEventStorageKey(old)}`;
+  sourceFaults.blockRead = new Promise<void>((resolve) => { release = resolve; });
+  try {
+    await launch();
+    expect(controls!.hydrated).toBe(false);
+    await act(async () => controls!.setLocale("ko"));
+    expect(saved().progress.captures).toEqual(old.progress.captures);
+    await act(async () => controls!.replaceSave(newer));
+    expect(controls!.hydrated).toBe(true);
+    await act(async () => release()); await tick();
+    expect(saved().player.primaryJobId).toBe("backend");
+    expect(controls!.save.player.primaryJobId).toBe("backend");
+    expect(controls!.save.progress.captures[0].capturedAt).toBe("2026-10-27T00:00:00.000Z");
+  } finally { release(); sourceFaults.blockRead = undefined; }
+}, 20000);
+
+it("rejects an older import if progress changes during its history read", async () => {
+  const original = careerQAPresets("en", "2026-10-25T00:00:00.000Z").find(({ id }) => id === "encounter:frontend")!.save;
+  const imported = careerQAPresets("en", "2026-10-24T00:00:00.000Z").find(({ id }) => id === "encounter:backend")!.save;
+  storage.set(qaSaveKey, JSON.stringify(original));
+  await launch();
+  let release!: () => void;
+  sourceFaults.blockKey = `qa-home-e2e:${sourceEventStorageKey(imported)}`;
+  sourceFaults.blockRead = new Promise<void>((resolve) => { release = resolve; });
+  let replacement!: Promise<void>;
+  try {
+    await act(async () => { replacement = controls!.replaceSave(imported); });
+    const rejected = expect(replacement).rejects.toThrow("Progress changed");
+    await act(async () => controls!.setLocale("ko"));
+    await act(async () => release());
+    await rejected;
+    expect(controls!.save.player.primaryJobId).toBe("frontend");
+    expect(saved().ui.locale).toBe("ko");
+    expect(saved().progress.captures[0].capturedAt).toBe("2026-10-25T00:00:00.000Z");
+  } finally { release(); sourceFaults.blockRead = undefined; }
 }, 20000);

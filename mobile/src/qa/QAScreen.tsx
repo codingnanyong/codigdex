@@ -86,6 +86,7 @@ export function QAScreen({ onBack, onBattle, onDex, onWorld, checked, onToggleCh
     <PixelButton testID="qa-language" variant="secondary" onPress={() => setLocale(locale === "ko" ? "en" : "ko")}>언어 전환 · {locale === "ko" ? "English" : "한국어"}</PixelButton>
     <PixelButton testID="qa-fail-quiz" variant="secondary" onPress={() => { qaFaults.failNextQuiz(); setNotice("다음 전투에서 로딩 실패 후 다시 시도를 확인하세요."); }}>다음 문제 로딩 1회 실패</PixelButton>
     <PixelButton testID="qa-fail-save" variant="secondary" onPress={() => { qaFaults.failNextSave(); setLocale(locale === "ko" ? "en" : "ko"); setNotice("언어 저장 실패를 발생시켰습니다. 다시 저장한 뒤 재시작해 확인하세요."); }}>저장 실패 1회 발생</PixelButton>
+    <PixelButton testID="qa-fail-source-save" variant="secondary" onPress={() => { qaFaults.failNextSourceSave(); setNotice("다음 돌발 의뢰의 기록 저장이 한 번 실패합니다. 직무 전투 후 의뢰 화면의 다시 저장을 확인하세요."); }}>다음 의뢰 기록 저장 1회 실패</PixelButton>
     {notice ? <Text accessibilityLiveRegion="polite" style={styles.body}>{notice}</Text> : null}
     {saveError ? <><Text accessibilityRole="alert" style={styles.error}>저장 실패 · 메모리 진행도 유지 중</Text><PixelButton testID="qa-retry-save" onPress={retrySave}>다시 저장</PixelButton></> : null}
     {checks.map((check) => <PixelButton key={check} accessibilityLabel={`${checked.includes(check) ? "확인 완료" : "미확인"}: ${check}`} variant={checked.includes(check) ? "primary" : "quiet"}

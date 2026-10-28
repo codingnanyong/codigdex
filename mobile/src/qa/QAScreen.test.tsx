@@ -6,7 +6,7 @@ import { QAScreen } from "./QAScreen";
 
 interface Props { children?: ReactNode; testID?: string; disabled?: boolean; onPress?(): void }
 const state = vi.hoisted(() => ({ enabled: true, controls: [] as Props[], replace: vi.fn(async (_value: unknown) => {}), saving: false }));
-vi.mock("./runtime", () => ({ get QA_ENABLED() { return state.enabled; }, E2E_ENABLED: false, E2E_REVISION: "disabled", qaFaults: { failNextQuiz: vi.fn(), failNextSave: vi.fn() } }));
+vi.mock("./runtime", () => ({ get QA_ENABLED() { return state.enabled; }, E2E_ENABLED: false, E2E_REVISION: "disabled", qaFaults: { failNextQuiz: vi.fn(), failNextSave: vi.fn(), failNextSourceSave: vi.fn() } }));
 vi.mock("../state/SaveProvider", () => ({ useSave: () => ({ save: createEmptySave("ko"), locale: "ko", saving: state.saving, replaceSave: state.replace }) }));
 vi.mock("../ui/Screen", () => ({ Screen: ({ children }: Props) => <main>{children}</main> }));
 vi.mock("react-native", () => ({

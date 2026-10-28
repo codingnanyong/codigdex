@@ -53,19 +53,21 @@ export function SaveProvider({ children }: PropsWithChildren) {
 
   useEffect(() => {
     let active = true;
+    const revision = changeRevision.current;
     void mobileSaveStorage.load().then(async (stored) => {
       stored = normalizeMobileSave(stored);
       await sourceStore.load(stored);
-      if (!active) return;
+      if (!active || revision !== changeRevision.current) return;
       sourceStore.activate(stored);
       currentSave.current = stored;
       setSave(stored);
       setHydrated(true);
-    }).catch(() => { if (active) setLoadError(true); });
+    }).catch(() => { if (active && revision === changeRevision.current) setLoadError(true); });
     return () => { active = false; };
   }, [loadAttempt, sourceStore]);
 
   const update = (produce: (current: StoredGameStateV3) => StoredGameStateV3) => {
+    if (!hydrated) return currentSave.current;
     const next = produce(currentSave.current);
     if (next === currentSave.current) return next;
     changeRevision.current++;
@@ -125,11 +127,14 @@ export function SaveProvider({ children }: PropsWithChildren) {
     async replaceSave(next) {
       const revision = ++changeRevision.current;
       next = normalizeMobileSave(next);
+      // Read errors remain retryable: never replace unread pending requests with empty history.
       await sourceStore.load(next);
       if (revision !== changeRevision.current) throw new Error("Progress changed while loading this save.");
       sourceStore.activate(next);
       currentSave.current = next;
       setSave(next);
+      setHydrated(true);
+      setLoadError(false);
       try {
         await write(next);
         if (currentSave.current === next) setSaveError(false);
