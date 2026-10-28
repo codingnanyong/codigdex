@@ -75,6 +75,11 @@ export function emptyEncounterHistory(): SourceEncounterHistory {
   return { processed: [], discoveries: [], offeredCareers: [], sinceOffer: 0 };
 }
 
+export function discoveredSourceIds(save: StoredGameStateV3, history?: Pick<SourceEncounterHistory, "discoveries">) {
+  return new Set([...(history?.discoveries ?? []).map(({ toolId }) => toolId),
+    ...save.progress.captures.filter(({ id }) => id.startsWith("open-source:")).map(({ id }) => id.slice(12))]);
+}
+
 export const MAX_PROCESSED_SOURCE_VICTORIES = 256;
 const MIN_BATTLE_GAP = 3;
 const MAX_BATTLE_GAP = 6;

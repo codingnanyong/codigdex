@@ -11,12 +11,15 @@ export const E2E_REVISION = E2E_ENABLED ? process.env.EXPO_PUBLIC_E2E_REVISION ?
 export function createQaFaults(enabled: boolean) {
   let save = false;
   let quiz = false;
+  let sourceSave = false;
   return {
-    reset() { save = false; quiz = false; },
+    reset() { save = false; quiz = false; sourceSave = false; },
     failNextSave() { if (enabled) save = true; },
     failNextQuiz() { if (enabled) quiz = true; },
+    failNextSourceSave() { if (enabled) sourceSave = true; },
     beforeSave() { if (save) { save = false; throw new Error("QA: simulated save failure"); } },
     beforeQuiz() { if (quiz) { quiz = false; throw new Error("QA: simulated quiz load failure"); } },
+    beforeSourceSave() { if (sourceSave) { sourceSave = false; throw new Error("QA: simulated request-history save failure"); } },
   };
 }
 

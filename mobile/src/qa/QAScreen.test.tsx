@@ -6,7 +6,7 @@ import { QAScreen } from "./QAScreen";
 
 interface Props { children?: ReactNode; testID?: string; disabled?: boolean; onPress?(): void }
 const state = vi.hoisted(() => ({ enabled: true, controls: [] as Props[], replace: vi.fn(async (_value: unknown) => {}), saving: false }));
-vi.mock("./runtime", () => ({ get QA_ENABLED() { return state.enabled; }, E2E_ENABLED: false, E2E_REVISION: "disabled", qaFaults: { failNextQuiz: vi.fn(), failNextSave: vi.fn() } }));
+vi.mock("./runtime", () => ({ get QA_ENABLED() { return state.enabled; }, E2E_ENABLED: false, E2E_REVISION: "disabled", qaFaults: { failNextQuiz: vi.fn(), failNextSave: vi.fn(), failNextSourceSave: vi.fn() } }));
 vi.mock("../state/SaveProvider", () => ({ useSave: () => ({ save: createEmptySave("ko"), locale: "ko", saving: state.saving, replaceSave: state.replace }) }));
 vi.mock("../ui/Screen", () => ({ Screen: ({ children }: Props) => <main>{children}</main> }));
 vi.mock("react-native", () => ({
@@ -21,12 +21,12 @@ function render(onBack = vi.fn(), onDex = vi.fn()) {
   return { html, onBack, onDex };
 }
 describe("mobile manual QA starting states", () => {
-  it("is absent without QA and shows all sixteen starting states when enabled", () => {
+  it("is absent without QA and shows all seventeen starting states when enabled", () => {
     state.enabled = false;
     expect(render().html).toBe("");
     state.enabled = true;
-    expect(render().html).toContain("바람새의 시간표");
-    expect(state.controls.filter(({ testID }) => testID?.startsWith("qa-start-"))).toHaveLength(16);
+    expect(render().html).toContain("돌발 의뢰");
+    expect(state.controls.filter(({ testID }) => testID?.startsWith("qa-start-"))).toHaveLength(17);
   });
   it("saves an earned promotion before returning to the title to continue", async () => {
     const { onBack } = render();

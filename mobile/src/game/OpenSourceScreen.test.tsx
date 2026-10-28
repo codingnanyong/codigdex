@@ -3,7 +3,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 import { OPEN_SOURCE_CATALOG } from "@codigdex/game-content/domain/openSourceCatalog";
 import { OpenSourceScreen } from "./OpenSourceScreen";
-import { CHAPTERS } from "@codigdex/game-content/domain/chapters";
+import { emptyEncounterHistory } from "@codigdex/game-content/domain/openSourceEncounters";
 import { createEmptySave } from "@codigdex/game-core/save/schema";
 
 interface Props { children?: ReactNode; accessibilityLabel?: string; testID?: string; value?: string; placeholder?: string; disabled?: boolean; onPress?(): void }
@@ -21,45 +21,38 @@ vi.mock("react-native", () => ({
   Linking: { openURL: native.openURL }, Alert: { alert: vi.fn() },
 }));
 
-describe("native open-source notes", () => {
-  it("renders all creatures while blocking expedition battles before the common path", () => {
+describe("native discovery notes", () => {
+  it("starts empty without a separate expedition or battle entrance", () => {
     native.controls = [];
-    const html = renderToStaticMarkup(<OpenSourceScreen locale="ko" save={createEmptySave("ko")} onBattle={() => {}} onBack={() => {}} />);
-    expect(html).toContain("오픈소스 탐험 노트");
-    expect(html).toContain("9개 생태계의 이야기를 따라 38종을 포획");
-    for (const entry of OPEN_SOURCE_CATALOG) expect(html).toContain(entry.name.replaceAll("&", "&amp;"));
-    expect(html).toContain("블록 보관 코끼리");
-    expect((html.match(/role="img"/g) ?? []).length).toBe(OPEN_SOURCE_CATALOG.length);
-    const missions = native.controls.filter(({ testID }) => testID?.startsWith("source-battle-"));
-    expect(missions).toHaveLength(38);
-    expect(missions.every(({ disabled }) => disabled)).toBe(true);
+    const html = renderToStaticMarkup(<OpenSourceScreen locale="ko" save={createEmptySave("ko")} onBack={() => {}} />);
+    expect(html).toContain("발견한 오픈소스 노트");
+    expect(html).toContain("아직 만난 도구가 없습니다");
+    expect(html).not.toContain('role="img"');
+    expect(native.controls.some(({ testID }) => testID?.startsWith("source-battle-"))).toBe(false);
   });
-  it("opens only the related tools in English and routes official documentation to its fixed URL", async () => {
+
+  it("preserves all old captured cards without standalone battle buttons", () => {
+    const save = createEmptySave("en");
+    save.progress.captures = OPEN_SOURCE_CATALOG.map(({ id }) => ({ id: `open-source:${id}`, capturedAt: "2026-10-28T00:00:00.000Z" }));
+    const html = renderToStaticMarkup(<OpenSourceScreen locale="en" save={save} onBack={() => {}} />);
+    for (const entry of OPEN_SOURCE_CATALOG) expect(html).toContain(entry.name.replaceAll("&", "&amp;"));
+    expect((html.match(/role="img"/g) ?? []).length).toBe(38);
+    expect(html).toContain("REGISTERED IN DEX");
+    expect(html).not.toContain("START MISSION BATTLE");
+  });
+
+  it("shows deferred discoveries, limits related notes and opens official documentation", async () => {
     native.controls = [];
     native.openURL.mockClear();
-    const html = renderToStaticMarkup(<OpenSourceScreen locale="en" save={createEmptySave("en")} onBattle={() => {}} initialIds={["airflow", "kafka"]} onBack={() => {}} />);
+    const history = emptyEncounterHistory();
+    history.discoveries = [{ toolId: "airflow", careerId: "data-engineer" }, { toolId: "kafka", careerId: "data-engineer" }];
+    const html = renderToStaticMarkup(<OpenSourceScreen locale="en" save={createEmptySave("en")} history={history} initialIds={["airflow", "kafka", "hadoop"]} onBack={() => {}} />);
     expect(html).toContain("Apache Airflow");
     expect(html).toContain("Apache Kafka");
     expect(html).not.toContain("Apache Hadoop");
-    expect(html).toContain("Tools related to this mission");
+    expect(html).toContain("Discovered related tools");
+    expect(html).toContain("Data Engineer");
     native.controls.find(({ accessibilityLabel }) => accessibilityLabel === "Apache Kafka · Official project documentation")!.onPress!();
     expect(native.openURL).toHaveBeenCalledWith("https://kafka.apache.org/intro/");
-  });
-  it("routes an available mission and keeps later missions locked until capture", () => {
-    const save = createEmptySave("en");
-    save.progress.captures = CHAPTERS.flatMap(({ stages }) => stages).map(({ id }) => ({ id, capturedAt: "2026-10-27T00:00:00Z" }));
-    const battle = vi.fn();
-    native.controls = [];
-    renderToStaticMarkup(<OpenSourceScreen locale="en" save={save} onBattle={battle} initialIds={["hadoop", "hdfs"]} onBack={() => {}} />);
-    expect(native.controls.find(({ testID }) => testID === "source-battle-hdfs")?.disabled).toBe(true);
-    const first = native.controls.find(({ testID }) => testID === "source-battle-hadoop")!;
-    expect(first.disabled).toBe(false);
-    first.onPress!();
-    expect(battle).toHaveBeenCalledWith("open-source:hadoop");
-    save.progress.captures.push({ id: "open-source:hadoop", capturedAt: "2026-10-27T01:00:00Z" });
-    native.controls = [];
-    const html = renderToStaticMarkup(<OpenSourceScreen locale="en" save={save} onBattle={battle} initialIds={["hadoop", "hdfs"]} onBack={() => {}} />);
-    expect(html).toContain("REGISTERED IN DEX");
-    expect(native.controls.find(({ testID }) => testID === "source-battle-hdfs")?.disabled).toBe(false);
   });
 });
