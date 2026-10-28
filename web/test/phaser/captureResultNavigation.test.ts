@@ -18,6 +18,15 @@ function victory() {
 }
 
 describe("capture navigation with the real encounter session", () => {
+  it("does not reroll or count a victory twice when confirmation follows settlement", () => {
+    const context = victory();
+    const events = new SourceEventSession();
+    const pending = events.queue(context.beforeCapture, context.save, context.monsterId, context.fallback, () => 0, context.victoryId)!;
+    const history = JSON.stringify(events.read(context.save));
+    expect(confirmCaptureTarget(context, events)).toEqual({ scene: "open-source-event" });
+    expect(events.pending(context.save)?.id).toBe(pending.id);
+    expect(JSON.stringify(events.read(context.save))).toBe(history);
+  });
   it("offers a career request on confirm without modifying cards or the normal checkpoint", () => {
     const context = victory();
     const snapshot = JSON.stringify(context.save);

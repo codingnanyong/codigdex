@@ -87,6 +87,10 @@ export class CaptureQuizScene extends Phaser.Scene {
       { careerCleared, sourceEventId: this.sourceEventId }
     );
     this.nextTarget = flow.target;
+    // Persist the victory's encounter outcome before HOME, card inspection or reload can leave this result.
+    if (!this.sourceEventId && this.beforeCapture) {
+      sourceEvents(this.registry).queue(this.beforeCapture, snapshotRegistry(this.registry), monster.id, this.nextTarget, Math.random, this.victoryId);
+    }
 
     showCapturedPanel(this, {
       monster,

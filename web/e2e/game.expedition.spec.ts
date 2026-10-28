@@ -22,6 +22,22 @@ async function firstCareerBattle(page: Page, save: StoredGameStateV3) {
   }
   await scene(page, "code-battle");
 }
+
+test("keeps a settled career offer when notes are inspected and the result is reloaded before confirmation", async ({ page }) => {
+  const seed = webQAPresets("en").find(({ id }) => id === "encounter:frontend")!.save;
+  await boot(page, seed);
+  await firstCareerBattle(page, seed);
+  await answerBattle(page, seed.ui.checkpointId!);
+  const checkpoint = (await readSave(page)).ui.checkpointId;
+  await page.getByRole("button", { name: "OPEN-SOURCE NOTES", exact: true }).click();
+  await expect(page.getByRole("dialog").locator('[data-project="tanstack-query"]')).toBeVisible();
+  await page.keyboard.press("Escape");
+  await reload(page);
+  await scene(page, "open-source-event");
+  expect((await readSave(page)).ui.checkpointId).toBe(checkpoint);
+  expect((await readSave(page)).progress.captures.some(({ id }) => id === seed.ui.checkpointId)).toBe(true);
+  expect((await readSave(page)).progress.captures.some(({ id }) => id.startsWith("open-source:"))).toBe(false);
+});
 for (const career of SOURCE_CAREERS) test(`meets ${career.firstTool} inside the ${career.id} adventure and returns with progress intact`, async ({ page }) => {
   test.setTimeout(90000);
   const errors: string[] = [];

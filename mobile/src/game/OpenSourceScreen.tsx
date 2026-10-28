@@ -1,28 +1,28 @@
 import { useState } from "react";
 import { Alert, Image, Linking, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { localize, type Locale } from "@codigdex/game-core/i18n/locale";
-import { OPEN_SOURCE_CATALOG, OPEN_SOURCE_FAMILIES, OPEN_SOURCE_KIND_LABELS, filterOpenSources, findOpenSource, type OpenSourceFamily } from "@codigdex/game-content/domain/openSourceCatalog";
-import { JOB_OPTIONS, type JobId } from "@codigdex/game-content/domain/player/jobs";
+import { OPEN_SOURCE_FAMILIES, OPEN_SOURCE_KIND_LABELS, filterOpenSources, findOpenSource, type OpenSourceFamily } from "@codigdex/game-content/domain/openSourceCatalog";
+import { JOB_OPTIONS } from "@codigdex/game-content/domain/player/jobs";
 import { Screen } from "../ui/Screen";
 import { PixelButton } from "../ui/PixelButton";
 import { colors, font, pixelPanel } from "../ui/theme";
 import { mobileAssetSource } from "../assets";
 import type { StoredGameStateV3 } from "@codigdex/game-core/save/schema";
-import { openSourceCheckpoints } from "@codigdex/game-content/domain/gameProgress";
-import { openSourceExpeditionFor } from "@codigdex/game-content/domain/openSourceChapters";
+import { SOURCE_CAREERS, activeSourceCareer, discoveredSourceIds, emptyEncounterHistory, encounterTools, sourceCareer, sourceCareerName, type SourceEncounterHistory, type SourceCareerId } from "@codigdex/game-content/domain/openSourceEncounters";
 
-export function OpenSourceScreen({ locale, save, initialIds, onBack, onBattle }: { locale: Locale; save: StoredGameStateV3; initialIds?: readonly string[]; onBack(): void; onBattle(id: string): void }) {
+export function OpenSourceScreen({ locale, save, initialIds, onBack, history = emptyEncounterHistory() }: { locale: Locale; save: StoredGameStateV3; initialIds?: readonly string[]; history?: SourceEncounterHistory; onBack(): void }) {
   const [query, setQuery] = useState("");
   const [family, setFamily] = useState<OpenSourceFamily>();
-  const [jobId, setJobId] = useState<JobId>();
+  const [jobId, setJobId] = useState<SourceCareerId>();
   const [ids, setIds] = useState(initialIds);
   const ko = locale === "ko";
-  const entries = filterOpenSources({ query, family, jobId, ids });
-  const checkpoints = openSourceCheckpoints(save);
+  const discovered = discoveredSourceIds(save, history);
+  const roleTools = jobId ? new Set(encounterTools(jobId).map(({ id }) => id)) : undefined;
+  const entries = filterOpenSources({ query, family, ids }).filter(({ id }) => discovered.has(id) && (!roleTools || roleTools.has(id)));
   return <Screen scroll>
     <PixelButton testID="open-source-back" onPress={onBack} variant="quiet">← {ko ? "돌아가기" : "BACK"}</PixelButton>
-    <Text accessibilityRole="header" style={styles.heading}>{ko ? "오픈소스 탐험 노트" : "OPEN-SOURCE FIELD NOTES"}</Text>
-    <Text style={styles.body}>{ko ? "9개 생태계의 이야기를 따라 38종을 포획하세요. 공통 경로 완료 후 열리며 전직 MASTER 조건에는 영향을 주지 않습니다." : "Follow 9 ecosystem stories and capture 38 creatures. Opens after the common path; career MASTER requirements stay the same."}</Text>
+    <Text accessibilityRole="header" style={styles.heading}>{ko ? "발견한 오픈소스 노트" : "OPEN-SOURCE FIELD NOTES"}</Text>
+    <Text style={styles.body}>{ko ? "직무 전투 뒤 돌발 의뢰로 만난 도구를 복습합니다. 해결한 도구는 도감에도 등록됩니다." : "Review tools met through surprise requests after career battles. Solved tools are also registered in your dex."}</Text>
     <TextInput testID="open-source-search" accessibilityLabel={ko ? "오픈소스 검색" : "Search open source"} placeholder={ko ? "Kafka, 하둡, 계보…" : "Kafka, Hadoop, lineage…"} placeholderTextColor={colors.muted} value={query} onChangeText={setQuery} autoCapitalize="none" autoCorrect={false} style={styles.input} />
     <ScrollView horizontal contentContainerStyle={styles.filters} showsHorizontalScrollIndicator>
       <PixelButton compact onPress={() => setFamily(undefined)} variant={!family ? "primary" : "secondary"}>{ko ? "모든 생태계" : "All ecosystems"}</PixelButton>
@@ -30,15 +30,14 @@ export function OpenSourceScreen({ locale, save, initialIds, onBack, onBattle }:
     </ScrollView>
     <ScrollView horizontal contentContainerStyle={styles.filters} showsHorizontalScrollIndicator>
       <PixelButton compact onPress={() => setJobId(undefined)} variant={!jobId ? "primary" : "secondary"}>{ko ? "모든 경로" : "All paths"}</PixelButton>
-      {JOB_OPTIONS.map((job) => <PixelButton compact key={job.id} onPress={() => setJobId(job.id)} variant={jobId === job.id ? "primary" : "secondary"}>{localize(job.name, locale)}</PixelButton>)}
+      {SOURCE_CAREERS.filter(({ id }) => JOB_OPTIONS.some((job) => job.id === id) || activeSourceCareer(save) === id || history.offeredCareers.includes(id)).map(({ id }) => <PixelButton compact key={id} onPress={() => setJobId(id)} variant={jobId === id ? "primary" : "secondary"}>{localize(sourceCareerName(id), locale)}</PixelButton>)}
     </ScrollView>
     <PixelButton compact variant="quiet" onPress={() => { setQuery(""); setFamily(undefined); setJobId(undefined); setIds(undefined); }}>{ko ? "전체 보기" : "SHOW ALL"}</PixelButton>
-    <Text testID="open-source-count" accessibilityLiveRegion="polite" style={styles.count}>{entries.length}/{OPEN_SOURCE_CATALOG.length} · {ids ? (ko ? "현재 의뢰의 관련 도구" : "Tools related to this mission") : (ko ? "프로젝트·구성요소·데이터 형식" : "Projects, components and data formats")}</Text>
-    {!entries.length ? <Text style={styles.body}>{ko ? "조건에 맞는 도구가 없습니다. 검색이나 필터를 바꿔 보세요." : "No matching tools. Try changing the search or filters."}</Text> : null}
+    <Text testID="open-source-count" accessibilityLiveRegion="polite" style={styles.count}>{entries.length}/{discovered.size} · {ids ? (ko ? "발견한 관련 도구" : "Discovered related tools") : (ko ? "직무 모험에서 발견한 기록" : "Discoveries from your career adventure")}</Text>
+    {!entries.length ? <Text testID="open-source-empty" style={styles.body}>{discovered.size ? (ko ? "조건에 맞는 기록이 없습니다. 검색이나 필터를 바꿔 보세요." : "No matching discoveries. Try changing the search or filters.") : (ko ? "아직 만난 도구가 없습니다. 직무 전투를 완료하면 돌발 의뢰로 도구를 만날 수 있어요." : "No tools discovered yet. Finish career battles to meet tools through surprise requests.")}</Text> : null}
     {entries.map((entry) => {
-      const checkpoint = checkpoints.find(({ monster }) => monster.id === `open-source:${entry.id}`)!;
-      const expedition = openSourceExpeditionFor(entry.family)!;
-      const complete = expedition.chapter.stages.every(({ id }) => save.progress.captures.some((capture) => capture.id === id));
+      const captured = save.progress.captures.some(({ id }) => id === "open-source:" + entry.id);
+      const roles = [...new Set(history.discoveries.filter(({ toolId }) => toolId === entry.id).map(({ careerId }) => careerId))];
       return <View testID={`open-source-${entry.id}`} key={entry.id} style={styles.card}>
       <Text style={styles.muted}>{localize(OPEN_SOURCE_FAMILIES[entry.family], locale)} · {localize(OPEN_SOURCE_KIND_LABELS[entry.kind], locale)}</Text>
       {entry.character.assetKey ? <Image accessibilityLabel={localize(entry.character.name, locale)} source={mobileAssetSource(entry.character.assetKey)} resizeMode="contain" style={styles.character} /> : null}
@@ -48,10 +47,8 @@ export function OpenSourceScreen({ locale, save, initialIds, onBack, onBattle }:
       <Text style={styles.learning}>{localize(entry.learning, locale)}</Text>
       <Text style={styles.title}>{localize(entry.character.name, locale)}</Text>
       <Text style={styles.body}>{localize(entry.character.motif, locale)}</Text>
-      <Text style={styles.title}>{localize(expedition.chapter.name, locale)}</Text>
-      <Text style={styles.body}>{localize(complete ? expedition.ending : expedition.intro, locale)}</Text>
-      <Text style={styles.muted}>{checkpoint.status === "cleared" ? (ko ? "✓ 도감 등록 완료" : "✓ REGISTERED IN DEX") : checkpoint.status === "locked" ? (ko ? "공통 경로와 이 생태계의 선행 의뢰를 완료하세요." : "Complete the common path and earlier missions in this ecosystem.") : (ko ? "4문항 중 3문항 정답으로 포획" : "Capture with 3 of 4 correct")}</Text>
-      <PixelButton testID={`source-battle-${entry.id}`} disabled={checkpoint.status === "locked"} onPress={() => onBattle(checkpoint.monster.id)}>{checkpoint.status === "cleared" ? (ko ? "의뢰 다시 도전" : "REPLAY MISSION") : (ko ? "의뢰 배틀 시작" : "START MISSION BATTLE")}</PixelButton>
+      {roles.map((id) => <Text key={id} style={styles.body}>{localize(sourceCareerName(id), locale)} · {localize(sourceCareer(id)!.workplace, locale)}</Text>)}
+      <Text style={styles.muted}>{captured ? (ko ? "✓ 도감 등록 완료" : "✓ REGISTERED IN DEX") : (ko ? "발견 기록 · 직무 모험 중 다시 만날 수 있어요." : "Discovered · You can meet this tool again during your career adventure.")}</Text>
       <PixelButton compact accessibilityLabel={`${entry.name} · ${ko ? "공식 프로젝트 자료" : "Official project documentation"}`} variant="quiet" onPress={() => { void Linking.openURL(entry.officialUrl).catch(() => Alert.alert(ko ? "자료를 열지 못했습니다." : "Could not open documentation.")); }}>{ko ? "공식 프로젝트 자료 ↗" : "OFFICIAL DOCUMENTATION ↗"}</PixelButton>
     </View>; })}
   </Screen>;

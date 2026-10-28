@@ -8,7 +8,7 @@ import { PixelButton } from "../ui/PixelButton";
 import { colors, font } from "../ui/theme";
 import { E2E_ENABLED, E2E_REVISION, QA_ENABLED, qaFaults } from "./runtime";
 import { createEmptySave } from "@codigdex/game-core/save/schema";
-import { gameQAPresets, type GameQAPreset } from "@codigdex/game-content/domain/qaPresets";
+import { careerQAPresets, type CareerQAPreset } from "@codigdex/game-content/domain/careerQAPresets";
 
 const checks = [
   "객관식 → 단답 · 빈 답안/연속 제출 차단",
@@ -21,7 +21,7 @@ const checks = [
   "월드맵 · 지역 잠금 · Lv.1~5 선택 · 전투 후 지도 복귀",
   "튜토리얼 → Git → Linux · 챕터 완료 · 다음 체크포인트",
   "체크포인트 선택 → 앱 종료 → 이어하기 · 초기화 확인",
-  "오픈소스 9개 탐험 · 38종 · 전투/포획/재접속",
+  "직무 10개 돌발 의뢰 · 보류/수락/재도전/재접속 · 38종 발견 노트",
   "2차 전직 5개 경로 · 다섯 의뢰 · MASTER",
 ] as const;
 
@@ -31,8 +31,8 @@ export function QAScreen({ onBack, onBattle, onDex, onWorld, checked, onToggleCh
   const [frames, setFrames] = useState(0);
   const [notice, setNotice] = useState("");
   const applyingPreset = useRef(false);
-  const presets = useMemo(() => QA_ENABLED ? gameQAPresets(locale) : [], [locale]);
-  const applyPreset = async (preset: GameQAPreset) => {
+  const presets = useMemo(() => QA_ENABLED ? careerQAPresets(locale) : [], [locale]);
+  const applyPreset = async (preset: CareerQAPreset) => {
     if (!QA_ENABLED || applyingPreset.current) return;
     applyingPreset.current = true;
     try {
@@ -80,12 +80,13 @@ export function QAScreen({ onBack, onBattle, onDex, onWorld, checked, onToggleCh
     <PixelButton testID="qa-preset-git" variant="quiet" onPress={() => { loadQAProgress("git"); setNotice("Git 완료 · Linux Lv.1에서 이어하기를 확인하세요."); }}>QA 진행도 · Git 완료</PixelButton>
     <PixelButton testID="qa-preset-complete" variant="quiet" onPress={() => { loadQAProgress("complete"); setNotice("공통 경로 완료 · 11개 체크포인트 재도전을 확인하세요."); }}>QA 진행도 · 공통 경로 완료</PixelButton>
     <Text accessibilityRole="header" style={styles.title}>챕터 바로 테스트</Text>
-    <Text style={styles.body}>시작점을 고르면 QA 진행도가 바뀝니다. 메뉴에서 이어하기를 누르면 선택한 챕터가 열립니다. 먼저 바람새의 시간표(Airflow)를 확인해 보세요.</Text>
+    <Text style={styles.body}>시작점을 고르면 QA 진행도가 바뀝니다. 메뉴에서 이어하기를 누르면 선택한 직무가 열립니다. 직무 전투를 완료하고 돌발 의뢰를 확인하세요.</Text>
     {presets.map((preset) => <PixelButton key={preset.id} testID={`qa-start-${preset.id}`} disabled={saving} variant="secondary" onPress={() => { void applyPreset(preset); }}>{preset.group} · {preset.title}</PixelButton>)}
     <PixelButton variant="secondary" onPress={onDex}>도감 · 포획/재시작 복원 확인</PixelButton>
     <PixelButton testID="qa-language" variant="secondary" onPress={() => setLocale(locale === "ko" ? "en" : "ko")}>언어 전환 · {locale === "ko" ? "English" : "한국어"}</PixelButton>
     <PixelButton testID="qa-fail-quiz" variant="secondary" onPress={() => { qaFaults.failNextQuiz(); setNotice("다음 전투에서 로딩 실패 후 다시 시도를 확인하세요."); }}>다음 문제 로딩 1회 실패</PixelButton>
     <PixelButton testID="qa-fail-save" variant="secondary" onPress={() => { qaFaults.failNextSave(); setLocale(locale === "ko" ? "en" : "ko"); setNotice("언어 저장 실패를 발생시켰습니다. 다시 저장한 뒤 재시작해 확인하세요."); }}>저장 실패 1회 발생</PixelButton>
+    <PixelButton testID="qa-fail-source-save" variant="secondary" onPress={() => { qaFaults.failNextSourceSave(); setNotice("다음 돌발 의뢰의 기록 저장이 한 번 실패합니다. 직무 전투 후 의뢰 화면의 다시 저장을 확인하세요."); }}>다음 의뢰 기록 저장 1회 실패</PixelButton>
     {notice ? <Text accessibilityLiveRegion="polite" style={styles.body}>{notice}</Text> : null}
     {saveError ? <><Text accessibilityRole="alert" style={styles.error}>저장 실패 · 메모리 진행도 유지 중</Text><PixelButton testID="qa-retry-save" onPress={retrySave}>다시 저장</PixelButton></> : null}
     {checks.map((check) => <PixelButton key={check} accessibilityLabel={`${checked.includes(check) ? "확인 완료" : "미확인"}: ${check}`} variant={checked.includes(check) ? "primary" : "quiet"}
