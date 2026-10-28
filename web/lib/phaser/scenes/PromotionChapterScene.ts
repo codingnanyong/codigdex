@@ -14,6 +14,7 @@ import { queueImages, showLoadingScreen } from "../assetLoader";
 import { createHomeButton } from "../navigation";
 import { openSourcesForMonster } from "@codigdex/game-content/domain/openSourceLinks";
 import { showOpenSourceNotes } from "../openSourceNotes";
+import { discoveredSourceIds } from "../openSourceEvents";
 
 /** The chapter itself is the promotion confirmation and persistent mission log. */
 export class PromotionChapterScene extends Phaser.Scene {
@@ -72,7 +73,8 @@ export class PromotionChapterScene extends Phaser.Scene {
     this.add.text(166, 353, lt(this, chapter.npcName), { ...pixelText("body"), color: PALETTE_HEX.maroon });
     const body = !equipped ? lt(this, mission.story.intro) : complete && selected?.status === "cleared" ? lt(this, mission.story.ending) : selected ? lt(this, selected.monster.briefing) : lt(this, mission.story.intro);
     this.add.text(166, 379, body, { ...pixelText("body"), color: PALETTE_HEX.ink, wordWrap: { width: 720 }, lineSpacing: 4 });
-    const tools = selected ? openSourcesForMonster(selected.monster.id) : [];
+    const discovered = discoveredSourceIds(this.registry, save);
+    const tools = selected ? openSourcesForMonster(selected.monster.id).filter(({ id }) => discovered.has(id)) : [];
     if (tools.length) {
       const related = this.add.text(166, 449, `${ko ? "연관 도구" : "RELATED TOOLS"}: ${tools.map(({ name }) => name).join(" · ")} ↗`, { ...pixelText("caption"), color: PALETTE_HEX.maroon }).setInteractive({ useHandCursor: true }).on("pointerup", () => showOpenSourceNotes(tools.map(({ id }) => id)));
       fitTextInside(related, 710, 18);

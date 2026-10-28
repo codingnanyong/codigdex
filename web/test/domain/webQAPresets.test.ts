@@ -5,11 +5,11 @@ import { DEX_MONSTERS } from "@codigdex/game-content/domain/chapters";
 import { parseSave } from "@codigdex/game-core/save/schema";
 
 describe("manual web QA starting states", () => {
-  it("provides a fresh start, nine expeditions, five earned promotions and the full dex", () => {
+  it("provides a fresh start, ten career encounter starts, five earned promotions and the full dex", () => {
     const presets = webQAPresets("ko", "2026-10-27T00:00:00.000Z");
-    expect(presets).toHaveLength(16);
-    expect(new Set(presets.map(({ id }) => id)).size).toBe(16);
-    expect(presets.filter(({ group }) => group === "오픈소스 탐험")).toHaveLength(9);
+    expect(presets).toHaveLength(17);
+    expect(new Set(presets.map(({ id }) => id)).size).toBe(17);
+    expect(presets.filter(({ group }) => group === "직무 돌발 의뢰")).toHaveLength(10);
     expect(presets.filter(({ group }) => group === "2차 전직")).toHaveLength(5);
     expect(presets.find(({ id }) => id === "fresh")!.save.progress.captures).toEqual([]);
     for (const preset of presets) {
@@ -17,10 +17,9 @@ describe("manual web QA starting states", () => {
       expect(save.ui.locale).toBe("ko");
       const next = resumeCheckpoint(save);
       expect(canEnterBattle(save, next.monster.id)).toBe(true);
-      if (preset.id.startsWith("open-source:")) {
-        expect(save.progress.captures).toHaveLength(11);
-        expect(next.chapter.id).toBe(preset.id);
-        expect(save.player.secondaryJobId).toBeNull();
+      if (preset.id.startsWith("encounter:")) {
+        expect(next.chapter.id).not.toMatch(/^open-source:/);
+        expect(save.player.secondaryJobId ?? save.player.primaryJobId).toBe(preset.id.slice("encounter:".length));
       }
       if (preset.id.startsWith("promotion:")) {
         expect(next.chapter.id).toBe(preset.id);

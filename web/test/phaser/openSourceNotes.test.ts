@@ -1,6 +1,6 @@
 import type Phaser from "phaser";
 import { describe, expect, it, vi } from "vitest";
-import { pauseForOpenSourceNotes, startOpenSourceMission } from "@/lib/phaser/openSourceNotes";
+import { pauseForOpenSourceNotes } from "@/lib/phaser/openSourceNotes";
 
 function runtime() {
   const states = new Map<string, string>([["intro", "active"], ["code-battle", "stopped"], ["open-source-chapter", "stopped"]]);
@@ -34,16 +34,12 @@ describe("notes engine boundary", () => {
     expect(states.get("intro")).toBe("active");
     expect(game.scene.resume).toHaveBeenCalledTimes(1);
   });
-  it("stops paused and resumed origins before starting a mission, leaving one active scene", () => {
-    for (const closeNotes of [false, true]) {
-      const { game, states } = runtime();
-      const resume = pauseForOpenSourceNotes(game);
-      if (closeNotes) resume();
-      const data = { family: "hadoop", monsterId: "open-source:hadoop" };
-      startOpenSourceMission(game, data);
-      expect(game.scene.stop).toHaveBeenCalledWith("intro");
-      expect(game.scene.start).toHaveBeenCalledWith("open-source-chapter", data);
-      expect([...states].filter(([, status]) => status === "active")).toEqual([["open-source-chapter", "active"]]);
-    }
+  it("does not revive a scene that was stopped while its notes were open", () => {
+    const { game, states } = runtime();
+    const resume = pauseForOpenSourceNotes(game);
+    states.set("intro", "stopped");
+    resume();
+    expect(game.scene.resume).not.toHaveBeenCalled();
+    expect(states.get("intro")).toBe("stopped");
   });
 });

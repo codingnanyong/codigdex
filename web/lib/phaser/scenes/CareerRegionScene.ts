@@ -12,7 +12,8 @@ import { createHomeButton } from "../navigation";
 import { createSettingsButton } from "../settings/settingsButton";
 import { fitTexture } from "../monsterArt";
 import { pixelText } from "../pixelFont";
-import { readDexState } from "../registryAdapter";
+import { readDexState, snapshotRegistry } from "../registryAdapter";
+import { discoveredSourceIds } from "../openSourceEvents";
 import { applyPixelFontToScene, createButton, drawOrnateFrame, fitTextInside } from "../ui";
 import {
   careerCheckpointLayout,
@@ -93,7 +94,8 @@ export class CareerRegionScene extends Phaser.Scene {
       })
     );
     createHomeButton(this).setDepth(30);
-    const tools = openSourcesForRegion(region.id, this.careerId);
+    const discovered = discoveredSourceIds(this.registry, snapshotRegistry(this.registry));
+    const tools = openSourcesForRegion(region.id, this.careerId).filter(({ id }) => discovered.has(id));
     if (tools.length) createButton(this, width / 2, height - 28, 300, 34, `${sceneLocale(this) === "ko" ? "관련 오픈소스" : "RELATED OPEN SOURCE"} · ${tools.length}`, () => showOpenSourceNotes(tools.map(({ id }) => id)));
     createSettingsButton(this).setDepth(30);
     applyPixelFontToScene(this);

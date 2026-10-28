@@ -18,12 +18,3 @@ export function pauseForOpenSourceNotes(game: Phaser.Game): () => void {
     for (const scene of scenes) if (scene.sys?.isPaused()) game.scene.resume(scene.sys.settings.key);
   };
 }
-
-/** Manager operations are immediate. ScenePlugin operations queue until a later
- * frame, which can resume the old scene after starting the new expedition. */
-export function startOpenSourceMission(game: Phaser.Game, data: { family: string; monsterId: string }) {
-  for (const scene of game.scene.getScenes(false)) {
-    if (scene.sys.isActive() || scene.sys.isPaused()) game.scene.stop(scene.sys.settings.key);
-  }
-  game.scene.start("open-source-chapter", data);
-}

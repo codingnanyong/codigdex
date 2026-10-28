@@ -3,14 +3,14 @@
 import { useEffect, useRef, useState } from "react";
 import type Phaser from "phaser";
 import { localize, type Locale } from "@codigdex/game-core/i18n/locale";
-import { OPEN_SOURCE_CATALOG, OPEN_SOURCE_FAMILIES, OPEN_SOURCE_KIND_LABELS, filterOpenSources, findOpenSource, type OpenSourceFamily } from "@codigdex/game-content/domain/openSourceCatalog";
-import { JOB_OPTIONS, type JobId } from "@codigdex/game-content/domain/player/jobs";
-import { pauseForOpenSourceNotes, startOpenSourceMission } from "@/lib/phaser/openSourceNotes";
+import { OPEN_SOURCE_FAMILIES, OPEN_SOURCE_KIND_LABELS, filterOpenSources, findOpenSource, type OpenSourceFamily } from "@codigdex/game-content/domain/openSourceCatalog";
+import { JOB_OPTIONS } from "@codigdex/game-content/domain/player/jobs";
+import { SOURCE_CAREERS, activeSourceCareer, encounterTools, sourceCareer, sourceCareerName, type SourceCareerId } from "@codigdex/game-content/domain/openSourceEncounters";
+import { pauseForOpenSourceNotes } from "@/lib/phaser/openSourceNotes";
 import Image from "next/image";
 import { assetUrl } from "@/lib/assets";
-import { openSourceCheckpoints } from "@codigdex/game-content/domain/gameProgress";
-import { openSourceExpeditionFor } from "@codigdex/game-content/domain/openSourceChapters";
 import { SAVE_CHANGE_EVENT, snapshotRegistry } from "@/lib/phaser/registryAdapter";
+import { discoveredSourceIds, sourceEvents, SOURCE_EVENTS_CHANGED } from "@/lib/phaser/openSourceEvents";
 
 export function OpenSourcePanel({ game, locale }: { game: Phaser.Game; locale: Locale }) {
   const dialog = useRef<HTMLDialogElement>(null);
@@ -18,18 +18,20 @@ export function OpenSourcePanel({ game, locale }: { game: Phaser.Game; locale: L
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [family, setFamily] = useState<OpenSourceFamily>();
-  const [jobId, setJobId] = useState<JobId>();
+  const [jobId, setJobId] = useState<SourceCareerId>();
   const [ids, setIds] = useState<readonly string[]>();
   const [save, setSave] = useState(() => snapshotRegistry(game.registry));
-  const pendingMission = useRef<{ family: string; monsterId: string } | undefined>(undefined);
   const ko = locale === "ko";
-  const entries = filterOpenSources({ query, family, jobId, ids });
-  const checkpoints = openSourceCheckpoints(save);
+  const history = sourceEvents(game.registry).read(save);
+  const discovered = discoveredSourceIds(game.registry, save);
+  const roleTools = jobId ? new Set(encounterTools(jobId).map(({ id }) => id)) : undefined;
+  const entries = filterOpenSources({ query, family, ids }).filter(({ id }) => discovered.has(id) && (!roleTools || roleTools.has(id)));
   useEffect(() => {
     const update = () => setSave(snapshotRegistry(game.registry));
     update();
     window.addEventListener(SAVE_CHANGE_EVENT, update);
-    return () => window.removeEventListener(SAVE_CHANGE_EVENT, update);
+    window.addEventListener(SOURCE_EVENTS_CHANGED, update);
+    return () => { window.removeEventListener(SAVE_CHANGE_EVENT, update); window.removeEventListener(SOURCE_EVENTS_CHANGED, update); };
   }, [game]);
 
   useEffect(() => {
@@ -51,23 +53,18 @@ export function OpenSourcePanel({ game, locale }: { game: Phaser.Game; locale: L
     return () => {
       element.close();
       resume();
-      const mission = pendingMission.current;
-      pendingMission.current = undefined;
-      if (mission) {
-        startOpenSourceMission(game, mission);
-      }
       if (focus?.isConnected) focus.focus();
     };
   }, [open, game]);
 
   const reset = () => { setQuery(""); setFamily(undefined); setJobId(undefined); setIds(undefined); };
   return <>
-    <button ref={launcher} className="source-launch" onKeyDown={(event) => event.stopPropagation()} onClick={() => { reset(); setOpen(true); }} aria-haspopup="dialog">{ko ? "오픈소스 탐험" : "OPEN-SOURCE NOTES"}</button>
+    <button ref={launcher} className="source-launch" onKeyDown={(event) => event.stopPropagation()} onClick={() => { reset(); setOpen(true); }} aria-haspopup="dialog">{ko ? "오픈소스 노트" : "OPEN-SOURCE NOTES"}</button>
     <dialog ref={dialog} className="source-dialog" aria-labelledby="source-title" onCancel={() => setOpen(false)} onClose={() => setOpen(false)} onKeyDown={(event) => event.stopPropagation()}>
       <div className="source-heading">
-        <div><h2 id="source-title">{ko ? "오픈소스 탐험 노트" : "OPEN-SOURCE FIELD NOTES"}</h2>
-          <p>{ko ? "9개 생태계의 이야기를 따라 38종을 포획하세요. 공통 경로 완료 후 열리며 전직 MASTER 조건에는 영향을 주지 않습니다." : "Follow 9 ecosystem stories and capture 38 creatures. Opens after the common path; career MASTER requirements stay the same."}</p></div>
-        <button onClick={() => setOpen(false)} aria-label={ko ? "오픈소스 탐험 닫기" : "Close open-source notes"}>×</button>
+        <div><h2 id="source-title">{ko ? "발견한 오픈소스 노트" : "OPEN-SOURCE FIELD NOTES"}</h2>
+          <p>{ko ? "직무 전투 뒤 돌발 의뢰로 만난 도구를 복습합니다. 의뢰를 해결하면 같은 도구가 도감에도 등록됩니다. 기존 포획 기록은 그대로 보존됩니다." : "Review tools met through surprise requests after career battles. Solving a request also registers its tool in your dex. Existing captures are preserved."}</p></div>
+        <button onClick={() => setOpen(false)} aria-label={ko ? "오픈소스 노트 닫기" : "Close open-source notes"}>×</button>
       </div>
       <div className="source-filters">
         <label>{ko ? "검색" : "Search"}<input autoFocus value={query} onChange={(e) => setQuery(e.target.value)} placeholder={ko ? "Kafka, 하둡, 계보…" : "Kafka, Hadoop, lineage…"} /></label>
@@ -75,19 +72,18 @@ export function OpenSourcePanel({ game, locale }: { game: Phaser.Game; locale: L
           <option value="">{ko ? "모든 생태계" : "All ecosystems"}</option>
           {Object.entries(OPEN_SOURCE_FAMILIES).map(([id, copy]) => <option key={id} value={id}>{localize(copy, locale)}</option>)}
         </select></label>
-        <label>{ko ? "직업 경로" : "Career path"}<select value={jobId ?? ""} onChange={(e) => setJobId(e.target.value as JobId || undefined)}>
+        <label>{ko ? "직업 경로" : "Career path"}<select value={jobId ?? ""} onChange={(e) => setJobId(e.target.value as SourceCareerId || undefined)}>
           <option value="">{ko ? "모든 경로" : "All paths"}</option>
-          {JOB_OPTIONS.map((job) => <option key={job.id} value={job.id}>{localize(job.name, locale)}</option>)}
+          {SOURCE_CAREERS.filter(({ id }) => JOB_OPTIONS.some((job) => job.id === id) || activeSourceCareer(save) === id || history.offeredCareers.includes(id)).map(({ id }) => <option key={id} value={id}>{localize(sourceCareerName(id), locale)}</option>)}
         </select></label>
         <button onClick={reset}>{ko ? "전체 보기" : "Show all"}</button>
       </div>
-      <p role="status" className="source-count">{entries.length}/{OPEN_SOURCE_CATALOG.length} · {ids ? (ko ? "현재 의뢰의 관련 도구" : "Tools related to this mission") : (ko ? "프로젝트·구성요소·데이터 형식" : "Projects, components and data formats")}</p>
+      <p role="status" className="source-count">{entries.length}/{discovered.size} · {ids ? (ko ? "발견한 관련 도구" : "Discovered related tools") : (ko ? "직무 모험에서 발견한 기록" : "Discoveries from your career adventure")}</p>
       <div className="source-results">
-        {!entries.length ? <p>{ko ? "조건에 맞는 도구가 없습니다. 검색이나 필터를 바꿔 보세요." : "No matching tools. Try changing the search or filters."}</p> : null}
+        {!entries.length ? <p>{discovered.size ? (ko ? "조건에 맞는 기록이 없습니다. 검색이나 필터를 바꿔 보세요." : "No matching discoveries. Try changing the search or filters.") : (ko ? "아직 만난 도구가 없습니다. 직무를 선택하고 전투를 완료하면 돌발 의뢰로 오픈소스를 만날 수 있어요." : "No tools discovered yet. Choose a career and finish battles to meet open source through surprise requests.")}</p> : null}
         <div className="source-grid">{entries.map((entry) => {
-          const checkpoint = checkpoints.find(({ monster }) => monster.id === `open-source:${entry.id}`)!;
-          const expedition = openSourceExpeditionFor(entry.family)!;
-          const complete = expedition.chapter.stages.every(({ id }) => save.progress.captures.some((capture) => capture.id === id));
+          const captured = save.progress.captures.some(({ id }) => id === `open-source:${entry.id}`);
+          const roles = [...new Set(history.discoveries.filter(({ toolId }) => toolId === entry.id).map(({ careerId }) => careerId))];
           return <article className="source-card" key={entry.id} data-project={entry.id}>
           <p className="source-kicker">{localize(OPEN_SOURCE_FAMILIES[entry.family], locale)} · {localize(OPEN_SOURCE_KIND_LABELS[entry.kind], locale)}</p>
           {entry.character.assetKey ? <Image className="source-character" src={assetUrl(entry.character.assetKey)} alt={localize(entry.character.name, locale)} width={256} height={256} unoptimized /> : null}
@@ -96,9 +92,8 @@ export function OpenSourcePanel({ game, locale }: { game: Phaser.Game; locale: L
           <p>{localize(entry.role, locale)}</p>
           <p className="source-learning">{localize(entry.learning, locale)}</p>
           <div className="source-creature"><strong>{localize(entry.character.name, locale)}</strong><p>{localize(entry.character.motif, locale)}</p></div>
-          <details className="source-story"><summary>{localize(expedition.chapter.name, locale)}</summary><p>{localize(complete ? expedition.ending : expedition.intro, locale)}</p></details>
-          <p className="source-mission-status">{checkpoint.status === "cleared" ? (ko ? "✓ 도감 등록 완료" : "✓ REGISTERED IN DEX") : checkpoint.status === "locked" ? (ko ? "공통 경로와 이 생태계의 선행 의뢰를 완료하세요." : "Complete the common path and earlier missions in this ecosystem.") : (ko ? "의뢰 가능 · 4문항 중 3문항 정답으로 포획" : "MISSION AVAILABLE · Capture with 3 of 4 correct")}</p>
-          <button disabled={checkpoint.status === "locked"} onClick={() => { pendingMission.current = { family: entry.family, monsterId: checkpoint.monster.id }; setOpen(false); }}>{checkpoint.status === "cleared" ? (ko ? "의뢰 다시 도전" : "REPLAY MISSION") : (ko ? "이야기 · 의뢰 시작" : "STORY · START MISSION")}</button>
+          {roles.length ? <details className="source-story"><summary>{ko ? "직무에서 만난 상황" : "Career encounter notes"}</summary>{roles.map((id) => <p key={id}><strong>{localize(sourceCareerName(id), locale)}</strong><br />{localize(sourceCareer(id)!.workplace, locale)}</p>)}</details> : null}
+          <p className="source-mission-status">{captured ? (ko ? "✓ 도감 등록 완료" : "✓ REGISTERED IN DEX") : (ko ? "발견 기록 · 직무 모험 중 다시 만날 수 있어요." : "Discovered · You can meet this tool again during your career adventure.")}</p>
           <a href={entry.officialUrl} target="_blank" rel="noopener noreferrer">{ko ? "공식 프로젝트 자료 ↗" : "Official project documentation ↗"}</a>
         </article>; })}</div>
       </div>

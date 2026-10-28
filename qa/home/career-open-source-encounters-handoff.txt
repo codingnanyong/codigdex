@@ -1,0 +1,30 @@
+Handoff: career-integrated WEB open-source encounters, 2026-10-28 (KST)
+
+- Owner: Codex
+- Reviewer: Claude GitHub Action on the feature/release PRs; final review and remote results are recorded on those PRs.
+- Scope: Replace the separate WEB open-source expedition with optional surprise requests after successful primary/secondary career battles. Existing cards, career progression and save-v3 format are preserved. The user authorized WEB tests and deployment after success. Native mobile deployment is excluded.
+- Changed files:
+  - packages/game-content/src/domain/openSourceEncounters.ts: ten career tool pools, first request, cooldown/chance/pity and per-victory deduplication; practice victories keep all 38 tools collectible after mastery.
+  - web/lib/phaser/openSourceEvents.ts: validated adventure-local encounter history, pending request recovery, explicit accept/finish and battle authorization.
+  - web/lib/phaser/scenes/OpenSourceEventScene.ts: bilingual request, defer/retry/help and return to the original career.
+  - web/lib/phaser/config.ts, capture/resultFlow.ts, scenes/IntroScene.ts, WorldMapScene.ts, CodeBattleScene.ts, CaptureQuizScene.ts: new scene lifecycle, resume, legacy bookmark migration and capture integration. The standalone OpenSourceChapterScene.ts and its WEB return-target types are removed.
+  - web/components/OpenSourcePanel.tsx, web/lib/phaser/openSourceNotes.ts, scenes/CareerRegionScene.ts, PromotionChapterScene.ts: discovery-only notebook and related notes, without a separate expedition entrance.
+  - web/lib/qa/presets.ts, web/components/WebQALauncher.tsx, web/scripts/verify-web-qa.mjs: 17 WEB starting states. Shared/native QA presets are unchanged.
+  - web/test/domain/openSourceEncounters.test.ts, web/test/phaser/openSourceEvents.test.ts, web/test/domain/webQAPresets.test.ts, web/test/phaser/openSourceNotes.test.ts, web/test/domain/openSourceExpeditions.test.ts, web/test/phaser/battleLoading.test.ts: role coverage, scheduling, storage, notebook, legacy return types and failed-load retry regressions.
+  - web/e2e/game.expedition.spec.ts, game.open-source.spec.ts, game.promotion.spec.ts: all ten career encounters, defer, retry, reload, migration, discovery filtering and promotion progression.
+  - qa/home/career-open-source-encounters-handoff.txt: this report.
+- Generated assets: None. Existing portraits and pixel UI are reused; generated public mirrors are untouched. Ignored screenshots and browser reports are under mobile/.tmp-qa/ and qa-results/.
+- Checks run:
+  - WEB unit tests: 595/595 in 47 files after review corrections.
+  - Native mobile unit tests: 84/84 in 14 files; this is not emulator acceptance.
+  - WEB production build, WEB lint, all workspace typechecks, package boundaries and agent configuration checks passed.
+  - Production-build Chromium E2E: 28/29 initially passed; one stale text assertion was corrected and all five notebook tests passed on rerun. All ten role events, five complete promotion paths, defer, failure/retry, reload and legacy migrations passed.
+  - WEB QA browser validation: all 17 starting states, bilingual presets, ten secondary starts, full 174-card dex, backup restore and 390px layout passed.
+  - Home QA generation/check: 13 case files and 11 runner tests passed. git diff --check passed.
+  - Independent review found that failed quiz loading lost sourceEventId on retry. The new regression failed before correction and passed with the full 595-test suite after retaining event authorization and the original return target. Obsolete standalone scene return types were removed; encounter success no longer displays old expedition-completion messaging. Defensive unknown-career handling and complete role-catalog coverage were added.
+  - Final CI, independent review and deployed-production verification are recorded in PR/Linear after completion; this static report does not imply those have finished.
+- Remaining risks or review items:
+  - Encounter/discovery history is browser-local and adventure-scoped; clearing browser history or moving a save to another browser resets uncollected discoveries, pending requests and first-offer scheduling. Captured tool cards remain in the ordinary save-v3 import/export/cloud flow. Corrupt/oversized storage, missing trigger and cleared-history regressions are covered.
+  - Native/mobile code and its standalone source expedition are unchanged by this WEB task. Home Android emulator acceptance remains pending; no APK/IPA/EAS release is performed.
+  - English/Korean prose documentation is Claude-owned; follow-up remains COD-411.
+  - Overall QA/sprint closure remains pending native mobile acceptance.

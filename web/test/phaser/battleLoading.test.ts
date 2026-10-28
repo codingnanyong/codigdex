@@ -52,6 +52,19 @@ describe("quiz load completing while field notes pause the battle", () => {
     expect(pending.scene.scene.restart).toHaveBeenCalledWith(expect.objectContaining({ monsterId: pending.scene.monster.id }));
   });
 
+  it("keeps encounter authorization and the original return target when loading is retried", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => undefined);
+    const pending = pendingLoad();
+    const returnTo = { scene: "career-region", data: { careerId: "frontend", regionId: "html-css" } };
+    Object.assign(pending.scene, { sourceEventId: "frontend:victory-1", returnTo });
+    pending.reject(new Error("offline"));
+    await pending.completed;
+    pending.loading.once.mock.calls[0][1]();
+    expect(pending.scene.scene.restart).toHaveBeenCalledWith(expect.objectContaining({
+      monsterId: pending.scene.monster.id, sourceEventId: "frontend:victory-1", returnTo,
+    }));
+  });
+
   it.each(["stopped", "superseded"])("does not initialize a %s scene", async (state) => {
     const actual = await vi.importActual<typeof import("@codigdex/quiz-content")>("@codigdex/quiz-content");
     const pack = await actual.loadMixedQuizPack(CHAPTERS[0].stages[0].quizPackId);
