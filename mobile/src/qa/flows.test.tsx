@@ -211,7 +211,7 @@ async function playBattle(monsterId: string, pass = true) {
   }
   throw Error("Battle did not finish");
 }
-async function startCareer(id: string, locale: "ko" | "en" = "en") {
+async function startCareer(id: string, locale: "ko" | "en" = "en", confirm = true) {
   const seed = careerQAPresets(locale).find((preset) => preset.id === `encounter:${id}`)!.save;
   storage.set(qaSaveKey, JSON.stringify(seed));
   await launch();
@@ -221,7 +221,7 @@ async function startCareer(id: string, locale: "ko" | "en" = "en") {
   expect((await element({ id: "result-title" })).textContent).toBe(locale === "ko" ? "포획 성공" : "CAPTURED");
   expect(saved().progress.captures.some(({ id }) => id === seed.ui.checkpointId)).toBe(true);
   const checkpoint = saved().ui.checkpointId;
-  await tap("result-world");
+  if (confirm) await tap("result-world");
   return { seed, checkpoint };
 }
 
@@ -380,4 +380,33 @@ it("rejects an older import if progress changes during its history read", async 
     expect(saved().ui.locale).toBe("ko");
     expect(saved().progress.captures[0].capturedAt).toBe("2026-10-25T00:00:00.000Z");
   } finally { release(); sourceFaults.blockRead = undefined; }
+}, 20000);
+
+it("restores an offer after restarting directly from the career capture result", async () => {
+  const { checkpoint } = await startCareer("frontend", "en", false);
+  expect(controls!.sourceEvents.pending(controls!.save)?.toolId).toBe("tanstack-query");
+  await launch(); await tap("home-play");
+  await element({ id: "source-event-title" });
+  expect(saved().ui.checkpointId).toBe(checkpoint);
+}, 20000);
+
+it("keeps the guaranteed offer when the player inspects a card before confirming", async () => {
+  await startCareer("frontend", "en", false);
+  const dex = Array.from(container.querySelectorAll("button")).find((button) => button.textContent === "OPEN DEX")!;
+  await act(async () => dex.click()); await tick();
+  expect(controls!.sourceEvents.pending(controls!.save)?.toolId).toBe("tanstack-query");
+  await act(async () => container.querySelector("button")!.click()); await tick();
+  await tap("qa-menu"); await tap("home-play");
+  await element({ id: "source-event-title" });
+}, 20000);
+
+it("keeps an existing first offer when a captured career battle is retried", async () => {
+  const { seed } = await startCareer("frontend", "en", false);
+  const pending = controls!.sourceEvents.pending(controls!.save)!;
+  await tap("result-retry");
+  await playBattle(seed.ui.checkpointId!);
+  expect(controls!.sourceEvents.pending(controls!.save)?.id).toBe(pending.id);
+  expect(controls!.sourceEvents.read(controls!.save).processed).toHaveLength(1);
+  await tap("result-world");
+  await element({ id: "source-event-title" });
 }, 20000);

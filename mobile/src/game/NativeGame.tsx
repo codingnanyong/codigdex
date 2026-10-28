@@ -68,7 +68,7 @@ export function NativeGame() {
     const next = advance ? nextPlayableCheckpoint(save) : findStage(result.monster.id);
     if (advance) { selectCheckpoint(next.monster.id); setWorldStageId(next.monster.id); }
     const target = destinationFor(save, next.monster.id);
-    const offered = result.passed && sourceEvents.queue(result.beforeCapture, save, result.monster.id, target, Math.random, result.victoryId);
+    const offered = result.passed && sourceEvents.resolvePending(save);
     if (offered) setRoute({ name: "encounter" }); else navigate(target);
   };
   const title = () => <TitleScreen onOpenSources={() => setRoute({ name: "open-source", returnTo: "title" })} onCareer={() => setRoute({ name: "career" })} onQA={() => setRoute({ name: "qa" })} onDex={() => setRoute({ name: "dex" })} onPlay={resume} onSettings={() => setRoute({ name: "settings" })} />;
@@ -93,6 +93,10 @@ export function NativeGame() {
         const authorized = !context.sourceEventId || sourceEvents.canBattle(after, context.sourceEventId, context.monster.id);
         const passed = battle.status === "passed" && authorized && after.progress.captures.some(({ id }) => id === context.monster.id);
         const newCapture = passed && !captured.has(context.monster.id);
+        if (passed && !context.sourceEventId) {
+          const target = destinationFor(after, after.ui.checkpointId ?? context.monster.id);
+          sourceEvents.queue(save, after, context.monster.id, target, Math.random, context.victoryId);
+        }
         setRoute({ name: "result", result: { ...context, beforeCapture: save, correct: battle.correctCount, passed, newCapture, total: battle.questions.length } });
       }} />;
     }
