@@ -1,0 +1,20 @@
+.page { width: min(1100px, 100%); min-height: 100dvh; margin: 0 auto; padding: 32px 20px 64px; background: #f1e4cb; font: 16px/1.65 Galmuri14, monospace; color: #2a1d14; }
+.header, .checklist, .card { background: #fff8e8; border: 2px solid #93704b; padding: 20px; }
+.header h1 { font-size: 30px; color: #a33422; margin: 8px 0 12px; }
+.eyebrow { color: #8c392a; font-size: 14px; }
+.note { margin: 12px 0; color: #6b4226; }
+.actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; margin-top: 18px; }
+.page :is(button, select) { min-height: 44px; border: 2px solid #93704b; padding: 8px 12px; font: inherit; }
+.page button { background: #49301c; color: #fff8e8; cursor: pointer; }
+.page select { color: #2a1d14; background: #fff8e8; }
+.page a { color: #8c392a; text-decoration: underline; }
+.page :is(button, select, a):focus-visible { outline: 3px solid #a33422; outline-offset: 3px; }
+.checklist { margin-top: 20px; background: #ead8b5; }
+.checklist ol { list-style: decimal; padding-left: 25px; margin: 8px 0; }
+.section { margin-top: 28px; }
+.section h2 { font-size: 22px; margin-bottom: 12px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr)); gap: 14px; }
+.card { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.card h3 { color: #a33422; font-size: 19px; }
+.card p { flex: 1; }
+.error { color: #a33422; margin-top: 12px; }

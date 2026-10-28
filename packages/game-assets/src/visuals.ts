@@ -4,6 +4,11 @@ export const WALLPAPERS = {
   tutorial: "wallpapers/tutorial-loop-forest-v1.png",
   git: "wallpapers/git-battle-arena-v1.png",
   linux: "wallpapers/linux-battle-arena-v1.png",
+  platform: "wallpapers/promotion/platform-engineer-arena-v1.png",
+  fullstack: "wallpapers/promotion/fullstack-engineer-arena-v1.png",
+  ml: "wallpapers/promotion/ml-developer-arena-v1.png",
+  mlops: "wallpapers/promotion/mlops-engineer-arena-v1.png",
+  analytics: "wallpapers/promotion/analytics-engineer-arena-v1.png",
 } as const;
 
 export type Scenery = keyof typeof WALLPAPERS;

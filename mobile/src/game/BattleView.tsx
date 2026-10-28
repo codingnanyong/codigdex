@@ -7,7 +7,8 @@ import { localize, type Locale } from "@codigdex/game-core/i18n/locale";
 import { PixelButton } from "../ui/PixelButton";
 import { colors, font } from "../ui/theme";
 import { battleMeters, expectedAnswer, keyboardAnswer, quizCopy } from "./battlePresentation";
-import { PixelScene, type PixelScenery } from "../ui/PixelScene";
+import { PixelScene } from "../ui/PixelScene";
+import { promotionMissionFor } from "@codigdex/game-content/domain/promotionChapters";
 
 export interface BattleFeedback { nextBattle: BattleState; attempt: BattleAttempt }
 
@@ -45,6 +46,8 @@ export function BattleView(props: BattleViewProps) {
   const playerAnswer = feedback && (typeof feedback.attempt.answer === "number" && question.type !== "freeText"
     ? localize(question.choices[feedback.attempt.answer], locale) : String(feedback.attempt.answer));
   const finished = settled.status !== "active";
+  const scenery = promotionMissionFor(monster.quizPackId.split(".")[0].replace(/^promotion:/, ""))?.scenery
+    ?? (monster.quizPackId.startsWith("linux.") ? "linux" : monster.quizPackId.startsWith("git.") ? "git" : "tutorial");
 
   return <View style={[styles.root, keyboardVisible && styles.typingRoot]}>
     <View style={styles.header}>
@@ -65,7 +68,7 @@ export function BattleView(props: BattleViewProps) {
 
     <View style={styles.layout}>
       {!compact ? <View style={styles.specimen}>
-        <PixelScene backdrop scene={monster.quizPackId.startsWith("linux.") ? "linux" : monster.quizPackId.startsWith("git.") ? "git" : "tutorial"} />
+        <PixelScene backdrop scene={scenery} />
         <Image accessibilityLabel={localize(monster.name, locale)} resizeMode="contain" source={monsterImage} style={styles.monsterImage} />
         <Text style={styles.specimenTitle}>LV.{monster.level}</Text>
         <Text style={[styles.caption, styles.specimenCaption]}>{localize(monster.classification, locale)}</Text>
@@ -73,7 +76,7 @@ export function BattleView(props: BattleViewProps) {
       <ScrollView testID="battle-scroll" ref={props.scrollRef} style={styles.conversation} contentContainerStyle={[styles.conversationContent, keyboardVisible && styles.typingContent]}
         keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag" onContentSizeChange={props.onContentSizeChange}>
         {compact && !keyboardVisible ? <View style={styles.compactStage}>
-          <PixelScene backdrop scene={(monster.quizPackId.split(".")[0] === "linux" ? "linux" : monster.quizPackId.split(".")[0] === "git" ? "git" : "tutorial") as PixelScenery} />
+          <PixelScene backdrop scene={scenery} />
           <Image accessibilityLabel={localize(monster.name, locale)} resizeMode="contain" source={monsterImage} style={styles.compactMonster} />
           <Text style={styles.stageLabel}>LV.{monster.level}</Text>
         </View> : null}

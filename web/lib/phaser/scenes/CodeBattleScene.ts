@@ -21,7 +21,7 @@ import { applyPixelFontToScene } from "../ui";
 
 export interface CodeBattleData {
   monsterId: string;
-  returnTo?: { scene: "world-map" | "career-region"; data?: Record<string, unknown> };
+  returnTo?: { scene: "world-map" | "career-region" | "promotion-chapter" | "open-source-chapter"; data?: Record<string, unknown> };
   arena?: ChapterDefinition["arena"];
 }
 
@@ -91,13 +91,13 @@ export class CodeBattleScene extends Phaser.Scene {
   private async createBattleUi(generation: number, loading: Phaser.GameObjects.Text) {
     try {
       const pack = await loadMixedQuizPack(this.monster.quizPackId);
-      if (!this.sys.isActive() || generation !== this.loadGeneration) return;
+      if ((!this.sys.isActive() && !this.sys.isPaused()) || generation !== this.loadGeneration) return;
       const rng = process.env.NODE_ENV === "development" && process.env.NEXT_PUBLIC_E2E === "1" ? createQaRandom() : Math.random;
       this.battle = createBattleState(drawMixedQuizQuestions(pack.questions, quizCountForLevel(this.monster.level), rng));
       loading.destroy();
     } catch (error) {
       console.error(`[CodeBattleScene] failed to load ${this.monster.quizPackId}`, error);
-      if (!this.sys.isActive() || generation !== this.loadGeneration) return;
+      if ((!this.sys.isActive() && !this.sys.isPaused()) || generation !== this.loadGeneration) return;
       loading.setText(t(this, "battle.quizLoadFailed"));
       loading.setInteractive({ useHandCursor: true }).once("pointerup", () => this.scene.restart({ monsterId: this.monster.id, returnTo: this.returnTo, arena: this.battleArena }));
       return;

@@ -6,6 +6,7 @@ import type { QuizDifficulty, QuizPackDescriptor } from "./types";
 const LEGACY_POOL_SIZE = 20;
 
 function questionCountFor(chapterId: string, inlinePoolSize: number | undefined): number {
+  if (chapterId.startsWith("open-source:")) return 7;
   if (inlinePoolSize !== undefined) return inlinePoolSize;
   if (chapterId.startsWith("career:")) {
     // Hand-authored career pools are level-specific and smaller than the legacy

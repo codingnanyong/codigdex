@@ -10,7 +10,7 @@ const outputPath = path.join(mobileRoot, "src/assets.generated.ts");
 const manifest = await readFile(manifestPath, "utf8");
 // Share the four web originals; keep unrelated career archives out of Metro.
 const keys = [...manifest.matchAll(/^  "([^"]+)",$/gm)].map((match) => match[1])
-  .filter((key) => (key.startsWith("monsters/") && !/-(?:evolution-(?:guide|sheet)-v\d+|specimen(?:-v\d+)?)\.png$/.test(key)) || Object.values(WALLPAPERS).includes(key));
+  .filter((key) => (key.startsWith("monsters/") && !/-(?:evolution-(?:guide|sheet)-v\d+|specimen(?:-v\d+)?)\.png$/.test(key)) || /^characters\/promotion\/[^/]+\/guide-v1\.png$/.test(key) || /^characters\/open-source\/[a-z0-9-]+-v1\.png$/.test(key) || Object.values(WALLPAPERS).includes(key));
 
 if (keys.length === 0) throw new Error(`No asset keys found in ${manifestPath}`);
 
