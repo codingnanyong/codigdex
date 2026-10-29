@@ -27,6 +27,7 @@ tags:
     direction: DOWN
     timeout: 60000
     speed: 20
+    centerElement: true
 - tapOn:
     id: promotion-checkpoint-platform-release-ferry
 - scrollUntilVisible:
@@ -111,6 +112,7 @@ tags:
     direction: DOWN
     timeout: 60000
     speed: 20
+    centerElement: true
 - tapOn:
     id: promotion-checkpoint-platform-signal-owl
 - scrollUntilVisible:
@@ -220,6 +222,7 @@ tags:
     direction: DOWN
     timeout: 60000
     speed: 20
+    centerElement: true
 - tapOn:
     id: promotion-checkpoint-platform-budget-keeper
 - scrollUntilVisible:
@@ -329,6 +332,7 @@ tags:
     direction: DOWN
     timeout: 60000
     speed: 20
+    centerElement: true
 - tapOn:
     id: promotion-checkpoint-platform-incident-heron
 - scrollUntilVisible:
@@ -463,6 +467,7 @@ tags:
     direction: DOWN
     timeout: 60000
     speed: 20
+    centerElement: true
 - tapOn:
     id: promotion-checkpoint-platform-harbor-guardian
 - scrollUntilVisible:

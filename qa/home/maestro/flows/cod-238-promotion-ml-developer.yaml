@@ -27,6 +27,7 @@ tags:
     direction: DOWN
     timeout: 60000
     speed: 20
+    centerElement: true
 - tapOn:
     id: promotion-checkpoint-ml-sample-mouse
 - scrollUntilVisible:
@@ -111,6 +112,7 @@ tags:
     direction: DOWN
     timeout: 60000
     speed: 20
+    centerElement: true
 - tapOn:
     id: promotion-checkpoint-ml-feature-deer
 - scrollUntilVisible:
@@ -220,6 +222,7 @@ tags:
     direction: DOWN
     timeout: 60000
     speed: 20
+    centerElement: true
 - tapOn:
     id: promotion-checkpoint-ml-validation-lynx
 - scrollUntilVisible:
@@ -329,6 +332,7 @@ tags:
     direction: DOWN
     timeout: 60000
     speed: 20
+    centerElement: true
 - tapOn:
     id: promotion-checkpoint-ml-serving-gecko
 - scrollUntilVisible:
@@ -463,6 +467,7 @@ tags:
     direction: DOWN
     timeout: 60000
     speed: 20
+    centerElement: true
 - tapOn:
     id: promotion-checkpoint-ml-model-griffin
 - scrollUntilVisible:

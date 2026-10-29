@@ -27,6 +27,7 @@ tags:
     direction: DOWN
     timeout: 60000
     speed: 20
+    centerElement: true
 - tapOn:
     id: promotion-checkpoint-analytics-grain-sparrow
 - scrollUntilVisible:
@@ -111,6 +112,7 @@ tags:
     direction: DOWN
     timeout: 60000
     speed: 20
+    centerElement: true
 - tapOn:
     id: promotion-checkpoint-analytics-quality-frog
 - scrollUntilVisible:
@@ -220,6 +222,7 @@ tags:
     direction: DOWN
     timeout: 60000
     speed: 20
+    centerElement: true
 - tapOn:
     id: promotion-checkpoint-analytics-metric-lanternfish
 - scrollUntilVisible:
@@ -329,6 +332,7 @@ tags:
     direction: DOWN
     timeout: 60000
     speed: 20
+    centerElement: true
 - tapOn:
     id: promotion-checkpoint-analytics-lineage-stag
 - scrollUntilVisible:
@@ -463,6 +467,7 @@ tags:
     direction: DOWN
     timeout: 60000
     speed: 20
+    centerElement: true
 - tapOn:
     id: promotion-checkpoint-analytics-insight-dragon
 - scrollUntilVisible:

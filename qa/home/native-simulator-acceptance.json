@@ -1,0 +1,307 @@
+{
+  "scope": "Local native simulator acceptance; no mobile publication",
+  "tested_qa_commit": "ddc1e73288db1cf53858f1cb0a3508f1a065b4c6",
+  "application_source_changed": false,
+  "platforms": {
+    "android": {
+      "device": "Pixel_8 · Android API 36",
+      "initial_counts": {
+        "tests": 28,
+        "failures": 0,
+        "skipped": 0,
+        "passed": 28
+      },
+      "initial_run_status": "passed",
+      "source_changed_during_initial_run": false,
+      "initial_evidence": "qa-results/2026-10-28T13-10-37-711Z-ddc1e73",
+      "passed_retests": [],
+      "accepted_scenarios": 28,
+      "scenario_count": 28,
+      "scenarios": {
+        "COD-235 real mixed quiz, blank input and two hints": {
+          "passed": true,
+          "flow": "cod-235-quiz-pass.yaml"
+        },
+        "COD-235 incorrect answers do not capture": {
+          "passed": true,
+          "flow": "cod-235-quiz-fail.yaml"
+        },
+        "COD-234 battle results and duplicate capture protection": {
+          "passed": true,
+          "flow": "cod-234-capture-replay.yaml"
+        },
+        "COD-236 native startup, save and quiz recovery": {
+          "passed": true,
+          "flow": "cod-236-recovery.yaml"
+        },
+        "COD-237 locked regions and tutorial to Git unlock": {
+          "passed": true,
+          "flow": "cod-237-world-map.yaml"
+        },
+        "COD-238 saved checkpoint survives full process restart": {
+          "passed": true,
+          "flow": "cod-238-continue.yaml"
+        },
+        "COD-238 frontend selection and career resume": {
+          "passed": true,
+          "flow": "cod-238-career-frontend.yaml"
+        },
+        "COD-238 backend selection and career resume": {
+          "passed": true,
+          "flow": "cod-238-career-backend.yaml"
+        },
+        "COD-238 devops selection and career resume": {
+          "passed": true,
+          "flow": "cod-238-career-devops.yaml"
+        },
+        "COD-238 data-engineer selection and career resume": {
+          "passed": true,
+          "flow": "cod-238-career-data-engineer.yaml"
+        },
+        "COD-238 data-analyst selection and career resume": {
+          "passed": true,
+          "flow": "cod-238-career-data-analyst.yaml"
+        },
+        "COD-238 frontend request, native persistence, capture and notes": {
+          "passed": true,
+          "flow": "cod-238-encounter-frontend.yaml"
+        },
+        "COD-238 backend request, native persistence, capture and notes": {
+          "passed": true,
+          "flow": "cod-238-encounter-backend.yaml"
+        },
+        "COD-238 devops request, native persistence, capture and notes": {
+          "passed": true,
+          "flow": "cod-238-encounter-devops.yaml"
+        },
+        "COD-238 data-engineer request, native persistence, capture and notes": {
+          "passed": true,
+          "flow": "cod-238-encounter-data-engineer.yaml"
+        },
+        "COD-238 data-analyst request, native persistence, capture and notes": {
+          "passed": true,
+          "flow": "cod-238-encounter-data-analyst.yaml"
+        },
+        "COD-238 fullstack-engineer request, native persistence, capture and notes": {
+          "passed": true,
+          "flow": "cod-238-encounter-fullstack-engineer.yaml"
+        },
+        "COD-238 platform-engineer request, native persistence, capture and notes": {
+          "passed": true,
+          "flow": "cod-238-encounter-platform-engineer.yaml"
+        },
+        "COD-238 ml-developer request, native persistence, capture and notes": {
+          "passed": true,
+          "flow": "cod-238-encounter-ml-developer.yaml"
+        },
+        "COD-238 mlops-engineer request, native persistence, capture and notes": {
+          "passed": true,
+          "flow": "cod-238-encounter-mlops-engineer.yaml"
+        },
+        "COD-238 analytics-engineer request, native persistence, capture and notes": {
+          "passed": true,
+          "flow": "cod-238-encounter-analytics-engineer.yaml"
+        },
+        "COD-238 promotion:platform-engineer five missions, MASTER and restart": {
+          "passed": true,
+          "flow": "cod-238-promotion-platform-engineer.yaml"
+        },
+        "COD-238 promotion:fullstack-engineer five missions, MASTER and restart": {
+          "passed": true,
+          "flow": "cod-238-promotion-fullstack-engineer.yaml"
+        },
+        "COD-238 promotion:ml-developer five missions, MASTER and restart": {
+          "passed": true,
+          "flow": "cod-238-promotion-ml-developer.yaml"
+        },
+        "COD-238 promotion:mlops-engineer five missions, MASTER and restart": {
+          "passed": true,
+          "flow": "cod-238-promotion-mlops-engineer.yaml"
+        },
+        "COD-238 promotion:analytics-engineer five missions, MASTER and restart": {
+          "passed": true,
+          "flow": "cod-238-promotion-analytics-engineer.yaml"
+        },
+        "COD-238 request-history save failure, retry, restart and decline": {
+          "passed": true,
+          "flow": "cod-238-encounter-save-recovery.yaml"
+        },
+        "COD-238 failed request battle, retry and original career return": {
+          "passed": true,
+          "flow": "cod-238-encounter-battle-retry.yaml"
+        }
+      }
+    },
+    "ios": {
+      "device": "iPhone 18 Pro · iOS 27.0",
+      "initial_counts": {
+        "tests": 28,
+        "failures": 1,
+        "skipped": 0,
+        "passed": 27
+      },
+      "initial_run_status": "failed",
+      "source_changed_during_initial_run": false,
+      "initial_evidence": "qa-results/2026-10-28T13-12-28-526Z-ddc1e73",
+      "passed_retests": [
+        "COD-238 promotion:analytics-engineer five missions, MASTER and restart"
+      ],
+      "accepted_scenarios": 28,
+      "scenario_count": 28,
+      "scenarios": {
+        "COD-235 real mixed quiz, blank input and two hints": {
+          "passed": true,
+          "flow": "cod-235-quiz-pass.yaml"
+        },
+        "COD-235 incorrect answers do not capture": {
+          "passed": true,
+          "flow": "cod-235-quiz-fail.yaml"
+        },
+        "COD-234 battle results and duplicate capture protection": {
+          "passed": true,
+          "flow": "cod-234-capture-replay.yaml"
+        },
+        "COD-236 native startup, save and quiz recovery": {
+          "passed": true,
+          "flow": "cod-236-recovery.yaml"
+        },
+        "COD-237 locked regions and tutorial to Git unlock": {
+          "passed": true,
+          "flow": "cod-237-world-map.yaml"
+        },
+        "COD-238 saved checkpoint survives full process restart": {
+          "passed": true,
+          "flow": "cod-238-continue.yaml"
+        },
+        "COD-238 frontend selection and career resume": {
+          "passed": true,
+          "flow": "cod-238-career-frontend.yaml"
+        },
+        "COD-238 backend selection and career resume": {
+          "passed": true,
+          "flow": "cod-238-career-backend.yaml"
+        },
+        "COD-238 devops selection and career resume": {
+          "passed": true,
+          "flow": "cod-238-career-devops.yaml"
+        },
+        "COD-238 data-engineer selection and career resume": {
+          "passed": true,
+          "flow": "cod-238-career-data-engineer.yaml"
+        },
+        "COD-238 data-analyst selection and career resume": {
+          "passed": true,
+          "flow": "cod-238-career-data-analyst.yaml"
+        },
+        "COD-238 frontend request, native persistence, capture and notes": {
+          "passed": true,
+          "flow": "cod-238-encounter-frontend.yaml"
+        },
+        "COD-238 backend request, native persistence, capture and notes": {
+          "passed": true,
+          "flow": "cod-238-encounter-backend.yaml"
+        },
+        "COD-238 devops request, native persistence, capture and notes": {
+          "passed": true,
+          "flow": "cod-238-encounter-devops.yaml"
+        },
+        "COD-238 data-engineer request, native persistence, capture and notes": {
+          "passed": true,
+          "flow": "cod-238-encounter-data-engineer.yaml"
+        },
+        "COD-238 data-analyst request, native persistence, capture and notes": {
+          "passed": true,
+          "flow": "cod-238-encounter-data-analyst.yaml"
+        },
+        "COD-238 fullstack-engineer request, native persistence, capture and notes": {
+          "passed": true,
+          "flow": "cod-238-encounter-fullstack-engineer.yaml"
+        },
+        "COD-238 platform-engineer request, native persistence, capture and notes": {
+          "passed": true,
+          "flow": "cod-238-encounter-platform-engineer.yaml"
+        },
+        "COD-238 ml-developer request, native persistence, capture and notes": {
+          "passed": true,
+          "flow": "cod-238-encounter-ml-developer.yaml"
+        },
+        "COD-238 mlops-engineer request, native persistence, capture and notes": {
+          "passed": true,
+          "flow": "cod-238-encounter-mlops-engineer.yaml"
+        },
+        "COD-238 analytics-engineer request, native persistence, capture and notes": {
+          "passed": true,
+          "flow": "cod-238-encounter-analytics-engineer.yaml"
+        },
+        "COD-238 promotion:platform-engineer five missions, MASTER and restart": {
+          "passed": true,
+          "flow": "cod-238-promotion-platform-engineer.yaml"
+        },
+        "COD-238 promotion:fullstack-engineer five missions, MASTER and restart": {
+          "passed": true,
+          "flow": "cod-238-promotion-fullstack-engineer.yaml"
+        },
+        "COD-238 promotion:ml-developer five missions, MASTER and restart": {
+          "passed": true,
+          "flow": "cod-238-promotion-ml-developer.yaml"
+        },
+        "COD-238 promotion:mlops-engineer five missions, MASTER and restart": {
+          "passed": true,
+          "flow": "cod-238-promotion-mlops-engineer.yaml"
+        },
+        "COD-238 promotion:analytics-engineer five missions, MASTER and restart": {
+          "passed": true,
+          "flow": "analytics-centered.yaml"
+        },
+        "COD-238 request-history save failure, retry, restart and decline": {
+          "passed": true,
+          "flow": "cod-238-encounter-save-recovery.yaml"
+        },
+        "COD-238 failed request battle, retry and original career return": {
+          "passed": true,
+          "flow": "cod-238-encounter-battle-retry.yaml"
+        }
+      }
+    }
+  },
+  "ios_retest_reason": "The final Analytics promotion start button was tapped at y=842 in the home-indicator region. Centering promotion buttons before tapping passed all five missions and MASTER/restart. No gameplay code changed.",
+  "supplemental": {
+    "ios": {
+      "method": "Device Hub direct UI control",
+      "checked_on": "2026-10-29 KST",
+      "passed": [
+        "Landscape short-answer typing and submission produces CORRECT",
+        "Rotation preserves battle progress and result navigation",
+        "Full dex 174/174 in portrait and landscape"
+      ],
+      "evidence": "qa-results/native-layout-extra/ios-manual-landscape-correct.png",
+      "automation_limitation": "Maestro landscape tap did not activate the submit button; verified directly with Device Hub instead."
+    },
+    "android": {
+      "status": "passed",
+      "method": "Maestro on Pixel_8 API 36",
+      "checked_on": "2026-10-29 KST",
+      "passed": [
+        "Landscape short-answer input and submission",
+        "Hardware back dismisses keyboard without leaving battle",
+        "Hardware back exits battle to world",
+        "Full dex 174/174 in portrait and landscape"
+      ],
+      "evidence": "qa-results/native-layout-extra/android-layout-junit.xml"
+    }
+  },
+  "other_checks": {
+    "mobile_tests": 138,
+    "web_tests": 613,
+    "qa_runner_tests": 11,
+    "typecheck": "passed",
+    "lint": "passed",
+    "agent_checks": "passed",
+    "native_builds": "Android Debug and iOS Debug built and installed locally"
+  },
+  "deferred": [
+    "Physical-device IME, touch comfort and accessibility acceptance",
+    "Live OAuth / actual cloud round trips",
+    "Native store/EAS/APK/IPA publication (excluded)"
+  ]
+}

@@ -27,6 +27,7 @@ tags:
     direction: DOWN
     timeout: 60000
     speed: 20
+    centerElement: true
 - tapOn:
     id: promotion-checkpoint-fullstack-contract-fox
 - scrollUntilVisible:
@@ -111,6 +112,7 @@ tags:
     direction: DOWN
     timeout: 60000
     speed: 20
+    centerElement: true
 - tapOn:
     id: promotion-checkpoint-fullstack-session-otter
 - scrollUntilVisible:
@@ -220,6 +222,7 @@ tags:
     direction: DOWN
     timeout: 60000
     speed: 20
+    centerElement: true
 - tapOn:
     id: promotion-checkpoint-fullstack-transaction-pangolin
 - scrollUntilVisible:
@@ -329,6 +332,7 @@ tags:
     direction: DOWN
     timeout: 60000
     speed: 20
+    centerElement: true
 - tapOn:
     id: promotion-checkpoint-fullstack-trace-swallow
 - scrollUntilVisible:
@@ -463,6 +467,7 @@ tags:
     direction: DOWN
     timeout: 60000
     speed: 20
+    centerElement: true
 - tapOn:
     id: promotion-checkpoint-fullstack-bridge-kirin
 - scrollUntilVisible:

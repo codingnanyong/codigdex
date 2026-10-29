@@ -27,6 +27,7 @@ tags:
     direction: DOWN
     timeout: 60000
     speed: 20
+    centerElement: true
 - tapOn:
     id: promotion-checkpoint-mlops-lineage-snail
 - scrollUntilVisible:
@@ -111,6 +112,7 @@ tags:
     direction: DOWN
     timeout: 60000
     speed: 20
+    centerElement: true
 - tapOn:
     id: promotion-checkpoint-mlops-pipeline-beaver
 - scrollUntilVisible:
@@ -220,6 +222,7 @@ tags:
     direction: DOWN
     timeout: 60000
     speed: 20
+    centerElement: true
 - tapOn:
     id: promotion-checkpoint-mlops-registry-tortoise
 - scrollUntilVisible:
@@ -329,6 +332,7 @@ tags:
     direction: DOWN
     timeout: 60000
     speed: 20
+    centerElement: true
 - tapOn:
     id: promotion-checkpoint-mlops-drift-moth
 - scrollUntilVisible:
@@ -463,6 +467,7 @@ tags:
     direction: DOWN
     timeout: 60000
     speed: 20
+    centerElement: true
 - tapOn:
     id: promotion-checkpoint-mlops-cycle-phoenix
 - scrollUntilVisible:
