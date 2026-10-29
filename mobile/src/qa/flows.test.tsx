@@ -73,15 +73,18 @@ async function launch() {
   await tick();
 }
 
-function match(selector: Selector): HTMLElement | undefined {
-  const element = selector.id ? container.querySelector<HTMLElement>(`[data-testid="${selector.id}"]`) : undefined;
+function match(value: Selector | string): HTMLElement | undefined {
+  const selector = typeof value === "string" ? { text: value } : value;
+  const pattern = selector.text ? new RegExp(`^(?:${selector.text.replace("${QA_BUILD}", "host-check")})$`) : undefined;
+  const element = selector.id ? container.querySelector<HTMLElement>(`[data-testid="${selector.id}"]`)
+    : pattern ? [...container.querySelectorAll<HTMLElement>("span,button")].find((node) => pattern.test(node.textContent ?? "")) : undefined;
   if (!element) return undefined;
-  if (selector.text && !new RegExp(`^(?:${selector.text.replace("${QA_BUILD}", "host-check")})$`).test(element.textContent ?? "")) return undefined;
+  if (pattern && !pattern.test(element.textContent ?? "")) return undefined;
   if (selector.enabled !== undefined && (!(element instanceof HTMLButtonElement) || !element.disabled !== selector.enabled)) return undefined;
   return element;
 }
 
-async function element(selector: Selector) {
+async function element(selector: Selector | string) {
   for (let i = 0; i < 100; i++) {
     const found = match(selector);
     if (found) return found;
@@ -90,18 +93,22 @@ async function element(selector: Selector) {
   throw new Error(`Missing UI selector ${JSON.stringify(selector)}. Actual text: ${container.textContent}`);
 }
 
-async function flow(file: string, observe?: (name: string, value: unknown) => void) {
-  const documents = parseAllDocuments(readFileSync(path.join(qaRoot, file), "utf8"));
-  const commands = documents[1].toJSON() as Command[];
+async function flow(file: string, observe?: (name: string, value: unknown) => void, inline?: Command[]) {
+  const commands = inline ?? parseAllDocuments(readFileSync(path.join(qaRoot, file), "utf8"))[1].toJSON() as Command[];
   for (const command of commands) {
     const name = typeof command === "string" ? command : Object.keys(command)[0];
     const value = typeof command === "string" ? undefined : command[name];
     if (name === "launchApp") await launch();
     else if (name === "stopApp") { await act(async () => root?.unmount()); root = undefined; }
     else if (name === "runFlow") {
-      const subflow = path.resolve(qaRoot, path.dirname(file), String(value));
-      await flow(path.relative(qaRoot, subflow), observe);
-    } else if (name === "assertVisible") await element(value as Selector);
+      if (typeof value === "string") {
+        const subflow = path.resolve(qaRoot, path.dirname(file), value);
+        await flow(path.relative(qaRoot, subflow), observe);
+      } else {
+        const conditional = value as { when: { visible: Selector }; commands: Command[] };
+        if (match(conditional.when.visible)) await flow(file, observe, conditional.commands);
+      }
+    } else if (name === "assertVisible") await element(value as Selector | string);
     else if (name === "extendedWaitUntil") await element((value as { visible: Selector }).visible);
     else if (name === "scrollUntilVisible") await element((value as { element: Selector }).element);
     else if (name === "tapOn") {

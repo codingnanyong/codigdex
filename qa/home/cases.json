@@ -527,6 +527,74 @@
     {
       "file": "qa/home/maestro/flows/cod-238-career-data-analyst.yaml",
       "feature": "cod-238"
+    },
+    {
+      "file": "qa/home/maestro/flows/cod-238-encounter-frontend.yaml",
+      "feature": "cod-238"
+    },
+    {
+      "file": "qa/home/maestro/flows/cod-238-encounter-backend.yaml",
+      "feature": "cod-238"
+    },
+    {
+      "file": "qa/home/maestro/flows/cod-238-encounter-devops.yaml",
+      "feature": "cod-238"
+    },
+    {
+      "file": "qa/home/maestro/flows/cod-238-encounter-data-engineer.yaml",
+      "feature": "cod-238"
+    },
+    {
+      "file": "qa/home/maestro/flows/cod-238-encounter-data-analyst.yaml",
+      "feature": "cod-238"
+    },
+    {
+      "file": "qa/home/maestro/flows/cod-238-encounter-fullstack-engineer.yaml",
+      "feature": "cod-238"
+    },
+    {
+      "file": "qa/home/maestro/flows/cod-238-encounter-platform-engineer.yaml",
+      "feature": "cod-238"
+    },
+    {
+      "file": "qa/home/maestro/flows/cod-238-encounter-ml-developer.yaml",
+      "feature": "cod-238"
+    },
+    {
+      "file": "qa/home/maestro/flows/cod-238-encounter-mlops-engineer.yaml",
+      "feature": "cod-238"
+    },
+    {
+      "file": "qa/home/maestro/flows/cod-238-encounter-analytics-engineer.yaml",
+      "feature": "cod-238"
+    },
+    {
+      "file": "qa/home/maestro/flows/cod-238-promotion-platform-engineer.yaml",
+      "feature": "cod-238"
+    },
+    {
+      "file": "qa/home/maestro/flows/cod-238-promotion-fullstack-engineer.yaml",
+      "feature": "cod-238"
+    },
+    {
+      "file": "qa/home/maestro/flows/cod-238-promotion-ml-developer.yaml",
+      "feature": "cod-238"
+    },
+    {
+      "file": "qa/home/maestro/flows/cod-238-promotion-mlops-engineer.yaml",
+      "feature": "cod-238"
+    },
+    {
+      "file": "qa/home/maestro/flows/cod-238-promotion-analytics-engineer.yaml",
+      "feature": "cod-238"
+    },
+    {
+      "file": "qa/home/maestro/flows/cod-238-encounter-save-recovery.yaml",
+      "feature": "cod-238"
+    },
+    {
+      "file": "qa/home/maestro/flows/cod-238-encounter-battle-retry.yaml",
+      "feature": "cod-238"
     }
   ],
   "deferred": [
