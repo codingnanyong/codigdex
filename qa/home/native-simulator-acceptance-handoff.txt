@@ -1,0 +1,29 @@
+Handoff: native simulator acceptance, 2026-10-28 to 2026-10-29 (KST)
+
+- Owner: Codex
+- Reviewer: Claude CLI read-only review of the generator, flow interpreter and surrounding game code: No blocking findings. PR CI/review records the final test-position correction separately.
+- Scope: Validate the published mobile features in local Android and iOS simulators, then integrate the QA changes through develop and main. Native publication is explicitly excluded.
+- Changed files:
+  - scripts/generate-home-qa.mts: generate ten career request journeys, five complete promotion paths and request-save/battle-retry recovery cases from actual content and seeded answers. Center promotion checkpoint buttons before tapping to avoid the iOS home-indicator region.
+  - qa/home/cases.json and qa/home/maestro/flows/: expand native coverage from 11 to 28 scenarios; generated YAML remains derived from the generator.
+  - mobile/src/qa/flows.test.tsx: replay conditional inline subflows and text-only assertions in the real-screen DOM host. These checks complement actual simulator acceptance.
+  - scripts/home-qa.test.mjs: validate expanded coverage and safe promotion tap positions.
+  - mobile/ios/Podfile.lock: synchronize the ExpoModulesCore podspec checksum after npm ci/pod install; no dependency version change in this diff.
+  - qa/home/native-simulator-acceptance.json and this report: preserve actual initial counts, focused retest and simulator evidence locations.
+- Generated assets: No new game art or source assets. Seventeen additional Maestro flow files are generated test artifacts. Local debug builds, screenshots, JUnit reports and Metro logs remain ignored under qa-results/ and platform build directories.
+- Checks run:
+  - Android: Pixel_8, API 36. Debug build/install succeeded. All 28/28 native flows passed without skips on ddc1e73288db1cf53858f1cb0a3508f1a065b4c6; the runner recorded a clean, unchanged source tree.
+  - iOS: iPhone 18 Pro, iOS 27.0. Debug build/install succeeded. Initial full native run: 27/28 passed, no skips. The final Analytics promotion start button was at y=842 near the home indicator; the tap did not enter battle. Centered-button retest passed all five Analytics missions, MASTER and restart. All 28 distinct functional scenarios are accepted; the original failed run is preserved rather than rewritten as a fully green run.
+  - Both platforms cover mixed questions/hints/grading, repeat captures, save/quiz retry, world unlocks, process restart, all five primary careers, all ten career requests, offer/active/captured-result restoration, all five complete promotion paths, discovery notes, request-history save recovery and failed-request battle retry.
+  - iOS additional direct Device Hub checks: landscape short-answer typing/submission produced CORRECT; rotation retained battle progress/result navigation; full 174/174 dex rendered in portrait and landscape. Maestro's landscape submit tap did not activate the control, so this path was verified directly rather than marked as an automated pass.
+  - Android supplemental native flow passed: landscape typing/submission, keyboard dismissal with hardware back, battle exit with hardware back, and the full 174/174 dex in portrait/landscape. JUnit evidence is recorded in native-simulator-acceptance.json.
+  - Mobile tests: 138/138 in 16 files. Web tests: 613/613 in 49 files. Full workspace types/package boundaries, lint, check:agents and 11 QA runner checks passed. Generated QA files were verified after the tap correction.
+  - No mobile gameplay/application source was changed. The final follow-up changes test tap positioning and records evidence; the tested gameplay is unchanged.
+- Environment findings:
+  - Android's initial software GPU/fence stalls were avoided with host GPU and Vulkan disabled. The unreliable emulator network path was replaced with the debug app's 127.0.0.1:8081 host plus adb reverse. A device reconnection later required restoring that port mapping.
+  - A Device Hub tool call stalled for an extended period between the two dates. Initial run artifacts remained intact; remaining direct UI checks were completed after it returned.
+- Remaining risks or review items:
+  - This is simulator acceptance, not physical-device IME/touch/accessibility or real OAuth/cloud acceptance. Those earlier deferred areas remain separate.
+  - No APK/IPA/EAS upload, store submission or native release is performed. Local simulator debug installation is the only native distribution in this task.
+  - Repository player documentation remains Claude-owned (the existing COD-411 follow-up); no docs/ or README file was edited.
+  - Final CI, PR review and merge SHAs are available on the feature and develop-to-main PRs; this static report does not pre-claim them.

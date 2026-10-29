@@ -10,6 +10,12 @@ import { loadMixedQuizPack } from "@codigdex/quiz-content";
 import { createBattleState, revealBattleHint, submitBattleAnswer } from "@codigdex/game-core/domain/dex/battle";
 import { drawMixedQuizQuestions, quizCountForLevel } from "@codigdex/game-core/domain/dex/quiz";
 import { createQaRandom, HOME_QA_SEED } from "@codigdex/game-core/domain/dex/qaRandom";
+import { careerQAPresets } from "@codigdex/game-content/domain/careerQAPresets";
+import { resumeCheckpoint } from "@codigdex/game-content/domain/gameProgress";
+import { SOURCE_CAREERS } from "@codigdex/game-content/domain/openSourceEncounters";
+import { openSourceStageFor } from "@codigdex/game-content/domain/openSourceChapters";
+import { PROMOTION_CHAPTERS } from "@codigdex/game-content/domain/promotionChapters";
+import { findOpenSource } from "@codigdex/game-content/domain/openSourceCatalog";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const check = process.argv.includes("--check");
@@ -32,7 +38,7 @@ const visible = (value: string, text?: string) => ({ assertVisible: { ...id(valu
 const saved = () => visible("qa-save-status", "SAVED");
 // Emulator UI hierarchy/swipe calls can take >10s under native test load.
 // Allow several swipes without weakening the element or result assertions.
-const scroll = (value: string, direction = "DOWN") => ({ scrollUntilVisible: { element: id(value), direction, timeout: 60000, speed: 20, ...(["qa-fail-save", "qa-world"].includes(value) ? { centerElement: true } : {}) } });
+const scroll = (value: string, direction = "DOWN") => ({ scrollUntilVisible: { element: id(value), direction, timeout: 60000, speed: 20, ...(["qa-fail-save", "qa-world"].includes(value) || value.startsWith("promotion-checkpoint-") ? { centerElement: true } : {}) } });
 const tap = (value: string, direction = "DOWN"): Command[] => [scroll(value, direction), { tapOn: id(value) }];
 const start: Command[] = [{ runFlow: "../helpers/start.yaml" }];
 const tutorial = CHAPTERS[0].stages[0];
@@ -60,9 +66,9 @@ const tutorialCase = await battleCase();
 await battleCase(tutorial, 5);
 await battleCase(git);
 
-function battleSteps(success: boolean, hints: boolean): Command[] {
+function battleSteps(success: boolean, hints: boolean, questions = tutorialCase.questions): Command[] {
   const commands: Command[] = [];
-  let battle = createBattleState(tutorialCase.questions);
+  let battle = createBattleState(questions);
   while (battle.status === "active") {
     const q = battle.questions[battle.questionIndex];
     if (q.type === "freeText") {
@@ -143,6 +149,70 @@ const careers = JOB_OPTIONS.map((job) => {
   ]);
   return { jobId: job.id, firstMonsterId: first.id, firstRegionId: path.regions[0].id };
 });
+
+// These flows use real career gates and real answers, never a capture shortcut.
+const restart: Command[] = ["stopApp", "launchApp", { extendedWaitUntil: { visible: id("home-title"), timeout: 90000 } }, ...tap("home-play")];
+async function questionsFor(monster: typeof tutorial) {
+  const pack = await loadMixedQuizPack(monster.quizPackId);
+  return drawMixedQuizQuestions(pack.questions, quizCountForLevel(monster.level), createQaRandom());
+}
+const presets = careerQAPresets("en", "2026-10-28T00:00:00.000Z");
+for (const [index, career] of SOURCE_CAREERS.entries()) {
+  const preset = presets.find(({ id }) => id === `encounter:${career.id}`)!;
+  const first = resumeCheckpoint(preset.save).monster;
+  const checkpoint = `${preset.save.player.secondaryJobId ? "promotion" : "career"}-checkpoint-${first.id}`;
+  const tool = openSourceStageFor(career.firstTool)!;
+  yaml(`flows/cod-238-encounter-${career.id}`, `COD-238 ${career.id} request, native persistence, capture and notes`, ["cod-238", "encounters"], [
+    ...start, ...tap(`qa-start-${preset.id}`), ...tap("home-play"), ...tap(checkpoint),
+    ...battleSteps(true, false, await questionsFor(first)),
+    // A first offer must already be durable before confirming the victory.
+    ...(index === 0 ? restart : tap("result-world")),
+    visible("source-event-tool", findOpenSource(career.firstTool)!.name),
+    ...(index === 1 ? [...restart, visible("source-event-title")] : []),
+    ...tap("source-event-accept"), visible("battle-prompt"),
+    ...(index === 2 ? [...restart, ...tap("source-event-accept"), visible("battle-prompt")] : []),
+    ...battleSteps(true, false, await questionsFor(tool)),
+    ...(index === 3 ? [...restart, ...tap("source-event-accept")] : tap("result-world")),
+    visible("career-title"), ...tap("career-menu", "UP"), ...tap("home-qa"),
+    visible("qa-captures", String(preset.save.progress.captures.length + 2)), saved(),
+    ...tap("qa-menu", "UP"), ...tap("home-open-source"),
+    scroll("open-source-count"), visible("open-source-count", "1/1 · Discoveries from your career adventure"),
+    scroll(`open-source-${career.firstTool}`), visible(`open-source-${career.firstTool}`),
+    { takeScreenshot: `cod-238-encounter-${career.id}` },
+  ]);
+}
+for (const chapter of PROMOTION_CHAPTERS) {
+  const preset = presets.find(({ id }) => id === chapter.id)!;
+  const commands: Command[] = [...start, ...tap(`qa-start-${preset.id}`), ...tap("home-play")];
+  for (const monster of chapter.stages) {
+    commands.push(...tap(`promotion-checkpoint-${monster.id}`), ...battleSteps(true, false, await questionsFor(monster)), ...tap("result-world"),
+      { runFlow: { when: { visible: id("source-event-title") }, commands: tap("source-event-later") } }, visible("career-title"));
+  }
+  commands.push(scroll("promotion-story"), { assertVisible: "★ PATH MASTER · Tier-three chapter coming later." }, ...tap("career-menu", "UP"),
+    ...restart, scroll("promotion-story"), { assertVisible: "★ PATH MASTER · Tier-three chapter coming later." }, { takeScreenshot: `cod-238-${chapter.id.replace(":", "-")}-master` });
+  yaml(`flows/cod-238-${chapter.id.replace(":", "-")}`, `COD-238 ${chapter.id} five missions, MASTER and restart`, ["cod-238", "promotions"], commands);
+}
+const recoveryPreset = presets.find(({ id }) => id === "encounter:frontend")!;
+const recoveryMonster = resumeCheckpoint(recoveryPreset.save).monster;
+const recoveryBattle = await questionsFor(recoveryMonster);
+const recoveryTool = openSourceStageFor(SOURCE_CAREERS.find(({ id }) => id === "frontend")!.firstTool)!;
+const beginRequest: Command[] = [...start, ...tap(`qa-start-${recoveryPreset.id}`), ...tap("home-play"), ...tap(`career-checkpoint-${recoveryMonster.id}`)];
+yaml("flows/cod-238-encounter-save-recovery", "COD-238 request-history save failure, retry, restart and decline", ["cod-238", "encounters"], [
+  ...start, ...tap(`qa-start-${recoveryPreset.id}`), ...tap("home-qa"), ...tap("qa-fail-source-save"), ...tap("qa-menu", "UP"), ...tap("home-play"),
+  ...tap(`career-checkpoint-${recoveryMonster.id}`), ...battleSteps(true, false, recoveryBattle), ...tap("result-world"),
+  ...tap("source-event-retry-save"), ...restart, visible("source-event-tool", findOpenSource(SOURCE_CAREERS.find(({ id }) => id === "frontend")!.firstTool)!.name),
+  ...tap("source-event-later"), visible("career-title"), ...tap("career-menu", "UP"), ...tap("home-open-source"),
+  scroll("open-source-count"), visible("open-source-count", "1/1 · Discoveries from your career adventure"),
+  ...tap("open-source-back", "UP"), ...tap("home-qa"), visible("qa-captures", String(recoveryPreset.save.progress.captures.length + 1)), saved(),
+  { takeScreenshot: "cod-238-request-save-recovered" },
+]);
+yaml("flows/cod-238-encounter-battle-retry", "COD-238 failed request battle, retry and original career return", ["cod-238", "encounters"], [
+  ...beginRequest, ...battleSteps(true, false, recoveryBattle), ...tap("result-world"), ...tap("source-event-accept"),
+  ...battleSteps(false, false, await questionsFor(recoveryTool)), ...tap("result-retry"), visible("source-event-title"),
+  ...tap("source-event-accept"), ...battleSteps(true, false, await questionsFor(recoveryTool)), ...tap("result-continue"),
+  visible("career-title"), ...tap("career-menu", "UP"), ...tap("home-qa"), visible("qa-captures", String(recoveryPreset.save.progress.captures.length + 2)), saved(),
+  { takeScreenshot: "cod-238-request-battle-retried" },
+]);
 
 output("qa/home/cases.json", JSON.stringify({ seed: HOME_QA_SEED, appId, features, battles, careers,
   nativeFlows: [...files.keys()].filter((file) => file.includes("/flows/")).map((file) => ({ file, feature: /cod-\d+/.exec(file)![0] })),

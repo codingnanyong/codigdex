@@ -111,8 +111,8 @@ test("native flows are parseable, reference real subflows and never clear normal
     for (const step of steps) {
       const command = typeof step === "string" ? step : Object.keys(step)[0];
       assert.ok(commands.has(command), `${file}: ${command}`);
-      if (command === "scrollUntilVisible" && ["qa-fail-save", "qa-world"].includes(step.scrollUntilVisible.element.id)) assert.equal(step.scrollUntilVisible.centerElement, true, `${file}: keep QA taps above the native home indicator`);
-      if (command === "runFlow") assert.ok(existsSync(path.resolve(repo, path.dirname(file), step.runFlow)));
+      if (command === "scrollUntilVisible" && (["qa-fail-save", "qa-world"].includes(step.scrollUntilVisible.element.id) || step.scrollUntilVisible.element.id.startsWith("promotion-checkpoint-"))) assert.equal(step.scrollUntilVisible.centerElement, true, `${file}: keep taps above the native home indicator`);
+      if (command === "runFlow" && typeof step.runFlow === "string") assert.ok(existsSync(path.resolve(repo, path.dirname(file), step.runFlow)));
     }
   }
   const start = readFileSync(path.join(repo, "qa/home/maestro/helpers/start.yaml"), "utf8");
@@ -131,5 +131,7 @@ test("coverage includes each feature on Web and native plus all five career path
   for (const career of cases.careers) assert.ok(cases.nativeFlows.some(({ file }) => file.endsWith(`career-${career.jobId}.yaml`)));
   assert.ok(cases.battles.tutorial.questions.some(({ type }) => type === "freeText"));
   assert.equal(cases.battles.level5.questions.length, 7);
-  assert.equal(plan(parseOptions([])).nativeFlows.length, 11);
+  assert.equal(plan(parseOptions([])).nativeFlows.length, 28);
+  assert.equal(cases.nativeFlows.filter(({ file }) => file.includes("/cod-238-encounter-")).length, 12);
+  assert.equal(cases.nativeFlows.filter(({ file }) => file.includes("/cod-238-promotion-")).length, 5);
 });
