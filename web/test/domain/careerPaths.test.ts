@@ -121,12 +121,12 @@ describe("primary job changes", () => {
     expect(isCareerPathComplete(path, new Set(["html-css-final", "javascript-final"]))).toBe(true);
   });
 
-  it("derives released path requirements from each region's final checkpoint", () => {
+  it("derives released path requirements from every checkpoint in each region", () => {
     Object.values(CAREER_PATHS).forEach((careerPath) => {
       expect(careerPath.completionCaptureIds).toEqual(
-        careerPath.regions.map((careerRegion) =>
-          monstersForCareerRegion(careerRegion.id).at(-1)?.id
-        )
+        [...new Set(careerPath.regions.flatMap((careerRegion) =>
+          monstersForCareerRegion(careerRegion.id).map(({ id }) => id)
+        ))]
       );
       expect(isCareerPathComplete(careerPath, new Set(careerPath.completionCaptureIds))).toBe(true);
       expect(canLeaveCareerPath(careerPath, new Set(careerPath.completionCaptureIds))).toBe(true);

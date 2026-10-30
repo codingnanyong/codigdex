@@ -6,7 +6,7 @@ import type { StoredGameStateV3 } from "@codigdex/game-core/save/schema";
 import { careerPathFor, completedCareerPathIds } from "./careerPaths";
 import { careerRegionProgression } from "./careerRegionProgression";
 import { monstersForCareerRegion } from "./careerRegionMonsters";
-import { isCareerId, normalizeCareerDexState, reconcileCareerDex, selectCareer, type CareerDexRecord } from "./careerDex";
+import { CAREER_CATALOG, isCareerId, normalizeCareerDexState, reconcileCareerDex, selectCareer, type CareerDexRecord } from "./careerDex";
 import { canSelectPrimaryJob, canSelectSecondaryJob, completedSecondaryJobIds, findJob, findSecondaryJob, isSecondaryJobUnlocked, type JobId, type SecondaryJobId } from "./player/jobs";
 import { promotionChapterFor } from "./promotionChapters";
 import { OPEN_SOURCE_CHAPTERS } from "./openSourceChapters";
@@ -52,7 +52,7 @@ export function normalizePromotionSelection(save: StoredGameStateV3): StoredGame
 /** Both clients use the same authored path, region order and replay gates. */
 export function careerCheckpoints(save: StoredGameStateV3, jobId: JobId): Checkpoint[] {
   const captured = captureIds(save);
-  const pathOpen = isCommonPathComplete(captured) && findJob(save.player.primaryJobId).id === jobId;
+  const pathOpen = canStudyPrimaryCareer(save, jobId) && findJob(save.player.primaryJobId).id === jobId;
   return careerRegionProgression(careerPathFor(jobId), captured).flatMap(({ region, status: regionStatus }) => {
     let precedingComplete = true;
     return monstersForCareerRegion(region.id).map((monster): Checkpoint => {
@@ -107,6 +107,13 @@ export function nextPlayableCheckpoint(save: StoredGameStateV3): Checkpoint {
     const current = openSourceCheckpoints(save).find(({ monster }) => monster.id === save.ui.checkpointId);
     if (current?.status !== "locked" && current) return nextOpenSourceCheckpoint(save, current.chapter.id.slice(12))!;
   }
+  const primary = findJob(save.player.primaryJobId);
+  if (primary.id !== "junior") {
+    const career = careerCheckpoints(save, primary.id);
+    if (career.some(({ monster, status }) => monster.id === save.ui.checkpointId && status !== "locked")) {
+      return career.find(({ status }) => status === "available") ?? career.at(-1)!;
+    }
+  }
   const promotion = promotionCheckpoints(save);
   if (promotion.some(({ status }) => status !== "locked")) return promotion.find(({ status }) => status === "available") ?? promotion.at(-1)!;
   const path = playableCheckpoints(save).filter(({ chapter }) => !chapter.id.startsWith("open-source:"));
@@ -135,7 +142,19 @@ export function normalizeGameSave(save: StoredGameStateV3): StoredGameStateV3 {
   const secondary = findSecondaryJob(save.player.secondaryJobId);
   const secondaryJobId = isCommonPathComplete(captured) && secondary && canSelectSecondaryJob(secondary, completedPrimaryJobs) ? secondary.id : null;
   const completedSecondaryJobs = new Set([...completedSecondaryJobIds(captured)].filter((id) => isCommonPathComplete(captured) && isSecondaryJobUnlocked(findSecondaryJob(id)!, completedPrimaryJobs)));
-  const records = normalizeCareerDexState({ careers: save.progress.careers.flatMap((entry): CareerDexRecord[] => isCareerId(entry.id) ? [{ ...entry, id: entry.id, masteredAt: undefined }] : []) });
+  const earnedCareerIds = new Set(CAREER_CATALOG.filter((entry) => {
+    if (entry.tier < 2) return true;
+    if (!isCommonPathComplete(captured)) return false;
+    return entry.tier === 2
+      ? entry.requires.every((id) => completedPrimaryJobs.has(id as JobId))
+      : entry.requires.every((id) => completedSecondaryJobs.has(id as SecondaryJobId));
+  }).map(({ id }) => id));
+  const records = normalizeCareerDexState({
+    careers: save.progress.careers.flatMap((entry): CareerDexRecord[] =>
+      isCareerId(entry.id) && earnedCareerIds.has(entry.id)
+        ? [{ ...entry, id: entry.id, masteredAt: undefined }] : []
+    ),
+  });
   const times = releasedCaptures.map(({ capturedAt }) => capturedAt).filter((value) => Number.isFinite(Date.parse(value))).sort();
   const careers = reconcileCareerDex(records, {
     commonPathComplete: isCommonPathComplete(captured), completedPrimaryJobs,
@@ -148,14 +167,33 @@ export function normalizeGameSave(save: StoredGameStateV3): StoredGameStateV3 {
   return { ...save, progress: { captures, careers: [...careers, ...save.progress.careers.filter(({ id }) => !isCareerId(id))] }, player: { ...save.player, primaryJobId, secondaryJobId, tertiaryJobId: null } };
 }
 
-export function selectGameCareer(save: StoredGameStateV3, jobId: JobId, now = () => new Date().toISOString()): StoredGameStateV3 {
+/** Earned secondary identity is independent of the primary path being studied. */
+export function hasEarnedSecondaryCareer(save: StoredGameStateV3): boolean {
+  const job = findSecondaryJob(save.player.secondaryJobId);
+  return Boolean(job && isCommonPathComplete(captureIds(save)) &&
+    canSelectSecondaryJob(job, completedCareerPathIds(captureIds(save))));
+}
+
+/** An unfinished secondary allows completed primary replays, not a new study path. */
+export function canStudyPrimaryCareer(save: StoredGameStateV3, jobId: JobId): boolean {
   const captured = captureIds(save);
+  if (!isCommonPathComplete(captured)) return false;
+  const completed = completedCareerPathIds(captured);
+  if (hasEarnedSecondaryCareer(save) && !completedSecondaryJobIds(captured).has(save.player.secondaryJobId as SecondaryJobId)) {
+    return completed.has(jobId);
+  }
   const current = findJob(save.player.primaryJobId).id;
-  if (!isCommonPathComplete(captured) || !canSelectPrimaryJob(current, jobId, current !== "junior" && completedCareerPathIds(captured).has(current))) return save;
+  return canSelectPrimaryJob(current, jobId, current !== "junior" && completed.has(current));
+}
+
+export function selectGameCareer(save: StoredGameStateV3, jobId: JobId, now = () => new Date().toISOString()): StoredGameStateV3 {
+  if (!canStudyPrimaryCareer(save, jobId)) return save;
   const records = save.progress.careers.flatMap((entry): CareerDexRecord[] => isCareerId(entry.id) ? [{ ...entry, id: entry.id }] : []);
   const careers = [...selectCareer({ careers: records }, jobId, now).careers, ...save.progress.careers.filter(({ id }) => !isCareerId(id))];
-  const selected = { ...save, player: { ...save.player, primaryJobId: jobId, secondaryJobId: null, tertiaryJobId: null }, progress: { ...save.progress, careers }, ui: { ...save.ui, checkpointId: undefined } };
-  return { ...selected, ui: { ...selected.ui, checkpointId: nextPlayableCheckpoint(selected).monster.id } };
+  const selected = { ...save, player: { ...save.player, primaryJobId: jobId, secondaryJobId: hasEarnedSecondaryCareer(save) ? save.player.secondaryJobId : null, tertiaryJobId: null }, progress: { ...save.progress, careers }, ui: { ...save.ui, checkpointId: undefined } };
+  const checkpoints = careerCheckpoints(selected, jobId);
+  const next = checkpoints.find(({ status }) => status === "available") ?? checkpoints.at(-1)!;
+  return { ...selected, ui: { ...selected.ui, checkpointId: next.monster.id } };
 }
 
 export function selectSecondaryCareer(save: StoredGameStateV3, jobId: SecondaryJobId, now = () => new Date().toISOString()): StoredGameStateV3 {

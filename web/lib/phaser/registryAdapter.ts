@@ -3,21 +3,16 @@ import {
   EMPTY_CAREER_DEX_STATE,
   isCareerId,
   normalizeCareerDexState,
-  reconcileCareerDex,
   selectCareer,
   type CareerDexState,
   type CareerId,
 } from "@codigdex/game-content/domain/careerDex";
-import { capturedIds, DexState, EMPTY_DEX_STATE } from "@codigdex/game-core/domain/dex/capture";
+import { DexState, EMPTY_DEX_STATE } from "@codigdex/game-core/domain/dex/capture";
 import { CAPTURABLE_MONSTERS } from "@codigdex/game-content/domain/chapters";
-import { isCommonPathComplete } from "@codigdex/game-content/domain/chapters";
-import { completedCareerPathIds } from "@codigdex/game-content/domain/careerPaths";
 import {
   findJob,
   findSecondaryJob,
   findTertiaryJob,
-  completedSecondaryJobIds,
-  canSelectSecondaryJob,
   JOB_REGISTRY_KEY,
   SECONDARY_JOB_REGISTRY_KEY,
   TERTIARY_JOB_REGISTRY_KEY,
@@ -25,7 +20,7 @@ import {
 import { DEFAULT_LOCALE, detectLocale, isLocale, type Locale } from "@codigdex/game-core/i18n/locale";
 import { createSave, parseSave, type StoredGameStateV3 } from "@codigdex/game-core/save/schema";
 import { SAVE_STORAGE_KEYS } from "@codigdex/game-core/save/storage";
-import { normalizePromotionSelection } from "@codigdex/game-content/domain/gameProgress";
+import { normalizeGameSave, normalizePromotionSelection } from "@codigdex/game-content/domain/gameProgress";
 
 const CARDS_KEY = "cards";
 const CAREER_DEX_KEY = "careerDex";
@@ -234,15 +229,11 @@ export function activateCareerInRegistry(registry: Phaser.Data.DataManager, id: 
 /** Reconciles capture-based completion once, then lets lineage screens read career milestones. */
 export function reconcileCareerDexRegistry(registry: Phaser.Data.DataManager): CareerDexState {
   const current = readCareerDexState(registry);
-  const save = snapshotRegistry(registry);
-  const captured = capturedIds(readDexState(registry));
-  const commonPathComplete = isCommonPathComplete(captured);
-  const completedPrimaryJobs = completedCareerPathIds(captured);
-  const next = reconcileCareerDex(current, {
-    commonPathComplete, completedPrimaryJobs,
-    completedSecondaryJobs: new Set([...completedSecondaryJobIds(captured)].filter((id) => commonPathComplete && canSelectSecondaryJob(findSecondaryJob(id)!, completedPrimaryJobs))),
-    activePrimaryJob: findJob(save.player.primaryJobId).id,
-    activeSecondaryJob: findSecondaryJob(save.player.secondaryJobId)?.id,
+  const save = normalizeGameSave(snapshotRegistry(registry));
+  const next = normalizeCareerDexState({
+    careers: save.progress.careers.flatMap((record) =>
+      isCareerId(record.id) ? [{ ...record, id: record.id }] : []
+    ),
   });
   if (JSON.stringify(next) !== JSON.stringify(current)) registry.set(CAREER_DEX_KEY, next);
   return next;
