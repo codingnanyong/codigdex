@@ -40,6 +40,40 @@ describe.each(SECONDARY_JOB_OPTIONS)("$id promotion mission", (job) => {
     expect(canEnterBattle(selectSecondaryCareer(restored, job.id), chapter.stages[0].id)).toBe(true);
   });
 
+  it("rejects missing intermediate captures even when final captures and old MASTER flags exist", () => {
+    const missing = eligible();
+    const middle = monstersForCareerRegion(CAREER_PATHS[job.requires[1]].regions[0].id)[1].id;
+    missing.progress.captures = missing.progress.captures.filter(({ id }) => id !== middle);
+    missing.progress.careers.push({ id: job.id, unlockedAt: at, selectedAt: at, masteredAt: at });
+    expect(selectSecondaryCareer(missing, job.id)).toBe(missing);
+    const normalized = normalizeGameSave(missing);
+    expect(normalized.progress.careers.find(({ id }) => id === job.requires[1])?.masteredAt).toBeUndefined();
+    expect(normalized.progress.careers.find(({ id }) => id === job.id)).toBeUndefined();
+    expect(normalized.progress.captures).toEqual(missing.progress.captures);
+  });
+
+  it("gates unfinished primary studies until the current secondary is mastered", () => {
+    const selected = selectSecondaryCareer(eligible(), job.id);
+    const other = Object.keys(CAREER_PATHS).find((id) => !job.requires.includes(id as typeof job.requires[number]))! as keyof typeof CAREER_PATHS;
+    expect(selectGameCareer(selected, other)).toBe(selected);
+    const oldBookmark = { ...selected, player: { ...selected.player, primaryJobId: other }, ui: { ...selected.ui, checkpointId: monstersForCareerRegion(CAREER_PATHS[other].regions[0].id)[0].id } };
+    expect(canEnterBattle(oldBookmark, oldBookmark.ui.checkpointId)).toBe(false);
+    expect(resumeCheckpoint(oldBookmark).chapter.id).toBe(chapter.id);
+    const replay = selectGameCareer(selected, job.requires[0]);
+    expect(replay.player.secondaryJobId).toBe(job.id);
+    const mastered = normalizeGameSave({ ...selected, progress: { ...selected.progress, captures: [...selected.progress.captures, ...chapter.stages.map(({ id }) => ({ id, capturedAt: at }))] } });
+    const studying = selectGameCareer(mastered, other);
+    expect(studying.player.secondaryJobId).toBe(job.id);
+    expect(studying.player.primaryJobId).toBe(other);
+    expect(resumeCheckpoint(studying).chapter.id).toMatch(/^career:/);
+    const restored = normalizeGameSave(parseSave(JSON.stringify(studying))!);
+    expect(restored.player.secondaryJobId).toBe(job.id);
+    expect(resumeCheckpoint(restored).monster.id).toBe(studying.ui.checkpointId);
+    // The newly chosen primary remains binding until its own path is complete.
+    expect(selectGameCareer(restored, job.requires[0])).toBe(restored);
+    expect(selectSecondaryCareer(restored, job.id).ui.checkpointId).toBe(chapter.stages.at(-1)!.id);
+  });
+
   it("loads twenty distinct bilingual questions per stage and validates each pack", async () => {
     for (const monster of chapter.stages) {
       const pack = await loadMixedQuizPack(monster.quizPackId);
@@ -74,7 +108,7 @@ describe.each(SECONDARY_JOB_OPTIONS)("$id promotion mission", (job) => {
     expect(TERTIARY_JOB_SELECTION_ENABLED).toBe(false);
     expect(save.progress.captures.map(({ id }) => id)).toEqual(expect.arrayContaining(initialIds));
     const primary = selectGameCareer(save, job.requires[0]);
-    expect(primary.player.secondaryJobId).toBeNull();
+    expect(primary.player.secondaryJobId).toBe(job.id);
     expect(primary.progress.careers.find(({ id }) => id === job.id)?.masteredAt).toBeTruthy();
   });
 

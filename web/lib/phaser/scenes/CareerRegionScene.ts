@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import { canStudyPrimaryCareer } from "@codigdex/game-content/domain/gameProgress";
 import {
   monstersForCareerRegion,
   type CareerRegionMonster,
@@ -57,6 +58,10 @@ export class CareerRegionScene extends Phaser.Scene {
   }
 
   create() {
+    if (!canStudyPrimaryCareer(snapshotRegistry(this.registry), this.careerId)) {
+      this.scene.start("job-select");
+      return;
+    }
     const { width, height } = this.scale;
     const path = careerPathFor(this.careerId);
     const job = findJob(this.careerId);

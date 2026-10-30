@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import { canStudyPrimaryCareer, selectGameCareer } from "@codigdex/game-content/domain/gameProgress";
 import { isCommonPathComplete } from "@codigdex/game-content/domain/chapters";
 import {
   masteredPrimaryJobIds,
@@ -6,7 +7,6 @@ import {
 } from "@codigdex/game-content/domain/careerDex";
 import { capturedIds } from "@codigdex/game-core/domain/dex/capture";
 import {
-  canSelectPrimaryJob,
   canSelectSecondaryJob,
   findJob,
   findSecondaryJob,
@@ -34,7 +34,8 @@ import { PALETTE, PALETTE_HEX } from "../palette";
 import { pixelText } from "../pixelFont";
 import {
   activateCareerInRegistry,
-  CHECKPOINT_REGISTRY_KEY,
+  applySaveToRegistry,
+  snapshotRegistry,
   readDexState,
   reconcileCareerDexRegistry,
 } from "../registryAdapter";
@@ -87,6 +88,7 @@ export class JobSelectScene extends Phaser.Scene {
         selectedSecondaryJobId: this.selectedSecondaryJobId,
         selectedTertiaryJobId: this.selectedTertiaryJobId,
         commonPathComplete: this.commonPathComplete,
+        selectablePrimaryJobIds: new Set(JOB_OPTIONS.filter(({ id }) => canStudyPrimaryCareer(snapshotRegistry(this.registry), id)).map(({ id }) => id)),
       },
       {
         onPrimaryJob: (job) => this.selectPrimaryJob(job),
@@ -189,8 +191,14 @@ export class JobSelectScene extends Phaser.Scene {
       this.scene.start("path-map", { careerId: jobId });
       return;
     }
-    if (!canSelectPrimaryJob(this.selectedJobId, jobId, this.selectedPathComplete)) {
+    if (!canStudyPrimaryCareer(snapshotRegistry(this.registry), jobId)) {
       const currentJob = findJob(this.selectedJobId);
+      if (this.selectedSecondaryJobId) {
+        this.toast = showToast(this, sceneLocale(this) === "ko"
+          ? "현재 2차 경로를 완료하면 미완료 1차 경로를 시작할 수 있습니다."
+          : "Finish the current tier-two path before starting an unfinished primary path.", this.toast);
+        return;
+      }
       this.toast = showToast(
         this,
         t(this, "jobs.lockedPrimary", { career: lt(this, currentJob.name) }),
@@ -235,11 +243,10 @@ export class JobSelectScene extends Phaser.Scene {
   }
 
   private activatePrimaryJob(jobId: JobId) {
-    this.registry.set(CHECKPOINT_REGISTRY_KEY, undefined);
-    this.registry.set(SECONDARY_JOB_REGISTRY_KEY, null);
-    this.registry.set(TERTIARY_JOB_REGISTRY_KEY, null);
-    activateCareerInRegistry(this.registry, jobId);
-    this.registry.set(JOB_REGISTRY_KEY, jobId);
+    const save = snapshotRegistry(this.registry);
+    const selected = selectGameCareer(save, jobId);
+    if (selected === save) return;
+    applySaveToRegistry(this.registry, selected);
     this.scene.start("world-map");
   }
 }
