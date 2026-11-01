@@ -27,7 +27,7 @@ export interface CareerPathDefinition {
   assetKey: string;
   title: LocalizedText;
   regions: readonly CareerRegion[];
-  /** Final captures that prove every chapter in this primary path is complete. */
+  /** All captures required to complete every released chapter in this primary path. */
   completionCaptureIds: readonly string[];
 }
 
@@ -266,13 +266,12 @@ function alignRegionToTerrain(region: CareerRegion, bounds: TerrainBounds): Care
 function releasedCompletionCaptureIds(
   regions: readonly CareerRegion[]
 ): readonly string[] {
-  return regions.flatMap((careerRegion) => {
-    const finalMonster = monstersForCareerRegion(careerRegion.id).at(-1);
-    return finalMonster ? [finalMonster.id] : [];
-  });
+  return [...new Set(regions.flatMap((careerRegion) =>
+    monstersForCareerRegion(careerRegion.id).map(({ id }) => id)
+  ))];
 }
 
-/** Completion requirements stay in sync with the released regions and their final checkpoints. */
+/** Completion requirements stay in sync with the released regions and every checkpoint. */
 export const CAREER_PATHS: Record<JobId, CareerPathDefinition> = Object.fromEntries(
   (Object.entries(CAREER_PATH_DEFINITIONS) as [
     JobId,

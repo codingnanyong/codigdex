@@ -1,6 +1,5 @@
 import Phaser from "phaser";
 import {
-  canSelectPrimaryJob,
   canSelectSecondaryJob,
   findJob,
   isSecondaryJobUnlocked,
@@ -29,6 +28,7 @@ export type CareerTreeState = {
   selectedSecondaryJobId?: SecondaryJobId;
   selectedTertiaryJobId?: string;
   commonPathComplete: boolean;
+  selectablePrimaryJobIds: ReadonlySet<JobId>;
 };
 
 export type CareerTreeActions = {
@@ -46,12 +46,8 @@ export function drawCareerTree(
   drawPromotionPaths(scene, state);
   drawJuniorJob(scene, state);
   JOB_OPTIONS.forEach((job, index) => {
-    const selected = state.selectedJobId === job.id;
-    const locked = !canSelectPrimaryJob(
-      state.selectedJobId,
-      job.id,
-      state.selectedPathComplete
-    );
+    const selected = !state.selectedSecondaryJobId && state.selectedJobId === job.id;
+    const locked = !state.selectablePrimaryJobIds.has(job.id);
     drawPrimaryJob(scene, job, LAYOUT.rowY[index], selected, locked, () =>
       actions.onPrimaryJob(job)
     );

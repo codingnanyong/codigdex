@@ -1,8 +1,10 @@
 import type Phaser from "phaser";
 import { describe, expect, it, vi } from "vitest";
+import { CAREER_PATHS } from "@codigdex/game-content/domain/careerPaths";
+import { monstersForCareerRegion } from "@codigdex/game-content/domain/careerRegionMonsters";
 import { CHAPTERS } from "@codigdex/game-content/domain/chapters";
 import { OPEN_SOURCE_EXPEDITIONS } from "@codigdex/game-content/domain/openSourceChapters";
-import { resumeCheckpoint } from "@codigdex/game-content/domain/gameProgress";
+import { normalizeGameSave, selectSecondaryCareer, resumeCheckpoint } from "@codigdex/game-content/domain/gameProgress";
 import { createEmptySave } from "@codigdex/game-core/save/schema";
 import { hydrateRegistry, persistRegistry, SAVE_STORAGE_KEY, snapshotRegistry } from "@/lib/phaser/registryAdapter";
 import { JobSelectScene } from "@/lib/phaser/scenes/JobSelectScene";
@@ -15,6 +17,36 @@ function registry() {
 }
 
 describe("primary career selection after an expedition", () => {
+  it("ignores stale mastery and revealed promotion records when an intermediate capture is missing", () => {
+    const save = createEmptySave("en");
+    const stages = [...CHAPTERS.flatMap(({ stages }) => stages), ...[CAREER_PATHS.frontend, CAREER_PATHS.backend].flatMap(({ regions }) => regions.flatMap(({ id }) => monstersForCareerRegion(id)))];
+    const missing = monstersForCareerRegion("html-css")[1].id;
+    save.progress.captures = stages.filter(({ id }) => id !== missing).map(({ id }) => ({ id, capturedAt: "2026-10-28T00:00:00.000Z" }));
+    save.player.primaryJobId = "frontend";
+    save.progress.careers = ["frontend", "backend", "fullstack-engineer"].map((id) => ({ id, unlockedAt: "2026-10-28", masteredAt: "2026-10-28" }));
+    const state = registry();
+    hydrateRegistry(state, { getItem: (key: string) => key === SAVE_STORAGE_KEY ? JSON.stringify(save) : null } as Storage);
+    const scene = { registry: state };
+    Reflect.get(JobSelectScene.prototype, "loadProgressState").call(scene);
+    expect(Reflect.get(scene, "completedJobIds").has("frontend")).toBe(false);
+    expect(Reflect.get(scene, "selectedPathComplete")).toBe(false);
+  });
+
+  it("keeps the equipped secondary career when selecting another primary study path", () => {
+    const save = createEmptySave("en");
+    save.progress.captures = [...CHAPTERS.flatMap(({ stages }) => stages), ...[CAREER_PATHS.frontend, CAREER_PATHS.backend].flatMap(({ regions }) => regions.flatMap(({ id }) => monstersForCareerRegion(id)))].map(({ id }) => ({ id, capturedAt: "2026-10-28T00:00:00.000Z" }));
+    save.player.primaryJobId = "frontend";
+    const selected = selectSecondaryCareer(normalizeGameSave(save), "fullstack-engineer");
+    const state = registry();
+    hydrateRegistry(state, { getItem: (key: string) => key === SAVE_STORAGE_KEY ? JSON.stringify(selected) : null } as Storage);
+    const scene = { registry: state, scene: { start: vi.fn() } };
+    Reflect.get(JobSelectScene.prototype, "activatePrimaryJob").call(scene, "backend");
+    const after = snapshotRegistry(state);
+    expect(after.player.secondaryJobId).toBe("fullstack-engineer");
+    expect(after.player.primaryJobId).toBe("backend");
+    expect(resumeCheckpoint(after).chapter.id).toMatch(/^career:/);
+  });
+
   it("resumes the chosen career after selection and reload without losing expedition progress", () => {
     const save = createEmptySave("en");
     const expedition = OPEN_SOURCE_EXPEDITIONS.find(({ chapter }) => chapter.id === "open-source:orchestration")!;

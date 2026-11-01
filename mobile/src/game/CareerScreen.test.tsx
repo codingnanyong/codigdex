@@ -56,6 +56,26 @@ describe("native career route", () => {
     expect(opened[0]).not.toContain("airflow");
   });
 
+  it("locks unfinished primary studies until the equipped secondary is complete", () => {
+    state.save = selectSecondaryCareer(platformSave("fullstack-engineer"), "fullstack-engineer");
+    const selected = state.save;
+    expect(selectGameCareer(selected, "devops")).toBe(selected);
+    const html = render();
+    expect(html).toContain("Fullstack Engineer");
+    expect(html).toContain("CURRENT CAREER");
+    expect(state.controls.find(({ testID }) => testID === "career-select-devops")?.disabled).toBe(true);
+    expect(state.controls.find(({ testID }) => testID === "career-select-backend")?.disabled).toBe(false);
+    expect(state.controls.some(({ testID }) => testID?.startsWith("career-checkpoint-"))).toBe(true);
+    expect(state.controls.some(({ testID }) => testID?.startsWith("promotion-checkpoint-"))).toBe(true);
+    expect(html).toContain("Finish the current tier-two path");
+    state.save.progress.captures.push(...PROMOTION_MISSIONS["fullstack-engineer"].chapter.stages.map(({ id }) => ({ id, capturedAt: "2026-10-28T00:00:00.000Z" })));
+    state.save = selectGameCareer(normalizeGameSave(state.save), "devops");
+    state.controls = [];
+    render();
+    expect(state.save.player.secondaryJobId).toBe("fullstack-engineer");
+    expect(state.controls.find(({ testID }) => testID === "career-select-devops")?.disabled).toBe(false);
+  });
+
   it.each(SECONDARY_JOB_OPTIONS)("offers $id after both required primary paths are mastered", (job) => {
     state.save = platformSave(job.id);
     expect(render()).toContain("VIEW PROMOTION MISSION");
