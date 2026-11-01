@@ -1,0 +1,28 @@
+Handoff: career progression guards
+
+- Owner: Codex
+- Reviewer: Claude CLI read-only review attempted through claude-collaboration; unavailable (Not logged in). Independent review remains outstanding.
+- Scope: Require every primary checkpoint for mastery and secondary unlock. An equipped, unfinished secondary permits completed primary replays but blocks unfinished primary studies. After secondary mastery, the next primary study can begin and remains binding until complete. Primary study preserves earned secondary identity. Existing invalid mastery/unlock records are recalculated from captures; captures and unknown content records are preserved.
+- Changed files:
+  - packages/game-content/src/domain/careerPaths.ts: completion requires every released capture.
+  - packages/game-content/src/domain/gameProgress.ts: shared study gate, retained secondary identity, bookmark continuation and earned-career normalization.
+  - web/lib/phaser/registryAdapter.ts: reconcile against capture-derived normalized milestones.
+  - web/lib/phaser/jobSelect/careerTree.ts and scenes/JobSelectScene.ts: shared primary-study gates; secondary remains current; shared save transition.
+  - web/lib/phaser/scenes/CareerRegionScene.ts: reject direct access to disallowed primary studies.
+  - mobile/src/game/CareerScreen.tsx: study gates, secondary identity display, primary replay access and gate explanation.
+  - web/e2e/game.promotion.spec.ts: ten real-browser progression regressions across all five secondary careers, including stale mastery, primary replay and post-mastery studies.
+  - web/test/domain/careerPaths.test.ts, promotionChapter.test.ts, web/test/phaser/primaryCareerSelection.test.ts and mobile/src/game/CareerScreen.test.tsx: intermediate-capture, stale-mastery, replay, unfinished-path and reload regressions.
+- Generated assets: None.
+- Checks run:
+  - Web: 625/625 tests.
+  - Mobile: 139/139 tests; final label adjustment rechecked with all 15 CareerScreen tests.
+  - Workspace typecheck/package boundaries and explicit web tsc --noEmit passed.
+  - Workspace lint passed without warnings; git diff --check passed.
+  - check:agents passed.
+  - qa:check: 30 generated case files verified, 11/11 runner tests passed (requires local socket permissions).
+- Remaining risks or review items:
+  - Independent Claude review unavailable until CLI login is restored.
+  - Production Web build (webpack) passed. Initial browser run: 30 existing tests passed; ten new cases exposed a test-helper startup race. Added an explicit world/promotion scene wait and started the full 40-case rerun. Original failure evidence retained under qa-results/career-progression/artifacts. Native simulator rerun is not part of this Web deployment.
+  - User-facing English/Korean documentation follow-up belongs to Claude (existing COD-411); no docs or README changes.
+  - User authorized testing through Web deployment. Feature branch feat/career-progression-guards will use automated mirrored issues and draft PR, then CI/review and develop-to-main release. Deployment results are recorded on the PRs rather than pre-claimed here.
+  - Separate remote branch cleanup remains pending explicit deletion approval.
