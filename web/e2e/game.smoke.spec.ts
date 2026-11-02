@@ -2,9 +2,16 @@ import { expect, test } from "@playwright/test";
 
 test("boots the game shell and Phaser canvas", async ({ page }) => {
   const pageErrors: Error[] = [];
+  const assetResponses: { status: number; type: string }[] = [];
   page.on("pageerror", (error) => pageErrors.push(error));
+  page.on("response", (response) => {
+    if (new URL(response.url()).pathname.startsWith("/assets/")) {
+      assetResponses.push({ status: response.status(), type: response.headers()["content-type"] ?? "" });
+    }
+  });
 
-  await page.goto("/");
+  const response = await page.goto("/");
+  expect(response?.status(), "Game home must return HTTP 200").toBe(200);
 
   await expect(page.getByRole("heading", { name: "CODIGDEX" })).toBeVisible();
   const canvas = page.locator(".pixel-canvas canvas");
@@ -13,9 +20,12 @@ test("boots the game shell and Phaser canvas", async ({ page }) => {
   await expect(canvas).toHaveAttribute("height", "540");
   await expect(page.getByRole("application", { name: "코딩덱스 코딩 교육 게임" })).toHaveAttribute(
     "aria-busy",
-    "false"
+    "false",
+    { timeout: 30_000 }
   );
-  await expect(page.getByRole("status")).toContainText("게임을 시작할 준비가 되었습니다.");
+  await expect(page.getByRole("status")).toContainText("게임을 시작할 준비가 되었습니다.", { timeout: 30_000 });
+  expect(assetResponses.some(({ status, type }) => status === 200 && type.startsWith("image/")), "Game must load actual image assets").toBe(true);
+  expect(assetResponses.filter(({ status }) => status >= 400), "Game assets must not fail").toEqual([]);
   expect(pageErrors).toEqual([]);
 });
 

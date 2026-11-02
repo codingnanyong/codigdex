@@ -1,5 +1,5 @@
-import { text } from "@codigdex/game-core/i18n/locale";
 import type { QuizQuestion } from "@codigdex/game-core/domain/chapters/types";
+import { fieldMission as mission } from "./fieldMission";
 
 // Original field scenarios. Concepts checked against Google SRE Workbook:
 // https://sre.google/workbook/canarying-releases/
@@ -7,16 +7,6 @@ import type { QuizQuestion } from "@codigdex/game-core/domain/chapters/types";
 // https://sre.google/workbook/alerting-on-slos/
 // https://sre.google/workbook/incident-response/
 // https://sre.google/workbook/postmortem-culture/
-type Copy = readonly [ko: string, en: string];
-type Scenario = readonly [ko: string, en: string, answer: number];
-function mission(actions: readonly Copy[], scenarios: readonly Scenario[]): readonly QuizQuestion[] {
-  return scenarios.map(([ko, en, answer], index) => ({
-    prompt: text(ko, en),
-    choices: [actions[answer], ...actions.filter((_, candidate) => candidate !== answer).filter((_, candidate) => candidate >= index % (actions.length - 3)).slice(0, 3)].map(([a, b]) => text(a, b)),
-    answerIndex: 0,
-  }));
-}
-
 const release = mission([
   ["실패한 검사를 배포 차단 조건으로 둔다", "Block delivery when a required check fails"],
   ["테스트한 불변 결과물을 그대로 승격한다", "Promote the same tested immutable artifact"],

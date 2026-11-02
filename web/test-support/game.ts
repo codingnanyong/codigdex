@@ -20,6 +20,9 @@ export async function frames(page: Page) {
 
 export async function clickGame(page: Page, x: number, y: number) {
   const canvas = page.locator(".pixel-canvas canvas");
+  // Scene labels can update before Phaser has installed that scene's inputs.
+  // Let its create/update cycle complete before sending the next pointer event.
+  await frames(page);
   const box = await canvas.boundingBox();
   if (!box) throw new Error("Game canvas is not visible");
   await canvas.click({ position: { x: x * box.width / CANVAS_SIZE.width, y: y * box.height / CANVAS_SIZE.height } });
@@ -45,9 +48,10 @@ export async function bootGame(page: Page, save: StoredGameStateV3) {
   await continueGame(page);
 }
 
-async function continueGame(page: Page) {
+export async function continueGame(page: Page) {
   await scene(page, "intro");
   await expect(game(page)).toHaveAttribute("aria-busy", "false", { timeout: 30000 });
+  await frames(page);
   await page.keyboard.press("Enter");
 }
 

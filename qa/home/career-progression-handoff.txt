@@ -1,7 +1,7 @@
 Handoff: career progression guards
 
 - Owner: Codex
-- Reviewer: Claude CLI read-only review attempted through claude-collaboration; unavailable (Not logged in). Independent review remains outstanding.
+- Reviewer: Claude GitHub reviews #192/#193 on PR #141 and #194 on release PR #142; no blocking findings. Codex PR reviews completed without findings.
 - Scope: Require every primary checkpoint for mastery and secondary unlock. An equipped, unfinished secondary permits completed primary replays but blocks unfinished primary studies. After secondary mastery, the next primary study can begin and remains binding until complete. Primary study preserves earned secondary identity. Existing invalid mastery/unlock records are recalculated from captures; captures and unknown content records are preserved.
 - Changed files:
   - packages/game-content/src/domain/careerPaths.ts: completion requires every released capture.
@@ -21,8 +21,8 @@ Handoff: career progression guards
   - check:agents passed.
   - qa:check: 30 generated case files verified, 11/11 runner tests passed (requires local socket permissions).
 - Remaining risks or review items:
-  - Independent Claude review unavailable until CLI login is restored.
-  - Production Web build (webpack) passed. Initial browser run: 30 existing tests passed; ten new cases exposed a test-helper startup race. Added an explicit world/promotion scene wait and started the full 40-case rerun. Original failure evidence retained under qa-results/career-progression/artifacts. Native simulator rerun is not part of this Web deployment.
+  - Original production Web build passed, and the full 40-case browser rerun passed after the test-helper startup wait. Feature CI #124 and release CI #125 passed. Original failed evidence remains recorded separately. Native simulator rerun was not part of this Web deployment.
   - User-facing English/Korean documentation follow-up belongs to Claude (existing COD-411); no docs or README changes.
-  - User authorized testing through Web deployment. Feature branch feat/career-progression-guards will use automated mirrored issues and draft PR, then CI/review and develop-to-main release. Deployment results are recorded on the PRs rather than pre-claimed here.
+  - User explicitly approved PR #141 and develop-to-main merging plus Web production deployment on 2026-11-02 KST. PR #141 merged to develop cea77f2; release PR #142 merged to main eeddbd03ecc3757359c3a2073c9758c98264df6d. Vercel reports success for that main commit.
+  - Actual production browser verification passed 12/12: startup/assets, save/language restoration and ten progression regressions across all five secondary careers. Local evidence: qa-results/weekly-production.log. Mobile release and later quality-followup changes are not included in that release.
   - Separate remote branch cleanup remains pending explicit deletion approval.

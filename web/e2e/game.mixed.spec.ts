@@ -1,4 +1,4 @@
-import { clickGame as clickCanvas, frames } from "../test-support/game";
+import { clickGame as clickCanvas, continueGame, frames } from "../test-support/game";
 import { expect, test } from "@playwright/test";
 
 test("plays mixed Web questions with hints, native text input and explicit feedback", async ({ page }) => {
@@ -11,7 +11,7 @@ test("plays mixed Web questions with hints, native text input and explicit feedb
   const game = page.getByRole("application");
   await expect(game).toHaveAttribute("aria-busy", "false", { timeout: 15_000 });
   await expect(game).toHaveAttribute("data-scene", "intro");
-  await page.keyboard.press("Enter");
+  await continueGame(page);
   const clickGame = (x: number, y: number) => clickCanvas(page, x, y);
   await expect(game).toHaveAttribute("data-scene", "world-map", { timeout: 15_000 });
   await clickGame(480, 252);
