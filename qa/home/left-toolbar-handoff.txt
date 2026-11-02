@@ -1,0 +1,22 @@
+Handoff: consistent left-side game controls, 2026-11-03 KST
+
+- Owner: Codex.
+- Reviewer: /root/review_oss_journey using skills/shared-change-review/SKILL.md, read-only. Final verdict: No blocking findings after fixing account-panel collapse/focus.
+- Scope: User requested all Web utility icons on the left, with improved size and placement. Home, safe-scene settings, open-source notes, account/save and fullscreen now share a fixed left rail. It starts expanded and can be collapsed. The rail follows viewport safe areas rather than the letterboxed camera's offsets.
+- Changed files:
+  - web/components/GameHeader.tsx, GameIcon.tsx, PhaserGame.tsx; web/app/globals.css: common24px vector glyphs;48px desktop /44px compact buttons, aligned column, uniform borders, hover/pressed/disabled/focus states, scrollable short-screen rail and explicit menu collapse focus.
+  - web/lib/phaser/gameControls.ts, navigation.ts and settings/settingsButton.ts: scenes register their existing Home/Settings callbacks with stable WeakMap snapshots. The old scaled canvas icons/hit targets are replaced by invisible containers, retaining caller contracts without duplicate controls. Scene shutdown/destruction clears callbacks/listeners; settings remains available only where the original scene allowed it.
+  - web/components/OpenSourcePanel.tsx and AccountPanel.tsx: shared icons. Account overlay stays beside the left rail inside the fullscreen shell; controlled state closes it with rail collapse or Home/Settings navigation. Opening focuses its Close button, and closing/Escape restores the launcher. Save errors add a highlighted retry icon and badge within the rail, rather than overlaying other gameplay controls.
+  - web/e2e/game.shell.spec.ts: left alignment, uniform icon/target size, no overlap, account portal/focus/collapse, error retry placement and fullscreen checks in Korean/English at1440x900,1920x1080,390x844 and844x390; functional Home/Settings/menu keyboard behavior and unchanged save.
+  - web/test/phaser/gameControls.test.ts: original navigation/settings delegation and shutdown/destroy cleanup/reuse.
+  - web/home-e2e/features.spec.ts: Home QA selects the actual HOME button instead of the retired canvas coordinate. Separate home-feature runner was not executed in this task; real Home action is covered by the shell functional journey.
+  - This report. No README/docs/policy changes.
+- Generated assets: None. Icons are repo-native SVG code matching the existing icon family; no raster generation. QA screenshots remain ignored under qa-results/immersive-shell/.
+- Checks run:
+  - Web unit/domain suite754/754 (59 files) passed, including3 new callback/lifecycle cases. The later account-state/focus-only refinement was checked through the final production build and all affected browser journeys.
+  - Explicit Web TypeScript, Web lint, production build, check:agents and git diff --check passed.
+  - Initial shell9/9 passed before the account collapse refinement. Final shell/mixed/notes/smoke18/18 passed in one run, including the refined account keyboard test. Three related production-build journeys also passed: complete tertiary software project, platform secondary Lv1-5 and OSS pause/career/resume.
+  - Browser retries off. Directly inspected desktop and portrait screenshots. No new native changes or native/device claims.
+- Remaining risks or review items:
+  - Based on main712921f. The user clarified that the completed icon changes should apply to the live Web; publication proceeds through the normal feature/develop/main workflow. Exact-head CI and final production verification are recorded on the feature/release PRs.
+  - Real native device/store deployment is outside this Web-only change.

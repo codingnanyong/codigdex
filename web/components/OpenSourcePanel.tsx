@@ -13,6 +13,7 @@ import { createPortal } from "react-dom";
 import { assetUrl } from "@/lib/assets";
 import { SAVE_CHANGE_EVENT, snapshotRegistry } from "@/lib/phaser/registryAdapter";
 import { discoveredSourceIds, sourceEvents, SOURCE_EVENTS_CHANGED } from "@/lib/phaser/openSourceEvents";
+import { GameIcon } from "./GameIcon";
 
 export function OpenSourcePanel({ game, locale }: { game: Phaser.Game; locale: Locale }) {
   const dialog = useRef<HTMLDialogElement>(null);
@@ -62,7 +63,7 @@ export function OpenSourcePanel({ game, locale }: { game: Phaser.Game; locale: L
   const reset = () => { setQuery(""); setFamily(undefined); setJobId(undefined); setIds(undefined); };
   const overlayHost = game.canvas.parentElement?.closest(".game-shell");
   return <>
-    <button ref={launcher} className="source-launch" onKeyDown={(event) => event.stopPropagation()} onClick={() => { reset(); setOpen(true); }} aria-haspopup="dialog" title={ko ? "오픈소스 노트" : "OPEN-SOURCE NOTES"}><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d="M12 5C8 2 3 3 3 3v16s5-1 9 2c4-3 9-2 9-2V3s-5-1-9 2Zm0 0v16" /></svg><span className="sr-only">{ko ? "오픈소스 노트" : "OPEN-SOURCE NOTES"}</span></button>
+    <button ref={launcher} className="source-launch" onKeyDown={(event) => event.stopPropagation()} onClick={() => { reset(); setOpen(true); }} aria-haspopup="dialog" title={ko ? "오픈소스 노트" : "OPEN-SOURCE NOTES"}><GameIcon name="notes" /><span className="sr-only">{ko ? "오픈소스 노트" : "OPEN-SOURCE NOTES"}</span></button>
     {overlayHost ? createPortal(<dialog ref={dialog} className="source-dialog" aria-labelledby="source-title" onCancel={() => setOpen(false)} onClose={() => setOpen(false)} onKeyDown={(event) => event.stopPropagation()}>
       <div className="source-heading">
         <div><h2 id="source-title">{ko ? "발견한 오픈소스 노트" : "OPEN-SOURCE FIELD NOTES"}</h2>
