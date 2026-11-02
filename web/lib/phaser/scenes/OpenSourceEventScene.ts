@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { findOpenSource } from "@codigdex/game-content/domain/openSourceCatalog";
+import { findOpenSource, OPEN_SOURCE_FAMILIES } from "@codigdex/game-content/domain/openSourceCatalog";
 import { sourceEncounterStage, openSourceEvolutionFor, openSourceArenaForStage } from "@codigdex/game-content/domain/openSourceChapters";
 import { sourceCareer, sourceCareerName } from "@codigdex/game-content/domain/openSourceEncounters";
 import { snapshotRegistry } from "../registryAdapter";
@@ -10,20 +10,22 @@ import { lt, sceneLocale } from "../i18n";
 import { PALETTE, PALETTE_HEX } from "../palette";
 import { pixelText } from "../pixelFont";
 import { applyPixelFontToScene, createButton, drawOrnateFrame, fitTextInside } from "../ui";
+import { drawOpenSourceAtlas } from "../openSourceAtlas";
 import { drawFiveStageRoute } from "../fiveStageRoute";
 
 /** One accepted request follows a tool's five forms inside its ecosystem arena. */
 export class OpenSourceEventScene extends Phaser.Scene {
   private selectedId?: string;
+  private view: "atlas" | "region" = "atlas";
   constructor() { super("open-source-event"); }
-  init(data?: { monsterId?: string }) { this.selectedId = data?.monsterId; }
+  init(data?: { monsterId?: string; view?: "atlas" | "region" }) { this.selectedId = data?.monsterId; this.view = data?.view ?? "atlas"; }
 
   preload() {
     const pending = sourceEvents(this.registry).resolvePending(snapshotRegistry(this.registry));
     const stage = pending && sourceEncounterStage(snapshotRegistry(this.registry), pending);
     if (stage && pending) {
       const arena = openSourceArenaForStage(stage.id)!;
-      showLoadingScreen(this, queueImages(this, [{ key: arena.textureKey, url: assetUrl(arena.assetKey) }, ...openSourceEvolutionFor(pending.toolId).map((form) => ({ key: form.textureKey, url: assetUrl(form.assetKey) }))]), lt(this, stage.name));
+      showLoadingScreen(this, queueImages(this, [...Object.keys(OPEN_SOURCE_FAMILIES).map((family) => ({ key: `open-source-arena-${family}`, url: assetUrl(`wallpapers/open-source/${family}-arena-v1.png`) })), { key: arena.textureKey, url: assetUrl(arena.assetKey) }, ...openSourceEvolutionFor(pending.toolId).map((form) => ({ key: form.textureKey, url: assetUrl(form.assetKey) }))]), lt(this, stage.name));
     }
   }
 
@@ -34,6 +36,16 @@ export class OpenSourceEventScene extends Phaser.Scene {
     const entry = pending && findOpenSource(pending.toolId);
     const stage = pending && sourceEncounterStage(save, pending);
     if (!pending || !entry || !stage) { this.scene.start("world-map"); return; }
+    if (this.view === "atlas") {
+      drawOpenSourceAtlas(this, entry, () => {
+        if (session.accept(snapshotRegistry(this.registry), pending.id)) this.scene.restart({ view: "region" });
+      }, () => {
+        const target = session.leave(snapshotRegistry(this.registry), pending.id);
+        this.scene.start(target?.scene ?? "world-map", target?.data);
+      });
+      applyPixelFontToScene(this);
+      return;
+    }
     const ko = sceneLocale(this) === "ko";
     const forms = openSourceEvolutionFor(entry.id);
     const captured = new Set(save.progress.captures.map(({ id }) => id));
@@ -54,7 +66,7 @@ export class OpenSourceEventScene extends Phaser.Scene {
       if (next) this.scene.start("code-battle", { monsterId: next.id, sourceEventId: pending.id, returnTo: pending.returnTo });
     };
     drawFiveStageRoute(this, forms.map((monster) => ({ monster, status: captured.has(monster.id) ? "cleared" as const : monster.id === stage.id ? "available" as const : "locked" as const })),
-      preview.id, (monsterId) => this.scene.restart({ monsterId }), { arena: arena.assetKey, onEnter: accept,
+      preview.id, (monsterId) => this.scene.restart({ monsterId, view: "region" }), { arena: arena.assetKey, onEnter: accept,
         enterLabel: `${ko ? "현재 의뢰 이어하기" : "CONTINUE CURRENT REQUEST"} · Lv.${stage.level}/5` });
     drawOrnateFrame(this, 480, 410, 860, 150, { radius: 10, fillAlpha: 0.97 });
     this.add.image(111, 410, preview.textureKey).setDisplaySize(112, 112);
@@ -67,6 +79,7 @@ export class OpenSourceEventScene extends Phaser.Scene {
     const leave = () => { const target = session.leave(snapshotRegistry(this.registry), pending.id); this.scene.start(target?.scene ?? "world-map", target?.data); };
     createButton(this, 242, 501, 360, 38, pending.state === "offered" ? (ko ? "나중에 · 원래 경로로" : "LATER · RETURN TO MY PATH") : (ko ? "잠시 멈춤 · 직무로" : "PAUSE · RETURN TO MY CAREER"), leave);
     createButton(this, 718, 501, 360, 38, pending.state === "offered" ? (ko ? "참여 · 5단계 탐험" : "START FIVE-STAGE REQUEST") : `${ko ? "이어하기" : "CONTINUE"} · Lv.${stage.level}/5`, accept);
+    createButton(this, 480, 501, 100, 38, ko ? "지도" : "ATLAS", () => this.scene.restart({ view: "atlas" }));
     applyPixelFontToScene(this);
   }
 }

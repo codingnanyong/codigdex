@@ -8,7 +8,7 @@ import type { StoredGameStateV3 } from "@codigdex/game-core/save/schema";
 export interface BattleContext { monster: MonsterDefinition; sourceEventId?: string; victoryId: string }
 export interface BattleResult extends BattleContext { correct: number; total: number; passed: boolean; newCapture: boolean; beforeCapture: StoredGameStateV3 }
 export type MobileRoute =
-  | { name: "title" | "world" | "career" | "dex" | "settings" | "qa" | "encounter" }
+  | { name: "title" | "world" | "career" | "dex" | "settings" | "qa" | "encounter" | "source-region" }
   | { name: "battle"; battle: BattleContext }
   | { name: "result"; result: BattleResult }
   | { name: "detail"; monster: MonsterDefinition }
