@@ -138,8 +138,8 @@ export class WorldMapScene extends Phaser.Scene {
       return;
     }
     const resume = resumeCheckpoint(snapshotRegistry(this.registry));
-    if (resume.chapter.id.startsWith("promotion:")) {
-      this.scene.start("promotion-chapter", { jobId: resume.chapter.id.slice("promotion:".length), monsterId: resume.monster.id });
+    if (resume.chapter.id.startsWith("promotion:") || resume.chapter.id.startsWith("mastery:")) {
+      this.scene.start("promotion-chapter", { jobId: resume.chapter.id.slice(resume.chapter.id.indexOf(":") + 1), monsterId: resume.monster.id });
       return;
     }
     this.activeChapter = this.commonResumeChapter() ?? selectActiveChapter(this.captured);

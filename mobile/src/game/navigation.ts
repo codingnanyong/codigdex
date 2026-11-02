@@ -22,7 +22,7 @@ export function normalizeMobileSave(save: StoredGameStateV3) {
 
 export function destinationFor(save: StoredGameStateV3, monsterId: string): SourceReturnTarget {
   const chapter = findStage(monsterId).chapter.id;
-  if (chapter.startsWith("promotion:")) return { scene: "promotion-chapter", data: { careerId: chapter.slice(10) } };
+  if (chapter.startsWith("promotion:") || chapter.startsWith("mastery:")) return { scene: "promotion-chapter", data: { careerId: chapter.slice(chapter.indexOf(":") + 1) } };
   if (chapter.startsWith("career:")) return { scene: "career-region", data: { regionId: chapter.slice(7), careerId: save.player.primaryJobId } };
   const captured = new Set(save.progress.captures.map(({ id }) => id));
   return { scene: isCommonPathComplete(captured) && save.player.primaryJobId === "junior" ? "job-select" : "world-map" };

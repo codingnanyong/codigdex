@@ -12,30 +12,45 @@ on:
 
 permissions:
   contents: read
+  pull-requests: read
 
 jobs:
   smoke:
-    if: github.event_name == 'workflow_dispatch' || (github.event.deployment_status.state == 'success' && contains(fromJSON('["production", "Production"]'), github.event.deployment.environment))
+    if: github.event_name == 'workflow_dispatch' || (github.event.deployment_status.state == 'success' && contains(fromJSON('["production", "Production", "preview", "Preview"]'), github.event.deployment.environment))
     runs-on: ubuntu-latest
     timeout-minutes: 10
     env:
-      # Generated Vercel deployment URLs may require login even for production.
-      # Automatic checks use the public alias; manual runs can select a preview.
-      PLAYWRIGHT_BASE_URL: ${{ inputs.base_url || 'https://codigdex.vercel.app' }}
+      PLAYWRIGHT_BASE_URL: ${{ inputs.base_url || (contains(fromJSON('["preview", "Preview"]'), github.event.deployment.environment) && (github.event.deployment_status.environment_url || github.event.deployment_status.target_url || 'MISSING_PREVIEW_URL')) || 'https://codigdex.vercel.app' }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'deployment_status' && github.event.repository.default_branch || github.ref }}
+      - name: Verify trusted preview source
+        if: github.event_name == 'deployment_status' && contains(fromJSON('["preview", "Preview"]'), github.event.deployment.environment)
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const sha = context.payload.deployment.sha;
+            const { data: prs } = await github.rest.repos.listPullRequestsAssociatedWithCommit({ owner, repo, commit_sha: sha });
+            const trusted = prs.some(pr => pr.head.sha === sha && pr.head.repo?.full_name === `${owner}/${repo}`);
+            if (!trusted) core.setFailed('Automatic preview checks require a same-repository pull request at this deployment SHA.');
       - uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
           cache: npm
       - name: Check deployment URL
-        run: node -e "const u = new URL(process.env.PLAYWRIGHT_BASE_URL); const allowed = u.hostname === 'codigdex.vercel.app' || /^codigdex-[a-z0-9-]+-codingnanyongs-projects[.]vercel[.]app$/.test(u.hostname); if (u.protocol !== 'https:' || !allowed || u.username || u.password || u.port) throw new Error('Use the Codigdex production URL or a Codigdex team preview URL'); console.log('Verifying', u.origin)"
+        run: node --input-type=module -e "import {smokeTarget} from './scripts/web-smoke-target.mjs'; console.log('Verifying', smokeTarget(process.env.PLAYWRIGHT_BASE_URL).origin)"
       - name: Check deployment access
-        run: node --input-type=module -e "const u = new URL(process.env.PLAYWRIGHT_BASE_URL); const r = await fetch(u); if (new URL(r.url).origin !== u.origin || [401,403].includes(r.status)) throw new Error('Deployment protection blocks this URL. Use an accessible preview; no authentication bypass is configured.'); if (r.status !== 200) throw new Error('Deployment home returned HTTP ' + r.status)"
+        env:
+          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
+        run: node scripts/web-smoke-target.mjs
       - run: npm install --global npm@10.9.2
       - run: npm ci
       - run: npx playwright install --with-deps chromium
       - run: npm run smoke:web
+        env:
+          VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
       - uses: actions/upload-artifact@v4
         if: failure()
         with:

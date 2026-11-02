@@ -166,6 +166,49 @@ body {
   display: none;
 }
 
+.career-workshop {
+  position: absolute;
+  inset: 0;
+  z-index: 15;
+  overflow-y: auto;
+  touch-action: pan-y;
+  user-select: text;
+  box-sizing: border-box;
+  padding: clamp(16px, 4vw, 36px);
+  color: #33251c;
+  background: #f5e5c3;
+  border: 6px double #77523b;
+  font-family: var(--font-pixel), monospace;
+  font-size: clamp(14px, 1.6vw, 18px);
+  line-height: 1.7;
+}
+.career-workshop pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  background: #33251c;
+  color: #fff0ce;
+  padding: 16px;
+  border-radius: 6px;
+  font-size: 0.9em;
+}
+.career-workshop button {
+  display: block;
+  width: 100%;
+  min-height: 44px;
+  margin-top: 12px;
+  padding: 10px 14px;
+  color: #33251c;
+  background: #fff5df;
+  border: 2px solid #77523b;
+  border-radius: 6px;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+}
+.career-workshop button:focus-visible, .career-workshop a:focus-visible { outline: 3px solid #973d34; outline-offset: 2px; }
+.career-workshop button:disabled { opacity: 0.55; cursor: default; }
+.career-workshop a { color: #8a302f; }
+
 @media (orientation: portrait) and (max-width: 767px) {
   .rotate-hint {
     display: block;

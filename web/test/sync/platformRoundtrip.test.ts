@@ -14,6 +14,7 @@ describe("Web registry ↔ native storage roundtrip", () => {
   it("retains career, captures, language and resume point through both adapters", async () => {
     const values = new Map<string, string>();
     const initial = createEmptySave("en");
+    initial.progress.projects = [{ id: "future-project:v1", completedAt: "2026-10-23T00:00:00.000Z" }];
     initial.progress.captures = CHAPTERS.flatMap(({ stages }) => stages.map(({ id }) => ({ id, capturedAt: "2026-10-23T00:00:00.000Z" })));
     const unknownCapture = { id: "future-version-monster", capturedAt: "2026-10-23T00:00:00.000Z" };
     const unknownCareer = { id: "future-version-career", unlockedAt: "2026-10-23T00:00:00.000Z" };

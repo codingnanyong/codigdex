@@ -5,6 +5,7 @@ import { CHAPTERS } from "@codigdex/game-content/domain/chapters";
 import { CAREER_PATHS } from "@codigdex/game-content/domain/careerPaths";
 import { monstersForCareerRegion } from "@codigdex/game-content/domain/careerRegionMonsters";
 import { selectSecondaryCareer } from "@codigdex/game-content/domain/gameProgress";
+import { workshopTaskId } from "@codigdex/game-content/domain/promotionWorkshops";
 import { webQAPresets } from "../lib/qa/presets";
 import { continueGame } from "../test-support/game";
 
@@ -60,6 +61,7 @@ test("opens chapter-related notes, resumes its battle and keeps save progress un
   const monsters = [...CHAPTERS.flatMap(({ stages }) => stages), ...[CAREER_PATHS.backend, CAREER_PATHS.devops].flatMap(({ regions }) => regions.flatMap(({ id }) => monstersForCareerRegion(id)))];
   seed.progress.captures = [...new Set(monsters.map(({ id }) => id))].map((id) => ({ id, capturedAt: "2026-10-27T00:00:00.000Z" }));
   seed.player.primaryJobId = "backend";
+  seed.progress.projects = Array.from({ length: 4 }, (_, phase) => ({ id: workshopTaskId("platform-release-ferry", phase), completedAt: "2026-11-02T00:00:00.000Z" }));
   seed.progress.captures.push(...["argo-cd", "openlineage"].map((id) => ({ id: `open-source:${id}`, capturedAt: "2026-10-28T00:00:00.000Z" })));
   seed.ui.tutorialOnboardingSeen = true;
   await page.addInitScript((save) => localStorage.setItem("codigdex:save:v3", JSON.stringify(save)), selectSecondaryCareer(seed, "platform-engineer"));

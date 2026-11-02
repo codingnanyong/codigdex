@@ -23,10 +23,13 @@ on:
       - "scripts/link-agent-workspace.mjs"
       - "scripts/home-qa*"
       - "scripts/generate-home-qa*"
+      - "scripts/generate-master-guardians.mjs"
+      - "scripts/web-smoke-target*"
       - "qa/**"
       - "skills/**"
       - "templates/**"
       - ".github/workflows/ci.yml"
+      - ".github/workflows/web-smoke.yml"
       - ".github/scripts/**"
 
 permissions:
@@ -45,6 +48,7 @@ jobs:
       - run: npm install --global npm@10.9.2
       - run: npm ci
       - run: node --test .github/scripts/sync_linear_notion_sprint.test.mjs
+      - run: node --test scripts/web-smoke-target.test.mjs
       - run: npm run check:agents
       - run: npm run qa:check
       - run: npm run typecheck

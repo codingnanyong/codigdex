@@ -75,7 +75,7 @@ const objectives = mission([
   ["합의한 정책에 따라 신뢰성 개선을 우선한다", "Prioritize reliability under the agreed policy"],
   ["측정 창과 유효 이벤트 범위를 명시한다", "Define the measurement window and eligible events"],
 ], [
-  ["거북이 요청 성공률 SLI의 분자를 묻는다. 어떤 계산을 할까?", "The turtle asks how to calculate a request-success SLI. Which calculation fits?", 0],
+  ["거북이 요청 성공률 SLI의 계산 방법을 묻는다. 어떤 계산을 할까?", "The turtle asks how to calculate a request-success SLI. Which calculation fits?", 0],
   ["사용자가 기다릴 수 있는 시간에 대한 약속을 만들려면?", "How should you establish a promise about how long users can wait?", 1],
   ["SLO가 99.9%일 때 허용 실패 비율을 구하려면?", "How do you obtain the allowed failure fraction for a 99.9% SLO?", 2],
   ["지금 속도라면 월간 예산이 며칠 만에 사라질지 알고 싶다. 무엇을 볼까?", "You want to know how quickly the monthly budget would disappear at the current pace. What should you observe?", 3],

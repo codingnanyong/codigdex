@@ -14,7 +14,7 @@ import { createHomeButton } from "../navigation";
 import { describeUnlock } from "../capture/unlockNotice";
 import { lt, sceneLocale, t } from "../i18n";
 import { readDexState, reconcileCareerDexRegistry, writeDexState, snapshotRegistry, applySaveToRegistry } from "../registryAdapter";
-import { nextPlayableCheckpoint, rememberCheckpoint } from "@codigdex/game-content/domain/gameProgress";
+import { nextPlayableCheckpoint, rememberCheckpoint, settleFinalProject } from "@codigdex/game-content/domain/gameProgress";
 import { addShade, applyPixelFontToScene } from "../ui";
 import { didUnlockPrimaryJobSelection } from "../worldMap/progression";
 import { findJob, JOB_REGISTRY_KEY } from "@codigdex/game-content/domain/player/jobs";
@@ -29,6 +29,7 @@ export interface CaptureResultData {
   victoryId?: string;
   correctCount: number;
   total: number;
+  passed?: boolean;
   returnTo?: SourceReturnTarget;
 }
 
@@ -38,6 +39,7 @@ export class CaptureQuizScene extends Phaser.Scene {
   private monster!: MonsterDefinition;
   private correctCount = 0;
   private total = 0;
+  private passed?: boolean;
   private nextTarget: CaptureReturnTarget = { scene: "world-map" };
   private sourceEventId?: string;
   private beforeCapture?: StoredGameStateV3;
@@ -53,6 +55,7 @@ export class CaptureQuizScene extends Phaser.Scene {
     this.monster = monster;
     this.correctCount = data.correctCount;
     this.total = data.total;
+    this.passed = data.passed;
     this.sourceEventId = data.sourceEventId;
     this.victoryId = data.victoryId;
     this.beforeCapture = undefined;
@@ -63,7 +66,7 @@ export class CaptureQuizScene extends Phaser.Scene {
     addShade(this, 0.55);
     createHomeButton(this).setDepth(30);
 
-    if (isSuccessfulCapture(this.correctCount, this.total)) {
+    if (this.passed !== false && isSuccessfulCapture(this.correctCount, this.total)) {
       this.showCaptured();
     } else {
       this.showMissed();
@@ -128,7 +131,7 @@ export class CaptureQuizScene extends Phaser.Scene {
         correct: this.correctCount,
         total: this.total,
         required: requiredCorrectAnswers(this.total),
-      }),
+      }) + (monster.id.startsWith("mastery:") ? (sceneLocale(this) === "ko" ? " · 필수 설계 판단도 모두 맞혀야 합니다." : " · All required design checks must also be correct.") : ""),
       npcLine: `${lt(this, chapter.npcName)}: ${lt(this, chapter.retryLine)}`,
       onRetry: () => {
         const target = retryCaptureTarget(this.sourceEventId, this.nextTarget);
@@ -148,6 +151,8 @@ export class CaptureQuizScene extends Phaser.Scene {
       this.nextTarget = { scene: "job-select" };
     }
     writeDexState(this.registry, after);
+    const settled = settleFinalProject(snapshotRegistry(this.registry));
+    if (settled.progress.projects !== this.beforeCapture.progress.projects) applySaveToRegistry(this.registry, settled);
     reconcileCareerDexRegistry(this.registry);
     if (after !== before && !this.sourceEventId) {
       const save = snapshotRegistry(this.registry);

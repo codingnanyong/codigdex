@@ -1,6 +1,7 @@
 import { Image, Text, View, useWindowDimensions } from "react-native";
 import { CHAPTERS } from "@codigdex/game-content/domain/chapters";
 import { promotionMissionFor } from "@codigdex/game-content/domain/promotionChapters";
+import { masterMissionFor } from "@codigdex/game-content/domain/masterChapters";
 import { localize } from "@codigdex/game-core/i18n/locale";
 import { mobileAssetSource } from "../assets";
 import { PixelScene, type PixelScenery } from "../ui/PixelScene";
@@ -27,15 +28,16 @@ export function ResultScreen({ onDex, onWorld, onRetry, onQA, onContinue, result
   const { width, height } = useWindowDimensions();
   const narrow = width < 680 || height > width;
   const ko = locale === "ko";
+  const master = result.monster.id.startsWith("mastery:");
   return (
     <Screen scroll>
       <View style={[styles.resultLayout, narrow && styles.verticalLayout]}>
-        <View style={styles.resultStage}><PixelScene backdrop scene={event ? "field" : (promotionMissionFor(chapter?.id.replace(/^promotion:/, ""))?.scenery ?? (chapter?.id.startsWith("career:") ? "field" : chapter?.id ?? "field")) as PixelScenery} /><Image resizeMode="contain" source={mobileAssetSource(result.monster.assetKey)} style={styles.resultMonster} /></View>
+        <View style={styles.resultStage}><PixelScene backdrop scene={event ? "field" : (promotionMissionFor(chapter?.id.replace(/^promotion:/, ""))?.scenery ?? masterMissionFor(chapter?.id.replace(/^mastery:/, ""))?.scenery ?? (chapter?.id.startsWith("career:") ? "field" : chapter?.id ?? "field")) as PixelScenery} /><Image resizeMode="contain" source={mobileAssetSource(result.monster.assetKey)} style={styles.resultMonster} /></View>
         <View style={styles.resultCopy}>
           <Text testID="result-title" style={[styles.resultGrade, result.passed ? styles.correct : styles.wrong]}>{result.passed ? (ko ? "포획 성공" : "CAPTURED") : (ko ? "재도전" : "TRY AGAIN")}</Text>
           <Text style={styles.logo}>{battlePercent(result.correct, result.total)}%</Text>
           <Text style={styles.body}>{result.correct}/{result.total} · {localize(result.monster.name, locale)}</Text>
-          <Text style={styles.muted}>{result.passed ? (result.newCapture ? (ko ? "코디덱스에 새 카드가 등록되었습니다." : "A new card was registered.") : (ko ? "이미 코디덱스에 등록된 카드입니다." : "This card is already in your Codigdex.")) : (ko ? "60% 이상 맞히면 포획할 수 있습니다." : "Score at least 60% to capture it.")}</Text>
+          <Text style={styles.muted}>{result.passed ? (result.newCapture ? (ko ? "코디덱스에 새 카드가 등록되었습니다." : "A new card was registered.") : (ko ? "이미 코디덱스에 등록된 카드입니다." : "This card is already in your Codigdex.")) : (master ? (ko ? "60% 이상과 모든 필수 설계 판단을 통과해야 합니다." : "Score at least 60% AND pass every required design check.") : (ko ? "60% 이상 맞히면 포획할 수 있습니다." : "Score at least 60% to capture it."))}</Text>
           {chapterComplete ? <Text accessibilityLiveRegion="polite" style={styles.hint}>{!expedition && commonComplete && save.player.primaryJobId === "junior" ? (ko ? "공통 경로 완료! 1차 직업을 선택하세요." : "Common path complete! Choose a primary career.") : `${localize(chapter!.name, locale)} ${ko ? "지역 완료!" : "complete!"}`}</Text> : null}
         </View>
         <View style={styles.titleActions}>

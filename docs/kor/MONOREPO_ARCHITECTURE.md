@@ -166,7 +166,8 @@ npm run mobile:qa:ios
 npm run qa:home -- --platform android --feature all   # 자동 플로; Maestro CLI 2.11+ 필요
 ```
 
-QA 화면에서 직접 고르는 QA 시작 상태 17개는 네이티브 자동 시나리오 28개와 별개입니다.
+당시 10월 인수의 수동 QA 시작 상태는 17개, 네이티브 자동 시나리오는 28개였습니다.
+현행 소스는 수동 23개·자동 34개이며 추가분은 시뮬레이터·기기 인수가 필요합니다.
 커밋 `ddc1e73` 기준 인수 결과이며, 2026-10-29(KST)에 완료했습니다.
 
 | 플랫폼 | 기기 | 첫 전체 실행 | 결과 |
@@ -212,3 +213,28 @@ Vercel에서는 Root Directory를 `web`으로 설정합니다. 웹 애플리케�
 Directory in the Build Step** 옵션을 켠 상태로 유지하세요. 웹 패키지의 `prebuild`
 스크립트가 `@codigdex/game-assets`를 먼저 동기화하기 때문에 기본
 `npm run build` 명령으로 충분합니다.
+
+## 구역 실습과 최종 프로젝트
+
+`promotionWorkshops.ts`에 한영 예제와 참고 자료 25개를 둡니다. 구역별 5문항 실습
+4개가 기존 2차 문제 풀을 공유하며, 다섯 직업 전체에 완료 체크포인트 100개를
+저장합니다. `masterChapters.ts`는 5개 마일스톤짜리 최종 프로젝트 5개를 추가하고,
+`quiz-content/sources/master.ts`는 신규 필수 설계 문항 75개와 관련 기초 복습을
+결합합니다. 공유 추첨·배틀 리듀서는 필수 설계 판단을 항상 포함하고 모두 맞혀야
+통과시킵니다.
+
+저장 v3에 선택적 `progress.projects`(`id`, `completedAt`)를 추가합니다. 구버전에
+값이 없으면 실습 미완료로 보며 기존 포획은 유지합니다. 스키마·파서·생성·병합·Web
+레지스트리 스냅샷·모바일 저장 큐가 알 수 없는 ID까지 보존합니다. `gameProgress.ts`가
+입장 조건과 최종 프로젝트 완료를 판정하고, 명시적 확정으로 3차 직업을 장착합니다.
+현재 소스는 몬스터 199종·수동 QA 시작점 23개·생성된 네이티브 흐름 34개입니다.
+앞선 10월 인수 기록은 구버전의 과거 결과이며 새 흐름은 시뮬레이터·기기 인수가
+필요합니다. 이 확장은 아직 게시 전입니다.
+
+`web-smoke.yml`은 운영 및 같은 저장소 PR의 Preview 배포 이벤트를 지원합니다.
+배포 이벤트의 테스트와 스크립트는 기본 브랜치에서 가져옵니다. 보호된 Preview는
+승인된 저장소 비밀값 `VERCEL_AUTOMATION_BYPASS_SECRET`과 Vercel 공식 자동화 헤더,
+브라우저 쿠키로 접근합니다. 프로젝트의 정확한 origin만 허용하고 외부 리다이렉트를
+차단하며 인증 실행의 trace를 끕니다. 유효한 자격 증명이 없으면 설정 안내와 함께
+실패합니다. 실제 인증 Preview 검증은 남아 있습니다.
+[Vercel 자동화 접근 문서](https://vercel.com/docs/deployment-protection/methods-to-bypass-deployment-protection/protection-bypass-automation)를 참고하세요.

@@ -25,5 +25,5 @@ export function careerQAPresets(locale: Locale, now = new Date().toISOString()):
     }
     return { id: `encounter:${career.id}`, group: "직무 돌발 의뢰", title: `${sourceCareerName(career.id).ko} · ${findOpenSource(career.firstTool)!.name}`, description: "직무의 첫 전투를 완료하고 결과를 확인하면 돌발 의뢰가 등장합니다. 참여·나중에·저장 복원을 확인하세요.", save };
   });
-  return [base.find(({ id }) => id === "fresh")!, ...encounters, ...base.filter(({ group }) => group === "2차 전직"), base.find(({ id }) => id === "dex")!];
+  return [base.find(({ id }) => id === "fresh")!, ...encounters, ...base.filter(({ group }) => ["2차 전직", "3차 전직", "전직 실습"].includes(group)), base.find(({ id }) => id === "dex")!];
 }

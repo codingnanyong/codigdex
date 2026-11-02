@@ -627,7 +627,7 @@ tags:
     direction: DOWN
     timeout: 60000
     speed: 20
-- assertVisible: ★ PATH MASTER · Tier-three chapter coming later.
+- assertVisible: ★ PATH MASTER · Finish regional practice to open the final project.
 - scrollUntilVisible:
     element:
       id: career-menu
@@ -656,5 +656,5 @@ tags:
     direction: DOWN
     timeout: 60000
     speed: 20
-- assertVisible: ★ PATH MASTER · Tier-three chapter coming later.
+- assertVisible: ★ PATH MASTER · Finish regional practice to open the final project.
 - takeScreenshot: cod-238-promotion-analytics-engineer-master

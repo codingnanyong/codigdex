@@ -66,7 +66,7 @@ describe("career-integrated open-source encounters", () => {
     const after = { ...save, progress: { ...save.progress, captures: [...save.progress.captures, { id: stages[0].id, capturedAt: at }] } };
     expect(planSourceEncounter(save, after, stages[0].id, target, emptyEncounterHistory()).pending).toBeUndefined();
     expect(planSourceEncounter(save, after, "open-source:zod", target, emptyEncounterHistory()).pending).toBeUndefined();
-    expect(DEX_MONSTERS).toHaveLength(174);
+    expect(DEX_MONSTERS).toHaveLength(199);
   });
 
   it("allows practice victories after mastery and guarantees a new offer by the sixth eligible win", () => {

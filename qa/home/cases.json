@@ -589,6 +589,30 @@
       "feature": "cod-238"
     },
     {
+      "file": "qa/home/maestro/flows/cod-238-master-software-architect.yaml",
+      "feature": "cod-238"
+    },
+    {
+      "file": "qa/home/maestro/flows/cod-238-master-cloud-platform-architect.yaml",
+      "feature": "cod-238"
+    },
+    {
+      "file": "qa/home/maestro/flows/cod-238-master-ai-product-engineer.yaml",
+      "feature": "cod-238"
+    },
+    {
+      "file": "qa/home/maestro/flows/cod-238-master-ai-platform-architect.yaml",
+      "feature": "cod-238"
+    },
+    {
+      "file": "qa/home/maestro/flows/cod-238-master-data-architect.yaml",
+      "feature": "cod-238"
+    },
+    {
+      "file": "qa/home/maestro/flows/cod-238-workshop-platform.yaml",
+      "feature": "cod-238"
+    },
+    {
       "file": "qa/home/maestro/flows/cod-238-encounter-save-recovery.yaml",
       "feature": "cod-238"
     },

@@ -88,7 +88,8 @@ describe("native career route", () => {
     const html = render();
     expect(html).toContain(mission.chapter.name.en);
     expect(html).toContain(mission.chapter.npcName.en);
-    expect(state.controls.filter(({ testID }) => testID?.startsWith("promotion-checkpoint-")).map(({ disabled }) => disabled)).toEqual([false, true, true, true, true]);
+    expect(state.controls.filter(({ testID }) => testID?.startsWith("promotion-checkpoint-")).map(({ disabled }) => disabled)).toEqual([true, true, true, true, true]);
+    expect(state.controls.some(({ testID }) => testID === `workshop-open-${mission.chapter.stages[0].id}`)).toBe(true);
     state.save.progress.captures.push(...mission.chapter.stages.map(({ id }) => ({ id, capturedAt: "2026-10-27T00:00:00.000Z" })));
     state.save = normalizeGameSave(state.save);
     expect(render()).toContain("PATH MASTER");

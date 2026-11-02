@@ -7,8 +7,8 @@ import { parseSave } from "@codigdex/game-core/save/schema";
 describe("manual web QA starting states", () => {
   it("provides a fresh start, ten career encounter starts, five earned promotions and the full dex", () => {
     const presets = webQAPresets("ko", "2026-10-27T00:00:00.000Z");
-    expect(presets).toHaveLength(17);
-    expect(new Set(presets.map(({ id }) => id)).size).toBe(17);
+    expect(presets).toHaveLength(23);
+    expect(new Set(presets.map(({ id }) => id)).size).toBe(23);
     expect(presets.filter(({ group }) => group === "직무 돌발 의뢰")).toHaveLength(10);
     expect(presets.filter(({ group }) => group === "2차 전직")).toHaveLength(5);
     expect(presets.find(({ id }) => id === "fresh")!.save.progress.captures).toEqual([]);
@@ -16,7 +16,7 @@ describe("manual web QA starting states", () => {
       const save = parseSave(JSON.stringify(preset.save))!;
       expect(save.ui.locale).toBe("ko");
       const next = resumeCheckpoint(save);
-      expect(canEnterBattle(save, next.monster.id)).toBe(true);
+      expect(canEnterBattle(save, next.monster.id)).toBe(!preset.id.startsWith("workshop:"));
       if (preset.id.startsWith("encounter:")) {
         expect(next.chapter.id).not.toMatch(/^open-source:/);
         expect(save.player.secondaryJobId ?? save.player.primaryJobId).toBe(preset.id.slice("encounter:".length));

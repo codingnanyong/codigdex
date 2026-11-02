@@ -62,6 +62,7 @@ function shuffle<T>(items: readonly T[], rng: Rng): T[] {
  */
 export function drawQuizQuestions<Q extends {
   type?: "multipleChoice" | "freeText";
+  required?: boolean;
   choices?: readonly unknown[];
   answerIndex?: number;
 }>(
@@ -69,8 +70,12 @@ export function drawQuizQuestions<Q extends {
   count: number,
   rng: Rng = Math.random
 ): Q[] {
-  return shuffle(pool, rng)
-    .slice(0, Math.max(0, Math.min(count, pool.length)))
+  const mandatory = pool.filter((question) => question.required);
+  const size = Math.max(mandatory.length, Math.max(0, Math.min(Math.floor(count), pool.length)));
+  const selected = mandatory.length
+    ? shuffle([...mandatory, ...shuffle(pool.filter((question) => !question.required), rng).slice(0, size - mandatory.length)], rng)
+    : shuffle(pool, rng).slice(0, size);
+  return selected
     .map((question) => {
       if (question.type === "freeText") return { ...question };
       if (!question.choices || typeof question.answerIndex !== "number" || !Number.isInteger(question.answerIndex)) {
@@ -97,6 +102,7 @@ export function drawMixedQuizQuestions<Q extends QuizQuestion>(
 ): Q[] {
   const size = Math.max(0, Math.min(Math.floor(count), pool.length));
   if (!size) return [];
+  if (pool.some((question) => question.required)) return drawQuizQuestions(pool, size, rng);
   const textPool = pool.filter((question) => question.type === "freeText");
   const choicePool = pool.filter(isMultipleChoiceQuestion);
   if (!textPool.length || !choicePool.length) return drawQuizQuestions(pool, size, rng);

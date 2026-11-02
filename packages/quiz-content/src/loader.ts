@@ -6,6 +6,10 @@ import type { QuizPack, QuizPackDescriptor } from "./types";
 const cache = new Map<string, Promise<QuizPack>>();
 
 async function loadSource(descriptor: QuizPackDescriptor): Promise<readonly QuizQuestion[]> {
+  if (descriptor.chapterId.startsWith("mastery:")) {
+    const { masterQuizSource } = await import("./sources/master");
+    return masterQuizSource(descriptor.stageId);
+  }
   if (descriptor.chapterId.startsWith("open-source:")) {
     return (await import("./sources/openSource")).openSourceQuizSource(descriptor.stageId);
   }

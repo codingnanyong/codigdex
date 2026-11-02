@@ -61,6 +61,8 @@ export function submitBattleAnswer<Q extends QuizQuestion>(
   const nextIndex = questionIndex + 1;
   const damage = answerDamage(correct, state.hintsUsed);
   const total = state.questions.length;
+  const requiredFailed = !correct && state.questions[questionIndex].required;
+  const requiredPending = state.questions.some((question, index) => question.required && index >= nextIndex);
   return {
     ...state,
     correctCount,
@@ -68,7 +70,7 @@ export function submitBattleAnswer<Q extends QuizQuestion>(
     hintsUsed: 0,
     damage: state.damage + damage,
     attempts: [...state.attempts, { questionIndex, answer, correct, hintsUsed: state.hintsUsed, damage }],
-    status: shouldContinueBattle(correctCount, nextIndex, total)
+    status: requiredFailed ? "failed" : (requiredPending && nextIndex < total) || shouldContinueBattle(correctCount, nextIndex, total)
       ? "active"
       : isSuccessfulCapture(correctCount, total) ? "passed" : "failed",
   };

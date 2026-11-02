@@ -7,6 +7,7 @@ import { PROMOTION_MISSIONS } from "@codigdex/game-content/domain/promotionChapt
 import { SECONDARY_JOB_OPTIONS, type SecondaryJobId } from "@codigdex/game-content/domain/player/jobs";
 import { completedCareerPathIds } from "@codigdex/game-content/domain/careerPaths";
 import { selectSecondaryCareer } from "@codigdex/game-content/domain/gameProgress";
+import { workshopTaskId } from "@codigdex/game-content/domain/promotionWorkshops";
 import { bootGame, continueGame, clickGame, answerBattle, confirmResult, readSave, reloadGame } from "../test-support/game";
 
 function eligibleSave(jobId: SecondaryJobId = "platform-engineer") {
@@ -15,6 +16,7 @@ function eligibleSave(jobId: SecondaryJobId = "platform-engineer") {
   const stages = [...CHAPTERS.flatMap(({ stages }) => stages), ...job.requires.map((id) => CAREER_PATHS[id]).flatMap(({ regions }) => regions.flatMap(({ id }) => monstersForCareerRegion(id)))];
   save.progress.captures = [...new Set(stages.map(({ id }) => id))].map((id) => ({ id, capturedAt: "2026-10-27T00:00:00.000Z" }));
   save.player.primaryJobId = job.requires[0];
+  save.progress.projects = PROMOTION_MISSIONS[job.id].chapter.stages.flatMap(({ id }) => Array.from({ length: 4 }, (_, phase) => ({ id: workshopTaskId(id, phase), completedAt: "2026-11-02T00:00:00.000Z" })));
   save.ui.tutorialOnboardingSeen = true;
   return save;
 }

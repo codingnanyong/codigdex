@@ -173,7 +173,7 @@ const lessons: Record<string, Lesson> = {
   "argo-cd": lesson([
     ["Git의 원하는 상태와 비교", "Compare with desired state in Git"], ["동기화로 선언 반영", "Apply declarations through synchronization"], ["차이와 상태 확인", "Inspect drift and health"], ["검토한 Git 변경으로 되돌리기", "Revert through a reviewed Git change"],
   ], [
-    ["Argo CD가 클러스터에서 지킬 배포 약속의 기준은?", "What is Argo CD's declared reference for a cluster deployment?"], ["Argo CD에서 승인된 선언을 실제 클러스터에 적용하려면?", "What Argo CD operation applies approved declarations to the cluster?"], ["Argo CD에서 운영자가 수동 변경한 뒤 불일치를 찾으려면?", "How can Argo CD reveal a mismatch after a manual cluster change?"], ["Argo CD의 GitOps 흐름에서 잘못된 선언을 이전 상태로 복구하려면?", "How can an Argo CD GitOps workflow restore a previous declared state?"],
+    ["Argo CD가 클러스터에서 지킬 배포 약속의 기준은?", "What is Argo CD's declared reference for a cluster deployment?"], ["Argo CD에서 승인된 선언을 실제 클러스터에 적용하려면?", "What Argo CD operation applies approved declarations to the cluster?"], ["Argo CD에 이미 OutOfSync가 표시됐다. 구체적인 리소스 차이와 건강 상태를 조사하려면?", "Argo CD already reports OutOfSync. How should resource-level differences and health be investigated?"], ["Argo CD의 GitOps 흐름에서 잘못된 선언을 이전 상태로 복구하려면?", "How can an Argo CD GitOps workflow restore a previous declared state?"],
   ]),
   opentofu: lesson([
     ["구성으로 자원 선언", "Declare resources in configuration"], ["plan으로 변경 검토", "Review changes with plan"], ["apply로 승인한 변경 적용", "Apply approved changes"], ["상태와 실제 자원 관계 관리", "Manage state-to-resource relationships"],

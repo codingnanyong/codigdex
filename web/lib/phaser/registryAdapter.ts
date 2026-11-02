@@ -27,6 +27,7 @@ const CAREER_DEX_KEY = "careerDex";
 export const TUTORIAL_ONBOARDING_SEEN_KEY = "tutorialOnboardingSeen";
 export const LOCALE_REGISTRY_KEY = "locale";
 export const CHECKPOINT_REGISTRY_KEY = "checkpointId";
+export const PROJECTS_REGISTRY_KEY = "completedProjects";
 export const SAVE_CHANGE_EVENT = "codigdex-save-changed";
 const applying = new WeakSet<Phaser.Data.DataManager>();
 // Unknown content stays in the save without fabricating renderable dex cards.
@@ -97,6 +98,7 @@ export function hydrateRegistry(
     }));
 
     registry.set(CARDS_KEY, cards);
+    registry.set(PROJECTS_REGISTRY_KEY, save.progress.projects ?? []);
     registry.set(
       CAREER_DEX_KEY,
       normalizeCareerDexState({
@@ -137,6 +139,7 @@ export function snapshotRegistry(registry: Phaser.Data.DataManager): StoredGameS
   return normalizePromotionSelection(createSave({
     captures: [...state.cards.map(({ id, capturedAt }) => ({ id, capturedAt })), ...(unrecognized?.captures ?? [])],
     careers: [...readCareerDexState(registry).careers, ...(unrecognized?.careers ?? [])],
+    projects: registry.get(PROJECTS_REGISTRY_KEY) as StoredGameStateV3["progress"]["projects"],
     primaryJobId: findJob(registry.get(JOB_REGISTRY_KEY) as string | undefined).id,
     secondaryJobId:
       findSecondaryJob(registry.get(SECONDARY_JOB_REGISTRY_KEY) as string | null | undefined)?.id ?? null,
@@ -188,6 +191,7 @@ export function resetGameProgress(registry: Phaser.Data.DataManager, storage = b
     // Registry reset still works when browser storage is unavailable.
   }
   registry.set(CARDS_KEY, EMPTY_DEX_STATE.cards);
+  registry.set(PROJECTS_REGISTRY_KEY, []);
   registry.set(CAREER_DEX_KEY, EMPTY_CAREER_DEX_STATE);
   registry.set(JOB_REGISTRY_KEY, "junior");
   registry.set(SECONDARY_JOB_REGISTRY_KEY, null);

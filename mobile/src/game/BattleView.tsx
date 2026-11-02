@@ -9,6 +9,7 @@ import { colors, font } from "../ui/theme";
 import { battleMeters, expectedAnswer, keyboardAnswer, quizCopy } from "./battlePresentation";
 import { PixelScene } from "../ui/PixelScene";
 import { promotionMissionFor } from "@codigdex/game-content/domain/promotionChapters";
+import { masterMissionFor } from "@codigdex/game-content/domain/masterChapters";
 
 export interface BattleFeedback { nextBattle: BattleState; attempt: BattleAttempt }
 
@@ -47,9 +48,11 @@ export function BattleView(props: BattleViewProps) {
     ? localize(question.choices[feedback.attempt.answer], locale) : String(feedback.attempt.answer));
   const finished = settled.status !== "active";
   const scenery = promotionMissionFor(monster.quizPackId.split(".")[0].replace(/^promotion:/, ""))?.scenery
+    ?? masterMissionFor(monster.quizPackId.split(".")[0].replace(/^mastery:/, ""))?.scenery
     ?? (monster.quizPackId.startsWith("linux.") ? "linux" : monster.quizPackId.startsWith("git.") ? "git" : "tutorial");
 
   return <View style={[styles.root, keyboardVisible && styles.typingRoot]}>
+    {question.required ? <Text accessibilityRole="alert" style={styles.passLine}>{ko ? "필수 설계 판단 · 오답 시 재도전" : "REQUIRED DESIGN CHECK · RETRY ON A WRONG ANSWER"}</Text> : null}
     <View style={styles.header}>
       <PixelButton testID="battle-exit" accessibilityLabel={ko ? "배틀 나가기" : "Exit battle"} onPress={props.onExit} variant="quiet">×</PixelButton>
       <View style={styles.headerCopy}>

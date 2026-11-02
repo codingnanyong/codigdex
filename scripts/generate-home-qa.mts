@@ -15,6 +15,7 @@ import { resumeCheckpoint } from "@codigdex/game-content/domain/gameProgress";
 import { SOURCE_CAREERS } from "@codigdex/game-content/domain/openSourceEncounters";
 import { openSourceStageFor } from "@codigdex/game-content/domain/openSourceChapters";
 import { PROMOTION_CHAPTERS } from "@codigdex/game-content/domain/promotionChapters";
+import { MASTER_CHAPTERS } from "@codigdex/game-content/domain/masterChapters";
 import { findOpenSource } from "@codigdex/game-content/domain/openSourceCatalog";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -188,9 +189,36 @@ for (const chapter of PROMOTION_CHAPTERS) {
     commands.push(...tap(`promotion-checkpoint-${monster.id}`), ...battleSteps(true, false, await questionsFor(monster)), ...tap("result-world"),
       { runFlow: { when: { visible: id("source-event-title") }, commands: tap("source-event-later") } }, visible("career-title"));
   }
-  commands.push(scroll("promotion-story"), { assertVisible: "★ PATH MASTER · Tier-three chapter coming later." }, ...tap("career-menu", "UP"),
-    ...restart, scroll("promotion-story"), { assertVisible: "★ PATH MASTER · Tier-three chapter coming later." }, { takeScreenshot: `cod-238-${chapter.id.replace(":", "-")}-master` });
+  commands.push(scroll("promotion-story"), { assertVisible: "★ PATH MASTER · Finish regional practice to open the final project." }, ...tap("career-menu", "UP"),
+    ...restart, scroll("promotion-story"), { assertVisible: "★ PATH MASTER · Finish regional practice to open the final project." }, { takeScreenshot: `cod-238-${chapter.id.replace(":", "-")}-master` });
   yaml(`flows/cod-238-${chapter.id.replace(":", "-")}`, `COD-238 ${chapter.id} five missions, MASTER and restart`, ["cod-238", "promotions"], commands);
+}
+for (const chapter of MASTER_CHAPTERS) {
+  const jobId = chapter.id.slice("mastery:".length);
+  const commands: Command[] = [...start, ...tap(`qa-start-master-project:${jobId}`), ...tap("home-play")];
+  for (const monster of chapter.stages) {
+    commands.push(...tap(`master-checkpoint-${monster.id}`), ...tap("workshop-start-battle"),
+      ...battleSteps(true, false, await questionsFor(monster)), ...tap("result-world"), visible("career-title"));
+  }
+  commands.push(...tap("master-confirm"), visible("master-active"), ...tap("career-menu", "UP"), ...restart, visible("master-active"),
+    { takeScreenshot: `cod-238-master-${jobId}` });
+  yaml(`flows/cod-238-master-${jobId}`, `COD-238 ${jobId} final project, tier-three confirmation and restart`, ["cod-238", "master-projects"], commands);
+}
+{
+  const preset = presets.find(({ id }) => id === "workshop:platform-engineer")!;
+  const monster = resumeCheckpoint(preset.save).monster;
+  const pool = (await loadMixedQuizPack(monster.quizPackId)).questions;
+  const commands: Command[] = [...start, ...tap(`qa-start-${preset.id}`), ...tap("home-play"), ...tap(`workshop-open-${monster.id}`)];
+  for (let phase = 0; phase < 4; phase++) {
+    for (const question of pool.slice(phase * 5, phase * 5 + 3)) {
+      if (question.type === "freeText") throw new Error("Expected practice choices");
+      commands.push(...tap(`workshop-answer-${question.answerIndex}`), ...tap("workshop-next"));
+    }
+    if (phase === 1) commands.push(...restart, ...tap(`workshop-open-${monster.id}`));
+  }
+  commands.push(...tap("workshop-start-battle"), ...battleSteps(true, false, await questionsFor(monster)), ...tap("result-world"),
+    { runFlow: { when: { visible: id("source-event-title") }, commands: tap("source-event-later") } }, visible("career-title"), { takeScreenshot: "cod-238-workshop-complete" });
+  yaml("flows/cod-238-workshop-platform", "COD-238 regional learning, four practice checkpoints and restart", ["cod-238", "workshops"], commands);
 }
 const recoveryPreset = presets.find(({ id }) => id === "encounter:frontend")!;
 const recoveryMonster = resumeCheckpoint(recoveryPreset.save).monster;

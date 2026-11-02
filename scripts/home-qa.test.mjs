@@ -131,7 +131,7 @@ test("coverage includes each feature on Web and native plus all five career path
   for (const career of cases.careers) assert.ok(cases.nativeFlows.some(({ file }) => file.endsWith(`career-${career.jobId}.yaml`)));
   assert.ok(cases.battles.tutorial.questions.some(({ type }) => type === "freeText"));
   assert.equal(cases.battles.level5.questions.length, 7);
-  assert.equal(plan(parseOptions([])).nativeFlows.length, 28);
+  assert.equal(plan(parseOptions([])).nativeFlows.length, 34);
   assert.equal(cases.nativeFlows.filter(({ file }) => file.includes("/cod-238-encounter-")).length, 12);
   assert.equal(cases.nativeFlows.filter(({ file }) => file.includes("/cod-238-promotion-")).length, 5);
 });

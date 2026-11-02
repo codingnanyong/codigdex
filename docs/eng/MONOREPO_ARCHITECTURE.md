@@ -169,8 +169,9 @@ npm run mobile:qa:ios
 npm run qa:home -- --platform android --feature all   # automated flows; requires Maestro CLI 2.11+
 ```
 
-The 17 QA starting states are picked by hand on the QA screen. They are separate
-from the 28 automated native scenarios. Acceptance on commit `ddc1e73`, finished on
+The October acceptance used 17 manual QA starting states and 28 automated native
+scenarios. The current source has 23 starting states and 34 flows; the additions
+still need simulator/device acceptance. Acceptance on commit `ddc1e73`, finished on
 2026-10-29 KST:
 
 | Platform | Device | Initial full run | Outcome |
@@ -218,3 +219,30 @@ imports workspace packages outside that directory, keep **Include source files
 outside of the Root Directory in the Build Step** enabled. The default
 `npm run build` command is sufficient because the web package's `prebuild`
 script synchronizes `@codigdex/game-assets` first.
+
+## Regional workshops and final projects
+
+`promotionWorkshops.ts` owns 25 bilingual worked examples and references. Four
+five-question practice decks per region share the existing tier 2 pools and save
+100 completion checkpoints across the five careers. `masterChapters.ts` adds
+five final projects with five milestones each; `quiz-content/sources/master.ts`
+combines 75 new required design questions with related foundation review. The
+shared draw and battle reducer always include and require all design criteria.
+
+Save v3 adds optional `progress.projects` entries (`id`, `completedAt`). Missing
+entries on old saves mean unfinished practice; existing captures remain. Schema,
+parser, creation, merge, Web registry snapshots and native queued writes preserve
+the field, including unknown IDs. `gameProgress.ts` derives eligibility and
+settles final projects; explicit confirmation equips tier 3. The source now has
+199 monster entries, 23 manual QA starting states and 34 generated native flows.
+The October acceptance above remains a historical result for the older build;
+new flows need simulator/device acceptance. This expansion awaits publication.
+
+`web-smoke.yml` supports production and same-repository PR Preview deployment
+events. Tests and scripts for deployment events come from the default branch.
+Protected Preview access uses an authorized `VERCEL_AUTOMATION_BYPASS_SECRET`
+repository secret, the official Vercel automation header and a browser cookie.
+URLs must be exact project origins; external redirects are rejected and
+authenticated traces are disabled. Without a valid credential, protected Preview
+checks fail with a setup diagnostic. Live authenticated Preview verification is
+still required; see [Vercel's automation access documentation](https://vercel.com/docs/deployment-protection/methods-to-bypass-deployment-protection/protection-bypass-automation).

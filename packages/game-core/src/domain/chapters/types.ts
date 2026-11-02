@@ -2,6 +2,8 @@ import type { LocalizedText } from "../../i18n/locale";
 
 interface QuizQuestionCopy {
   prompt: LocalizedText;
+  /** A final-project design criterion: must be drawn and answered correctly. */
+  required?: boolean;
   /** Legacy choice questions may omit these; new content can reveal at most two hints. */
   hints?: readonly LocalizedText[];
   explanation?: LocalizedText;
@@ -41,7 +43,7 @@ export interface CapturedCard {
 }
 
 export type CommonChapterId = "tutorial" | "git" | "linux";
-export type ChapterId = CommonChapterId | `career:${string}` | `promotion:${string}` | `open-source:${string}`;
+export type ChapterId = CommonChapterId | `career:${string}` | `promotion:${string}` | `mastery:${string}` | `open-source:${string}`;
 
 /** Names the ambient animation layered over a painted background. */
 export type AmbienceId = "loop-forest" | "git-field" | "linux-cave" | "title-archive";

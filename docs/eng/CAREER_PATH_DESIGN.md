@@ -155,7 +155,7 @@ The career lineage screen shows four columns from left to right: **pre-promotion
 
 - **Only combinations with a real job title exist.** Building all 10 combinations of five tier 1 careers would add content while blurring what each career means.
 - **Reveal like a dex silhouette.** The lineage screen and detail map show only a `◆ ???` slot. The detail map slot only says the identity is revealed after completing another tier 1 career path, while the lineage and Path map slots state the requirement, e.g. "Opens after completing both `<Career A> + <Career B>` paths." Hiding them entirely would leave players unaware they exist, with no motivation to reach them.
-- **Uncaptured monsters hold a dex slot.** They show only a number and `???`, and they do not count toward the dex's registered total or completion. The dex has 174 entries, including the tier 2 stages and 38 open-source tool cards.
+- **Uncaptured monsters hold a dex slot.** They show only a number and `???`, and they do not count toward the dex's registered total or completion. The dex has 199 entries, including tier 2 stages, 38 open-source tool cards and 25 final-project guardians.
 - **Not just a title.** Each tier 2 career comes with a five-stage integration chapter bridging both fields, its own guide NPC and a career emblem.
 - **Unlocks are recomputed from captures.** Tier 1 and tier 2 mastery are derived from released captures each time a save is normalized, not trusted from stored flags. Unearned mastery or unlock records are removed, while captures and records for unknown content are preserved.
 
@@ -163,7 +163,9 @@ The career lineage screen shows four columns from left to right: **pre-promotion
 
 Tier 3 does not require another career combination. Completing every stage of a tier 2 chapter (`masteryCaptureIds`) records that career as MASTER and reveals the matching tier 3 career's name and emblem. The lineage screen attaches exactly one tier 3 career beside each tier 2 career, so the connecting lines stay simple.
 
-**Tier 3 gameplay is locked.** No tier 3 chapter exists, `TERTIARY_JOB_SELECTION_ENABLED` is `false`, and normalization always resets `tertiaryJobId` to `null`, so a player cannot promote into or play a tier 3 career. Tier 3 chapters and any final project are **(planned)**. Tapping a locked tier 3 card says it opens after completing the `<tier 2 career>` mastery path.
+The source now implements five playable final design projects (CH.28–32), one per tier 3 career. Each project has five milestones. Each milestone provides a worked example and rationale, three new required design questions and seven related tier 2 review questions. Every draw includes all three required questions; all must be correct and the normal 60% score also applies. Completing five milestones records the final project; explicit confirmation then equips tier 3. This implementation is pending publication and deployment. The earlier production acceptance does not certify this change.
+
+Entry requires the matching tier 2 MASTER and all 20 regional practice checkpoints. The 25 tier 2 regions now have worked examples, official references and four five-question practice decks. Passing 3 of 5 saves a checkpoint; failure adds no completion. New guardian battles require all four regional checkpoints. Existing captures and earned tier 2 mastery remain; legacy players must finish the added practice before entering a final project. There are 100 practice checkpoints and 25 new project guardians, taking the dex to 199 entries.
 
 | Tier 2 career | Tier 3 career | Guide NPC |
 | --- | --- | --- |
@@ -180,7 +182,7 @@ The `Career` tab in Codigdex collects all 16 careers from junior to tier 3, numb
 | Field | Recorded when |
 | --- | --- |
 | `unlockedAt` | The career unlocks. Junior from the start, tier 1 careers when the common path is complete, tier 2 when both tier 1 careers reach MASTER, tier 3 when the matching tier 2 career reaches MASTER |
-| `selectedAt` | The player first promotes into that career. Never set for tier 3 while selection is disabled |
+| `selectedAt` | The player first promotes into that career. Tier 3 requires a completed final project and explicit confirmation |
 | `masteredAt` | The player completes that career's path. For junior, when the common path is complete |
 
 The screen shows locked · available · current · MASTER states and a `registered n/16 · MASTER m` summary. A career change does not clear a previous career's first-promotion and MASTER history. A MASTER timestamp is kept only while the captures still earn it.
@@ -205,6 +207,7 @@ The save is a single slot, `codigdex:save:v3`, held in `localStorage` on the web
   progress: {
     captures: [{ id, capturedAt }],                            // monster captures
     careers: [{ id, unlockedAt, selectedAt?, masteredAt? }],   // career dex history
+    projects: [{ id, completedAt }],                         // optional in older v3 saves
   },
   player: { primaryJobId, secondaryJobId, tertiaryJobId },    // currently selected careers
   ui: { tutorialOnboardingSeen, locale?, checkpointId? },      // screen state, language, last checkpoint
@@ -213,7 +216,8 @@ The save is a single slot, `codigdex:save:v3`, held in `localStorage` on the web
 
 - `progress.captures` stores only the monster ID and capture time. Card display data is rebuilt from the current catalog definitions.
 - `progress.careers` stores each career's unlock, first-selection and MASTER times. Normalization recalculates earned milestones from the current captures and selected careers, keeps valid earlier timestamps, and removes records the captures do not support.
-- `player` stores the selected tier 1, 2 and 3 careers. The tier 1 default is `junior`, an earned tier 2 career is kept during tier 1 study, and tier 3 stays `null` while its gameplay is locked.
+- `progress.projects` stores `workshop:<stage>:<phase>` checkpoints and `project:<career>:v1` completion. Older v3 saves without it have no practice/project completion. Parsing, creation, Web snapshots, native writes and merge preserve this contract, including unknown IDs. Starting a new game clears all project progress. A completion flag alone cannot bypass captures and practice. If all prerequisites, practice and project captures exist but the final record is missing after an interrupted write, both normalizers restore it using the last valid project capture time. Recovery never equips tier 3 automatically.
+- `player` stores selected careers. Tier 1 defaults to `junior`; earned tier 2 and tier 3 identities survive primary study and reconfirming the same secondary career. Switching secondary careers clears the equipped tertiary identity while earned history remains. Incomplete or ineligible projects cannot equip tier 3.
 - `ui.locale` stores the language picked in settings (`ko` or `en`). It survives a new game; without it the web game starts in the browser's language and the mobile game in Korean.
 - `ui.checkpointId` stores the last playable checkpoint. Old `open-source:` values are cleared so a player returns to the career path.
 - Older `codigdex:save:v1` (flat layout) and `codigdex:save:v2` (no `careers`) saves are converted to v3 on first load, rebuilding career dex history from the selected careers. The old slots are kept as a migration safety net. Starting a new game on the web clears all three slots, while the mobile reset writes an empty save to the v3 slot.
