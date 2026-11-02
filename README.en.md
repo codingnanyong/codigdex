@@ -38,7 +38,7 @@ Tutorial · Loop Forest
   → CH.02 Linux · Shell Cave
   → Tier 1 promotion: Web Frontend · Backend · DevOps · Data Engineer · Data Analyst
   → Tier 2 promotion: hybrid careers that bridge two fields
-  → Tier 3 promotion: master careers
+  → Tier 3 promotion: master careers (names and emblems only; gameplay is locked)
 ```
 
 First learn Git and Linux, the skills every developer needs, then pick a career and explore that career's own map. Each career has a senior NPC to guide you, and higher careers like Fullstack Engineer or ML Developer stay hidden behind `???`, waiting for you to walk both paths that lead to them.
@@ -47,25 +47,46 @@ First learn Git and Linux, the skills every developer needs, then pick a career 
 
 ## Things to collect
 
-- **Monster dex** — from the Loop Bug to the Git Sprout and the Kernel Guardian. Every technology has monsters that evolve from Lv.1 to Lv.5. Monsters you have not discovered yet stay as `???`.
-- **Career dex** — collect 16 career emblems, from junior developer to tier 3 master careers. The day you first promoted and the day you mastered each career are recorded.
+- **Monster dex** — 174 entries, from the Loop Bug to the Git Sprout, the Kernel Guardian and open-source tool cards. Git, Linux and the career specialist chapters have monsters that evolve from Lv.1 to Lv.5. Monsters you have not captured yet stay as `???`.
+- **Career dex** — collect 16 career emblems, from junior developer to tier 3 master careers. The day you first promoted and the day you mastered each career are recorded. Tier 3 careers can be revealed, but you cannot promote into or play them yet.
 
 ![Career emblems from junior to tier 3](packages/game-assets/files/career-emblems/career-emblem-archive-v1.png)
 
 ## Playable now
 
-- Collect 11 monsters across the tutorial, Git and Linux chapters
-- Promote into one of 5 tier 1 careers and explore its map
-- Monster dex and career dex
+- Collect 11 monsters across the common tutorial, Git and Linux chapters
+- Promote into one of 5 tier 1 careers and battle through its specialist chapters (HTML/CSS, Docker, SQL and more)
+- Promotion chapters for 5 tier 2 careers: 5 missions each, 25 stages in all, with 500 questions in Korean and English
+- Career surprise requests: optional requests that appear after career battle wins, covering 38 open-source tools and 266 questions
+- Open-source notes: review the tools you discovered through surprise requests. There is no separate open-source expedition entrance
+- Monster dex with 174 entries and career dex with 16
 - Switch between Korean and English in settings
 
-The specialist chapters for each career (HTML/CSS, Docker, SQL and more) already have their maps and monsters, and their battles are opening one by one. Your progress is saved in the browser automatically.
+Your progress is saved automatically: in the browser on the web, and on the device in the mobile app. Surprise request and discovery history stays with each browser or device, while captured cards are stored in the regular save.
 
 👉 **[Play now at codigdex.vercel.app](https://codigdex.vercel.app)**
 
+## Platforms and verification
+
+The mobile app has not been released through a store or EAS, so for now you play on the web or build the app yourself. Simulator acceptance finished on 2026-10-29, after first runs on commit `ddc1e73` and an iOS retest.
+
+| Platform | Device | Full native scenario run |
+| --- | --- | --- |
+| Android | Pixel 8 · API 36 | 28/28 passed |
+| iOS | iPhone 18 Pro · iOS 27.0 | 27/28 passed on the first run; the failed Analytics promotion path then passed in full on a retest that centers the button before tapping |
+
+The 28 native automated scenarios are separate from the 17 starting states you pick by hand on the QA screen. Details are in the [acceptance record](qa/home/native-simulator-acceptance.json) and the [handoff report](qa/home/native-simulator-acceptance-handoff.txt).
+
+Still open:
+
+- New IME and accessibility acceptance on physical devices
+- Real DB, OAuth and cloud save round-trip acceptance
+- COD-258 (local save attribution and merge) and COD-259 (online/offline sync): postponed until the environment is designed
+- Tier 3 career gameplay: locked
+
 ## Run locally
 
-Built with Next.js, Phaser and TypeScript.
+The web app is built with Next.js, Phaser and TypeScript; the mobile app with Expo and React Native.
 
 ```bash
 npm install
@@ -73,6 +94,8 @@ npm run dev --workspace @codigdex/web
 ```
 
 Open [http://localhost:3001](http://localhost:3001) in your browser. Run the tests with `npm run test`.
+
+For the mobile app, set up an Android emulator and run `npm run mobile:qa:android`, or set up an iOS simulator (requires macOS and Xcode) and run `npm run mobile:qa:ios`.
 
 ## Agent workspace
 
