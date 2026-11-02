@@ -1,0 +1,70 @@
+Handoff: in-game controls and binding career progression
+
+- Owner: Codex.
+- Reviewer: /root/review_immersive_shell under shared-change-review, read-only. Final verdict: No blocking findings. Checked actual diff and installed Phaser lifecycle/keyboard implementation. No reviewer writes.
+- Scope: Correct PR150/151 feedback. Full-viewport renderbuffer, no external footer, collapsible in-game note/account/fullscreen icon HUD. Uniform logical960x540 camera keeps sprites and text proportional. Decorative art covers viewport; interactive atlas paintings retain island/terrain/polygon geometry. Preload/start/create/resize lifecycle, DOM controls and custom pointer-to-world conversion use the camera mapping. Relocated conflicting pause/dex/skip controls; notebook portal stays inside fullscreen shell and works with the menu closed.
+- Career behavior: All regional captures and practice must be complete before leaving the active secondary for an unfinished primary or alternate secondary. Guardians or old MASTER flags alone do not suffice. Completed primary review retains the secondary identity. Completed secondary stage review cannot equip or start missions while the active career is unfinished. Shared mutation, Web lineage, path-map shortcut and native buttons enforce the gate. Genuine completed legacy tertiary identities remain valid.
+- Generated assets: None. Existing artwork reused; native JS exports and browser screenshots remain ignored.
+- Checks run: WEB751/751 with one worker; native154/154. Production build, lint, type/package boundaries, check:agents, QA consistency36 files/runner11, native Android/iOS JS/Hermes exports and budgets pass. Full production-browser60/60, focused regression8/8, final HUD/viewport/pointer11/11, feature WEB QA11/11. Asset/font bytes18,121,407, unchanged.
+- Verification history: Initial full browser run was stopped after41 passes,6 failures,1 interrupted,11 unrun. Found hidden-menu notebook and cross-scene Enter bugs (fixed); four failing career fixtures were mistakenly fully completed, corrected by removing an intermediate capture. All focused cases now pass. Final complete60-case production-browser run passed without retries (8.2 minutes). Afterward, a UI-only HUD inset refinement anchors the icon inside the authored game area; its final rebuild and11 targeted browser cases also passed. Remote CI/release remains pending. Resource-contention timeouts in unchanged asset/parity tests disappeared with one worker. No failed or interrupted run is claimed passing.
+- Evidence: qa-results/immersive-shell/controls-regression-junit.xml (8), controls-final-junit.xml (10), controls-full-junit.xml (60), controls-hud-junit.xml (11); feature QA qa-results/2026-11-02T12-30-03-420Z-3da0af0 (dirty-tree local validation, not release attestation).
+- Remaining risks: Native device UI/store release not performed. Portrait gameplay remains uniformly scaled; authored interactive maps retain dark surrounding map surface to preserve hit geometry. Docs/README remain Claude-owned and unchanged. Initial automatic approval review rejected publication as0642ef2-only; resolved by the user explicitly approving this branch PR/merge/WEB deployment. Publication now follows successful local validation. Protection settings and secrets unchanged.
+- Final UI review: No blocking findings after matching HUD insets to the uniform game camera and removing the stale mobile account-panel positioning override. Icons remain inside the actual painted playfield in wide and portrait viewports.
+- Additional user direction: Tier2/3 lock cards and text now match primary cream panels,62px height, body/caption typography, explicit localized Locked/Current badges, consistent prerequisite copy and disabled treatment. Revealed but unavailable careers are visually locked. Badge labels are bounded inside cards; gray text retains readable contrast. PathMap tertiary eligibility and native disabled buttons use the same completion guards. User supplied this direction before the new explicit publication approval.
+- Latest validation: WEB751/751, mobile154/154, final Web build, lint/type/agent checks and both native JS exports passed. Full60 browser cases passed before the lock-card visual refinement; its focused16 guard/viewport cases and final badge-fit screenshot case1 passed afterward. Final complete60 at the committed head remains required remote CI before merge. Latest incremental read-only review: No blocking findings.
+- CI performance follow-up: At head157734c the complete remote CI passed, including the60-case browser suite and11 feature journeys. Full-viewport rendering increased ordinary headless journeys from a960x540 buffer to the DesktopChrome1280x720 default. The default journey viewport now uses authored960x540; all60 tests, assertions, retry/timeout policy and selection remain. Eight shell cases still explicitly exercise1440/1920 desktop,390 portrait and844 landscape; five secondary journeys retain844x390 pointer coverage. New local representative16 cases passed with this default, and read-only review found no blocker. Final remote CI will validate the config commit before merge.
+  - Additional operational file: web/playwright.config.ts.
+- Changed files:
+  - mobile/src/game/CareerScreen.test.tsx
+  - mobile/src/game/CareerScreen.tsx
+  - packages/game-content/src/domain/gameProgress.ts
+  - qa/home/in-game-controls-handoff.txt
+  - web/app/globals.css
+  - web/components/AccountPanel.tsx
+  - web/components/GameHeader.tsx
+  - web/components/OpenSourcePanel.tsx
+  - web/components/PhaserGame.tsx
+  - web/e2e/game.expedition.spec.ts
+  - web/e2e/game.mixed.spec.ts
+  - web/e2e/game.open-source.spec.ts
+  - web/e2e/game.promotion.spec.ts
+  - web/e2e/game.shell.spec.ts
+  - web/e2e/game.smoke.spec.ts
+  - web/home-e2e/features.spec.ts
+  - web/lib/phaser/ambience/presets.ts
+  - web/lib/phaser/assetLoader.ts
+  - web/lib/phaser/battle/banner.ts
+  - web/lib/phaser/battle/mixedControls.ts
+  - web/lib/phaser/capture/resultPanels.ts
+  - web/lib/phaser/config.ts
+  - web/lib/phaser/dex/careerPanel.ts
+  - web/lib/phaser/dex/detailCard.ts
+  - web/lib/phaser/dex/shell.ts
+  - web/lib/phaser/gameViewport.ts
+  - web/lib/phaser/jobSelect/careerTree.ts
+  - web/lib/phaser/jobSelect/promotionDialog.ts
+  - web/lib/phaser/pathMap/nodes.ts
+  - web/lib/phaser/pathMap/stagePanel.ts
+  - web/lib/phaser/pathMap/surface.ts
+  - web/lib/phaser/scenes/CareerRegionScene.ts
+  - web/lib/phaser/scenes/CodeBattleScene.ts
+  - web/lib/phaser/scenes/IntroScene.ts
+  - web/lib/phaser/scenes/JobSelectScene.ts
+  - web/lib/phaser/scenes/PathMapScene.ts
+  - web/lib/phaser/scenes/PromotionChapterScene.ts
+  - web/lib/phaser/scenes/SecondaryExplorationScenes.ts
+  - web/lib/phaser/scenes/SettingsScene.ts
+  - web/lib/phaser/scenes/WorldMapScene.ts
+  - web/lib/phaser/ui.ts
+  - web/lib/phaser/worldMap/careerAtlas.ts
+  - web/lib/phaser/worldMap/guideHint.ts
+  - web/lib/phaser/worldMap/hud.ts
+  - web/lib/phaser/worldMap/onboarding.ts
+  - web/lib/phaser/worldMap/playerMovement.ts
+  - web/lib/phaser/worldMap/questDialog.ts
+  - web/lib/phaser/worldMap/questMarker.ts
+  - web/lib/phaser/worldMap/questStage.ts
+  - web/test-support/game.ts
+  - web/test/domain/careerCommitment.test.ts
+  - web/test/domain/promotionChapter.test.ts
+  - web/test/phaser/gameViewport.test.ts

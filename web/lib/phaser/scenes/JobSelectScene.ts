@@ -1,5 +1,6 @@
+import { GAME_SIZE } from "../gameViewport";
 import Phaser from "phaser";
-import { canStudyPrimaryCareer, selectGameCareer, canStartMasterProject } from "@codigdex/game-content/domain/gameProgress";
+import { canStudyPrimaryCareer, selectGameCareer, canStartMasterProject, canSelectSecondaryCareer, isSecondaryStudyComplete } from "@codigdex/game-content/domain/gameProgress";
 import { isCommonPathComplete } from "@codigdex/game-content/domain/chapters";
 import {
   masteredPrimaryJobIds,
@@ -14,6 +15,8 @@ import {
   isSecondaryJobUnlocked,
   isTertiaryJobUnlocked,
   JOB_OPTIONS,
+  SECONDARY_JOB_OPTIONS,
+  TERTIARY_JOB_OPTIONS,
   JOB_REGISTRY_KEY,
   SECONDARY_JOB_REGISTRY_KEY,
   TERTIARY_JOB_REGISTRY_KEY,
@@ -66,9 +69,10 @@ export class JobSelectScene extends Phaser.Scene {
   }
 
   create() {
-    const { width, height } = this.scale;
+    const { width, height } = GAME_SIZE;
     this.resetViewState();
     this.loadProgressState();
+    const save = snapshotRegistry(this.registry);
 
     this.add.rectangle(width / 2, height / 2, width, height, PALETTE.nightBrown, 1);
     this.add
@@ -87,7 +91,11 @@ export class JobSelectScene extends Phaser.Scene {
         selectedSecondaryJobId: this.selectedSecondaryJobId,
         selectedTertiaryJobId: this.selectedTertiaryJobId,
         commonPathComplete: this.commonPathComplete,
-        selectablePrimaryJobIds: new Set(JOB_OPTIONS.filter(({ id }) => canStudyPrimaryCareer(snapshotRegistry(this.registry), id)).map(({ id }) => id)),
+        selectableAdvancedJobIds: new Set([
+          ...SECONDARY_JOB_OPTIONS.filter(job => canSelectSecondaryCareer(save, job.id) || isSecondaryStudyComplete(save, job.id)),
+          ...TERTIARY_JOB_OPTIONS.filter(job => canStartMasterProject(save, job.id) || isSecondaryStudyComplete(save, job.requires)),
+        ].map(({ id }) => id)),
+        selectablePrimaryJobIds: new Set(JOB_OPTIONS.filter(({ id }) => canStudyPrimaryCareer(save, id)).map(({ id }) => id)),
       },
       {
         onPrimaryJob: (job) => this.selectPrimaryJob(job),
@@ -153,6 +161,11 @@ export class JobSelectScene extends Phaser.Scene {
       return;
     }
 
+    const save = snapshotRegistry(this.registry);
+    if (!canSelectSecondaryCareer(save, job.id) && !isSecondaryStudyComplete(save, job.id)) {
+      this.toast = showToast(this, sceneLocale(this) === "ko" ? "현재 직군의 모든 지역 학습·실습을 완료해야 다른 미완료 직군으로 이동할 수 있습니다." : "Complete every lesson and practice in your current career before entering another unfinished career.", this.toast);
+      return;
+    }
     this.scene.start("promotion-chapter", { jobId: job.id });
   }
 
@@ -175,6 +188,10 @@ export class JobSelectScene extends Phaser.Scene {
     }
 
     const save = snapshotRegistry(this.registry);
+    if (!canStartMasterProject(save, job.id) && !isSecondaryStudyComplete(save, job.requires)) {
+      this.toast = showToast(this, sceneLocale(this) === "ko" ? "선행 직군의 모든 지역 학습·실습을 완료하세요." : "Complete every lesson and practice checkpoint in the required career.", this.toast);
+      return;
+    }
     this.scene.start("promotion-chapter", { jobId: canStartMasterProject(save, job.id) ? job.id : job.requires });
   }
 

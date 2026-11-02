@@ -1,3 +1,4 @@
+import { openGameMenu } from "../test-support/game";
 import { clickGame as clickCanvas, continueGame, frames } from "../test-support/game";
 import { expect, test } from "@playwright/test";
 
@@ -39,6 +40,7 @@ test("plays mixed Web questions with hints, native text input and explicit feedb
 
 test("keeps offline account controls usable when cloud configuration is absent", async ({ page }) => {
   await page.goto("/");
+  await openGameMenu(page);
   await page.getByRole("button", { name: "계정 · 저장" }).click();
   await expect(page.getByRole("region", { name: "계정과 저장" })).toContainText("계정 연동을 준비 중입니다");
   await page.getByRole("button", { name: "닫기", exact: true }).click();

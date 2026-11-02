@@ -283,12 +283,31 @@ export function hasEarnedSecondaryCareer(save: StoredGameStateV3): boolean {
     canSelectSecondaryJob(job, completedCareerPathIds(captureIds(save))));
 }
 
+/** Guardians alone do not finish the regional lessons and practice checkpoints. */
+export function hasUnfinishedSecondaryCareer(save: StoredGameStateV3): boolean {
+  if (!hasEarnedSecondaryCareer(save)) return false;
+  const jobId = save.player.secondaryJobId as SecondaryJobId;
+  const tertiary = findTertiaryJob(save.player.tertiaryJobId);
+  return !isSecondaryStudyComplete(save, jobId) &&
+    !(tertiary?.requires === jobId && isFinalProjectComplete(save, tertiary.id));
+}
+
+export function canSelectSecondaryCareer(save: StoredGameStateV3, jobId: SecondaryJobId): boolean {
+  const job = findSecondaryJob(jobId);
+  const captured = captureIds(save);
+  if (!job || !isCommonPathComplete(captured) || !canSelectSecondaryJob(job, completedCareerPathIds(captured))) return false;
+  if (save.player.secondaryJobId === jobId) return true;
+  if (hasUnfinishedSecondaryCareer(save)) return false;
+  const current = findJob(save.player.primaryJobId).id;
+  return current === "junior" || completedCareerPathIds(captured).has(current);
+}
+
 /** An unfinished secondary allows completed primary replays, not a new study path. */
 export function canStudyPrimaryCareer(save: StoredGameStateV3, jobId: JobId): boolean {
   const captured = captureIds(save);
   if (!isCommonPathComplete(captured)) return false;
   const completed = completedCareerPathIds(captured);
-  if (hasEarnedSecondaryCareer(save) && !completedSecondaryJobIds(captured).has(save.player.secondaryJobId as SecondaryJobId)) {
+  if (hasUnfinishedSecondaryCareer(save)) {
     return completed.has(jobId);
   }
   const current = findJob(save.player.primaryJobId).id;
@@ -308,7 +327,7 @@ export function selectGameCareer(save: StoredGameStateV3, jobId: JobId, now = ()
 export function selectSecondaryCareer(save: StoredGameStateV3, jobId: SecondaryJobId, now = () => new Date().toISOString()): StoredGameStateV3 {
   const job = findSecondaryJob(jobId);
   const chapter = promotionChapterFor(jobId);
-  if (!job || !chapter || !isCommonPathComplete(captureIds(save)) || !canSelectSecondaryJob(job, completedCareerPathIds(captureIds(save)))) return save;
+  if (!job || !chapter || !canSelectSecondaryCareer(save, jobId)) return save;
   const normalized = normalizeGameSave(save);
   const records = normalized.progress.careers.flatMap((entry): CareerDexRecord[] => isCareerId(entry.id) ? [{ ...entry, id: entry.id }] : []);
   const careers = [...selectCareer({ careers: records }, jobId, now).careers, ...normalized.progress.careers.filter(({ id }) => !isCareerId(id))];

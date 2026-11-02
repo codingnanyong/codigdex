@@ -1,3 +1,4 @@
+import { GAME_SIZE } from "../gameViewport";
 import type Phaser from "phaser";
 import type { MonsterDefinition } from "@codigdex/game-core/domain/chapters/types";
 import { lt, t, sceneLocale } from "../i18n";
@@ -26,7 +27,7 @@ export interface CapturedPanelOptions {
 
 /** The card-registered panel: what the monster teaches, a code sample, and what opened up. */
 export function showCapturedPanel(scene: Phaser.Scene, options: CapturedPanelOptions) {
-  const { width, height } = scene.scale;
+  const { width, height } = GAME_SIZE;
   const { monster } = options;
   const textWidth = CAPTURED_PANEL.width - 120;
 
@@ -106,7 +107,7 @@ export function showCapturedPanel(scene: Phaser.Scene, options: CapturedPanelOpt
   const panel = scene.add
     .container(width / 2, height / 2, [frame, ...content, confirm])
     .setDepth(1);
-  if (options.onPause) createButton(scene, width - 116, 32, 180, 34, sceneLocale(scene) === "ko" ? "잠시 멈춤" : "PAUSE", options.onPause).setDepth(5);
+  if (options.onPause) createButton(scene, width - 230, 32, 180, 34, sceneLocale(scene) === "ko" ? "잠시 멈춤" : "PAUSE", options.onPause).setDepth(5);
   popIn(scene, panel, 0.85, panelScaleToViewport(CAPTURED_PANEL.width, panelHeight, width, height));
   return panel;
 }
@@ -122,7 +123,7 @@ export interface MissedPanelOptions {
 
 /** The capture-failed panel: nothing is registered, just a nudge and a retry. */
 export function showMissedPanel(scene: Phaser.Scene, options: MissedPanelOptions) {
-  const { width, height } = scene.scale;
+  const { width, height } = GAME_SIZE;
 
   const frame = drawOrnateFrame(scene, 0, 0, MISSED_PANEL.width, MISSED_PANEL.height);
 
@@ -157,7 +158,7 @@ export function showMissedPanel(scene: Phaser.Scene, options: MissedPanelOptions
   const panel = scene.add
     .container(width / 2, height / 2, [frame, title, resultLine, npcLine, retry])
     .setDepth(1);
-  if (options.onPause) createButton(scene, width - 116, 32, 180, 34, sceneLocale(scene) === "ko" ? "잠시 멈춤" : "PAUSE", options.onPause).setDepth(5);
+  if (options.onPause) createButton(scene, width - 230, 32, 180, 34, sceneLocale(scene) === "ko" ? "잠시 멈춤" : "PAUSE", options.onPause).setDepth(5);
   popIn(scene, panel, 0.85, panelScaleToViewport(MISSED_PANEL.width, MISSED_PANEL.height, width, height));
   return panel;
 }

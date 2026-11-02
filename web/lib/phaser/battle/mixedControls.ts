@@ -1,3 +1,4 @@
+import { gameViewport } from "../gameViewport";
 import type Phaser from "phaser";
 import type { BattleState } from "@codigdex/game-core/domain/dex/battle";
 import type { QuizAnswer } from "@codigdex/game-core/domain/dex/quiz";
@@ -19,9 +20,9 @@ export class MixedControls {
     const position = () => {
       const bounds = canvas.getBoundingClientRect();
       const container = parent.getBoundingClientRect();
-      const scale = bounds.width / 960;
-      this.root.style.left = `${bounds.left - container.left + 50 * scale}px`;
-      this.root.style.top = `${bounds.top - container.top + 215 * scale}px`;
+      const { zoom: scale, x, y } = gameViewport(bounds.width, bounds.height);
+      this.root.style.left = `${bounds.left - container.left + x + 50 * scale}px`;
+      this.root.style.top = `${bounds.top - container.top + y + 215 * scale}px`;
       this.root.style.transform = `scale(${scale})`;
     };
     position();

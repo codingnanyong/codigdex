@@ -1,3 +1,4 @@
+import { GAME_SIZE } from "../gameViewport";
 import Phaser from "phaser";
 import { PALETTE } from "../palette";
 
@@ -65,7 +66,7 @@ export class WorldMapPlayer {
       .setDepth(3);
 
     const movementSurface = scene.add
-      .rectangle(scene.scale.width / 2, scene.scale.height / 2, scene.scale.width, scene.scale.height, 0xffffff, 0)
+      .rectangle(GAME_SIZE.width / 2, GAME_SIZE.height / 2, GAME_SIZE.width, GAME_SIZE.height, 0xffffff, 0)
       .setInteractive()
       .setDepth(0.5);
     movementSurface.on("pointerup", (pointer: Phaser.Input.Pointer) => {

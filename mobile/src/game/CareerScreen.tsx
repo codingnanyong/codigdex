@@ -5,14 +5,14 @@ import { CAREER_CATALOG, careerStatus, isCareerId } from "@codigdex/game-content
 import { JOB_OPTIONS, canSelectSecondaryJob, findSecondaryJob, findJob, TERTIARY_JOB_OPTIONS, findTertiaryJob, type JobId, type SecondaryJobId } from "@codigdex/game-content/domain/player/jobs";
 import { careerPathFor, completedCareerPathIds } from "@codigdex/game-content/domain/careerPaths";
 import { careerRegionProgression } from "@codigdex/game-content/domain/careerRegionProgression";
-import { careerCheckpoints, captureIds, normalizeGameSave, hasEarnedSecondaryCareer, canStudyPrimaryCareer } from "@codigdex/game-content/domain/gameProgress";
+import { careerCheckpoints, captureIds, normalizeGameSave, hasEarnedSecondaryCareer, canStudyPrimaryCareer, hasUnfinishedSecondaryCareer, canSelectSecondaryCareer, isSecondaryStudyComplete } from "@codigdex/game-content/domain/gameProgress";
 import { localize } from "@codigdex/game-core/i18n/locale";
 import { useSave } from "../state/SaveProvider";
 import { Screen } from "../ui/Screen";
 import { PixelButton } from "../ui/PixelButton";
 import { colors, font, pixelPanel } from "../ui/theme";
 import { promotionMissionFor, promotionChapterFor } from "@codigdex/game-content/domain/promotionChapters";
-import { promotionCheckpoints, canStartMasterProject, masterCheckpoints, isFinalProjectComplete } from "@codigdex/game-content/domain/gameProgress";
+import { canStartMasterProject, masterCheckpoints, isFinalProjectComplete } from "@codigdex/game-content/domain/gameProgress";
 import { masterMissionFor, masterChapterFor } from "@codigdex/game-content/domain/masterChapters";
 import { CareerWorkshop } from "./CareerWorkshop";
 import { SecondaryExploration } from "./SecondaryExploration";
@@ -29,6 +29,7 @@ export function CareerScreen({ onBack, onBattle, onOpenSources, selectedRegionId
   const [workshop, setWorkshop] = useState<{ jobId: string; stageId: string }>();
   if (workshop) return <CareerWorkshop {...workshop} onBack={() => setWorkshop(undefined)} onBattle={onBattle} />;
   const ko = locale === "ko";
+  const lockCopy = ko ? "잠김 · 선행 경로 완료 필요" : "LOCKED · COMPLETE REQUIRED PATHS";
   const captured = captureIds(save);
   const current = findJob(save.player.primaryJobId);
   const complete = completedCareerPathIds(captured);
@@ -41,7 +42,7 @@ export function CareerScreen({ onBack, onBattle, onOpenSources, selectedRegionId
     {saveError ? <><Text accessibilityRole="alert" style={styles.hint}>{ko ? "진행 또는 의뢰 기록을 저장하지 못했습니다. 종료 전에 다시 저장하세요." : "Could not save progress or request history. Retry before closing."}</Text><PixelButton testID="career-retry-save" onPress={retrySave}>{ko ? "다시 저장" : "RETRY SAVE"}</PixelButton></> : null}
     {hasEarnedSecondaryCareer(save) ? <Text style={styles.title}>{ko ? "현재 직업" : "CURRENT CAREER"} · {localize((findTertiaryJob(save.player.tertiaryJobId) ?? findSecondaryJob(save.player.secondaryJobId))!.name, locale)}</Text> : null}
     <Text style={styles.body}>{localize(current.name, locale)} · {ko ? "완성한 경로" : "Mastered paths"} {complete.size}/{JOB_OPTIONS.length}</Text>
-    {hasEarnedSecondaryCareer(save) && promotionCheckpoints(save).some(({ status }) => status !== "cleared") ? <Text style={styles.hint}>{ko ? "현재 2차 경로를 완료하면 미완료 1차 경로를 시작할 수 있습니다. 완료한 1차 경로는 다시 방문할 수 있습니다." : "Finish the current tier-two path to start unfinished primary paths. Completed primary paths remain available for replay."}</Text> : null}
+    {hasUnfinishedSecondaryCareer(save) ? <Text style={styles.hint}>{ko ? "현재 2차 경로를 완료하면 미완료 1차 경로를 시작할 수 있습니다. 완료한 1차 경로는 다시 방문할 수 있습니다." : "Finish the current tier-two path to start unfinished primary paths. Completed primary paths remain available for replay."}</Text> : null}
     {!commonComplete ? <Text style={styles.hint}>{ko ? "튜토리얼 · Git · Linux 공통 경로를 완료하면 1차 전직이 열립니다." : "Complete Tutorial · Git · Linux to unlock primary careers."}</Text> : null}
     <View style={styles.panel}>
       {JOB_OPTIONS.map((job) => {
@@ -49,7 +50,7 @@ export function CareerScreen({ onBack, onBattle, onOpenSources, selectedRegionId
         return <View key={job.id} style={styles.item}>
           <Text style={styles.title}>{complete.has(job.id) ? "★ " : ""}{localize(job.name, locale)}{current.id === job.id ? (hasEarnedSecondaryCareer(save) ? (ko ? " · 학습 경로" : " · STUDY PATH") : (ko ? " · 현재" : " · ACTIVE")) : ""}</Text>
           <Text style={styles.body}>{localize(job.tagline, locale)}</Text>
-          <PixelButton testID={`career-select-${job.id}`} disabled={!selectable} onPress={() => { selectJob(job.id); setRegionId(undefined); }} variant={current.id === job.id ? "primary" : "secondary"}>{current.id === job.id ? (hasEarnedSecondaryCareer(save) ? (ko ? "현재 학습 경로" : "CURRENT STUDY PATH") : (ko ? "현재 직업" : "CURRENT CAREER")) : (hasEarnedSecondaryCareer(save) ? (ko ? "이 경로 학습" : "STUDY THIS PATH") : (ko ? "이 직업 선택" : "SELECT CAREER"))}</PixelButton>
+          <PixelButton testID={`career-select-${job.id}`} disabled={!selectable} onPress={() => { selectJob(job.id); setRegionId(undefined); }} variant={current.id === job.id ? "primary" : "secondary"}>{!selectable ? lockCopy : current.id === job.id ? (hasEarnedSecondaryCareer(save) ? (ko ? "현재 학습 경로" : "CURRENT STUDY PATH") : (ko ? "현재 직업" : "CURRENT CAREER")) : (hasEarnedSecondaryCareer(save) ? (ko ? "이 경로 학습" : "STUDY THIS PATH") : (ko ? "이 직업 선택" : "SELECT CAREER"))}</PixelButton>
         </View>;
       })}
       {commonComplete && !hasEarnedSecondaryCareer(save) && current.id !== "junior" && !complete.has(current.id) ? <Text style={styles.hint}>{ko ? "현재 경로를 모두 완료하면 다른 1차 직업을 선택할 수 있습니다." : "Finish the current path before choosing another primary career."}</Text> : null}
@@ -59,7 +60,8 @@ export function CareerScreen({ onBack, onBattle, onOpenSources, selectedRegionId
       <Image accessibilityLabel={localize(promotionChapterFor(confirmSecondary)!.npcName, locale)} source={mobileAssetSource(promotionMissionFor(confirmSecondary)!.guideAssetKey)} style={styles.guide} resizeMode="contain" />
       <Text style={styles.body}>{localize(promotionMissionFor(confirmSecondary)!.story.intro, locale)}</Text>
       <Text style={styles.hint}>{localize(promotionChapterFor(confirmSecondary)!.npcName, locale)}</Text>
-      <PixelButton testID="promotion-confirm" onPress={() => { selectSecondaryJob(confirmSecondary); setConfirmSecondary(undefined); }}>{ko ? "전직하고 의뢰 시작" : "CONFIRM · START MISSION"}</PixelButton>
+      {!canSelectSecondaryCareer(save, confirmSecondary) ? <><Text style={styles.hint}>{ko ? "완료한 직군 열람 · 현재 전직은 유지됩니다." : "COMPLETED CAREER REVIEW · CURRENT CAREER RETAINED"}</Text>{promotionChapterFor(confirmSecondary)!.stages.map(stage => <Text key={stage.id} style={styles.body}>✓ {localize(stage.name, locale)}</Text>)}</> : null}
+      <PixelButton testID="promotion-confirm" disabled={!canSelectSecondaryCareer(save, confirmSecondary)} onPress={() => { selectSecondaryJob(confirmSecondary); setConfirmSecondary(undefined); }}>{ko ? "전직하고 의뢰 시작" : "CONFIRM · START MISSION"}</PixelButton>
       <PixelButton onPress={() => setConfirmSecondary(undefined)} variant="quiet">{ko ? "나중에" : "LATER"}</PixelButton>
     </View> : null}
     {save.player.secondaryJobId && promotionChapterFor(save.player.secondaryJobId) ? <SecondaryExploration regionId={regionId} onRegion={setRegionId} onPractice={(stageId) => setWorkshop({ jobId: save.player.secondaryJobId!, stageId })} onOpenSources={onOpenSources} /> : null}
@@ -68,10 +70,11 @@ export function CareerScreen({ onBack, onBattle, onOpenSources, selectedRegionId
     <Text style={styles.heading}>{ko ? "상위 직업 도감" : "HIGHER CAREER DEX"}</Text>
     {CAREER_CATALOG.filter(({ tier }) => tier >= 2).map((entry) => {
       const status = careerStatus(careerDex, entry.id);
+      const selectable = entry.tier === 2 && commonComplete && canSelectSecondaryJob(findSecondaryJob(entry.id)!, complete) && (canSelectSecondaryCareer(save, entry.id as SecondaryJobId) || isSecondaryStudyComplete(save, entry.id as SecondaryJobId));
       return <View key={entry.id} style={styles.item}>
         <Text style={styles.title}>{entry.tier} · {status === "locked" ? "???" : localize(entry.name, locale)}</Text>
         <Text style={styles.hint}>{status === "locked" ? (ko ? "선행 직업 경로를 완성하면 공개됩니다." : "Revealed after mastering the required careers.") : promotionChapterFor(entry.id) ? `${localize(promotionChapterFor(entry.id)!.name, locale)} · ${ko ? "구역별 실습과 다섯 의뢰를 이어 가세요." : "Follow regional practice and five linked missions."}` : (ko ? "2차 MASTER·구역 실습 완료 → 최종 설계 프로젝트 → 3차 전직" : "Tier-two MASTER + regional practice → final design project → tier three")}</Text>
-        {entry.tier === 2 && commonComplete && canSelectSecondaryJob(findSecondaryJob(entry.id)!, complete) ? <PixelButton testID={`promotion-select-${entry.id}`} onPress={() => setConfirmSecondary(entry.id as SecondaryJobId)}>{save.player.secondaryJobId === entry.id ? (ko ? "전직 의뢰 다시 보기" : "REVIEW PROMOTION MISSION") : (ko ? "전직 의뢰 보기" : "VIEW PROMOTION MISSION")}</PixelButton> : null}
+        {entry.tier === 2 || status === "locked" ? <PixelButton testID={`promotion-select-${entry.id}`} disabled={!selectable} variant={save.player.secondaryJobId === entry.id ? "primary" : "secondary"} onPress={() => { if (selectable) setConfirmSecondary(entry.id as SecondaryJobId); }}>{!selectable ? lockCopy : save.player.secondaryJobId === entry.id ? (ko ? "전직 의뢰 다시 보기" : "REVIEW PROMOTION MISSION") : (ko ? "전직 의뢰 보기" : "VIEW PROMOTION MISSION")}</PixelButton> : null}
       </View>;
     })}
   </Screen>;
