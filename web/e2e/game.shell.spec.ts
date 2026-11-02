@@ -1,5 +1,4 @@
-import { gameViewport } from "../lib/phaser/gameViewport";
-import { openGameMenu } from "../test-support/game";
+import { openGameMenu, continueGame, scene } from "../test-support/game";
 import { createEmptySave } from "@codigdex/game-core/save/schema";
 import { expect, test } from "@playwright/test";
 
@@ -20,11 +19,11 @@ for (const locale of ["ko", "en"] as const) for (const viewport of [{ width: 144
     expect(canvas).toEqual({ x: 0, y: 0, ...viewport });
     expect(toolbar!.x).toBeGreaterThanOrEqual(canvas!.x);
     expect(toolbar!.y).toBeGreaterThanOrEqual(canvas!.y);
-    const playfield = gameViewport(viewport.width, viewport.height);
-    expect(toolbar!.x).toBeGreaterThanOrEqual(playfield.x);
-    expect(toolbar!.y).toBeGreaterThanOrEqual(playfield.y);
-    expect(toolbar!.x + toolbar!.width).toBeLessThanOrEqual(viewport.width - playfield.x);
-    expect(toolbar!.y + toolbar!.height).toBeLessThanOrEqual(viewport.height - playfield.y);
+    // The rail follows the left safe edge, independent of camera letterboxing.
+    expect(toolbar!.x).toBeLessThanOrEqual(16);
+    expect(toolbar!.y).toBeLessThanOrEqual(16);
+    expect(toolbar!.x + toolbar!.width).toBeLessThanOrEqual(80);
+    expect(toolbar!.y + toolbar!.height).toBeLessThanOrEqual(viewport.height);
     await expect(page.locator(".game-toolbar h1, .game-toolbar .game-brand")).toHaveCount(0);
     expect(await page.locator(".game-backdrop").evaluate((el) => getComputedStyle(el).backgroundImage)).not.toContain("blob:");
     const background = await page.locator(".game-backdrop").boundingBox();
@@ -41,7 +40,12 @@ for (const locale of ["ko", "en"] as const) for (const viewport of [{ width: 144
       expect(bound.right).toBeLessThanOrEqual(viewport.width);
       expect(bound.top).toBeGreaterThanOrEqual(menu!.y);
       expect(bound.bottom).toBeLessThanOrEqual(menu!.y + menu!.height);
+      expect(bound.left).toBeCloseTo(bounds[0].left, 0);
+      expect(bound.right - bound.left).toBe(viewport.width <= 600 || viewport.height <= 500 ? 44 : 48);
+      expect(bound.bottom - bound.top).toBe(bound.right - bound.left);
     }
+    const icons = await page.locator(".game-toolbar .game-tool-icon").evaluateAll((icons) => icons.map((icon) => { const r = icon.getBoundingClientRect(); return { width: r.width, height: r.height }; }));
+    for (const icon of icons) expect(icon).toEqual({ width: 24, height: 24 });
     for (let i = 0; i < bounds.length; i++) for (let j = i + 1; j < bounds.length; j++) {
       const a = bounds[i], b = bounds[j];
       expect(a.right <= b.left || b.right <= a.left || a.bottom <= b.top || b.bottom <= a.top).toBe(true);
@@ -53,7 +57,7 @@ for (const locale of ["ko", "en"] as const) for (const viewport of [{ width: 144
     const account = page.getByRole("region", { name: locale === "ko" ? "계정과 저장" : "Account and save" });
     await expect(account).toBeVisible();
     const panel = await account.boundingBox();
-    expect(panel!.y).toBeGreaterThanOrEqual(toolbar!.y + toolbar!.height);
+    expect(panel!.x).toBeGreaterThanOrEqual(toolbar!.x + toolbar!.width + 8);
     expect(panel!.x).toBeGreaterThanOrEqual(0);
     expect(panel!.x + panel!.width).toBeLessThanOrEqual(viewport.width);
     expect(panel!.y + panel!.height).toBeLessThanOrEqual(viewport.height);
@@ -79,6 +83,9 @@ for (const locale of ["ko", "en"] as const) for (const viewport of [{ width: 144
     // An error notice must not shrink the game into a separate page panel.
     await page.evaluate(() => window.dispatchEvent(new Event("codigdex-save-error")));
     await expect(page.getByRole("button", { name: locale === "ko" ? "저장 실패 · 다시 저장" : "SAVE FAILED · RETRY", exact: true })).toBeVisible();
+    const retry = await page.getByRole("button", { name: locale === "ko" ? "저장 실패 · 다시 저장" : "SAVE FAILED · RETRY", exact: true }).boundingBox();
+    expect(retry!.x).toBeCloseTo(bounds[0].left, 0);
+    expect(retry!.y + retry!.height).toBeLessThanOrEqual(viewport.height);
     await expect.poll(async () => {
       const camera = await page.locator(".pixel-canvas canvas").boundingBox();
       return camera!.width === viewport.width && camera!.height === viewport.height;
@@ -86,3 +93,40 @@ for (const locale of ["ko", "en"] as const) for (const viewport of [{ width: 144
     expect(errors).toEqual([]);
   });
 }
+
+test("uses left-rail home and settings actions without starting or resetting gameplay", async ({ page }) => {
+  await page.goto("/");
+  const game = page.getByRole("application");
+  await expect(game).toHaveAttribute("aria-busy", "false", { timeout: 30000 });
+  const home = page.getByRole("button", { name: "홈으로", exact: true });
+  const settings = page.getByRole("button", { name: "설정", exact: true });
+  await expect(home).toBeDisabled();
+  await settings.click(); await scene(page, "settings");
+  await expect(settings).toBeDisabled();
+  await page.keyboard.press("Escape"); await scene(page, "intro");
+  await continueGame(page); await scene(page, "world-map");
+  const before = await page.evaluate(() => localStorage.getItem("codigdex:save:v3"));
+  await expect(home).toBeEnabled(); await home.click(); await scene(page, "intro");
+  expect(await page.evaluate(() => localStorage.getItem("codigdex:save:v3"))).toBe(before);
+  await page.locator(".game-menu-toggle").click();
+  await expect(home).not.toBeVisible();
+  await page.locator(".game-menu-toggle").focus();
+  await page.keyboard.press("Enter");
+  await expect(page.locator(".game-toolbar-actions")).toBeVisible();
+  await scene(page, "intro");
+  const accountButton = page.getByRole("button", { name: "계정 · 저장", exact: true });
+  const account = page.getByRole("region", { name: "계정과 저장", exact: true });
+  await accountButton.click();
+  await expect(account.getByRole("button", { name: "닫기", exact: true })).toBeFocused();
+  await page.locator(".game-menu-toggle").click();
+  await expect(account).not.toBeVisible();
+  await expect(page.locator(".game-menu-toggle")).toBeFocused();
+  await openGameMenu(page);
+  await expect(account).not.toBeVisible();
+  await accountButton.focus(); await page.keyboard.press("Enter");
+  await expect(account).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(account).not.toBeVisible();
+  await expect(accountButton).toBeFocused();
+  await scene(page, "intro");
+});

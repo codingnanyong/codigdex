@@ -7,11 +7,15 @@ import { applySaveToRegistry, SAVE_CHANGE_EVENT, snapshotRegistry, SAVE_STORAGE_
 import { announceLocale } from "@/lib/phaser/i18n";
 import type { Locale } from "@codigdex/game-core/i18n/locale";
 import { getBrowserSupabase } from "@/lib/account/client";
+import { createPortal } from "react-dom";
+import { GameIcon } from "./GameIcon";
 
-export function AccountPanel({ game, locale }: { game: Phaser.Game; locale: Locale }) {
-  const [open, setOpen] = useState(false);
+export function AccountPanel({ game, locale, open, onOpenChange: setOpen }: { game: Phaser.Game; locale: Locale; open: boolean; onOpenChange(open: boolean): void }) {
+  const launcher = useRef<HTMLButtonElement>(null);
+  const closeButton = useRef<HTMLButtonElement>(null);
   const [save, setSave] = useState(() => snapshotRegistry(game.registry));
   const [saveFailed, setSaveFailed] = useState(false);
+  useEffect(() => { if (open) closeButton.current?.focus(); }, [open]);
   const client = getBrowserSupabase();
   const account = useAccount({
     client, save,
@@ -56,11 +60,14 @@ export function AccountPanel({ game, locale }: { game: Phaser.Game; locale: Loca
   }, [game, sync]);
   const ko = locale === "ko";
   const busy = account.status === "syncing";
-  return <div className="account-menu" onKeyDown={(event) => event.stopPropagation()}>
-    <button aria-expanded={open} title={ko ? "계정 · 저장" : "ACCOUNT · SAVE"} onClick={() => setOpen(!open)}><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><circle cx="12" cy="7" r="4" /><path d="M4 21v-3a8 8 0 0 1 16 0v3Z" /></svg><span className="sr-only">{ko ? "계정 · 저장" : "ACCOUNT · SAVE"}</span></button>
-    {saveFailed && !open ? <p role="alert"><button onClick={() => persistRegistry(game.registry)}>{ko ? "저장 실패 · 다시 저장" : "SAVE FAILED · RETRY"}</button></p> : null}
-    {open ? <section className="account-panel" aria-label={ko ? "계정과 저장" : "Account and save"}>
-      <button onClick={() => setOpen(false)}>{ko ? "닫기" : "CLOSE"}</button>
+  const overlayHost = game.canvas.parentElement?.closest(".game-shell");
+  const close = () => { setOpen(false); launcher.current?.focus(); };
+  return <div className="account-menu" onKeyDown={(event) => { event.stopPropagation(); if (event.key === "Escape" && open) close(); }}>
+    <button ref={launcher} aria-expanded={open} title={ko ? "계정 · 저장" : "ACCOUNT · SAVE"} onClick={() => setOpen(!open)}><GameIcon name="account" />{saveFailed ? <span className="game-tool-badge" aria-hidden="true" /> : null}<span className="sr-only">{ko ? "계정 · 저장" : "ACCOUNT · SAVE"}</span></button>
+    {saveFailed && !open ? <p role="alert" className="game-rail-alert"><button title={ko ? "저장 실패 · 다시 저장" : "SAVE FAILED · RETRY"} onClick={() => persistRegistry(game.registry)}><GameIcon name="retry" /><span className="sr-only">{ko ? "저장 실패 · 다시 저장" : "SAVE FAILED · RETRY"}</span></button></p> : null}
+    {overlayHost ? createPortal(<>
+    {open ? <section className="account-panel" aria-label={ko ? "계정과 저장" : "Account and save"} onKeyDown={(event) => { event.stopPropagation(); if (event.key === "Escape") close(); }}>
+      <button ref={closeButton} onClick={close}>{ko ? "닫기" : "CLOSE"}</button>
       <p aria-live="polite">{ACCOUNT_STATUS_COPY[locale][account.status]}</p>
       {account.session ? <>
         <p>{account.session.user.email ?? account.session.user.id}</p>
@@ -73,5 +80,6 @@ export function AccountPanel({ game, locale }: { game: Phaser.Game; locale: Loca
       {saveFailed ? <><p role="alert">{ko ? "기기 저장에 실패했습니다." : "Device save failed."}</p><button onClick={() => persistRegistry(game.registry)}>{ko ? "다시 저장" : "RETRY SAVE"}</button></> : null}
       <p>{ko ? "로그아웃해도 이 기기의 기록은 유지됩니다. 다른 계정으로 전환할 때 기록을 자동으로 합치지 않습니다." : "Signing out keeps the device save. Switching accounts never automatically merges their progress."}</p>
     </section> : null}
+    </>, overlayHost) : null}
   </div>;
 }
