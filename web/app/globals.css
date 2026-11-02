@@ -72,7 +72,7 @@ body {
 .game-toolbar-actions button:hover { background: #49301c; border-color: #e6bd75; }
 .game-toolbar-actions button:focus-visible, .game-toolbar-actions a:focus-visible { outline: 3px solid #e6bd75; outline-offset: 2px; }
 .fullscreen-notice { position: absolute; top: 12px; left: 50%; transform: translateX(-50%); padding: 10px; background: #49301c; z-index: 60; font: 14px Galmuri14, monospace; }
-.pixel-canvas { z-index: 1; position: absolute; inset: 0 0 calc(var(--hud-height) + env(safe-area-inset-bottom)); min-height: 0; width: 100%; overflow: hidden; }
+.pixel-canvas { z-index: 1; position: absolute; inset: 0 0 calc(max(var(--hud-height), var(--toolbar-height, 0px)) + env(safe-area-inset-bottom)); min-height: 0; width: 100%; overflow: hidden; }
 @media (max-width: 850px) { .game-toolbar-actions { gap: 4px; } .game-toolbar-actions > a, .game-toolbar-actions > button, .game-toolbar-actions .account-menu > button { padding: 6px 8px; font-size: 12px; } }
 @media (max-width: 550px) { .game-shell { --hud-height: 112px; } .game-toolbar { justify-content: center; } .game-toolbar-actions { width: 100%; justify-content: center; } }
 
@@ -165,7 +165,7 @@ body {
 .rotate-hint {
   display: none;
   position: absolute;
-  bottom: calc(var(--hud-height) + env(safe-area-inset-bottom) + 8px);
+  bottom: calc(max(var(--hud-height), var(--toolbar-height, 0px)) + env(safe-area-inset-bottom) + 8px);
   left: 16px;
   right: 16px;
   margin: 0;

@@ -1,5 +1,13 @@
 Handoff: immersive game shell and open-source ecosystem travel
 
+Release follow-up (2026-11-02):
+- User explicitly approved PR publication, develop/main merges and WEB production deployment. PR150 / COD-438 / GitHub149 tracks this change.
+- Remote Claude reviews found no merge blockers. Automated inline review identified save-error retry-row overlap in short landscape screens; fixed with observed dock height and Phaser setParentSize on container resize.
+- Additional changed files: GameHeader.tsx, globals.css, PhaserGame.tsx, game.shell.spec.ts. Existing eight bilingual viewport cases now also exercise the save-error row. Incremental read-only review found no blockers; production build, lint, check:agents and all eight browser cases passed without retries.
+- The first incremental browser attempt exposed retained Phaser FIT dimensions (4/8); the second passed 8/8 after setParentSize. The current accepted-junit.xml contains this incremental eight-case run, superseding the earlier 59-case evidence file. Earlier 59/59 outcome remains the baseline result; final remote CI will validate all journeys at the release commit.
+- Preview deployment is ready, but its automatic smoke cannot access Vercel login protection because the automation bypass secret is unconfigured. Protection remains intact. Public production verification follows the authorized merge/deployment.
+- Original handoff below describes the pre-approval baseline; final deployment outcome will be recorded in the release PR.
+
 - Owner: Codex.
 - Reviewer: Read-only reviewer /root/review_immersive_shell under shared-change-review. Final source verdict: No blocking findings after fixing QA clipping and loader-listener loss. Claude CLI unavailable (Not logged in).
 - Scope:

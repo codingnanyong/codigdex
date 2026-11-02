@@ -134,7 +134,11 @@ export default function PhaserGame({ qaEnabled = false }: { qaEnabled?: boolean 
           }));
         }
         observer = new ResizeObserver(() => {
-          game.scale.refresh();
+          const container = containerRef.current;
+          if (!container) return;
+          // refresh() re-centers against new bounds but retains the old FIT
+          // size. A dock resize must also update Phaser's parent dimensions.
+          game.scale.setParentSize(container.clientWidth, container.clientHeight);
           syncRendering();
         });
         observer.observe(containerRef.current);

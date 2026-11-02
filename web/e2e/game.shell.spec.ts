@@ -61,6 +61,15 @@ for (const locale of ["ko", "en"] as const) for (const viewport of [{ width: 144
     }
     await page.evaluate(() => new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
     await page.screenshot({ path: `../qa-results/immersive-shell/shell-${viewport.width}x${viewport.height}-${locale}.png` });
+    // A failed capture save adds a retry row even while the account panel is
+    // closed. The dock must resize the camera rather than cover game actions.
+    await page.evaluate(() => window.dispatchEvent(new Event("codigdex-save-error")));
+    await expect(page.getByRole("button", { name: locale === "ko" ? "저장 실패 · 다시 저장" : "SAVE FAILED · RETRY", exact: true })).toBeVisible();
+    await expect.poll(async () => {
+      const dock = await page.locator(".game-toolbar").boundingBox();
+      const camera = await page.locator(".pixel-canvas canvas").boundingBox();
+      return camera!.y + camera!.height <= dock!.y + 1;
+    }).toBe(true);
     expect(errors).toEqual([]);
   });
 }
