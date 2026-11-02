@@ -1,3 +1,4 @@
+import { GAME_SIZE } from "../gameViewport";
 import Phaser from "phaser";
 import { LOCALE_NAMES, LOCALES, type Locale } from "@codigdex/game-core/i18n/locale";
 import { sceneLocale, setSceneLocale, t } from "../i18n";
@@ -34,7 +35,7 @@ export class SettingsScene extends Phaser.Scene {
 
   create() {
     this.scene.bringToTop();
-    const { width, height } = this.scale;
+    const { width, height } = GAME_SIZE;
     const current = sceneLocale(this);
 
     addShade(this, 0.62).on("pointerup", () => this.close());

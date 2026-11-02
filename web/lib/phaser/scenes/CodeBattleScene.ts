@@ -1,3 +1,4 @@
+import { GAME_SIZE } from "../gameViewport";
 import Phaser from "phaser";
 import { findStage } from "@codigdex/game-content/domain/chapters";
 import type { ChapterDefinition, MonsterDefinition } from "@codigdex/game-core/domain/chapters/types";
@@ -75,7 +76,7 @@ export class CodeBattleScene extends Phaser.Scene {
     }
     if (!this.sourceEventId) applySaveToRegistry(this.registry, rememberCheckpoint(save, this.monster.id));
     this.events.once("shutdown", () => { this.loadGeneration += 1; this.locked = true; });
-    const { width, height } = this.scale;
+    const { width, height } = GAME_SIZE;
     const arena = this.battleArena;
 
     // Backdrop and its ambience go in first so every battle panel draws on top.

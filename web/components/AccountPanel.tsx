@@ -57,7 +57,7 @@ export function AccountPanel({ game, locale }: { game: Phaser.Game; locale: Loca
   const ko = locale === "ko";
   const busy = account.status === "syncing";
   return <div className="account-menu" onKeyDown={(event) => event.stopPropagation()}>
-    <button aria-expanded={open} onClick={() => setOpen(!open)}>{ko ? "계정 · 저장" : "ACCOUNT · SAVE"}</button>
+    <button aria-expanded={open} title={ko ? "계정 · 저장" : "ACCOUNT · SAVE"} onClick={() => setOpen(!open)}><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><circle cx="12" cy="7" r="4" /><path d="M4 21v-3a8 8 0 0 1 16 0v3Z" /></svg><span className="sr-only">{ko ? "계정 · 저장" : "ACCOUNT · SAVE"}</span></button>
     {saveFailed && !open ? <p role="alert"><button onClick={() => persistRegistry(game.registry)}>{ko ? "저장 실패 · 다시 저장" : "SAVE FAILED · RETRY"}</button></p> : null}
     {open ? <section className="account-panel" aria-label={ko ? "계정과 저장" : "Account and save"}>
       <button onClick={() => setOpen(false)}>{ko ? "닫기" : "CLOSE"}</button>

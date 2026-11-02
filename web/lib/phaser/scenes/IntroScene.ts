@@ -1,3 +1,4 @@
+import { GAME_SIZE } from "../gameViewport";
 import Phaser from "phaser";
 import { WALLPAPERS } from "@codigdex/game-assets/visuals";
 import { assetUrl } from "../../assets";
@@ -26,7 +27,7 @@ export class IntroScene extends Phaser.Scene {
   }
 
   create() {
-    const { width, height } = this.scale;
+    const { width, height } = GAME_SIZE;
     // Phaser reuses scene instances. Reset the previous departure so HOME →
     // Continue can leave the title a second time.
     this.leaving = false;
@@ -49,7 +50,7 @@ export class IntroScene extends Phaser.Scene {
   }
 
   private drawTitle() {
-    const { width } = this.scale;
+    const { width } = GAME_SIZE;
 
     this.add
       .text(width / 2, 82, "CODIGDEX", {
@@ -81,7 +82,7 @@ export class IntroScene extends Phaser.Scene {
   }
 
   private createStartPrompt(hasProgress: boolean) {
-    const { width } = this.scale;
+    const { width } = GAME_SIZE;
     const panel = this.add
       .rectangle(width / 2, 197, 270, 66, PALETTE.nightBrown, 0.86)
       .setStrokeStyle(2, PALETTE.amber, 0.9)
@@ -124,7 +125,7 @@ export class IntroScene extends Phaser.Scene {
   private showResetConfirmation() {
     if (this.resetDialog || this.leaving) return;
     this.confirmingReset = true;
-    const { width, height } = this.scale;
+    const { width, height } = GAME_SIZE;
     const shade = addShade(this, 0.58, 20);
     const frame = drawOrnateFrame(this, width / 2, height / 2, 480, 190, { radius: 14 });
     const title = this.add

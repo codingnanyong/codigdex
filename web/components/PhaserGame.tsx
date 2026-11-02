@@ -5,6 +5,7 @@ import type Phaser from "phaser";
 import { WALLPAPERS } from "@codigdex/game-assets/visuals";
 import { assetUrl } from "@/lib/assets";
 import { DEFAULT_LOCALE, isLocale, type Locale } from "@codigdex/game-core/i18n/locale";
+import { fitGameScene, gameViewport } from "@/lib/phaser/gameViewport";
 import { trackSceneImageURLs } from "@/lib/phaser/sceneBackdrop";
 import { whenPixelFontReady } from "@/lib/phaser/pixelFont";
 import { devicePixelsPerGamePixel, imageRenderingFor } from "@/lib/phaser/displayScale";
@@ -133,12 +134,24 @@ export default function PhaserGame({ qaEnabled = false }: { qaEnabled?: boolean 
             destroy: PhaserLib.Scenes.Events.DESTROY,
           }));
         }
+        for (const scene of game.scene.scenes) {
+          const fit = () => fitGameScene(scene);
+          scene.events.on(PhaserLib.Scenes.Events.START, fit);
+          scene.events.on(PhaserLib.Scenes.Events.CREATE, fit);
+          stopTracking.push(() => {
+            scene.events.off(PhaserLib.Scenes.Events.START, fit);
+            scene.events.off(PhaserLib.Scenes.Events.CREATE, fit);
+          });
+        }
         observer = new ResizeObserver(() => {
           const container = containerRef.current;
           if (!container) return;
-          // refresh() re-centers against new bounds but retains the old FIT
-          // size. A dock resize must also update Phaser's parent dimensions.
+          const viewport = gameViewport(container.clientWidth, container.clientHeight);
+          shellRef.current?.style.setProperty("--game-inset-x", `${viewport.x}px`);
+          shellRef.current?.style.setProperty("--game-inset-y", `${viewport.y}px`);
+          // Update the full renderbuffer, then refit each logical game camera.
           game.scale.setParentSize(container.clientWidth, container.clientHeight);
+          for (const scene of game.scene.getScenes(false)) fitGameScene(scene);
           syncRendering();
         });
         observer.observe(containerRef.current);
@@ -177,7 +190,7 @@ export default function PhaserGame({ qaEnabled = false }: { qaEnabled?: boolean 
         {runtime ? <AccountPanel game={runtime} locale={locale} /> : null}
         {fullscreenAvailable ? <button className="fullscreen-toggle" aria-pressed={fullscreen} onKeyDown={(event) => event.stopPropagation()} onClick={() => void toggleFullscreen()}>
           <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d={fullscreen ? "M9 3v6H3m18 0h-6V3M3 15h6v6m6 0v-6h6" : "M3 9V3h6m6 0h6v6M3 15v6h6m6 0h6v-6"} /></svg>
-          {locale === "ko" ? (fullscreen ? "전체화면 종료" : "전체화면") : (fullscreen ? "EXIT FULLSCREEN" : "FULLSCREEN")}
+          <span className="sr-only">{locale === "ko" ? (fullscreen ? "전체화면 종료" : "전체화면") : (fullscreen ? "EXIT FULLSCREEN" : "FULLSCREEN")}</span>
         </button> : null}
       </GameHeader>
       {fullscreenError ? <p role="status" className="fullscreen-notice">{locale === "ko" ? "전체화면을 열지 못했습니다. 브라우저에서 다시 시도해 주세요." : "Fullscreen could not open. Try again in your browser."}</p> : null}

@@ -1,3 +1,4 @@
+import { GAME_SIZE } from "../gameViewport";
 import Phaser from "phaser";
 import { canStudyPrimaryCareer } from "@codigdex/game-content/domain/gameProgress";
 import {
@@ -62,7 +63,7 @@ export class CareerRegionScene extends Phaser.Scene {
       this.scene.start("job-select");
       return;
     }
-    const { width, height } = this.scale;
+    const { width, height } = GAME_SIZE;
     const path = careerPathFor(this.careerId);
     const job = findJob(this.careerId);
     const region = path.regions.find((candidate) => candidate.id === this.regionId) ?? path.regions[0];
@@ -220,7 +221,7 @@ export class CareerRegionScene extends Phaser.Scene {
   }
 
   private drawGuide(textureKey: string, guideName: string, region: CareerRegion) {
-    const { width, height } = this.scale;
+    const { width, height } = GAME_SIZE;
     drawOrnateFrame(this, width / 2, height - 112, 590, 118, { fillAlpha: 0.96, radius: 14 });
     createDialogPortrait(this, textureKey, width / 2 - 230, height - 117, 106, 118);
     this.add

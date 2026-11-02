@@ -1,3 +1,4 @@
+import { GAME_SIZE } from "../gameViewport";
 import Phaser from "phaser";
 import { CHAPTERS, isCommonPathComplete } from "@codigdex/game-content/domain/chapters";
 import { TUTORIAL_MONSTER, TUTORIAL_ONBOARDING_LINES } from "@codigdex/game-content/domain/chapters/tutorial";
@@ -125,7 +126,7 @@ export class WorldMapScene extends Phaser.Scene {
   }
 
   create() {
-    const { width, height } = this.scale;
+    const { width, height } = GAME_SIZE;
     ensureDexDefaults(this.registry);
     this.resetSceneReferences();
 

@@ -17,8 +17,8 @@ test("boots the game shell and Phaser canvas", async ({ page }) => {
   await expect(page.locator(".game-toolbar h1, .game-toolbar .game-brand")).toHaveCount(0);
   const canvas = page.locator(".pixel-canvas canvas");
   await expect(canvas).toBeVisible({ timeout: 15_000 });
-  await expect(canvas).toHaveAttribute("width", "960");
-  await expect(canvas).toHaveAttribute("height", "540");
+  expect(await canvas.evaluate(el => (el as HTMLCanvasElement).width)).toBe(await page.evaluate(() => innerWidth));
+  expect(await canvas.evaluate(el => (el as HTMLCanvasElement).height)).toBe(await page.evaluate(() => innerHeight));
   await expect(page.getByRole("application", { name: "코딩덱스 코딩 교육 게임" })).toHaveAttribute(
     "aria-busy",
     "false",

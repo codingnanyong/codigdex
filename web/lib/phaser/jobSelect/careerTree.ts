@@ -1,6 +1,5 @@
 import Phaser from "phaser";
 import {
-  canSelectSecondaryJob,
   findJob,
   isSecondaryJobUnlocked,
   isTertiaryJobUnlocked,
@@ -13,7 +12,7 @@ import {
   type SecondaryJobOption,
   type TertiaryJobOption,
 } from "@codigdex/game-content/domain/player/jobs";
-import { lt, t } from "../i18n";
+import { lt, t, sceneLocale } from "../i18n";
 import { PALETTE, PALETTE_HEX } from "../palette";
 import { pixelText } from "../pixelFont";
 import { drawOrnateFrame, fitTextInside } from "../ui";
@@ -29,6 +28,7 @@ export type CareerTreeState = {
   selectedTertiaryJobId?: string;
   commonPathComplete: boolean;
   selectablePrimaryJobIds: ReadonlySet<JobId>;
+  selectableAdvancedJobIds: ReadonlySet<string>;
 };
 
 export type CareerTreeActions = {
@@ -60,10 +60,10 @@ export function drawCareerTree(
       y: LAYOUT.rowY[index],
       tier: "Ⅱ",
       index,
-      name: unlocked ? lt(scene, job.name) : "◆  ???",
+      name: unlocked ? lt(scene, job.name) : "???",
       selected: state.selectedSecondaryJobId === job.id,
       unlocked,
-      selectable: !unlocked || canSelectSecondaryJob(job, state.completedJobIds),
+      selectable: state.selectableAdvancedJobIds.has(job.id),
       onSelect: () => actions.onSecondaryJob(job),
     });
   });
@@ -75,9 +75,10 @@ export function drawCareerTree(
       y: LAYOUT.rowY[index],
       tier: "Ⅲ",
       index,
-      name: unlocked ? lt(scene, job.name) : "◆  ???",
+      name: unlocked ? lt(scene, job.name) : "???",
       selected: state.selectedTertiaryJobId === job.id,
       unlocked,
+      selectable: state.selectableAdvancedJobIds.has(job.id),
       onSelect: () => actions.onTertiaryJob(job),
     });
   });
@@ -161,20 +162,20 @@ function drawPrimaryJob(
       color: PALETTE_HEX.ink,
     })
     .setOrigin(0, 0.5)
-    .setAlpha(locked ? 0.45 : 1);
+    .setAlpha(locked ? 0.75 : 1);
   fitTextInside(name, 110, 18);
   const tagline = scene.add
-    .text(LAYOUT.primaryX - 52, y + 12, lt(scene, job.tagline), {
+    .text(LAYOUT.primaryX - 52, y + 12, locked ? (sceneLocale(scene) === "ko" ? "선행 경로 완료 필요" : "COMPLETE REQUIRED PATHS") : lt(scene, job.tagline), {
       ...pixelText("caption"),
       color: PALETTE_HEX.mutedBrown,
     })
     .setOrigin(0, 0.5)
-    .setAlpha(locked ? 0.45 : 1);
+    .setAlpha(locked ? 0.75 : 1);
   fitTextInside(tagline, 142, 14);
   if (selected || locked) {
-    scene.add
+    const badge = scene.add
       .text(
-        LAYOUT.primaryX + 91,
+        LAYOUT.primaryX + LAYOUT.primaryWidth / 2 - 8,
         y - 20,
         t(scene, selected ? "common.current" : "common.locked"),
         {
@@ -182,7 +183,8 @@ function drawPrimaryJob(
           color: selected ? PALETTE_HEX.maroon : PALETTE_HEX.mutedBrown,
         }
       )
-      .setOrigin(0.5);
+      .setOrigin(1, 0.5);
+    fitTextInside(badge, 56, 12);
   }
   addHitArea(scene, LAYOUT.primaryX, y, LAYOUT.primaryWidth, 62, frame, onSelect, locked ? 1 : 0.82);
 }
@@ -202,37 +204,34 @@ type AdvancedJobCardOptions = {
 
 function drawAdvancedJob(scene: Phaser.Scene, options: AdvancedJobCardOptions) {
   const { x, width, y, tier, index, name, selected, unlocked, onSelect } = options;
-  const frame = drawOrnateFrame(scene, x, y, width, 52, {
-    fill: selected ? PALETTE.sand : unlocked ? PALETTE.cream : PALETTE.wood,
-    fillAlpha: 0.94,
-    radius: 9,
-  });
-  scene.add
-    .text(x - (width / 2 - 16), y, `${tier}-${index + 1}`, {
-      ...pixelText("micro"),
-      color: unlocked ? PALETTE_HEX.maroon : PALETTE_HEX.sand,
-    })
-    .setOrigin(0, 0.5);
-  const label = scene.add
-    .text(x + (tier === "Ⅱ" ? 12 : 14), y, name, {
-      ...pixelText(unlocked ? "body" : "subtitle"),
-      color: unlocked ? PALETTE_HEX.ink : PALETTE_HEX.cream,
-      align: "center",
-      wordWrap: { width: width - (tier === "Ⅱ" ? 58 : 56) },
-    })
-    .setOrigin(0.5);
-  fitTextInside(label, width - (tier === "Ⅱ" ? 58 : 56), 32);
-  if (selected) {
-    scene.add
-      .text(x + (tier === "Ⅱ" ? 69 : 64), y - 17, t(scene, "common.current"), {
-        ...pixelText("caption"),
-        color: PALETTE_HEX.maroon,
-      })
-      .setOrigin(0.5);
+  const locked = !unlocked || options.selectable === false;
+  const frame = drawOrnateFrame(scene, x, y, width, 62, {
+    fill: selected ? PALETTE.sand : PALETTE.cream,
+    radius: 10,
+  }).setAlpha(locked ? 0.5 : 1);
+  scene.add.text(x - width / 2 + 12, y - 4, `${tier}·${index + 1}`, {
+    ...pixelText("caption"), color: PALETTE_HEX.mutedBrown,
+  }).setOrigin(0, 0.5).setAlpha(locked ? 0.75 : 1);
+  const label = scene.add.text(x + 12, y, name, {
+    ...pixelText("body"), color: PALETTE_HEX.ink, align: "center",
+    wordWrap: { width: width - 54 },
+  }).setOrigin(0.5).setAlpha(locked ? 0.75 : 1);
+  fitTextInside(label, width - 54, 26);
+  const subtitle = scene.add.text(x, y + 20, locked
+    ? (sceneLocale(scene) === "ko" ? "선행 경로 완료 필요" : "COMPLETE REQUIRED PATHS")
+    : t(scene, tier === "Ⅱ" ? "path.tier2" : "path.tier3"), {
+    ...pixelText("caption"), color: PALETTE_HEX.mutedBrown,
+  }).setOrigin(0.5).setAlpha(locked ? 0.75 : 1);
+  fitTextInside(subtitle, width - 16, 14);
+  if (selected || locked) {
+    const badge = scene.add.text(x + width / 2 - 8, y - 22,
+    t(scene, selected ? "common.current" : "common.locked"), {
+      ...pixelText("caption"), color: selected ? PALETTE_HEX.maroon : PALETTE_HEX.mutedBrown,
+    }).setOrigin(1, 0.5);
+    fitTextInside(badge, 56, 12);
   }
-  if (options.selectable !== false) {
-    addHitArea(scene, x, y, width, 52, frame, onSelect, 0.78);
-  }
+  // Like primary cards, locked cards explain their gate without selecting it.
+  addHitArea(scene, x, y, width, 62, frame, onSelect, locked ? 0.5 : 0.82);
 }
 
 function addHitArea(

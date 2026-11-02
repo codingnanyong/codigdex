@@ -1,3 +1,4 @@
+import { GAME_SIZE } from "./gameViewport";
 import Phaser from "phaser";
 import { PALETTE, PALETTE_HEX } from "./palette";
 import { pixelText } from "./pixelFont";
@@ -29,7 +30,7 @@ export function showLoadingScreen(
 ): void {
   if (queuedAssets === 0) return;
 
-  const { width, height } = scene.scale;
+  const { width, height } = GAME_SIZE;
   const depth = 10_000;
   const backdrop = scene.add
     .rectangle(width / 2, height / 2, width, height, PALETTE.nightBrown, 1)

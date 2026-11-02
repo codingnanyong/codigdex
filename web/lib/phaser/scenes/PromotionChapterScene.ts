@@ -3,7 +3,7 @@ import { promotionMissionFor } from "@codigdex/game-content/domain/promotionChap
 import { canSelectSecondaryJob, findSecondaryJob, findTertiaryJob, findJob, tertiaryJobsFor } from "@codigdex/game-content/domain/player/jobs";
 import { completedCareerPathIds } from "@codigdex/game-content/domain/careerPaths";
 import { isCommonPathComplete } from "@codigdex/game-content/domain/chapters";
-import { captureIds, promotionCheckpoints, selectSecondaryCareer, nextWorkshopPhase, isSecondaryStudyComplete, canStartMasterProject, masterCheckpoints, selectTertiaryCareer } from "@codigdex/game-content/domain/gameProgress";
+import { captureIds, canSelectSecondaryCareer, isSecondaryStudyComplete, promotionCheckpoints, selectSecondaryCareer, nextWorkshopPhase, canStartMasterProject, masterCheckpoints, selectTertiaryCareer } from "@codigdex/game-content/domain/gameProgress";
 import { masterMissionFor } from "@codigdex/game-content/domain/masterChapters";
 import { assetUrl } from "../../assets";
 import { applySaveToRegistry, snapshotRegistry } from "../registryAdapter";
@@ -47,14 +47,15 @@ export class PromotionChapterScene extends Phaser.Scene {
     const save = snapshotRegistry(this.registry);
     const captured = captureIds(save);
     if (!mission || !chapter || !job || !isCommonPathComplete(captured) ||
-      (secondary && !canSelectSecondaryJob(secondary, completedCareerPathIds(captured))) ||
+      (secondary && (!canSelectSecondaryJob(secondary, completedCareerPathIds(captured)) || (!canSelectSecondaryCareer(save, secondary.id) && !isSecondaryStudyComplete(save, secondary.id)))) ||
       (tertiary && !canStartMasterProject(save, tertiary.id))) {
       this.scene.start("job-select"); return;
     }
     const ko = sceneLocale(this) === "ko";
     const equipped = !!tertiary || save.player.secondaryJobId === job.id;
+    const reviewOnly = !!secondary && !equipped && !canSelectSecondaryCareer(save, secondary.id);
     if (secondary && equipped) { this.scene.start("secondary-atlas", { jobId: job.id }); return; }
-    const checkpoints = equipped ? tertiary ? masterCheckpoints(save) : promotionCheckpoints(save) : [];
+    const checkpoints = reviewOnly ? chapter.stages.map(monster => ({ chapter, monster, status: "cleared" as const })) : equipped ? tertiary ? masterCheckpoints(save) : promotionCheckpoints(save) : [];
     const complete = chapter.stages.every(({ id }) => captured.has(id));
     const selected = checkpoints.find(({ monster, status }) => monster.id === this.selectedId && status !== "locked")
       ?? checkpoints.find(({ status }) => status === "available")
@@ -75,14 +76,14 @@ export class PromotionChapterScene extends Phaser.Scene {
     drawOrnateFrame(this, 480, 51, 760, 68, { fillAlpha: 0.97, radius: 10 });
     this.add.text(480, 31, `${chapter.label} · ${lt(this, chapter.name)}`, { ...pixelText("subtitle"), color: PALETTE_HEX.maroon }).setOrigin(0.5);
     this.add.text(480, 61, `${lt(this, job.name)} · ${equipped ? `${captured.size ? chapter.stages.filter(({ id }) => captured.has(id)).length : 0}/5` : (ko ? "전직 확인" : "PROMOTION CONFIRMATION")}`, { ...pixelText("caption"), color: PALETTE_HEX.ink }).setOrigin(0.5);
-    drawFiveStageRoute(this, equipped ? checkpoints : chapter.stages.map((monster) => ({ monster, status: "locked" as const })), selected?.monster.id,
+    drawFiveStageRoute(this, equipped || reviewOnly ? checkpoints : chapter.stages.map((monster) => ({ monster, status: "locked" as const })), selected?.monster.id,
       (monsterId) => this.scene.restart({ jobId: job.id, monsterId }), { arena: chapter.arena!.assetKey, onEnter: equipped ? startSelected : undefined,
         enterLabel: tertiary && complete ? (save.player.tertiaryJobId !== tertiary.id ? (ko ? "3차 전직 확정" : "CONFIRM TIER THREE") : (ko ? "선택 단계 다시 검증" : "VERIFY SELECTED STAGE")) : undefined });
     drawOrnateFrame(this, 480, 416, 860, 156, { fillAlpha: 0.98, radius: 12 });
     this.add.image(108, 411, `guide-${this.jobId}`).setDisplaySize(112, 112);
     this.add.text(166, 353, lt(this, chapter.npcName), { ...pixelText("body"), color: PALETTE_HEX.maroon });
     const awarded = !!tertiary && save.player.tertiaryJobId === tertiary.id;
-    const body = awarded ? (ko ? "3차 전직을 확정했습니다. 완성한 설계 의뢰는 언제든 다시 검증할 수 있습니다." : "Your tier-three career is confirmed. You can revisit the completed design milestones at any time.") : !equipped ? lt(this, mission.story.intro) : complete && selected?.status === "cleared" ? lt(this, mission.story.ending) : selected ? lt(this, selected.monster.briefing) : lt(this, mission.story.intro);
+    const body = awarded ? (ko ? "3차 전직을 확정했습니다. 완성한 설계 의뢰는 언제든 다시 검증할 수 있습니다." : "Your tier-three career is confirmed. You can revisit the completed design milestones at any time.") : reviewOnly && selected ? lt(this, selected.monster.briefing) : !equipped ? lt(this, mission.story.intro) : complete && selected?.status === "cleared" ? lt(this, mission.story.ending) : selected ? lt(this, selected.monster.briefing) : lt(this, mission.story.intro);
     const description = this.add.text(166, 379, body, { ...pixelText("body"), color: PALETTE_HEX.ink, wordWrap: { width: 720 }, lineSpacing: 4 });
     fitTextInside(description, 720, 64);
     const discovered = discoveredSourceIds(this.registry, save);
@@ -91,10 +92,14 @@ export class PromotionChapterScene extends Phaser.Scene {
       const related = this.add.text(166, 449, `${ko ? "연관 도구" : "RELATED TOOLS"}: ${tools.map(({ name }) => name).join(" · ")} ↗`, { ...pixelText("caption"), color: PALETTE_HEX.maroon }).setInteractive({ useHandCursor: true }).on("pointerup", () => showOpenSourceNotes(tools.map(({ id }) => id)));
       fitTextInside(related, 710, 18);
     }
-    if (!equipped) {
+    if (!equipped && secondary && !canSelectSecondaryCareer(save, secondary.id)) {
+      this.add.text(166, 470, ko ? "완료한 직군 열람 중 · 현재 전직 유지" : "COMPLETED CAREER REVIEW · CURRENT CAREER RETAINED", { ...pixelText("caption"), color: PALETTE_HEX.maroon });
+    } else if (!equipped) {
       this.add.text(166, 470, secondary!.requires.map((id) => lt(this, findJob(id).name)).join(" + ") + " · MASTER", { ...pixelText("caption"), color: PALETTE_HEX.mutedBrown });
       createButton(this, 742, 509, 320, 34, ko ? "전직하고 의뢰 시작" : "CONFIRM · START MISSION", () => {
-        applySaveToRegistry(this.registry, selectSecondaryCareer(snapshotRegistry(this.registry), secondary!.id));
+        const current = snapshotRegistry(this.registry);
+        if (!canSelectSecondaryCareer(current, secondary!.id)) { this.scene.start("job-select"); return; }
+        applySaveToRegistry(this.registry, selectSecondaryCareer(current, secondary!.id));
         this.scene.start("secondary-atlas", { jobId: job.id });
       });
     } else if (selected) {

@@ -1,3 +1,4 @@
+import { GAME_SIZE } from "../gameViewport";
 import type Phaser from "phaser";
 import { chapterTitle, currentStageIndex, stageStatus } from "@codigdex/game-content/domain/chapters";
 import type { ChapterDefinition } from "@codigdex/game-core/domain/chapters/types";
@@ -58,7 +59,7 @@ export class StagePanel {
     this.chapter = chapter;
     this.captured = captured;
 
-    const { width, height } = scene.scale;
+    const { width, height } = GAME_SIZE;
     const top = -PANEL.height / 2;
     const left = -PANEL.width / 2 + 36;
     const stageCount = chapter.stages.length;

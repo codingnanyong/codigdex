@@ -1,3 +1,4 @@
+import { GAME_SIZE } from "../gameViewport";
 import type Phaser from "phaser";
 import { t } from "../i18n";
 import { PALETTE, PALETTE_HEX } from "../palette";
@@ -6,7 +7,7 @@ import { fitTextInside } from "../ui";
 
 /** Dark research-board backdrop: a faint grid inside a double frame. */
 export function drawMapSurface(scene: Phaser.Scene) {
-  const { width, height } = scene.scale;
+  const { width, height } = GAME_SIZE;
   scene.add.rectangle(width / 2, height / 2, width, height, PALETTE.nightBrown, 1);
 
   const grid = scene.add.graphics();
@@ -27,7 +28,7 @@ export function drawHeader(
   secondaryCareerName?: string,
   tertiaryCareerName?: string
 ) {
-  const { width } = scene.scale;
+  const { width } = GAME_SIZE;
   const panel = scene.add.graphics();
   panel.fillStyle(PALETTE.ink, 0.95);
   panel.fillRect(170, 18, width - 340, 58);

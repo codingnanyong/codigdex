@@ -1,3 +1,4 @@
+import { GAME_SIZE } from "../gameViewport";
 import type Phaser from "phaser";
 import { t } from "../i18n";
 import { PALETTE, PALETTE_HEX } from "../palette";
@@ -8,8 +9,8 @@ export { DEX_FOOTER, DEX_PANEL, dexFooterLayout, type DexScreen } from "./shellL
 
 /** The red handheld shell, its dark screen, and the title across the top. Returns the screen's bounds. */
 export function drawDexShell(scene: Phaser.Scene): DexScreen {
-  const centerX = scene.scale.width / 2;
-  const centerY = scene.scale.height / 2;
+  const centerX = GAME_SIZE.width / 2;
+  const centerY = GAME_SIZE.height / 2;
   const screen: DexScreen = {
     width: DEX_PANEL.width - DEX_PANEL.inset * 2,
     height: DEX_PANEL.height - DEX_PANEL.inset * 2,

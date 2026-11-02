@@ -1,3 +1,4 @@
+import { openGameMenu } from "../test-support/game";
 import { test, expect } from "@playwright/test";
 import { createEmptySave } from "@codigdex/game-core/save/schema";
 import { OPEN_SOURCE_CATALOG } from "@codigdex/game-content/domain/openSourceCatalog";
@@ -14,6 +15,7 @@ test("starts with a discovery notebook instead of a separate expedition menu", a
   await page.addInitScript((save) => localStorage.setItem("codigdex:save:v3", JSON.stringify(save)), createEmptySave("en"));
   await page.goto("/");
   await expect(page.getByRole("application")).toHaveAttribute("data-scene", "intro", { timeout: 20000 });
+  await openGameMenu(page);
   await page.getByRole("button", { name: "OPEN-SOURCE NOTES", exact: true }).click();
   const notes = page.getByRole("dialog");
   await expect(notes).toContainText("No tools discovered yet");
@@ -28,6 +30,7 @@ test("filters bilingual notes, identifies Hadoop components and restores focus w
   await page.goto("/");
   const game = page.getByRole("application");
   await expect(game).toHaveAttribute("data-scene", "intro", { timeout: 20_000 });
+  await openGameMenu(page);
   const launcher = page.getByRole("button", { name: "OPEN-SOURCE NOTES", exact: true });
   await launcher.focus();
   await continueGame(page);
@@ -88,6 +91,7 @@ test("opens chapter-related notes, resumes its battle and keeps save progress un
   await expect(controls).toBeVisible();
   const prompt = await controls.locator(".battle-prompt").innerText();
   const beforeBattleNotes = await page.evaluate(() => localStorage.getItem("codigdex:save:v3"));
+  await openGameMenu(page);
   await page.getByRole("button", { name: "오픈소스 노트", exact: true }).click();
   await expect(dialog).toBeVisible();
   await dialog.getByLabel("검색", { exact: true }).fill("계보");
@@ -102,6 +106,7 @@ test("keeps notes readable on a narrow viewport", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/");
   await expect(page.getByRole("application")).toHaveAttribute("data-scene", "intro", { timeout: 20_000 });
+  await openGameMenu(page);
   await page.getByRole("button", { name: /오픈소스 노트|OPEN-SOURCE NOTES/, exact: true }).click();
   const dialog = page.getByRole("dialog");
   await expect(dialog).toBeVisible();

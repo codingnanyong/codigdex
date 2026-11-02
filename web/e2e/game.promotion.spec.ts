@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { gameQAPresets } from "@codigdex/game-content/domain/qaPresets";
 import { CHAPTERS } from "@codigdex/game-content/domain/chapters";
 import { CAREER_PATHS } from "@codigdex/game-content/domain/careerPaths";
 import { monstersForCareerRegion } from "@codigdex/game-content/domain/careerRegionMonsters";
@@ -25,6 +26,7 @@ function eligibleSave(jobId: SecondaryJobId = "platform-engineer") {
 
 for (const job of SECONDARY_JOB_OPTIONS) test(`restores ${job.id}, visits five painted regions and keeps mastery`, async ({ page }) => {
   test.setTimeout(120000);
+  await page.setViewportSize({ width: 844, height: 390 });
   const errors: string[] = []; page.on("pageerror", error => errors.push(error.message));
   await bootGame(page, selectSecondaryCareer(eligibleSave(job.id), job.id));
   const game = page.getByRole("application");
@@ -135,7 +137,18 @@ for (const job of SECONDARY_JOB_OPTIONS) {
     expect((await readSave(page)).player.secondaryJobId).toBe(job.id);
 
     // Seed an earned mastery snapshot, then use the actual UI to start a new study.
-    const mastered = await readSave(page);
+    const guardiansOnly = await readSave(page);
+    guardiansOnly.progress.captures = guardiansOnly.progress.captures.filter(({ id }) => id !== secondaryRegionsFor(job.id)[0].chapter.stages[1].id);
+    guardiansOnly.progress.captures.push(...PROMOTION_MISSIONS[job.id].chapter.stages.map(({ id }) => ({ id, capturedAt: "2026-11-02T00:00:00.000Z" })));
+    await page.evaluate((save) => localStorage.setItem("codigdex:save:v3", JSON.stringify(save)), guardiansOnly);
+    await reloadGame(page);
+    await openLineage(page);
+    await clickGame(page, 850, rows[SECONDARY_JOB_OPTIONS.indexOf(job)]);
+    await expect(page.getByRole("application")).toHaveAttribute("data-scene", "job-select");
+    await page.screenshot({ path: `../qa-results/career-progression/${job.id}-advanced-locks.png` });
+    await clickGame(page, 245, rows[primaryIds.indexOf(unfinished)]);
+    await expect(page.getByRole("application")).toHaveAttribute("data-scene", "job-select");
+    const mastered = gameQAPresets("en").find(({ id }) => id === `promotion:${job.id}`)!.save;
     mastered.progress.captures.push(...PROMOTION_MISSIONS[job.id].chapter.stages.map(({ id }) => ({ id, capturedAt: "2026-10-30T00:00:00.000Z" })));
     await page.evaluate((save) => localStorage.setItem("codigdex:save:v3", JSON.stringify(save)), mastered);
     await reloadGame(page);
@@ -152,3 +165,24 @@ for (const job of SECONDARY_JOB_OPTIONS) {
     expect(errors).toEqual([]);
   });
 }
+
+test("cannot abandon an unfinished secondary through either lineage or path-map shortcuts", async ({ page }) => {
+  const seed = eligibleSave("fullstack-engineer");
+  seed.progress.captures = [...new Set([...seed.progress.captures.map(({ id }) => id), ...Object.values(CAREER_PATHS).flatMap(path => path.completionCaptureIds)])].map(id => ({ id, capturedAt: "2026-11-02T00:00:00.000Z" }));
+  await bootGame(page, selectSecondaryCareer(seed, "fullstack-engineer"));
+  await openLineage(page);
+  // Completed primary review keeps the equipped secondary identity.
+  await clickGame(page, 245, 184);
+  await expect(page.getByRole("application")).toHaveAttribute("data-scene", "world-map");
+  await clickGame(page, 480, 30);
+  await expect(page.getByRole("application")).toHaveAttribute("data-scene", "path-map");
+  // Backend's middle secondary node is Platform Engineer, now otherwise eligible.
+  await clickGame(page, 790, 315);
+  await expect(page.getByRole("application")).toHaveAttribute("data-scene", "path-map");
+  expect((await readSave(page)).player.secondaryJobId).toBe("fullstack-engineer");
+  await clickGame(page, 92, 513);
+  await expect(page.getByRole("application")).toHaveAttribute("data-scene", "job-select");
+  await clickGame(page, 565, 184);
+  await expect(page.getByRole("application")).toHaveAttribute("data-scene", "job-select");
+  expect((await readSave(page)).player.secondaryJobId).toBe("fullstack-engineer");
+});
