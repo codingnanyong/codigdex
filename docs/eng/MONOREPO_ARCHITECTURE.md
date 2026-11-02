@@ -12,17 +12,21 @@ codigdex/
 ├─ web/                       Next.js + Phaser web application
 ├─ mobile/                    Expo (SDK 57) + React Native application
 └─ packages/
+   ├─ game-account/           shared account state and provider list
    ├─ game-assets/            art files + generated asset-key manifest
    ├─ game-core/              rules, domain types, save schema/migrations
-   ├─ game-content/           monsters, quizzes, chapters, careers
-   └─ game-i18n/              translated UI message catalogs
+   ├─ game-content/           monsters, chapters, careers, surprise-request rules
+   ├─ game-i18n/              translated UI message catalogs
+   └─ quiz-content/           bilingual quiz packs, loaded on demand
 ```
 
 ## Dependency direction
 
 ```text
 web ────────┐
-mobile ─────┼──> game-content ──> game-core
+mobile ─────┼──> game-account ──> game-content, game-core
+            ├──> quiz-content ──> game-content, game-core
+            ├──> game-content ──> game-core
             ├──> game-i18n ─────> game-core
             ├───────────────────> game-core
             └───────────────────> game-assets
@@ -31,6 +35,8 @@ mobile ─────┼──> game-content ──> game-core
 - `game-core` must stay platform-neutral and must not import another workspace.
 - `game-content` may import only `game-core`.
 - `game-i18n` may import only locale contracts from `game-core`.
+- `quiz-content` may import only `game-core` and `game-content`.
+- `game-account` may import only `game-core` and `game-content`, plus React.
 - `game-assets` must not import another workspace.
 
 ## Assets
@@ -46,9 +52,10 @@ packages.
   mirrors the files into the git-ignored `web/public/assets/`, and resolves
   keys with `assetUrl()` from `web/lib/assets.ts`.
 - **mobile** runs `mobile/scripts/generate-asset-map.mjs`, which reads the key
-  list from `packages/game-assets/src/manifest.generated.ts` and emits one
-  static `require()` per key into the committed `mobile/src/assets.generated.ts`
-  — Metro cannot resolve dynamic `require()` calls. `mobile/src/assets.ts`
+  list from `packages/game-assets/src/manifest.generated.ts`, filters it to the
+  art the native game draws, and emits a static `require()` per key into the
+  committed `mobile/src/assets.generated.ts` — Metro cannot resolve dynamic
+  `require()` calls. `mobile/src/assets.ts`
   resolves a key through that map with `mobileAssetSource()`. Every mobile
   script that feeds the bundler — `start`, `android`, `ios`,
   `export:android`, `export:ios` — regenerates the map first, and the mobile
@@ -67,43 +74,51 @@ packages.
 
 `mobile/` is an Expo SDK 57 application (React Native 0.86, React 19) that
 consumes the workspace packages directly. Entry point is `App.tsx`, which
-renders `NativeGame` — a native title/world/battle/result/dex/settings game
-built from plain React Native views plus a
-[React Native Skia](https://shopify.github.io/react-native-skia/) canvas for
-the world scene. See `mobile/README.md` for the full walkthrough.
+renders `NativeGame` — a native game built from plain React Native views plus a
+[React Native Skia](https://shopify.github.io/react-native-skia/) canvas that
+draws the shared wallpapers. See `mobile/README.md` for the full walkthrough.
 
 - **Navigation** is an in-memory route state machine in
-  `mobile/src/game/NativeGame.tsx` (`"title" | "world" | "battle" | "result" |
-  "dex" | "settings"`), not file-based routing — Expo Router and the earlier
-  read-only dex-only slice were replaced by this sprint's playable loop.
+  `mobile/src/game/NativeGame.tsx`, typed by `MobileRoute` in
+  `mobile/src/game/navigation.ts`. It is not file-based routing. Each screen
+  (title, world, career, battle, result, surprise request, open-source notes,
+  dex, monster detail, settings, and QA) lives in its own file under
+  `mobile/src/game/` or `mobile/src/qa/`.
 - **Phaser is not reused.** Mobile screens are plain React Native components;
   there is no WebView or Phaser dependency in the workspace. Web scene
   classes stay in `web/`. Behavior that must match both clients belongs in
   `game-core` or `game-content`, not in a ported scene.
 - **Shared packages in use:** `game-core` for the save schema, migrations,
-  locale contracts, and quiz drawing; `game-content` for `CHAPTERS` and
-  `DEX_MONSTERS`; `quiz-content` for `loadQuizPack()` in the battle screen —
-  the battle and capture-quiz loop now runs on mobile as well as web;
-  `game-assets` for art through the generated `require()` map.
+  locale contracts, and battle rules; `game-content` for chapters, careers,
+  progression gates, the surprise-request session, and QA starting states;
+  `quiz-content` for `loadQuizPack()` in the battle screen; `game-i18n` for UI
+  messages; `game-account` for account state; `game-assets` for art through the
+  generated `require()` map.
 - **Persistence** is `@react-native-async-storage/async-storage` bound to the
   shared `SaveStorage` contract in `mobile/src/storage/`. `load()` reads
   `codigdex:save:v3`, then `:v2`, then `:v1`; `parseSave()` from `game-core`
   migrates v1 and v2 payloads to `StoredGameStateV3`, and a migrated result is
-  written back to the v3 key. Corrupt data or a read failure falls back to
-  `createEmptySave()`. Writes only ever target the v3 key, and every write is
-  currently `.catch(() => undefined)` — a failure is swallowed rather than
-  surfaced (accepted next-sprint work).
-- **Native projects are committed.** This sprint moved `android/` and `ios/`
-  from generated-on-demand to checked-in source trees; only build output and
-  Pods are git-ignored. `app.json`'s `"orientation": "landscape"` is baked
-  into both via `expo prebuild`. iOS currently exits immediately on launch —
-  `Info.plist` has no `UIApplicationSceneManifest`, and UIKit on this SDK
-  requires UIScene lifecycle adoption — which is also accepted next-sprint
-  work; Android has been confirmed to build, install, and reach the title
-  screen on a Pixel 8 emulator.
-- **Typography** is the system monospace font (`mobile/src/ui/theme.ts`); the
-  earlier Galmuri14 bitmap font and its `expo-font` loading gate were dropped
-  this sprint.
+  written back to the v3 key. Corrupt values fall through to the next key. A
+  storage read failure is not treated as an empty save: the app offers a retry
+  and rejects local updates until loading finishes. Writes target only the v3 key
+  and run in order, and a failed write shows a retry prompt.
+- **Surprise-request history** is stored per adventure and device under
+  `codigdex:source-events:v1:<first tutorial capture time>`, separate from the
+  save, with the same read-retry and queued, retryable write behavior. Captured
+  tool cards are ordinary save-v3 captures.
+- **QA data is isolated.** QA requires `__DEV__` and `EXPO_PUBLIC_QA=1`, so release
+  bundles never enable it. Manual QA uses the `qa-sprint04:` key namespace and
+  automated QA uses `qa-home-e2e:`, for both saves and request history.
+- **Native projects are committed.** `android/` and `ios/` are checked-in source
+  trees; only build output, Pods, and local IDE state are git-ignored. `app.json`
+  uses `"orientation": "default"`, so both platforms rotate. iOS uses the UIScene
+  lifecycle through `EXExpoAppSceneDelegate`, and
+  `mobile/scripts/check-native.mjs` statically checks these settings.
+- **Typography** is the Galmuri14 pixel font (`mobile/src/ui/theme.ts`), loaded by
+  `mobile/src/ui/PixelFontGate.tsx` with `expo-font` before the game renders.
+- **Release state:** no EAS, APK/IPA, or store release has been made. Native
+  simulator acceptance is recorded in
+  `qa/home/native-simulator-acceptance.json` (see [Native QA](#native-qa)).
 
 ## Commands
 
@@ -130,9 +145,8 @@ npm run export:ios --workspace @codigdex/mobile
 ```
 
 This project is configured for a native dev/build workflow — `expo run` and
-`expo start --dev-client` — not Expo Go; running it under Expo Go has not
-been validated. Build and install a native dev build first, then start Metro
-against it:
+`expo start --dev-client`. Build and install a native dev build first, then start
+Metro against it:
 
 ```bash
 npm run android --workspace @codigdex/mobile   # build, install, and launch on Android
@@ -143,6 +157,31 @@ npm run start --workspace @codigdex/mobile     # expo start --dev-client
 
 `start`, `android`, and `ios` all regenerate the asset map before Expo starts,
 so a separate `generate:assets` run is no longer needed after changing art.
+
+### Native QA
+
+After `npm ci`, boot a device and start a QA build. Android needs an Android
+emulator, and iOS needs an Xcode simulator on macOS:
+
+```bash
+npm run mobile:qa:android
+npm run mobile:qa:ios
+npm run qa:home -- --platform android --feature all   # automated flows; requires Maestro CLI 2.11+
+```
+
+The 17 QA starting states are picked by hand on the QA screen. They are separate
+from the 28 automated native scenarios. Acceptance on commit `ddc1e73`, finished on
+2026-10-29 KST:
+
+| Platform | Device | Initial full run | Outcome |
+| --- | --- | --- | --- |
+| Android | Pixel_8 · API 36 | 28/28 passed | All 28 scenarios accepted |
+| iOS | iPhone 18 Pro · iOS 27.0 | 27/28 passed, 1 failed | All 28 accepted after the Analytics promotion path passed a full retest with centered taps |
+
+No gameplay code changed for the retest. The run predates the progression guards
+in `7a332d2`. Physical-device IME and accessibility acceptance, real DB, OAuth, and
+cloud round trips, and any EAS or store release remain deferred. COD-258 and
+COD-259 are postponed until the environment is designed.
 
 `export:android` and `export:ios` are the bundler-level checks for mobile. Each
 regenerates the asset map and then runs `expo export` for one platform, into its
@@ -162,17 +201,17 @@ macOS host, Xcode, or CocoaPods. That bounds what a green run proves — the JS
 graph resolves and Hermes accepts it for that platform, and nothing more. It
 says nothing about native module linking, manifest/entitlement or permission
 configuration, app startup, or on-device layout, and it does **not** replace a
-native development build (`expo run:android`, `expo run:ios`, or EAS Build) or a
-run on an emulator, simulator, or real device.
+native development build (`expo run:android`, `expo run:ios`) or a run on an
+emulator, simulator, or real device.
 
 Because the two output directories are siblings, the scripts are independent and
 can run in either order without clobbering each other. Expo CLI replaces its own
 output directory at the start of every run, so no manual pre-clean is needed;
 the generated bundles remain there afterward and `.tmp-expo-export/` is
-git-ignored in full. `.github/workflows/ci.yml` runs **both** exports
-sequentially in the same job — after `typecheck`, `lint`, and `test`, before the
-web build, with `CI=true` set — so the iOS run reuses the Metro transform cache
-the Android run warmed.
+git-ignored in full. `.github/workflows/ci.yml` runs `npm run build:mobile` —
+`check-native.mjs`, **both** exports sequentially, then the `check-bundle.mjs` size
+budgets — after `typecheck`, `lint`, and `test` and before the web build, so the
+iOS run reuses the Metro transform cache the Android run warmed.
 
 Vercel should use `web` as its Root Directory. Because the web application
 imports workspace packages outside that directory, keep **Include source files

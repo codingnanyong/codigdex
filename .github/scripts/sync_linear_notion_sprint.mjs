@@ -37,11 +37,11 @@ export function calculateCycleProgress(issues) {
 export function statusForCycle({ progress, startsAt, endsAt }, now = new Date()) {
   if (progress >= 1) return "Completed";
   if (now < new Date(startsAt)) return "Planned";
-  if (now > new Date(endsAt)) return "Delayed";
+  if (now >= new Date(endsAt)) return "Delayed";
   return "In Progress";
 }
 
-export async function fetchCurrentLinearCycle({
+export async function fetchLinearCycles({
   apiKey,
   teamKey,
   projectName,
@@ -81,9 +81,13 @@ export async function fetchCurrentLinearCycle({
 
   const cycles = cyclesPayload.data?.teams?.nodes?.[0]?.cycles?.nodes ?? [];
   const current = cycles.find(
-    ({ startsAt, endsAt }) => new Date(startsAt) <= now && now <= new Date(endsAt)
+    ({ startsAt, endsAt }) => new Date(startsAt) <= now && now < new Date(endsAt)
   );
   if (!current) throw new Error(`No current Linear cycle found for team ${teamKey}`);
+  // Reconcile last week's status too. Its live membership is NOT a historical
+  // denominator: Linear rolls unfinished issues into the next cycle.
+  const previous = cycles.filter(({ endsAt }) => new Date(endsAt) <= new Date(current.startsAt))
+    .sort((a, b) => Date.parse(b.endsAt) - Date.parse(a.endsAt))[0];
 
   const projects = cyclesPayload.data?.projects?.nodes ?? [];
   if (projects.length !== 1) {
@@ -112,24 +116,32 @@ export async function fetchCurrentLinearCycle({
       }
     }
   `;
-  const issuesPayload = await requestJson(LINEAR_API_URL, {
-    method: "POST",
-    headers: { Authorization: apiKey, "Content-Type": "application/json" },
-    body: JSON.stringify({
-      query: issuesQuery,
-      variables: { cycleId: current.id, projectId: project.id },
-    }),
-  });
-  if (issuesPayload.errors?.length) {
-    throw new Error(`Linear API: ${JSON.stringify(issuesPayload.errors)}`);
-  }
+  const result = [];
+  for (const cycle of [previous, current].filter(Boolean)) {
+    if (cycle.id !== current.id) {
+      result.push({ ...cycle, project, isPrevious: true });
+      continue;
+    }
+    const issuesPayload = await requestJson(LINEAR_API_URL, {
+      method: "POST",
+      headers: { Authorization: apiKey, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        query: issuesQuery,
+        variables: { cycleId: cycle.id, projectId: project.id },
+      }),
+    });
+    if (issuesPayload.errors?.length) {
+      throw new Error(`Linear API: ${JSON.stringify(issuesPayload.errors)}`);
+    }
 
-  const issues = issuesPayload.data?.cycle?.issues;
-  if (!issues) throw new Error(`Linear cycle ${current.number} did not return issues`);
-  if (issues.pageInfo?.hasNextPage) {
-    throw new Error(`Linear cycle ${current.number} has more than 250 project issues`);
+    const issues = issuesPayload.data?.cycle?.issues;
+    if (!issues) throw new Error(`Linear cycle ${cycle.number} did not return issues`);
+    if (issues.pageInfo?.hasNextPage) {
+      throw new Error(`Linear cycle ${cycle.number} has more than 250 project issues`);
+    }
+    result.push({ ...cycle, issues, project });
   }
-  return { ...current, issues, project };
+  return result;
 }
 
 async function findNotionSprintPage({
@@ -169,7 +181,10 @@ async function findNotionSprintPage({
       `Expected one Notion sprint for cycle ${cycleUrl} and project ${projectUrl}, found ${payload.results.length}`
     );
   }
-  return { pageId: payload.results[0].id, cycleUrl };
+  return {
+    pageId: payload.results[0].id, cycleUrl,
+    storedProgress: payload.results[0].properties?.["Completion %"]?.number,
+  };
 }
 
 async function updateNotionSprint({ apiKey, pageId, progress, status, syncedAt }) {
@@ -182,7 +197,7 @@ async function updateNotionSprint({ apiKey, pageId, progress, status, syncedAt }
     },
     body: JSON.stringify({
       properties: {
-        "Completion %": { number: progress },
+        ...(progress === undefined ? {} : { "Completion %": { number: progress } }),
         Status: { select: { name: status } },
         "Last Synced": { date: { start: syncedAt } },
         "Sync Status": { select: { name: "Ready" } },
@@ -203,45 +218,62 @@ export async function syncSprintProgress(env = process.env, now = new Date()) {
     "NOTION_SPRINT_DATA_SOURCE_ID"
   );
 
-  const cycle = await fetchCurrentLinearCycle({
+  const cycles = await fetchLinearCycles({
     apiKey: linearApiKey,
     teamKey,
     projectName,
     projectSlug,
     now,
   });
-  const progress = calculateCycleProgress(cycle.issues.nodes);
-  const status = statusForCycle({ ...cycle, progress: progress.progress }, now);
-  const sprint = await findNotionSprintPage({
-    apiKey: notionApiKey,
-    dataSourceId,
-    workspaceSlug,
-    teamKey,
-    cycleNumber: cycle.number,
-    projectUrl: cycle.project.url,
-  });
-  if (!sprint) {
-    const result = { cycle: cycle.number, status, ...progress, skipped: true };
-    writeOutputs(env.GITHUB_OUTPUT, result);
-    return result;
-  }
-  await updateNotionSprint({
-    apiKey: notionApiKey,
-    pageId: sprint.pageId,
-    progress: progress.progress,
-    status,
-    syncedAt: now.toISOString(),
-  });
+  const results = [];
+  for (const cycle of cycles) {
+    const liveProgress = cycle.isPrevious ? undefined : calculateCycleProgress(cycle.issues.nodes);
+    const sprint = await findNotionSprintPage({
+      apiKey: notionApiKey,
+      dataSourceId,
+      workspaceSlug,
+      teamKey,
+      cycleNumber: cycle.number,
+      projectUrl: cycle.project.url,
+    });
+    if (!sprint) {
+      const result = { cycle: cycle.number, ...liveProgress,
+        status: liveProgress ? statusForCycle({ ...cycle, progress: liveProgress.progress }, now) : undefined,
+        skipped: true };
+      results.push(result);
+      continue;
+    }
+    if (cycle.isPrevious && (typeof sprint.storedProgress !== "number" ||
+      !Number.isFinite(sprint.storedProgress) || sprint.storedProgress < 0 || sprint.storedProgress > 1)) {
+      results.push({ cycle: cycle.number, skipped: true, reason: "missing-completion-snapshot" });
+      continue;
+    }
+    // Preserve the ended sprint's last synced or manually reviewed percentage.
+    // Counting only the issues left behind would turn a 5/10 sprint into 5/5.
+    const progress = liveProgress ?? { completed: null, total: null, progress: sprint.storedProgress };
+    const status = statusForCycle({ ...cycle, progress: progress.progress }, now);
+    await updateNotionSprint({
+      apiKey: notionApiKey,
+      pageId: sprint.pageId,
+      progress: cycle.isPrevious ? undefined : progress.progress,
+      status,
+      syncedAt: now.toISOString(),
+    });
 
-  const result = {
-    cycle: cycle.number,
-    status,
-    ...progress,
-    skipped: false,
-    notionPageId: sprint.pageId,
-  };
-  writeOutputs(env.GITHUB_OUTPUT, result);
-  return result;
+    const result = {
+      cycle: cycle.number,
+      status,
+      ...progress,
+      skipped: false,
+      notionPageId: sprint.pageId,
+      ...(cycle.isPrevious ? { metricSource: "preserved-completion-snapshot" } : {}),
+    };
+    results.push(result);
+  }
+  // Preserve the workflow's existing current-cycle outputs.
+  const current = results.at(-1);
+  writeOutputs(env.GITHUB_OUTPUT, current);
+  return { ...current, reconciledCycles: results };
 }
 
 function writeOutputs(outputPath, values) {

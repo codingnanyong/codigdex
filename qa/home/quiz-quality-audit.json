@@ -1,0 +1,44 @@
+{
+  "version": 1,
+  "reviewedOn": "2026-11-02",
+  "owner": "Codex",
+  "scope": "Targeted fact review; not an exhaustive certification of all quiz content",
+  "reviewedGroups": [
+    {
+      "stageIds": ["check-scout", "case-inspector"],
+      "questionRange": [1, 10],
+      "questionCount": 20,
+      "source": "packages/quiz-content/src/sources/career/testing.ts",
+      "references": ["https://vitest.dev/api/expect.html", "https://vitest.dev/guide/coverage"],
+      "finding": "100% coverage does not imply correct behavior OR a passing test run; the old q08 contained both as possible answers.",
+      "change": "Rewrite these 20 bilingual prompts as concrete cart, discount, exception and CI scenarios. Clarify q08 as line coverage and remove the second valid answer. Keep existing stage IDs, question order and ten questions per stage."
+    },
+    {
+      "stageIds": ["platform-release-ferry"],
+      "questionRange": [1, 20],
+      "questionCount": 20,
+      "source": "packages/quiz-content/src/sources/platform.ts",
+      "references": ["https://sre.google/workbook/canarying-releases/"],
+      "finding": "Release scenarios distinguish required checks, artifact promotion, canaries, rollback, reproducibility and secret handling. All platform correct answers were authored in position zero.",
+      "change": "Use the existing fieldMission helper for all five platform pools (100 questions), rotating correct answer positions while preserving prompts and correct action meanings. This also changes distractor subsets in later questions; only the release pool was manually fact-reviewed in this batch. Regenerate content-derived native QA flows."
+    },
+    {
+      "stageIds": ["open-source:yarn"],
+      "questionRange": [4, 7],
+      "questionCount": 4,
+      "source": "packages/quiz-content/src/sources/openSource.ts",
+      "references": ["https://hadoop.apache.org/docs/stable/hadoop-yarn/hadoop-yarn-site/YARN.html"],
+      "finding": "The four scenarios correctly distinguish ResourceManager, NodeManager, ApplicationMaster and container resource limits.",
+      "change": "No content change."
+    }
+  ],
+  "manualFactReviewCount": 44,
+  "remainingFactReview": "Other tier-two and open-source questions still require manual fact and distractor review; structural validation is not semantic verification.",
+  "primaryPoolInventory": {
+    "technologyCount": 20,
+    "stageCount": 100,
+    "questionsPerStage": 10,
+    "questionCount": 1000,
+    "finding": "Every currently released primary stage uses an authored pool. The legacy generated twenty-question fallback is not used by a released primary stage."
+  }
+}

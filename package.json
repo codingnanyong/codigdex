@@ -16,7 +16,7 @@
     "packages/*"
   ],
   "scripts": {
-    "build:web": "npm run build --workspace @codigdex/web",
+    "build:web": "npm run build --workspace @codigdex/web --",
     "build:mobile": "node mobile/scripts/check-native.mjs && npm run export:android --workspace @codigdex/mobile && npm run export:ios --workspace @codigdex/mobile && node mobile/scripts/check-bundle.mjs",
     "postinstall": "node scripts/link-agent-workspace.mjs",
     "setup:agents": "node scripts/link-agent-workspace.mjs",
@@ -24,7 +24,8 @@
     "check:boundaries": "node scripts/check-package-boundaries.mjs",
     "lint": "npm run lint --workspaces --if-present",
     "test": "npm run test --workspaces --if-present",
-    "test:e2e": "npm run test:e2e --workspace @codigdex/web",
+    "test:e2e": "npm run test:e2e --workspace @codigdex/web --",
+    "smoke:web": "npm run test:e2e --workspace @codigdex/web -- game.smoke.spec.ts",
     "mobile:android": "npm run open:android --workspace @codigdex/mobile",
     "mobile:ios": "npm run open:ios --workspace @codigdex/mobile",
     "mobile:qa": "node scripts/mobile-qa.mjs",

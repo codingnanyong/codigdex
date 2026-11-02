@@ -4,7 +4,7 @@
 
 The Codigdex learning journey runs **tutorial → junior common path → tier 1 promotion → career specialist courses → tier 2 and tier 3 promotion**. This document is the reference for expanding game content, and also the source material for blog posts introducing the developer learning roadmap.
 
-> Last updated: 2026-09-15. Each section describes the current implementation, and parts without content yet are marked **(planned)**. Game-wide rules follow the [Game Design Document](GAME_DESIGN.md). The game supports Korean and English; English names here match the English UI, with the Korean original in parentheses where it helps.
+> Last updated: 2026-11-02. Each section describes the current implementation, and parts without content yet are marked **(planned)**. Game-wide rules follow the [Game Design Document](GAME_DESIGN.md). The game supports Korean and English; English names here match the English UI, with the Korean original in parentheses where it helps.
 
 ## Overall structure
 
@@ -82,7 +82,7 @@ After promotion, each career's v3 wallpaper detail map lays out its technology r
 | Data Engineer | Pipeline Architect Hana (파이프라인 설계자 하나) | Python → SQL · Data modeling → Data pipelines → Docker → Orchestration → Monitoring | 6 |
 | Data Analyst | Insight Detective Ian (인사이트 탐정 이안) | SQL → Basic statistics → Data visualization → BI tools → Python for analysis | 5 |
 
-Regions are defined in `web/lib/phaser/worldMap/careerPaths.ts`. All 28 technology regions are playable. Each region has five ordered monsters, and each monster has a bilingual 20-question pool.
+Regions are defined in `packages/game-content/src/domain/careerPaths.ts`. All 28 technology regions are playable. Each region has five ordered monsters, and each monster has a bilingual 10-question pool.
 
 ### Map depth and navigation
 
@@ -95,6 +95,8 @@ Path map → career detail map → technology region → battle/capture
 Each career wallpaper already paints the routes and landmarks. Instead of numbered discs, the UI adds invisible hit areas fitted to each building's or island's real outline, plus an `order · technology` label. Hovering a region lifts only a transparent texture cut from the wallpaper along that region's outline (`<career>-<region>-terrain-v3.png`), adds a shadow beneath it, and shows the region name in the middle of the map. The hit area (`focusPoints`) is deliberately generous, while the lifted silhouette (`lift`) is defined separately to hug the building's outline. No rectangle or polygon outline is drawn, and the wallpaper itself never moves. The bottom of the map shows the guide NPC, the current career's field character (`MY PLAYER`), and the tier 2 `◆ ???` slot.
 
 So adding a new chapter does not mean redrawing the Path map: add the destination's focus area to the detail map data, then connect that destination to the chapter region.
+
+The maps above describe the web client. The mobile client shows the same regions, checkpoints and gates on native world and career screens.
 
 ### Characters and guide NPCs
 
@@ -130,36 +132,38 @@ Captures go into one dex regardless of career, so a player who captured a shared
 
 - As a junior, the player can pick any of the five tier 1 careers.
 - Once a tier 1 career is picked, the player cannot switch to another tier 1 career until that career's path is complete (MASTER). Other careers show as `locked` on the lineage screen, and tapping one explains that the current career's chapters must all be completed first.
-- Path completion is computed by checking that every capture in the career's final capture list (`completionCaptureIds`) is in the dex. An empty list never counts as complete.
-- Each tier 1 career derives `completionCaptureIds` from its released regions. Completing every checkpoint records that career as MASTER and allows the player to select another tier 1 path.
+- Path completion is computed by checking that every capture in the career's `completionCaptureIds` is in the dex. An empty list never counts as complete.
+- Each tier 1 career derives `completionCaptureIds` from **every checkpoint** in its released regions, not only each region's final stage. Completing all of them records that career as MASTER and allows the player to select another tier 1 path.
+- An earned tier 2 career is kept while the player studies a tier 1 path. While it is equipped and unfinished, completed tier 1 paths can be replayed, but an unfinished tier 1 path cannot be started. After tier 2 mastery, the next tier 1 study can begin and stays binding until that path is complete.
+- The rules live in `packages/game-content/src/domain/gameProgress.ts` and are shared by web and mobile.
+
+> Release status (2026-11-02 KST): the full-checkpoint mastery rule and earned tier 2 preservation are merged into `develop` (PR #141) and into `main` through release PR #142 (merge commit `eeddbd03ecc3757359c3a2073c9758c98264df6d`). CI and the Claude and Codex reviews passed, and the Vercel status is success. The production smoke check against `https://codigdex.vercel.app` passed all 12 cases on 2026-11-02: boot and assets, save and language restoration, and 10 progression regressions across the 5 tier 2 careers. Mobile has no published build.
 
 ## Tier 2 promotion (hybrid careers)
 
-Completing two tier 1 career paths opens a tier 2 career that bridges both fields. Together with the rule that shared cards are kept, this gives a player who finished one career a reason to explore another. Integration chapter content will be built once the required tier 1 paths are complete **(planned)**.
+Completing two tier 1 career paths opens a tier 2 career that bridges both fields. Together with the rule that shared cards are kept, this gives a player who finished one career a reason to explore another. All five integration chapters are playable: 5 chapters, 25 stages and 500 bilingual questions (20 per stage). Stages open in order and use the same battle and capture rules as other chapters.
 
 The career lineage screen shows four columns from left to right: **pre-promotion junior developer → tier 1 → tier 2 → tier 3**. Lines branch from the junior card to every tier 1 career, and each tier 1 career connects to the tier 2 careers it can combine into. The name and selection of a tier 2 career are revealed only when the set of tier 1 careers with a MASTER record covers that career's `requires` pair. For example, completing Frontend and Backend opens Fullstack Engineer, but Platform Engineer / SRE stays locked until DevOps is also complete. Each tier 2 career links horizontally to exactly one tier 3 career so the full lineage never tangles.
 
-| Tier 2 career | Guide NPC | Unlock requirement | Integration chapter topics (examples) |
-| --- | --- | --- | --- |
-| Fullstack Engineer | Boundary Architect Ara (경계의 설계자 아라) | Web Frontend + Backend | Connecting UI and APIs, auth, deployment |
-| Platform Engineer / SRE | Platform Navigator Jun (플랫폼 항해사 준) | Backend + DevOps | Service delivery pipelines, observability, incident response |
-| ML Developer | Model Tamer Yujin (모델 조련사 유진) | Backend + Data Engineer | Model serving, inference APIs, data and model pipelines |
-| MLOps Engineer | Model Operator Siwoo (모델 운영관 시우) | DevOps + Data Engineer | Containerized pipelines, scheduling, monitoring |
-| Analytics Engineer | Metrics Translator Sora (지표 번역가 소라) | Data Engineer + Data Analyst | Data modeling, transformation, metric definitions |
+| Tier 2 career | Guide NPC | Unlock requirement | Integration chapter | Stage topics (Lv.1–Lv.5) |
+| --- | --- | --- | --- | --- |
+| Fullstack Engineer | Boundary Architect Ara (경계의 설계자 아라) | Web Frontend + Backend | CH.24 The Linked Villages | API contracts · request state · transactions · tracing · integration checks and recovery |
+| Platform Engineer / SRE | Platform Navigator Jun (플랫폼 항해사 준) | Backend + DevOps | CH.23 Harbor of Reliability | Release paths · observability · SLOs and error budgets · incident mitigation · recovery verification |
+| ML Developer | Model Tamer Yujin (모델 조련사 유진) | Backend + Data Engineer | CH.25 The Prediction Greenhouse | Samples and data quality · feature parity · leakage-free evaluation · inference contracts · model-service verification |
+| MLOps Engineer | Model Operator Siwoo (모델 운영관 시우) | DevOps + Data Engineer | CH.26 The Cycle Nursery | Data and model lineage · reproducible training · model promotion · drift detection · safe retraining |
+| Analytics Engineer | Metrics Translator Sora (지표 번역가 소라) | Data Engineer + Data Analyst | CH.27 The Metrics Observatory | Table grain · data tests and freshness · metric definitions · change impact · trusted delivery |
 
 - **Only combinations with a real job title exist.** Building all 10 combinations of five tier 1 careers would add content while blurring what each career means.
 - **Reveal like a dex silhouette.** The lineage screen and detail map show only a `◆ ???` slot. The detail map slot only says the identity is revealed after completing another tier 1 career path, while the lineage and Path map slots state the requirement, e.g. "Opens after completing both `<Career A> + <Career B>` paths." Hiding them entirely would leave players unaware they exist, with no motivation to reach them.
-- **Future monsters also hold a dex slot.** Specialist monsters without battles yet show only a number and `???`. Undiscovered slots do not count toward the dex's registered total or completion.
+- **Uncaptured monsters hold a dex slot.** They show only a number and `???`, and they do not count toward the dex's registered total or completion. The dex has 174 entries, including the tier 2 stages and 38 open-source tool cards.
 - **Not just a title.** Each tier 2 career comes with a five-stage integration chapter bridging both fields, its own guide NPC and a career emblem.
-- **Unlocks are recomputed from records.** Tier 1 path completion is verified from captures and then stored as a MASTER record in the career dex; tier 2 and tier 3 unlocks are computed from those records. Changing the selected tier 2 career clears the selected tier 3 career.
-
-Following the career production order (DevOps → Backend → Data Engineer → Web Frontend → Data Analyst), Platform Engineer opens first (once the Backend path is done), and Fullstack Engineer opens after the Web Frontend path is complete.
+- **Unlocks are recomputed from captures.** Tier 1 and tier 2 mastery are derived from released captures each time a save is normalized, not trusted from stored flags. Unearned mastery or unlock records are removed, while captures and records for unknown content are preserved.
 
 ## Tier 3 promotion (master careers)
 
-Tier 3 does not require another career combination. It opens once the player completes the mastery path and final project of their selected tier 2 career. The lineage screen attaches exactly one tier 3 career beside each tier 2 career, so the connecting lines stay simple.
+Tier 3 does not require another career combination. Completing every stage of a tier 2 chapter (`masteryCaptureIds`) records that career as MASTER and reveals the matching tier 3 career's name and emblem. The lineage screen attaches exactly one tier 3 career beside each tier 2 career, so the connecting lines stay simple.
 
-A tier 2 career whose mastery chapter has not shipped keeps its requirement (`masteryCaptureIds`) as an empty array. That state is not treated as a completed tier 2 path, and the tier 3 card stays a `???` preview. Tapping a locked tier 3 card says it opens after completing the `<tier 2 career>` mastery path.
+**Tier 3 gameplay is locked.** No tier 3 chapter exists, `TERTIARY_JOB_SELECTION_ENABLED` is `false`, and normalization always resets `tertiaryJobId` to `null`, so a player cannot promote into or play a tier 3 career. Tier 3 chapters and any final project are **(planned)**. Tapping a locked tier 3 card says it opens after completing the `<tier 2 career>` mastery path.
 
 | Tier 2 career | Tier 3 career | Guide NPC |
 | --- | --- | --- |
@@ -176,14 +180,24 @@ The `Career` tab in Codigdex collects all 16 careers from junior to tier 3, numb
 | Field | Recorded when |
 | --- | --- |
 | `unlockedAt` | The career unlocks. Junior from the start, tier 1 careers when the common path is complete, tier 2 when both tier 1 careers reach MASTER, tier 3 when the matching tier 2 career reaches MASTER |
-| `selectedAt` | The player first promotes into that career |
+| `selectedAt` | The player first promotes into that career. Never set for tier 3 while selection is disabled |
 | `masteredAt` | The player completes that career's path. For junior, when the common path is complete |
 
-The screen shows locked · available · current · MASTER states and a `registered n/16 · MASTER m` summary. Recorded timestamps are never cleared, so a previous career's first-promotion and MASTER history survives a career change.
+The screen shows locked · available · current · MASTER states and a `registered n/16 · MASTER m` summary. A career change does not clear a previous career's first-promotion and MASTER history. A MASTER timestamp is kept only while the captures still earn it.
+
+## Career surprise requests and discovery notes
+
+After a career or promotion battle win, the game may offer an optional request that introduces an open-source tool through the player's current role. Web and mobile share these rules. The catalog has 38 tools with 7 bilingual questions each, 266 in all.
+
+- **Who gets one:** the equipped tier 2 career decides the request; otherwise the tier 1 career does. Common-path battles and request battles do not trigger one.
+- **When:** the first qualifying win in each career makes an offer. After that, no offer comes before 3 wins since the last one, each later win has a 25% chance, and the 6th win always offers while uncaptured tools remain for that career. Only one request can be pending.
+- **Choice:** the player can accept or choose later. Later returns to the normal path, and an offered tool counts as discovered even if it is declined. A failed request battle can be retried, and the normal career checkpoint is kept.
+- **Progress:** tool cards go into the regular dex, but they are never MASTER requirements.
+- **Notes:** the discovery notes review tools the player has already discovered, and relevant discovered tools link from career screens. **There is no independent expedition entrance.** Old expedition bookmarks return to the career path, and tool cards captured before this change stay in the save.
 
 ## Save format
 
-The browser save lives in a single `localStorage` slot, `codigdex:save:v3`. Instead of piling frequently changing screen state into one flat object, it is split into `progress`, `player` and `ui`. The platform-neutral schema and migrations are in `packages/game-core/src/save/schema.ts`.
+The save is a single slot, `codigdex:save:v3`, held in `localStorage` on the web and AsyncStorage on mobile. Instead of piling frequently changing screen state into one flat object, it is split into `progress`, `player` and `ui`. The platform-neutral schema and migrations are in `packages/game-core/src/save/schema.ts`.
 
 ```ts
 {
@@ -193,15 +207,18 @@ The browser save lives in a single `localStorage` slot, `codigdex:save:v3`. Inst
     careers: [{ id, unlockedAt, selectedAt?, masteredAt? }],   // career dex history
   },
   player: { primaryJobId, secondaryJobId, tertiaryJobId },    // currently selected careers
-  ui: { tutorialOnboardingSeen, locale? },                     // screen state and language
+  ui: { tutorialOnboardingSeen, locale?, checkpointId? },      // screen state, language, last checkpoint
 }
 ```
 
 - `progress.captures` stores only the monster ID and capture time. Card display data is rebuilt from the current catalog definitions.
-- `progress.careers` stores each career's unlock, first-selection and MASTER times. Opening the Path map, career lineage or dex appends any newly earned milestones from the current captures and selected careers, without erasing existing history.
-- `player` stores the selected tier 1, 2 and 3 careers. The tier 1 default is `junior`.
-- `ui.locale` stores the language picked in settings (`ko` or `en`). It survives a new game; without it the game starts in the browser's language.
-- Older `codigdex:save:v1` (flat layout) and `codigdex:save:v2` (no `careers`) saves are converted to v3 on first load, rebuilding career dex history from the selected careers. The old slots are kept as a migration safety net, and starting a new game clears all three slots.
+- `progress.careers` stores each career's unlock, first-selection and MASTER times. Normalization recalculates earned milestones from the current captures and selected careers, keeps valid earlier timestamps, and removes records the captures do not support.
+- `player` stores the selected tier 1, 2 and 3 careers. The tier 1 default is `junior`, an earned tier 2 career is kept during tier 1 study, and tier 3 stays `null` while its gameplay is locked.
+- `ui.locale` stores the language picked in settings (`ko` or `en`). It survives a new game; without it the web game starts in the browser's language and the mobile game in Korean.
+- `ui.checkpointId` stores the last playable checkpoint. Old `open-source:` values are cleared so a player returns to the career path.
+- Older `codigdex:save:v1` (flat layout) and `codigdex:save:v2` (no `careers`) saves are converted to v3 on first load, rebuilding career dex history from the selected careers. The old slots are kept as a migration safety net. Starting a new game on the web clears all three slots, while the mobile reset writes an empty save to the v3 slot.
+- Surprise request and discovery history is stored separately under `codigdex:source-events:v1:<first tutorial capture time>`, so it stays with each browser or device and does not travel with the save. Captured tool cards are regular `progress.captures` entries.
+- On mobile, a failed save or history read blocks startup with a retry instead of being treated as empty data. Failed writes show a retry prompt, and QA runs use separate key namespaces. See [`mobile/README.md`](../../mobile/README.md#save-persistence).
 
 ## Technology creature design guidelines
 

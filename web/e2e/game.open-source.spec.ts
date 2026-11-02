@@ -6,6 +6,7 @@ import { CAREER_PATHS } from "@codigdex/game-content/domain/careerPaths";
 import { monstersForCareerRegion } from "@codigdex/game-content/domain/careerRegionMonsters";
 import { selectSecondaryCareer } from "@codigdex/game-content/domain/gameProgress";
 import { webQAPresets } from "../lib/qa/presets";
+import { continueGame } from "../test-support/game";
 
 test("starts with a discovery notebook instead of a separate expedition menu", async ({ page }) => {
   await page.addInitScript((save) => localStorage.setItem("codigdex:save:v3", JSON.stringify(save)), createEmptySave("en"));
@@ -27,7 +28,7 @@ test("filters bilingual notes, identifies Hadoop components and restores focus w
   await expect(game).toHaveAttribute("data-scene", "intro", { timeout: 20_000 });
   const launcher = page.getByRole("button", { name: "OPEN-SOURCE NOTES", exact: true });
   await launcher.focus();
-  await page.keyboard.press("Enter");
+  await continueGame(page);
   const dialog = page.getByRole("dialog", { name: "OPEN-SOURCE FIELD NOTES" });
   await expect(dialog).toBeVisible();
   await expect(dialog.locator("article")).toHaveCount(OPEN_SOURCE_CATALOG.length);

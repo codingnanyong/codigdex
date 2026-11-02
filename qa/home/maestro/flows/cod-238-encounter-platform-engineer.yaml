@@ -32,12 +32,12 @@ tags:
     id: promotion-checkpoint-platform-release-ferry
 - scrollUntilVisible:
     element:
-      id: battle-choice-2
+      id: battle-choice-0
     direction: DOWN
     timeout: 60000
     speed: 20
 - tapOn:
-    id: battle-choice-2
+    id: battle-choice-0
 - scrollUntilVisible:
     element:
       id: battle-feedback
@@ -57,12 +57,12 @@ tags:
     id: battle-next
 - scrollUntilVisible:
     element:
-      id: battle-choice-2
+      id: battle-choice-3
     direction: DOWN
     timeout: 60000
     speed: 20
 - tapOn:
-    id: battle-choice-2
+    id: battle-choice-3
 - scrollUntilVisible:
     element:
       id: battle-feedback

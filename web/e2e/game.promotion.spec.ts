@@ -7,7 +7,7 @@ import { PROMOTION_MISSIONS } from "@codigdex/game-content/domain/promotionChapt
 import { SECONDARY_JOB_OPTIONS, type SecondaryJobId } from "@codigdex/game-content/domain/player/jobs";
 import { completedCareerPathIds } from "@codigdex/game-content/domain/careerPaths";
 import { selectSecondaryCareer } from "@codigdex/game-content/domain/gameProgress";
-import { bootGame, clickGame, answerBattle, confirmResult, readSave, reloadGame } from "../test-support/game";
+import { bootGame, continueGame, clickGame, answerBattle, confirmResult, readSave, reloadGame } from "../test-support/game";
 
 function eligibleSave(jobId: SecondaryJobId = "platform-engineer") {
   const save = createEmptySave("en");
@@ -42,7 +42,7 @@ for (const job of SECONDARY_JOB_OPTIONS) test(`restores ${job.id}, plays all fiv
   await page.screenshot({ path: `../mobile/.tmp-qa/${job.id}-mastery-en.png` });
   await page.reload();
   await expect(game).toHaveAttribute("data-scene", "intro");
-  await page.keyboard.press("Enter");
+  await continueGame(page);
   await expect(game).toHaveAttribute("data-scene", "promotion-chapter");
   const stored = await readSave(page);
   expect(stored.progress.careers.find(({ id }) => id === job.id)?.masteredAt).toBeTruthy();
@@ -54,7 +54,7 @@ for (const job of SECONDARY_JOB_OPTIONS) test(`restores ${job.id}, plays all fiv
   });
   await page.reload();
   await expect(game).toHaveAttribute("data-scene", "intro");
-  await page.keyboard.press("Enter");
+  await continueGame(page);
   await expect(game).toHaveAttribute("data-scene", "promotion-chapter");
   await page.screenshot({ path: `../mobile/.tmp-qa/${job.id}-mastery-ko.png` });
   expect(errors).toEqual([]);
