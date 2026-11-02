@@ -136,7 +136,7 @@ test("@cod-237 locked chapter cannot start; tutorial completion unlocks Git", as
   await clickGame(page, 690, 408); // No enabled battle action is available.
   await scene(page, "path-map");
   expect((await readSave(page)).progress.captures).toHaveLength(0);
-  await clickGame(page, 26, 26);
+  await page.getByRole("button", { name: "HOME", exact: true }).click();
   await scene(page, "intro");
   await page.keyboard.press("Enter");
   await scene(page, "world-map");

@@ -7,6 +7,7 @@ import { assetUrl } from "@/lib/assets";
 import { DEFAULT_LOCALE, isLocale, type Locale } from "@codigdex/game-core/i18n/locale";
 import { fitGameScene, gameViewport } from "@/lib/phaser/gameViewport";
 import { trackSceneImageURLs } from "@/lib/phaser/sceneBackdrop";
+import { gameControlsFor, type GameControls } from "@/lib/phaser/gameControls";
 import { whenPixelFontReady } from "@/lib/phaser/pixelFont";
 import { devicePixelsPerGamePixel, imageRenderingFor } from "@/lib/phaser/displayScale";
 import { LOCALE_CHANGE_EVENT } from "@/lib/phaser/i18nEvents";
@@ -14,6 +15,7 @@ import Link from "next/link";
 import GameHeader from "./GameHeader";
 import { AccountPanel } from "./AccountPanel";
 import { OpenSourcePanel } from "./OpenSourcePanel";
+import { GameIcon } from "./GameIcon";
 
 const ACCESSIBLE_COPY: Readonly<
   Record<Locale, { label: string; controls: string; loading: string; ready: string; failed: string }>
@@ -44,6 +46,8 @@ export default function PhaserGame({ qaEnabled = false }: { qaEnabled?: boolean 
   const [backdrop, setBackdrop] = useState(assetUrl(WALLPAPERS.field));
   const [runtime, setRuntime] = useState<Phaser.Game | null>(null);
   const [activeScene, setActiveScene] = useState("");
+  const [controls, setControls] = useState<GameControls>({});
+  const [accountOpen, setAccountOpen] = useState(false);
   const [locale, setLocale] = useState<Locale>(DEFAULT_LOCALE);
   const [bootState, setBootState] = useState<"loading" | "ready" | "failed">("loading");
 
@@ -101,10 +105,13 @@ export default function PhaserGame({ qaEnabled = false }: { qaEnabled?: boolean 
       let previousScene = "";
       let previousRoot: unknown;
       let previousBackdrop = "";
+      let previousControls: GameControls | undefined;
       game.events.on(PhaserLib.Core.Events.POST_STEP, () => {
         if (cancelled) return;
         const scene = game.scene.getScenes(true).at(-1);
         const current = scene?.sys.settings.key ?? "";
+        const nextControls = gameControlsFor(scene);
+        if (nextControls !== previousControls) { previousControls = nextControls; setControls(nextControls); }
         const root = scene?.children.list[0];
         if (scene && (root !== previousRoot || current !== previousScene)) {
           previousRoot = root;
@@ -184,12 +191,18 @@ export default function PhaserGame({ qaEnabled = false }: { qaEnabled?: boolean 
   return (
     <div ref={shellRef} className="game-shell">
       <div className="game-backdrop" aria-hidden="true" style={{ backgroundImage: `url(${JSON.stringify(backdrop)})` }} />
-      <GameHeader locale={locale}>
+      <GameHeader locale={locale} onClose={() => setAccountOpen(false)}>
+        <button className="game-home-toggle" disabled={!controls.home} onClick={() => { setAccountOpen(false); controls.home?.(); }} title={locale === "ko" ? "홈으로" : "HOME"}>
+          <GameIcon name="home" /><span className="sr-only">{locale === "ko" ? "홈으로" : "HOME"}</span>
+        </button>
+        <button className="game-settings-toggle" disabled={!controls.settings} onClick={() => { setAccountOpen(false); controls.settings?.(); }} title={locale === "ko" ? "설정" : "SETTINGS"}>
+          <GameIcon name="settings" /><span className="sr-only">{locale === "ko" ? "설정" : "SETTINGS"}</span>
+        </button>
         {qaEnabled ? <Link href="/qa" aria-label={locale === "ko" ? "로컬 QA · 테스트 시작점 바꾸기" : "Local QA · choose a test starting point"}>QA</Link> : null}
         {runtime ? <OpenSourcePanel game={runtime} locale={locale} /> : null}
-        {runtime ? <AccountPanel game={runtime} locale={locale} /> : null}
+        {runtime ? <AccountPanel game={runtime} locale={locale} open={accountOpen} onOpenChange={setAccountOpen} /> : null}
         {fullscreenAvailable ? <button className="fullscreen-toggle" aria-pressed={fullscreen} onKeyDown={(event) => event.stopPropagation()} onClick={() => void toggleFullscreen()}>
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d={fullscreen ? "M9 3v6H3m18 0h-6V3M3 15h6v6m6 0v-6h6" : "M3 9V3h6m6 0h6v6M3 15v6h6m6 0h6v-6"} /></svg>
+          <GameIcon name={fullscreen ? "exit-fullscreen" : "fullscreen"} />
           <span className="sr-only">{locale === "ko" ? (fullscreen ? "전체화면 종료" : "전체화면") : (fullscreen ? "EXIT FULLSCREEN" : "FULLSCREEN")}</span>
         </button> : null}
       </GameHeader>
