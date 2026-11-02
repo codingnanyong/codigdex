@@ -19,7 +19,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     env:
-      PLAYWRIGHT_BASE_URL: ${{ inputs.base_url || github.event.deployment_status.environment_url }}
+      # Generated Vercel deployment URLs may require login even for production.
+      # Automatic checks use the public alias; manual runs can select a preview.
+      PLAYWRIGHT_BASE_URL: ${{ inputs.base_url || 'https://codigdex.vercel.app' }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
