@@ -77,7 +77,9 @@ describe.each(TERTIARY_JOB_OPTIONS)("$id final project", (job) => {
       expect(repaired.progress.projects!.find(({ id }) => id === finalProjectId(job.id))?.completedAt).toBe(completedAt);
       expect(normalize(repaired).progress.projects).toEqual(repaired.progress.projects);
       const missingPractice = parseSave(JSON.stringify(interrupted))!;
-      missingPractice.progress.projects!.pop();
+      const lost = missingPractice.progress.projects!.pop()!;
+      const phase = /^workshop:(.+):([0-3])$/.exec(lost.id)!;
+      missingPractice.progress.captures = missingPractice.progress.captures.filter(({ id }) => id !== `evolution:${phase[1]}:${Number(phase[2]) + 1}`);
       expect(isFinalProjectComplete(normalize(missingPractice), job.id)).toBe(false);
       const missingCapture = parseSave(JSON.stringify(interrupted))!;
       missingCapture.progress.captures.pop();

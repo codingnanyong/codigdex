@@ -6,7 +6,7 @@ import { destinationFor, mobileDestination, normalizeMobileSave } from "./naviga
 describe("mobile career routing", () => {
   it.each(careerQAPresets("en").filter(({ id }) => id.startsWith("encounter:")))("resumes $id inside the correct career", ({ save }) => {
     const target = destinationFor(save, save.ui.checkpointId!);
-    expect(target.scene).toBe(save.player.secondaryJobId ? "promotion-chapter" : "career-region");
+    expect(target.scene).toBe(save.player.secondaryJobId ? "secondary-region" : "career-region");
     expect(mobileDestination(target).route).toBe("career");
   });
 

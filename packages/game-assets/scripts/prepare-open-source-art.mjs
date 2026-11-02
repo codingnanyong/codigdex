@@ -10,7 +10,7 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../file
 const names = (await readdir(sources)).filter((name) => name.endsWith(".json")).sort();
 const jobs = await Promise.all(names.map(async (name) => JSON.parse(await readFile(path.join(sources, name), "utf8"))));
 for (const job of jobs) {
-  if (!/^[a-z0-9-]+$/.test(job.id) || job.assetKey !== `characters/open-source/${job.id}-v1.png`) throw new Error(`Invalid asset identity: ${job.id}`);
+  if (!/^[a-z0-9-]+$/.test(job.id) || !/^monsters\/open-source\/[a-z0-9-]+\//.test(job.assetKey) || !job.assetKey.endsWith(`/${job.id}/${job.id}-lv5-v1.png`)) throw new Error(`Invalid asset identity: ${job.id}`);
   const target = path.join(root, job.assetKey);
   await mkdir(path.dirname(target), { recursive: true });
   const { data, info } = await sharp(job.source).trim()

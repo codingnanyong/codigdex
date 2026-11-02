@@ -2,6 +2,7 @@ import type { QuizQuestion } from "@codigdex/game-core/domain/chapters/types";
 import { quizPackDescriptor } from "./manifest";
 import { createQuizPack } from "./pack";
 import type { QuizPack, QuizPackDescriptor } from "./types";
+import { evolutionIdentity } from "@codigdex/game-content/domain/secondaryEvolutionIds";
 
 const cache = new Map<string, Promise<QuizPack>>();
 
@@ -13,19 +14,16 @@ async function loadSource(descriptor: QuizPackDescriptor): Promise<readonly Quiz
   if (descriptor.chapterId.startsWith("open-source:")) {
     return (await import("./sources/openSource")).openSourceQuizSource(descriptor.stageId);
   }
-  if (descriptor.chapterId.startsWith("promotion:") && descriptor.chapterId !== "promotion:platform-engineer") {
-    const { findStage } = await import("@codigdex/game-content/domain/chapters");
-    const index = findStage(descriptor.stageId).index;
-    switch (descriptor.chapterId) {
-      case "promotion:fullstack-engineer": return (await import("./sources/fullstack")).FULLSTACK_QUIZZES[index];
-      case "promotion:ml-developer": return (await import("./sources/ml")).ML_QUIZZES[index];
-      case "promotion:mlops-engineer": return (await import("./sources/mlops")).MLOPS_QUIZZES[index];
-      case "promotion:analytics-engineer": return (await import("./sources/analytics")).ANALYTICS_QUIZZES[index];
-    }
-  }
-  if (descriptor.chapterId === "promotion:platform-engineer") {
-    const [{ PLATFORM_QUIZZES }, { findStage }] = await Promise.all([import("./sources/platform"), import("@codigdex/game-content/domain/chapters")]);
-    return PLATFORM_QUIZZES[findStage(descriptor.stageId).index];
+  const identity = evolutionIdentity(descriptor.stageId);
+  if (identity) {
+    const { jobId, regionIndex, level } = identity;
+    const pools = jobId === "platform-engineer" ? (await import("./sources/platform")).PLATFORM_QUIZZES
+      : jobId === "fullstack-engineer" ? (await import("./sources/fullstack")).FULLSTACK_QUIZZES
+      : jobId === "ml-developer" ? (await import("./sources/ml")).ML_QUIZZES
+      : jobId === "mlops-engineer" ? (await import("./sources/mlops")).MLOPS_QUIZZES
+      : (await import("./sources/analytics")).ANALYTICS_QUIZZES;
+    const pool = pools[regionIndex];
+    return level === 5 ? pool : pool.slice(0, [8, 10, 12, 16][level - 1]);
   }
   if (descriptor.chapterId === "tutorial") {
     const { tutorialQuizSource } = await import("./packs/tutorial");

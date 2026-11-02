@@ -52,6 +52,7 @@ export class PromotionChapterScene extends Phaser.Scene {
     }
     const ko = sceneLocale(this) === "ko";
     const equipped = !!tertiary || save.player.secondaryJobId === job.id;
+    if (secondary && equipped) { this.scene.start("secondary-atlas", { jobId: job.id }); return; }
     const checkpoints = equipped ? tertiary ? masterCheckpoints(save) : promotionCheckpoints(save) : [];
     const complete = chapter.stages.every(({ id }) => captured.has(id));
     const selected = checkpoints.find(({ monster, status }) => monster.id === this.selectedId && status !== "locked")
@@ -91,7 +92,7 @@ export class PromotionChapterScene extends Phaser.Scene {
       this.add.text(166, 470, secondary!.requires.map((id) => lt(this, findJob(id).name)).join(" + ") + " · MASTER", { ...pixelText("caption"), color: PALETTE_HEX.mutedBrown });
       createButton(this, 742, 509, 320, 34, ko ? "전직하고 의뢰 시작" : "CONFIRM · START MISSION", () => {
         applySaveToRegistry(this.registry, selectSecondaryCareer(snapshotRegistry(this.registry), secondary!.id));
-        this.scene.restart({ jobId: job.id });
+        this.scene.start("secondary-atlas", { jobId: job.id });
       });
     } else if (selected) {
       const phase = secondary ? nextWorkshopPhase(save, selected.monster.id) : 4;

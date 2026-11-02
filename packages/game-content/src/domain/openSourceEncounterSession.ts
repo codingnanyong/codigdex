@@ -1,4 +1,6 @@
 import type { StoredGameStateV3 } from "@codigdex/game-core/save/schema";
+import { nextOpenSourceEvolution, sourceEncounterStage } from "./openSourceChapters";
+import { canEnterBattle } from "./gameProgress";
 import { activeSourceCareer, emptyEncounterHistory, planSourceEncounter, type SourceEncounter, type SourceEncounterHistory, type SourceReturnTarget } from "./openSourceEncounters";
 import { parseEncounterHistory, sourceEventStorageKey, type EncounterStorage } from "./openSourceEncounterStorage";
 
@@ -52,7 +54,9 @@ export class SourceEventSession {
   accept(save: StoredGameStateV3, id: string) {
     const pending = this.resolvePending(save);
     if (!pending || pending.id !== id) return false;
-    this.write(save, { ...this.history, pending: { ...pending, state: "active" } });
+    const stage = pending.state === "active" ? sourceEncounterStage(save, pending) : nextOpenSourceEvolution(save, pending.toolId);
+    if (!stage) return false;
+    this.write(save, { ...this.history, pending: { ...pending, state: "active", ...(pending.state === "offered" || pending.stageId ? { stageId: stage.id } : {}) } });
     return true;
   }
 
@@ -65,6 +69,7 @@ export class SourceEventSession {
 
   canBattle(save: StoredGameStateV3, id: string | undefined, monsterId: string) {
     const pending = this.pending(save);
-    return !!id && pending?.id === id && pending.state === "active" && monsterId === `open-source:${pending.toolId}`;
+    return !!id && pending?.id === id && pending.state === "active" && monsterId === sourceEncounterStage(save, pending)?.id &&
+      (!pending.stageId || canEnterBattle(save, monsterId));
   }
 }

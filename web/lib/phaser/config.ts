@@ -9,6 +9,7 @@ import { CodigdexScene } from "./scenes/CodigdexScene";
 import { CareerRegionScene } from "./scenes/CareerRegionScene";
 import { PromotionChapterScene } from "./scenes/PromotionChapterScene";
 import { CareerWorkshopScene } from "./scenes/CareerWorkshopScene";
+import { SecondaryAtlasScene, SecondaryRegionScene } from "./scenes/SecondaryExplorationScenes";
 import { OpenSourceEventScene } from "./scenes/OpenSourceEventScene";
 import { SettingsScene } from "./scenes/SettingsScene";
 import { announceLocale } from "./i18n";
@@ -46,6 +47,8 @@ export function createGameConfig(
       CareerRegionScene,
       PromotionChapterScene,
       CareerWorkshopScene,
+      SecondaryAtlasScene,
+      SecondaryRegionScene,
       OpenSourceEventScene,
       CodeBattleScene,
       CaptureQuizScene,

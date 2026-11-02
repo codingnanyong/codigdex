@@ -10,9 +10,9 @@ import { quizCountForLevel } from "@codigdex/game-core/domain/dex/quiz";
 import { loadMixedQuizPack, validateQuizPack } from "@codigdex/quiz-content";
 import { SECONDARY_JOB_OPTIONS, TERTIARY_JOB_OPTIONS, TERTIARY_JOB_SELECTION_ENABLED, type SecondaryJobId } from "@codigdex/game-content/domain/player/jobs";
 import { resolveCaptureSuccessFlow } from "@/lib/phaser/capture/resultFlow";
-import { completeWorkshopPractice } from "@codigdex/game-content/domain/gameProgress";
 import { loadQuizPack } from "@codigdex/quiz-content/loader";
 import { masterChapterFor } from "@codigdex/game-content/domain/masterChapters";
+import { secondaryRegionForStage, secondaryRegionsFor } from "@codigdex/game-content/domain/secondaryExploration";
 
 const at = "2026-10-27T00:00:00.000Z";
 function eligibleSave(jobId: SecondaryJobId) {
@@ -25,15 +25,16 @@ function eligibleSave(jobId: SecondaryJobId) {
 }
 
 async function practice(save: ReturnType<typeof createEmptySave>, stageId: string) {
-  const pack = await loadQuizPack(promotionChapterFor(save.player.secondaryJobId)!.stages.find(({ id }) => id === stageId)!.quizPackId);
-  for (let phase = 0; phase < 4; phase++) {
-    let battle = createBattleState(pack.questions.slice(phase * 5, phase * 5 + 5));
+  const region = secondaryRegionForStage(stageId)!;
+  for (const form of region.chapter.stages.slice(0, 4)) {
+    const pack = await loadQuizPack(form.quizPackId);
+    let battle = createBattleState(pack.questions.slice(0, quizCountForLevel(form.level)));
     while (battle.status === "active") {
       const question = battle.questions[battle.questionIndex];
       if (question.type === "freeText") throw new Error("Expected practice choices");
       battle = submitBattleAnswer(battle, battle.questionIndex, question.answerIndex);
     }
-    save = completeWorkshopPractice(save, stageId, phase, battle);
+    save = captureCheckpoint(save, form.id, battle);
   }
   return save;
 }
@@ -51,7 +52,7 @@ describe.each(SECONDARY_JOB_OPTIONS)("$id promotion mission", (job) => {
     expect(selectSecondaryCareer(missing, job.id)).toBe(missing);
     const selected = selectSecondaryCareer(eligible(), job.id, () => at);
     expect(selected.player.secondaryJobId).toBe(job.id);
-    expect(promotionCheckpoints(selected).map(({ status }) => status)).toEqual(["available", "locked", "locked", "locked", "locked"]);
+    expect(promotionCheckpoints(selected).map(({ status }) => status)).toEqual(["locked", "locked", "locked", "locked", "locked"]);
     const restored = eligible();
     restored.player.primaryJobId = "junior";
     expect(canEnterBattle(selectSecondaryCareer(restored, job.id), chapter.stages[0].id)).toBe(false);
@@ -75,7 +76,7 @@ describe.each(SECONDARY_JOB_OPTIONS)("$id promotion mission", (job) => {
     expect(selectGameCareer(selected, other)).toBe(selected);
     const oldBookmark = { ...selected, player: { ...selected.player, primaryJobId: other }, ui: { ...selected.ui, checkpointId: monstersForCareerRegion(CAREER_PATHS[other].regions[0].id)[0].id } };
     expect(canEnterBattle(oldBookmark, oldBookmark.ui.checkpointId)).toBe(false);
-    expect(resumeCheckpoint(oldBookmark).chapter.id).toBe(chapter.id);
+    expect(resumeCheckpoint(oldBookmark).chapter.id).toBe(secondaryRegionsFor(job.id)[0].chapter.id);
     const replay = selectGameCareer(selected, job.requires[0]);
     expect(replay.player.secondaryJobId).toBe(job.id);
     const mastered = normalizeGameSave({ ...selected, progress: { ...selected.progress, captures: [...selected.progress.captures, ...chapter.stages.map(({ id }) => ({ id, capturedAt: at }))] } });
@@ -88,7 +89,7 @@ describe.each(SECONDARY_JOB_OPTIONS)("$id promotion mission", (job) => {
     expect(resumeCheckpoint(restored).monster.id).toBe(studying.ui.checkpointId);
     // The newly chosen primary remains binding until its own path is complete.
     expect(selectGameCareer(restored, job.requires[0])).toBe(restored);
-    expect(selectSecondaryCareer(restored, job.id).ui.checkpointId).toBe(chapter.stages.at(-1)!.id);
+    expect(selectSecondaryCareer(restored, job.id).ui.checkpointId).toBe(secondaryRegionsFor(job.id)[0].chapter.stages[0].id);
   });
 
   it("loads twenty distinct bilingual questions per stage and validates each pack", async () => {
@@ -117,7 +118,7 @@ describe.each(SECONDARY_JOB_OPTIONS)("$id promotion mission", (job) => {
       save = captureCheckpoint(save, monster.id, battle);
       expect(captureCheckpoint(save, monster.id, battle)).toBe(save);
       save = normalizeGameSave(parseSave(JSON.stringify(save))!);
-      const next = index === 4 ? masterChapterFor(TERTIARY_JOB_OPTIONS.find(({ requires }) => requires === job.id)!.id)!.stages[0] : chapter.stages[index + 1];
+      const next = index === 4 ? masterChapterFor(TERTIARY_JOB_OPTIONS.find(({ requires }) => requires === job.id)!.id)!.stages[0] : secondaryRegionsFor(job.id)[index + 1].chapter.stages[0];
       expect(resumeCheckpoint(save).monster.id).toBe(next.id);
     }
     expect(promotionCheckpoints(save).every(({ status }) => status === "cleared")).toBe(true);
@@ -173,7 +174,7 @@ it("keeps each promotion bookmark and captures when switching among all five pat
   }
   for (const job of SECONDARY_JOB_OPTIONS) {
     save = normalizeGameSave(parseSave(JSON.stringify(selectSecondaryCareer(save, job.id)))!);
-    expect(resumeCheckpoint(save).monster.id).toBe(promotionChapterFor(job.id)!.stages[1].id);
+    expect(resumeCheckpoint(save).monster.id).toBe(secondaryRegionsFor(job.id)[1].chapter.stages[0].id);
     expect(SECONDARY_JOB_OPTIONS.every(({ id }) => captureIdsForTest(save).has(promotionChapterFor(id)!.stages[0].id))).toBe(true);
     const other = SECONDARY_JOB_OPTIONS.find(({ id }) => id !== job.id)!;
     expect(canEnterBattle(save, promotionChapterFor(other.id)!.stages[0].id)).toBe(false);

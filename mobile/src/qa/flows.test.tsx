@@ -224,6 +224,7 @@ async function startCareer(id: string, locale: "ko" | "en" = "en", confirm = tru
   await launch();
   await tap("home-play");
   await tap(`${seed.player.secondaryJobId ? "promotion" : "career"}-checkpoint-${seed.ui.checkpointId}`);
+  if (seed.player.secondaryJobId) await tap("workshop-start-battle");
   await playBattle(seed.ui.checkpointId!);
   expect((await element({ id: "result-title" })).textContent).toBe(locale === "ko" ? "포획 성공" : "CAPTURED");
   expect(saved().progress.captures.some(({ id }) => id === seed.ui.checkpointId)).toBe(true);
@@ -240,10 +241,10 @@ for (const career of SOURCE_CAREERS) it(`meets and captures ${career.firstTool} 
     await element({ id: "source-event-title" });
   }
   await tap("source-event-accept");
-  await playBattle(`open-source:${career.firstTool}`);
+  await playBattle(`open-source:${career.firstTool}:lv1`);
   expect(container.querySelector("[data-pixel-scene]")?.getAttribute("data-pixel-scene")).toBe("field");
   expect(saved().ui.checkpointId).toBe(checkpoint);
-  expect(saved().progress.captures.filter(({ id }) => id === `open-source:${career.firstTool}`)).toHaveLength(1);
+  expect(saved().progress.captures.filter(({ id }) => id === `open-source:${career.firstTool}:lv1`)).toHaveLength(1);
   expect(saved().player).toEqual(seed.player);
   expect(saved().progress.captures).toEqual(expect.arrayContaining(seed.progress.captures));
   if (career.id === "data-engineer") {
@@ -259,13 +260,13 @@ for (const career of SOURCE_CAREERS) it(`meets and captures ${career.firstTool} 
 it("restores an accepted request after failure and retries without moving its career bookmark", async () => {
   const { checkpoint } = await startCareer("frontend", "ko");
   await tap("source-event-accept");
-  await playBattle("open-source:tanstack-query", false);
-  expect(saved().progress.captures.some(({ id }) => id === "open-source:tanstack-query")).toBe(false);
+  await playBattle("open-source:tanstack-query:lv1", false);
+  expect(saved().progress.captures.some(({ id }) => id === "open-source:tanstack-query:lv1")).toBe(false);
   await tap("result-retry");
   await launch(); await tap("home-play");
   expect((await element({ id: "source-event-accept" })).textContent).toContain("의뢰 다시 도전");
   await tap("source-event-accept");
-  await playBattle("open-source:tanstack-query");
+  await playBattle("open-source:tanstack-query:lv1");
   await tap("result-continue");
   await element({ id: "career-title" });
   expect(saved().ui.checkpointId).toBe(checkpoint);
@@ -315,24 +316,24 @@ it("retains encounter authorization when its quiz loading fails and is retried",
   qaFaults.failNextQuiz();
   await tap("source-event-accept");
   await tap("battle-retry-load");
-  await playBattle("open-source:tanstack-query");
+  await playBattle("open-source:tanstack-query:lv1");
   await tap("result-world");
   await element({ id: "career-title" });
   expect(saved().ui.checkpointId).toBe(checkpoint);
-  expect(saved().progress.captures.filter(({ id }) => id === "open-source:tanstack-query")).toHaveLength(1);
+  expect(saved().progress.captures.filter(({ id }) => id === "open-source:tanstack-query:lv1")).toHaveLength(1);
 }, 20000);
 
 it("retries finishing-history writes from the career screen without repeating a captured request", async () => {
   await startCareer("frontend");
   await tap("source-event-accept");
-  await playBattle("open-source:tanstack-query");
+  await playBattle("open-source:tanstack-query:lv1");
   qaFaults.failNextSourceSave();
   await tap("result-world");
   await tap("career-retry-save");
   await vi.waitFor(() => expect(container.querySelector('[data-testid="career-retry-save"]')).toBeNull());
   await launch(); await tap("home-play");
   await element({ id: "career-title" });
-  expect(saved().progress.captures.filter(({ id }) => id === "open-source:tanstack-query")).toHaveLength(1);
+  expect(saved().progress.captures.filter(({ id }) => id === "open-source:tanstack-query:lv1")).toHaveLength(1);
 }, 20000);
 
 it("does not report a rejected encounter capture as successful", async () => {
@@ -342,9 +343,9 @@ it("does not report a rejected encounter capture as successful", async () => {
     const current = controls!;
     current.sourceEvents.finish(current.save, current.sourceEvents.pending(current.save)!.id);
   });
-  await playBattle("open-source:tanstack-query");
+  await playBattle("open-source:tanstack-query:lv1");
   expect((await element({ id: "result-title" })).textContent).toBe("TRY AGAIN");
-  expect(saved().progress.captures.some(({ id }) => id === "open-source:tanstack-query")).toBe(false);
+  expect(saved().progress.captures.some(({ id }) => id === "open-source:tanstack-query:lv1")).toBe(false);
 }, 20000);
 
 it("keeps a newer imported save when initial history hydration finishes late", async () => {

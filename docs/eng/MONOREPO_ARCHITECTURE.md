@@ -222,21 +222,31 @@ script synchronizes `@codigdex/game-assets` first.
 
 ## Regional workshops and final projects
 
-`promotionWorkshops.ts` owns 25 bilingual worked examples and references. Four
-five-question practice decks per region share the existing tier 2 pools and save
-100 completion checkpoints across the five careers. `masterChapters.ts` adds
+`promotionWorkshops.ts` owns 25 bilingual worked examples and references.
+`secondaryExploration.ts` defines five atlases and 25 regional evolution families.
+Capturing each of the first four forms settles one practice record, saving 100
+checkpoints across the five careers. Early packs reuse the existing tier 2 pools.
+`masterChapters.ts` adds
 five final projects with five milestones each; `quiz-content/sources/master.ts`
 combines 75 new required design questions with related foundation review. The
 shared draw and battle reducer always include and require all design criteria.
 
 Save v3 adds optional `progress.projects` entries (`id`, `completedAt`). Missing
-entries on old saves mean unfinished practice; existing captures remain. Schema,
+records are recovered from early evolution captures after an interrupted write;
+otherwise missing entries mean unfinished practice. Existing captures remain. Schema,
 parser, creation, merge, Web registry snapshots and native queued writes preserve
 the field, including unknown IDs. `gameProgress.ts` derives eligibility and
 settles final projects; explicit confirmation equips tier 3. The source now has
-199 monster entries, 23 manual QA starting states and 34 generated native flows.
+451 monster entries, 23 manual QA starting states and 34 generated native flows.
 The October acceptance above remains a historical result for the older build;
 new flows need simulator/device acceptance. This expansion awaits publication.
+
+OSS encounter history optionally pins `stageId` when accepted. One request captures
+one form and returns to the original career; its next meeting offers the next
+uncaptured form. `monsters/open-source/<family>/<tool>/` owns all five forms,
+including byte-identical relocated final art. Native wallpaper keys map to
+640×360 derivatives; the bundle checker measures the files actually imported.
+`generate-dex-art-archive.mts` emits the 451-entry archive and canonical hash audit.
 
 `web-smoke.yml` supports production and same-repository PR Preview deployment
 events. Tests and scripts for deployment events come from the default branch.

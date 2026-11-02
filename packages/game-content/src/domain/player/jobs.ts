@@ -63,7 +63,7 @@ const careerOverworldArt = (careerId: JobId) =>
   `characters/player/overworld-player-${careerId}-v1.png`;
 
 export const CAREER_CHARACTER_GUIDE_ASSET_KEY =
-  "characters/career-path/career-character-guide-v2.png";
+  "characters/career-path/character-collection-guide-v3.png";
 export const OVERWORLD_PLAYER_TEXTURE_KEY = "player-overworld";
 export const OVERWORLD_PLAYER_ASSET_KEY =
   "characters/player/overworld-player-v1.png";

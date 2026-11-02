@@ -1,5 +1,5 @@
 appId: com.codingnanyong.codigdex
-name: COD-238 regional learning, four practice checkpoints and restart
+name: COD-238 one species, five evolution battles, practice settlement and restart
 tags:
   - cod-238
   - workshops
@@ -23,108 +23,215 @@ tags:
     id: home-play
 - scrollUntilVisible:
     element:
-      id: workshop-open-platform-release-ferry
+      id: promotion-checkpoint-evolution:platform-release-ferry:1
     direction: DOWN
     timeout: 60000
     speed: 20
+    centerElement: true
 - tapOn:
-    id: workshop-open-platform-release-ferry
+    id: promotion-checkpoint-evolution:platform-release-ferry:1
 - scrollUntilVisible:
     element:
-      id: workshop-answer-0
+      id: workshop-start-battle
     direction: DOWN
     timeout: 60000
     speed: 20
 - tapOn:
-    id: workshop-answer-0
+    id: workshop-start-battle
 - scrollUntilVisible:
     element:
-      id: workshop-next
+      id: battle-choice-0
     direction: DOWN
     timeout: 60000
     speed: 20
 - tapOn:
-    id: workshop-next
+    id: battle-choice-0
 - scrollUntilVisible:
     element:
-      id: workshop-answer-1
+      id: battle-feedback
     direction: DOWN
     timeout: 60000
     speed: 20
-- tapOn:
-    id: workshop-answer-1
+- assertVisible:
+    id: battle-feedback
+    text: CORRECT!
 - scrollUntilVisible:
     element:
-      id: workshop-next
+      id: battle-next
     direction: DOWN
     timeout: 60000
     speed: 20
 - tapOn:
-    id: workshop-next
+    id: battle-next
 - scrollUntilVisible:
     element:
-      id: workshop-answer-2
+      id: battle-choice-0
     direction: DOWN
     timeout: 60000
     speed: 20
 - tapOn:
-    id: workshop-answer-2
+    id: battle-choice-0
 - scrollUntilVisible:
     element:
-      id: workshop-next
+      id: battle-feedback
     direction: DOWN
     timeout: 60000
     speed: 20
-- tapOn:
-    id: workshop-next
+- assertVisible:
+    id: battle-feedback
+    text: CORRECT!
 - scrollUntilVisible:
     element:
-      id: workshop-answer-1
+      id: battle-next
     direction: DOWN
     timeout: 60000
     speed: 20
 - tapOn:
-    id: workshop-answer-1
+    id: battle-next
+- assertVisible:
+    id: result-title
+    text: CAPTURED
 - scrollUntilVisible:
     element:
-      id: workshop-next
+      id: result-continue
     direction: DOWN
     timeout: 60000
     speed: 20
 - tapOn:
-    id: workshop-next
+    id: result-continue
+- runFlow:
+    when:
+      visible:
+        id: source-event-title
+    commands:
+      - scrollUntilVisible:
+          element:
+            id: source-event-later
+          direction: DOWN
+          timeout: 60000
+          speed: 20
+      - tapOn:
+          id: source-event-later
+- assertVisible:
+    id: career-title
 - scrollUntilVisible:
     element:
-      id: workshop-answer-2
+      id: promotion-checkpoint-evolution:platform-release-ferry:2
     direction: DOWN
     timeout: 60000
     speed: 20
+    centerElement: true
 - tapOn:
-    id: workshop-answer-2
+    id: promotion-checkpoint-evolution:platform-release-ferry:2
 - scrollUntilVisible:
     element:
-      id: workshop-next
+      id: workshop-start-battle
     direction: DOWN
     timeout: 60000
     speed: 20
 - tapOn:
-    id: workshop-next
+    id: workshop-start-battle
 - scrollUntilVisible:
     element:
-      id: workshop-answer-3
+      id: battle-choice-3
     direction: DOWN
     timeout: 60000
     speed: 20
 - tapOn:
-    id: workshop-answer-3
+    id: battle-choice-3
 - scrollUntilVisible:
     element:
-      id: workshop-next
+      id: battle-feedback
+    direction: DOWN
+    timeout: 60000
+    speed: 20
+- assertVisible:
+    id: battle-feedback
+    text: CORRECT!
+- scrollUntilVisible:
+    element:
+      id: battle-next
     direction: DOWN
     timeout: 60000
     speed: 20
 - tapOn:
-    id: workshop-next
+    id: battle-next
+- scrollUntilVisible:
+    element:
+      id: battle-choice-2
+    direction: DOWN
+    timeout: 60000
+    speed: 20
+- tapOn:
+    id: battle-choice-2
+- scrollUntilVisible:
+    element:
+      id: battle-feedback
+    direction: DOWN
+    timeout: 60000
+    speed: 20
+- assertVisible:
+    id: battle-feedback
+    text: CORRECT!
+- scrollUntilVisible:
+    element:
+      id: battle-next
+    direction: DOWN
+    timeout: 60000
+    speed: 20
+- tapOn:
+    id: battle-next
+- scrollUntilVisible:
+    element:
+      id: battle-choice-2
+    direction: DOWN
+    timeout: 60000
+    speed: 20
+- tapOn:
+    id: battle-choice-2
+- scrollUntilVisible:
+    element:
+      id: battle-feedback
+    direction: DOWN
+    timeout: 60000
+    speed: 20
+- assertVisible:
+    id: battle-feedback
+    text: CORRECT!
+- scrollUntilVisible:
+    element:
+      id: battle-next
+    direction: DOWN
+    timeout: 60000
+    speed: 20
+- tapOn:
+    id: battle-next
+- assertVisible:
+    id: result-title
+    text: CAPTURED
+- scrollUntilVisible:
+    element:
+      id: result-continue
+    direction: DOWN
+    timeout: 60000
+    speed: 20
+- tapOn:
+    id: result-continue
+- runFlow:
+    when:
+      visible:
+        id: source-event-title
+    commands:
+      - scrollUntilVisible:
+          element:
+            id: source-event-later
+          direction: DOWN
+          timeout: 60000
+          speed: 20
+      - tapOn:
+          id: source-event-later
+- assertVisible:
+    id: career-title
 - stopApp
 - launchApp
 - extendedWaitUntil:
@@ -141,108 +248,274 @@ tags:
     id: home-play
 - scrollUntilVisible:
     element:
-      id: workshop-open-platform-release-ferry
+      id: promotion-checkpoint-evolution:platform-release-ferry:3
     direction: DOWN
     timeout: 60000
     speed: 20
+    centerElement: true
 - tapOn:
-    id: workshop-open-platform-release-ferry
+    id: promotion-checkpoint-evolution:platform-release-ferry:3
 - scrollUntilVisible:
     element:
-      id: workshop-answer-2
+      id: workshop-start-battle
     direction: DOWN
     timeout: 60000
     speed: 20
 - tapOn:
-    id: workshop-answer-2
+    id: workshop-start-battle
 - scrollUntilVisible:
     element:
-      id: workshop-next
+      id: battle-choice-3
     direction: DOWN
     timeout: 60000
     speed: 20
 - tapOn:
-    id: workshop-next
+    id: battle-choice-3
 - scrollUntilVisible:
     element:
-      id: workshop-answer-3
+      id: battle-feedback
     direction: DOWN
     timeout: 60000
     speed: 20
-- tapOn:
-    id: workshop-answer-3
+- assertVisible:
+    id: battle-feedback
+    text: CORRECT!
 - scrollUntilVisible:
     element:
-      id: workshop-next
+      id: battle-next
     direction: DOWN
     timeout: 60000
     speed: 20
 - tapOn:
-    id: workshop-next
+    id: battle-next
 - scrollUntilVisible:
     element:
-      id: workshop-answer-0
+      id: battle-choice-3
     direction: DOWN
     timeout: 60000
     speed: 20
 - tapOn:
-    id: workshop-answer-0
+    id: battle-choice-3
 - scrollUntilVisible:
     element:
-      id: workshop-next
+      id: battle-feedback
     direction: DOWN
     timeout: 60000
     speed: 20
-- tapOn:
-    id: workshop-next
+- assertVisible:
+    id: battle-feedback
+    text: CORRECT!
 - scrollUntilVisible:
     element:
-      id: workshop-answer-3
+      id: battle-next
     direction: DOWN
     timeout: 60000
     speed: 20
 - tapOn:
-    id: workshop-answer-3
+    id: battle-next
 - scrollUntilVisible:
     element:
-      id: workshop-next
+      id: battle-choice-1
     direction: DOWN
     timeout: 60000
     speed: 20
 - tapOn:
-    id: workshop-next
+    id: battle-choice-1
 - scrollUntilVisible:
     element:
-      id: workshop-answer-0
+      id: battle-feedback
     direction: DOWN
     timeout: 60000
     speed: 20
-- tapOn:
-    id: workshop-answer-0
+- assertVisible:
+    id: battle-feedback
+    text: CORRECT!
 - scrollUntilVisible:
     element:
-      id: workshop-next
+      id: battle-next
     direction: DOWN
     timeout: 60000
     speed: 20
 - tapOn:
-    id: workshop-next
+    id: battle-next
+- assertVisible:
+    id: result-title
+    text: CAPTURED
 - scrollUntilVisible:
     element:
-      id: workshop-answer-1
+      id: result-continue
     direction: DOWN
     timeout: 60000
     speed: 20
 - tapOn:
-    id: workshop-answer-1
+    id: result-continue
+- runFlow:
+    when:
+      visible:
+        id: source-event-title
+    commands:
+      - scrollUntilVisible:
+          element:
+            id: source-event-later
+          direction: DOWN
+          timeout: 60000
+          speed: 20
+      - tapOn:
+          id: source-event-later
+- assertVisible:
+    id: career-title
 - scrollUntilVisible:
     element:
-      id: workshop-next
+      id: promotion-checkpoint-evolution:platform-release-ferry:4
+    direction: DOWN
+    timeout: 60000
+    speed: 20
+    centerElement: true
+- tapOn:
+    id: promotion-checkpoint-evolution:platform-release-ferry:4
+- scrollUntilVisible:
+    element:
+      id: workshop-start-battle
     direction: DOWN
     timeout: 60000
     speed: 20
 - tapOn:
-    id: workshop-next
+    id: workshop-start-battle
+- scrollUntilVisible:
+    element:
+      id: battle-choice-0
+    direction: DOWN
+    timeout: 60000
+    speed: 20
+- tapOn:
+    id: battle-choice-0
+- scrollUntilVisible:
+    element:
+      id: battle-feedback
+    direction: DOWN
+    timeout: 60000
+    speed: 20
+- assertVisible:
+    id: battle-feedback
+    text: CORRECT!
+- scrollUntilVisible:
+    element:
+      id: battle-next
+    direction: DOWN
+    timeout: 60000
+    speed: 20
+- tapOn:
+    id: battle-next
+- scrollUntilVisible:
+    element:
+      id: battle-choice-0
+    direction: DOWN
+    timeout: 60000
+    speed: 20
+- tapOn:
+    id: battle-choice-0
+- scrollUntilVisible:
+    element:
+      id: battle-feedback
+    direction: DOWN
+    timeout: 60000
+    speed: 20
+- assertVisible:
+    id: battle-feedback
+    text: CORRECT!
+- scrollUntilVisible:
+    element:
+      id: battle-next
+    direction: DOWN
+    timeout: 60000
+    speed: 20
+- tapOn:
+    id: battle-next
+- scrollUntilVisible:
+    element:
+      id: battle-choice-1
+    direction: DOWN
+    timeout: 60000
+    speed: 20
+- tapOn:
+    id: battle-choice-1
+- scrollUntilVisible:
+    element:
+      id: battle-feedback
+    direction: DOWN
+    timeout: 60000
+    speed: 20
+- assertVisible:
+    id: battle-feedback
+    text: CORRECT!
+- scrollUntilVisible:
+    element:
+      id: battle-next
+    direction: DOWN
+    timeout: 60000
+    speed: 20
+- tapOn:
+    id: battle-next
+- scrollUntilVisible:
+    element:
+      id: battle-choice-3
+    direction: DOWN
+    timeout: 60000
+    speed: 20
+- tapOn:
+    id: battle-choice-3
+- scrollUntilVisible:
+    element:
+      id: battle-feedback
+    direction: DOWN
+    timeout: 60000
+    speed: 20
+- assertVisible:
+    id: battle-feedback
+    text: CORRECT!
+- scrollUntilVisible:
+    element:
+      id: battle-next
+    direction: DOWN
+    timeout: 60000
+    speed: 20
+- tapOn:
+    id: battle-next
+- assertVisible:
+    id: result-title
+    text: CAPTURED
+- scrollUntilVisible:
+    element:
+      id: result-continue
+    direction: DOWN
+    timeout: 60000
+    speed: 20
+- tapOn:
+    id: result-continue
+- runFlow:
+    when:
+      visible:
+        id: source-event-title
+    commands:
+      - scrollUntilVisible:
+          element:
+            id: source-event-later
+          direction: DOWN
+          timeout: 60000
+          speed: 20
+      - tapOn:
+          id: source-event-later
+- assertVisible:
+    id: career-title
+- scrollUntilVisible:
+    element:
+      id: promotion-checkpoint-platform-release-ferry
+    direction: DOWN
+    timeout: 60000
+    speed: 20
+    centerElement: true
+- tapOn:
+    id: promotion-checkpoint-platform-release-ferry
 - scrollUntilVisible:
     element:
       id: workshop-start-battle
@@ -301,17 +574,92 @@ tags:
     speed: 20
 - tapOn:
     id: battle-next
+- scrollUntilVisible:
+    element:
+      id: battle-choice-1
+    direction: DOWN
+    timeout: 60000
+    speed: 20
+- tapOn:
+    id: battle-choice-1
+- scrollUntilVisible:
+    element:
+      id: battle-feedback
+    direction: DOWN
+    timeout: 60000
+    speed: 20
+- assertVisible:
+    id: battle-feedback
+    text: CORRECT!
+- scrollUntilVisible:
+    element:
+      id: battle-next
+    direction: DOWN
+    timeout: 60000
+    speed: 20
+- tapOn:
+    id: battle-next
+- scrollUntilVisible:
+    element:
+      id: battle-choice-0
+    direction: DOWN
+    timeout: 60000
+    speed: 20
+- tapOn:
+    id: battle-choice-0
+- scrollUntilVisible:
+    element:
+      id: battle-feedback
+    direction: DOWN
+    timeout: 60000
+    speed: 20
+- assertVisible:
+    id: battle-feedback
+    text: CORRECT!
+- scrollUntilVisible:
+    element:
+      id: battle-next
+    direction: DOWN
+    timeout: 60000
+    speed: 20
+- tapOn:
+    id: battle-next
+- scrollUntilVisible:
+    element:
+      id: battle-choice-2
+    direction: DOWN
+    timeout: 60000
+    speed: 20
+- tapOn:
+    id: battle-choice-2
+- scrollUntilVisible:
+    element:
+      id: battle-feedback
+    direction: DOWN
+    timeout: 60000
+    speed: 20
+- assertVisible:
+    id: battle-feedback
+    text: CORRECT!
+- scrollUntilVisible:
+    element:
+      id: battle-next
+    direction: DOWN
+    timeout: 60000
+    speed: 20
+- tapOn:
+    id: battle-next
 - assertVisible:
     id: result-title
     text: CAPTURED
 - scrollUntilVisible:
     element:
-      id: result-world
+      id: result-continue
     direction: DOWN
     timeout: 60000
     speed: 20
 - tapOn:
-    id: result-world
+    id: result-continue
 - runFlow:
     when:
       visible:

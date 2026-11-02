@@ -1,13 +1,14 @@
 import { ALL_CHAPTERS } from "@codigdex/game-content/domain/chapters";
 import { CAREER_POOL_SIZE, hasCareerQuizSource } from "./sources/career";
 import type { QuizDifficulty, QuizPackDescriptor } from "./types";
+import { evolutionIdentity } from "@codigdex/game-content/domain/secondaryEvolutionIds";
 
 /** Pools that predate the package split all carry twenty questions. */
 const LEGACY_POOL_SIZE = 20;
 
 function questionCountFor(chapterId: string, inlinePoolSize: number | undefined): number {
   if (chapterId.startsWith("mastery:")) return 10;
-  if (chapterId.startsWith("open-source:")) return 7;
+  if (chapterId.startsWith("open-source:")) return 10;
   if (inlinePoolSize !== undefined) return inlinePoolSize;
   if (chapterId.startsWith("career:")) {
     // Hand-authored career pools are level-specific and smaller than the legacy
@@ -29,7 +30,8 @@ const descriptors = ALL_CHAPTERS.flatMap((chapter) =>
       difficulty: Math.min(5, Math.max(1, monster.level)) as QuizDifficulty,
       // Keeping the count in the lightweight manifest lets menus inspect
       // content without loading a single question.
-      questionCount: questionCountFor(chapter.id, monster.quizPool?.length),
+      questionCount: evolutionIdentity(monster.id)?.level !== undefined && evolutionIdentity(monster.id)!.level < 5
+        ? [8, 10, 12, 16][evolutionIdentity(monster.id)!.level - 1] : questionCountFor(chapter.id, monster.quizPool?.length),
     })
   )
 );

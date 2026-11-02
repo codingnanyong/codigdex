@@ -100,12 +100,12 @@ tags:
     id: source-event-accept
 - scrollUntilVisible:
     element:
-      id: battle-choice-3
+      id: battle-choice-0
     direction: DOWN
     timeout: 60000
     speed: 20
 - tapOn:
-    id: battle-choice-3
+    id: battle-choice-0
 - scrollUntilVisible:
     element:
       id: battle-feedback
@@ -125,12 +125,12 @@ tags:
     id: battle-next
 - scrollUntilVisible:
     element:
-      id: battle-choice-1
+      id: battle-choice-3
     direction: DOWN
     timeout: 60000
     speed: 20
 - tapOn:
-    id: battle-choice-1
+    id: battle-choice-3
 - scrollUntilVisible:
     element:
       id: battle-feedback
@@ -171,62 +171,37 @@ tags:
     id: source-event-accept
 - scrollUntilVisible:
     element:
-      id: battle-choice-2
-    direction: DOWN
-    timeout: 60000
-    speed: 20
-- tapOn:
-    id: battle-choice-2
-- scrollUntilVisible:
-    element:
-      id: battle-feedback
-    direction: DOWN
-    timeout: 60000
-    speed: 20
-- assertVisible:
-    id: battle-feedback
-    text: CORRECT!
-- scrollUntilVisible:
-    element:
-      id: battle-next
-    direction: DOWN
-    timeout: 60000
-    speed: 20
-- tapOn:
-    id: battle-next
-- scrollUntilVisible:
-    element:
-      id: battle-choice-0
-    direction: DOWN
-    timeout: 60000
-    speed: 20
-- tapOn:
-    id: battle-choice-0
-- scrollUntilVisible:
-    element:
-      id: battle-feedback
-    direction: DOWN
-    timeout: 60000
-    speed: 20
-- assertVisible:
-    id: battle-feedback
-    text: CORRECT!
-- scrollUntilVisible:
-    element:
-      id: battle-next
-    direction: DOWN
-    timeout: 60000
-    speed: 20
-- tapOn:
-    id: battle-next
-- scrollUntilVisible:
-    element:
       id: battle-choice-3
     direction: DOWN
     timeout: 60000
     speed: 20
 - tapOn:
     id: battle-choice-3
+- scrollUntilVisible:
+    element:
+      id: battle-feedback
+    direction: DOWN
+    timeout: 60000
+    speed: 20
+- assertVisible:
+    id: battle-feedback
+    text: CORRECT!
+- scrollUntilVisible:
+    element:
+      id: battle-next
+    direction: DOWN
+    timeout: 60000
+    speed: 20
+- tapOn:
+    id: battle-next
+- scrollUntilVisible:
+    element:
+      id: battle-choice-2
+    direction: DOWN
+    timeout: 60000
+    speed: 20
+- tapOn:
+    id: battle-choice-2
 - scrollUntilVisible:
     element:
       id: battle-feedback

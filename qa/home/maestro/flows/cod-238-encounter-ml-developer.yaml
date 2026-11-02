@@ -32,6 +32,14 @@ tags:
     id: promotion-checkpoint-ml-sample-mouse
 - scrollUntilVisible:
     element:
+      id: workshop-start-battle
+    direction: DOWN
+    timeout: 60000
+    speed: 20
+- tapOn:
+    id: workshop-start-battle
+- scrollUntilVisible:
+    element:
       id: battle-choice-0
     direction: DOWN
     timeout: 60000
@@ -63,6 +71,81 @@ tags:
     speed: 20
 - tapOn:
     id: battle-choice-3
+- scrollUntilVisible:
+    element:
+      id: battle-feedback
+    direction: DOWN
+    timeout: 60000
+    speed: 20
+- assertVisible:
+    id: battle-feedback
+    text: CORRECT!
+- scrollUntilVisible:
+    element:
+      id: battle-next
+    direction: DOWN
+    timeout: 60000
+    speed: 20
+- tapOn:
+    id: battle-next
+- scrollUntilVisible:
+    element:
+      id: battle-choice-1
+    direction: DOWN
+    timeout: 60000
+    speed: 20
+- tapOn:
+    id: battle-choice-1
+- scrollUntilVisible:
+    element:
+      id: battle-feedback
+    direction: DOWN
+    timeout: 60000
+    speed: 20
+- assertVisible:
+    id: battle-feedback
+    text: CORRECT!
+- scrollUntilVisible:
+    element:
+      id: battle-next
+    direction: DOWN
+    timeout: 60000
+    speed: 20
+- tapOn:
+    id: battle-next
+- scrollUntilVisible:
+    element:
+      id: battle-choice-0
+    direction: DOWN
+    timeout: 60000
+    speed: 20
+- tapOn:
+    id: battle-choice-0
+- scrollUntilVisible:
+    element:
+      id: battle-feedback
+    direction: DOWN
+    timeout: 60000
+    speed: 20
+- assertVisible:
+    id: battle-feedback
+    text: CORRECT!
+- scrollUntilVisible:
+    element:
+      id: battle-next
+    direction: DOWN
+    timeout: 60000
+    speed: 20
+- tapOn:
+    id: battle-next
+- scrollUntilVisible:
+    element:
+      id: battle-choice-2
+    direction: DOWN
+    timeout: 60000
+    speed: 20
+- tapOn:
+    id: battle-choice-2
 - scrollUntilVisible:
     element:
       id: battle-feedback
@@ -106,62 +189,37 @@ tags:
     id: battle-prompt
 - scrollUntilVisible:
     element:
-      id: battle-choice-2
-    direction: DOWN
-    timeout: 60000
-    speed: 20
-- tapOn:
-    id: battle-choice-2
-- scrollUntilVisible:
-    element:
-      id: battle-feedback
-    direction: DOWN
-    timeout: 60000
-    speed: 20
-- assertVisible:
-    id: battle-feedback
-    text: CORRECT!
-- scrollUntilVisible:
-    element:
-      id: battle-next
-    direction: DOWN
-    timeout: 60000
-    speed: 20
-- tapOn:
-    id: battle-next
-- scrollUntilVisible:
-    element:
-      id: battle-choice-0
-    direction: DOWN
-    timeout: 60000
-    speed: 20
-- tapOn:
-    id: battle-choice-0
-- scrollUntilVisible:
-    element:
-      id: battle-feedback
-    direction: DOWN
-    timeout: 60000
-    speed: 20
-- assertVisible:
-    id: battle-feedback
-    text: CORRECT!
-- scrollUntilVisible:
-    element:
-      id: battle-next
-    direction: DOWN
-    timeout: 60000
-    speed: 20
-- tapOn:
-    id: battle-next
-- scrollUntilVisible:
-    element:
       id: battle-choice-3
     direction: DOWN
     timeout: 60000
     speed: 20
 - tapOn:
     id: battle-choice-3
+- scrollUntilVisible:
+    element:
+      id: battle-feedback
+    direction: DOWN
+    timeout: 60000
+    speed: 20
+- assertVisible:
+    id: battle-feedback
+    text: CORRECT!
+- scrollUntilVisible:
+    element:
+      id: battle-next
+    direction: DOWN
+    timeout: 60000
+    speed: 20
+- tapOn:
+    id: battle-next
+- scrollUntilVisible:
+    element:
+      id: battle-choice-2
+    direction: DOWN
+    timeout: 60000
+    speed: 20
+- tapOn:
+    id: battle-choice-2
 - scrollUntilVisible:
     element:
       id: battle-feedback
@@ -210,7 +268,7 @@ tags:
     id: home-qa
 - assertVisible:
     id: qa-captures
-    text: "63"
+    text: "83"
 - assertVisible:
     id: qa-save-status
     text: SAVED

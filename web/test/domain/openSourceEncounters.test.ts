@@ -1,3 +1,4 @@
+import { openSourceEvolutionFor } from "@codigdex/game-content/domain/openSourceChapters";
 import { describe, expect, it } from "vitest";
 import { createEmptySave } from "@codigdex/game-core/save/schema";
 import { CHAPTERS, DEX_MONSTERS } from "@codigdex/game-content/domain/chapters";
@@ -62,11 +63,11 @@ describe("career-integrated open-source encounters", () => {
 
   it("does not offer already captured tools or open-source victories as new triggers", () => {
     const { save, stages } = encounterFixture();
-    save.progress.captures.push(...encounterTools("frontend").map(({ id }) => ({ id: `open-source:${id}`, capturedAt: at })));
+    save.progress.captures.push(...encounterTools("frontend").flatMap(({ id }) => openSourceEvolutionFor(id).map(({ id }) => ({ id, capturedAt: at }))));
     const after = { ...save, progress: { ...save.progress, captures: [...save.progress.captures, { id: stages[0].id, capturedAt: at }] } };
     expect(planSourceEncounter(save, after, stages[0].id, target, emptyEncounterHistory()).pending).toBeUndefined();
     expect(planSourceEncounter(save, after, "open-source:zod", target, emptyEncounterHistory()).pending).toBeUndefined();
-    expect(DEX_MONSTERS).toHaveLength(199);
+    expect(DEX_MONSTERS).toHaveLength(451);
   });
 
   it("allows practice victories after mastery and guarantees a new offer by the sixth eligible win", () => {

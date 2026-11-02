@@ -28,20 +28,24 @@ file-based routing — over the typed `MobileRoute` union in
 | `result` | `ResultScreen` | Score and capture result: 60% plus all required design decisions for final projects |
 | `encounter` | `OpenSourceEventScreen` | The optional career surprise request: accept, later, retry, and a save-retry prompt |
 | `open-source` | `OpenSourceScreen` | Notes for tools already discovered through requests. It is a review screen, not a battle entrance |
-| `dex` / `detail` | `DexScreen` / `MonsterDetail` | The 199-entry monster dex; uncaptured monsters show `???` |
+| `dex` / `detail` | `DexScreen` / `MonsterDetail` | The 451-entry monster dex; uncaptured monsters show `???` |
 | `settings` | `SettingsScreen` | Locale (ko/en), account panel, and progress reset |
 | `qa` | `QAScreen` | Starting states, one-shot failure controls, and a checklist. Only reachable in QA runs |
 
 ### Content available on mobile
 
-- The common path, all five tier 1 career paths, and the five tier 2 promotion
-  chapters (5 chapters, 25 stages, 500 bilingual questions), now with 25 worked examples and 100 saved regional practice checkpoints. These additions await publication and deployment.
-- Career surprise requests covering 38 open-source tools and 266 questions. They
+- The common path, all five tier 1 careers, and five tier 2 atlases with 25 regions
+  and 125 evolution forms. Early evolution captures settle 100 practice records.
+  There are 25 worked examples; evolution packs share the existing 500 authored
+  secondary questions. These additions await publication and deployment.
+- Career surprise requests covering 38 tools, 190 evolution forms and 380 shared
+  questions. Original final-form art moves unchanged into `monsters/open-source/`.
+  Accepting a request pins its evolution stage through reload and capture. They
   are offered after career and promotion battle wins, and there is no independent
   expedition entrance. Tool details in the dex and notes do not bypass accepting
   a request; old standalone-expedition bookmarks return to the career path, and
   tool cards captured that way stay in the save.
-- Five tier 3 final design projects, 25 guardians and 75 required design questions with related review. Complete tier 2 MASTER and 20 regional practice checkpoints first; then pass the project and explicitly confirm tier 3.
+- Five tier 3 final design projects, 25 guardians and 75 required design questions with related review. Complete the matching 25 secondary forms and 20 practice records first, then pass the project and explicitly confirm tier 3. Genuinely completed legacy projects stay valid.
 
 The progression rules are shared with web through `@codigdex/game-content`; see
 [Career Path Design](../docs/eng/CAREER_PATH_DESIGN.md). The requirement that a

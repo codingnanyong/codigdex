@@ -3,6 +3,7 @@ import { quizPackIdFor } from "@codigdex/game-core/domain/dex/quiz";
 import type { ChapterDefinition } from "@codigdex/game-core/domain/chapters/types";
 import { FULLSTACK_STAGE_IDS, ML_STAGE_IDS, MLOPS_STAGE_IDS, ANALYTICS_STAGE_IDS } from "./promotionIds";
 import type { SecondaryJobId } from "./player/jobs";
+import { secondaryDexNumber } from "./secondaryEvolutionIds";
 
 export interface PromotionMission {
   chapter: ChapterDefinition;
@@ -15,7 +16,7 @@ type StageCopy = {
   name: LocalizedText; concept: LocalizedText; lesson: LocalizedText;
   challenge: LocalizedText; snippet: string;
 };
-function mission(job: SecondaryJobId, label: string, firstDex: number, folder: string, ids: readonly string[], scenery: PromotionMission["scenery"],
+function mission(job: SecondaryJobId, label: string, folder: string, ids: readonly string[], scenery: PromotionMission["scenery"],
   name: LocalizedText, npcName: LocalizedText, intro: LocalizedText, ending: LocalizedText, copies: readonly StageCopy[]): PromotionMission {
   const chapterId = `promotion:${job}` as const;
   return {
@@ -27,7 +28,7 @@ function mission(job: SecondaryJobId, label: string, firstDex: number, folder: s
       retryLine: text("단서를 다시 읽고 같은 의뢰에 도전해요.", "Read the clues again and retry this mission."),
       arena: { textureKey: `arena-${job}`, assetKey: `wallpapers/promotion/${job}-arena-v1.png` },
       stages: copies.map((copy, i) => ({
-        id: ids[i], dexNumber: String(firstDex + i).padStart(3, "0"), level: i + 1,
+        id: ids[i], dexNumber: secondaryDexNumber(job, i, 5), level: 5,
         name: copy.name, classification: copy.concept, trait: copy.concept, description: copy.lesson,
         briefing: copy.challenge, preBattleLine: copy.lesson, snippet: text(copy.snippet, copy.snippet),
         textureKey: ids[i], assetKey: `monsters/${folder}/${ids[i].replace(/^(fullstack|ml|mlops|analytics)-/, "")}-lv${i + 1}-v1.png`,
@@ -38,7 +39,7 @@ function mission(job: SecondaryJobId, label: string, firstDex: number, folder: s
 }
 
 export const ADDITIONAL_PROMOTION_MISSIONS = {
-  "fullstack-engineer": mission("fullstack-engineer", "CH.24", 116, "ch24.fullstack", FULLSTACK_STAGE_IDS, "fullstack",
+  "fullstack-engineer": mission("fullstack-engineer", "CH.24", "ch24.fullstack", FULLSTACK_STAGE_IDS, "fullstack",
     text("이어진 두 마을", "The Linked Villages"), text("경계의 설계자 아라", "Boundary Architect Ara"),
     text("화면 마을과 서버 마을을 잇는 다리가 끊겼어요. 아라는 두 분야를 익힌 당신에게 다섯 생물과 함께 요청의 길을 복구해 달라고 부탁합니다.", "The bridge between the screen village and server village is broken. Ara asks you to unite both disciplines and restore the request journey with five creatures."),
     text("두 마을의 약속과 상태가 다시 이어졌어요. 아라는 당신을 풀스택 경로의 MASTER로 기록합니다. 작은 요청 하나도 끝까지 책임지는 모험가가 되었네요.", "Contracts and state connect the villages again. Ara records your mastery of the fullstack path. You now take responsibility for a request's whole journey."), [
@@ -48,7 +49,7 @@ export const ADDITIONAL_PROMOTION_MISSIONS = {
       { name: text("발자취 제비", "Trace Swallow"), concept: text("화면부터 서버까지 추적", "Tracing from screen to server"), lesson: text("요청 식별자로 화면·API·저장소의 단서를 연결하고 민감한 값은 기록하지 않는다.", "Connect screen, API and storage clues with request identifiers while excluding sensitive values."), challenge: text("아라: 제비가 다리를 건너는 동안 응답이 느려졌어요. 같은 요청의 단서를 이어 병목을 찾아 주세요.", "Ara: The swallow's reply slowed while crossing the bridge. Connect evidence for the same request to locate the bottleneck."), snippet: "interaction → request ID → API spans → safe logs" },
       { name: text("다리 기린", "Bridge Kirin"), concept: text("통합 검증과 안전한 복구", "Integration checks and safe recovery"), lesson: text("실제 사용자 흐름과 실패 경로를 검증하고 호환되는 버전으로 안전하게 복구한다.", "Verify real user journeys and failure paths, then recover with compatible versions."), challenge: text("아라: 기린의 마지막 점검이에요. 계약·상태·변경·추적을 이어 두 마을의 주문이 끝까지 안전한지 증명해요.", "Ara: The kirin's final inspection joins contracts, state, updates and tracing. Prove orders travel safely through both villages."), snippet: "contract + state + consistency + traces → end-to-end check" },
     ]),
-  "ml-developer": mission("ml-developer", "CH.25", 121, "ch25.ml-serving", ML_STAGE_IDS, "ml",
+  "ml-developer": mission("ml-developer", "CH.25", "ch25.ml-serving", ML_STAGE_IDS, "ml",
     text("예측의 온실", "The Prediction Greenhouse"), text("모델 조련사 유진", "Model Tamer Yujin"),
     text("온실의 예측이 새 씨앗 앞에서 빗나갑니다. 유진과 함께 데이터부터 추론 응답까지 살펴 다섯 생물이 다시 건강하게 자라도록 도와주세요.", "Greenhouse predictions fail on new seeds. Join Yujin to inspect data through inference responses and help five creatures thrive again."),
     text("새 씨앗도 검증된 길을 따라 자라요. 유진은 당신을 ML 개발 경로의 MASTER로 기록합니다. 모델의 점수와 서비스의 약속을 함께 지켰어요.", "New seeds follow a verified path. Yujin records your mastery of ML development. You upheld both model quality and the service's promises."), [
@@ -58,7 +59,7 @@ export const ADDITIONAL_PROMOTION_MISSIONS = {
       { name: text("응답 도마뱀", "Serving Gecko"), concept: text("추론 계약과 지연", "Inference contracts and latency"), lesson: text("입력 형식·모델 버전·시간 제한을 명시하고 추론의 오류와 지연을 관측한다.", "Specify inputs, model versions and time limits, and observe inference errors and latency."), challenge: text("유진: 도마뱀은 가끔 늦거나 잘못된 잎을 받아요. 추론 서비스가 어떤 응답을 약속할지 정해요.", "Yujin: The gecko sometimes replies late or receives malformed leaves. Define the inference service's response contract."), snippet: "validate input → versioned predict → timeout/fallback" },
       { name: text("온실 그리핀", "Model Griffin"), concept: text("모델 서비스 통합 검증", "Integrated model-service verification"), lesson: text("모델 지표와 서비스 지표를 함께 검증하고 이전 버전으로 돌아갈 길을 준비한다.", "Verify model and service metrics together and prepare a path back to the previous version."), challenge: text("유진: 그리핀과 온실 전체를 점검해요. 표본·특징·평가·응답을 연결해 새 모델을 안전하게 내보내요.", "Yujin: Inspect the whole greenhouse with the griffin. Connect samples, features, evaluation and responses for a safe model release."), snippet: "data + features + evaluation + serving → guarded rollout" },
     ]),
-  "mlops-engineer": mission("mlops-engineer", "CH.26", 126, "ch26.mlops", MLOPS_STAGE_IDS, "mlops",
+  "mlops-engineer": mission("mlops-engineer", "CH.26", "ch26.mlops", MLOPS_STAGE_IDS, "mlops",
     text("순환의 묘목장", "The Cycle Nursery"), text("모델 운영관 시우", "Model Steward Siwoo"),
     text("새 묘목이 나올 때마다 어제의 재배법이 사라져요. 시우와 다섯 생물을 도와 기록·재현·승격·관측의 순환을 복구해 주세요.", "Yesterday's growing recipe vanishes with each new sapling. Help Siwoo and five creatures restore lineage, reproducibility, promotion and observation."),
     text("어떤 씨앗과 재배법이 숲을 만들었는지 다시 알 수 있어요. 시우는 당신을 MLOps 경로의 MASTER로 기록합니다. 변화에 대응하는 안전한 순환이 돌아왔어요.", "The nursery can again trace each tree to its seeds and recipe. Siwoo records your MLOps mastery. A safe cycle can now respond to change."), [
@@ -68,7 +69,7 @@ export const ADDITIONAL_PROMOTION_MISSIONS = {
       { name: text("변화 나방", "Drift Moth"), concept: text("변화 감지와 진단", "Drift detection and diagnosis"), lesson: text("입력 분포·품질·예측·실제 성능을 구분해 관측하고 변화의 원인을 조사한다.", "Observe input distributions, quality, predictions and actual performance separately, then investigate changes."), challenge: text("시우: 나방의 무늬가 달라졌지만 병든 것은 아닐 수도 있어요. 변화와 성능 저하를 구분해요.", "Siwoo: The moth's markings changed, but it may still be healthy. Distinguish distribution changes from performance loss."), snippet: "baseline → compare window → investigate → decide" },
       { name: text("순환 불사조", "Cycle Phoenix"), concept: text("안전한 재학습과 복구", "Safe retraining and recovery"), lesson: text("변화를 확인하고 새 모델을 검증해 점진 배포하며 이전 버전으로의 복구를 준비한다.", "Confirm changes, validate retrained models, roll out gradually and prepare previous-version recovery."), challenge: text("시우: 불사조가 새 순환을 시작해요. 기록·흐름·승격·변화 감지를 이어 안전하게 다시 자라도록 해요.", "Siwoo: The phoenix begins a new cycle. Join lineage, pipelines, promotion and drift checks for safe renewal."), snippet: "observe → investigate → retrain → evaluate → canary/rollback" },
     ]),
-  "analytics-engineer": mission("analytics-engineer", "CH.27", 131, "ch27.analytics", ANALYTICS_STAGE_IDS, "analytics",
+  "analytics-engineer": mission("analytics-engineer", "CH.27", "ch27.analytics", ANALYTICS_STAGE_IDS, "analytics",
     text("지표의 천문대", "The Metrics Observatory"), text("지표 번역가 소라", "Metric Interpreter Sora"),
     text("같은 별을 세어도 마을마다 숫자가 달라요. 소라와 다섯 생물을 도와 데이터의 단위·품질·정의·계보를 맞추고 믿을 수 있는 지도를 만드세요.", "Villages count the same stars differently. Help Sora and five creatures align grain, quality, definitions and lineage to build a trustworthy map."),
     text("누구나 같은 정의로 별을 셀 수 있어요. 소라는 당신을 Analytics 경로의 MASTER로 기록합니다. 숫자의 출처와 뜻을 함께 설명할 수 있게 되었어요.", "Everyone can count stars using the same definitions. Sora records your analytics mastery. You can now explain both a number's origin and meaning."), [

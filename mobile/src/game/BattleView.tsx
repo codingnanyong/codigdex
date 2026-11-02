@@ -10,6 +10,7 @@ import { battleMeters, expectedAnswer, keyboardAnswer, quizCopy } from "./battle
 import { PixelScene } from "../ui/PixelScene";
 import { promotionMissionFor } from "@codigdex/game-content/domain/promotionChapters";
 import { masterMissionFor } from "@codigdex/game-content/domain/masterChapters";
+import { secondaryRegionForStage } from "@codigdex/game-content/domain/secondaryExploration";
 
 export interface BattleFeedback { nextBattle: BattleState; attempt: BattleAttempt }
 
@@ -71,7 +72,7 @@ export function BattleView(props: BattleViewProps) {
 
     <View style={styles.layout}>
       {!compact ? <View style={styles.specimen}>
-        <PixelScene backdrop scene={scenery} />
+        <PixelScene backdrop scene={scenery} assetKey={secondaryRegionForStage(monster.id)?.chapter.arena?.assetKey} />
         <Image accessibilityLabel={localize(monster.name, locale)} resizeMode="contain" source={monsterImage} style={styles.monsterImage} />
         <Text style={styles.specimenTitle}>LV.{monster.level}</Text>
         <Text style={[styles.caption, styles.specimenCaption]}>{localize(monster.classification, locale)}</Text>
@@ -79,7 +80,7 @@ export function BattleView(props: BattleViewProps) {
       <ScrollView testID="battle-scroll" ref={props.scrollRef} style={styles.conversation} contentContainerStyle={[styles.conversationContent, keyboardVisible && styles.typingContent]}
         keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag" onContentSizeChange={props.onContentSizeChange}>
         {compact && !keyboardVisible ? <View style={styles.compactStage}>
-          <PixelScene backdrop scene={scenery} />
+          <PixelScene backdrop scene={scenery} assetKey={secondaryRegionForStage(monster.id)?.chapter.arena?.assetKey} />
           <Image accessibilityLabel={localize(monster.name, locale)} resizeMode="contain" source={monsterImage} style={styles.compactMonster} />
           <Text style={styles.stageLabel}>LV.{monster.level}</Text>
         </View> : null}

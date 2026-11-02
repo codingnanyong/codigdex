@@ -25,11 +25,11 @@ describe("open-source expedition progression", () => {
     expect(resumeCheckpoint(selected).chapter.id.startsWith("career:")).toBe(true);
     expect(selected.progress.captures).toContainEqual(save.progress.captures.at(-1));
   });
-  it("adds 38 distinct numbered captures across 9 optional stories", () => {
+  it("adds 190 distinct numbered captures across 9 optional stories", () => {
     const stages = OPEN_SOURCE_EXPEDITIONS.flatMap(({ chapter }) => chapter.stages);
-    expect(stages).toHaveLength(38);
+    expect(stages).toHaveLength(190);
     expect(OPEN_SOURCE_EXPEDITIONS).toHaveLength(9);
-    expect(new Set(stages.map(({ id }) => id)).size).toBe(38);
+    expect(new Set(stages.map(({ id }) => id)).size).toBe(190);
     for (const entry of OPEN_SOURCE_CATALOG) {
       const { chapter, monster } = findStage(`open-source:${entry.id}`);
       expect(chapter.id).toBe(`open-source:${entry.family}`);
@@ -55,19 +55,19 @@ describe("open-source expedition progression", () => {
     }
     expect(captureCheckpoint(save, monster.id, battle)).toBe(save);
     const open = openSourceCheckpoints(eligible());
-    expect(open.filter(({ status }) => status === "available")).toHaveLength(9);
-    expect(open.filter(({ status }) => status === "locked")).toHaveLength(29);
+    expect(open.filter(({ status }) => status === "available")).toHaveLength(38);
+    expect(open.filter(({ status }) => status === "locked")).toHaveLength(152);
   });
 });
 
 describe.each(OPEN_SOURCE_EXPEDITIONS)("$chapter.id expedition", ({ chapter }) => {
-  it("loads seven validated bilingual questions per creature", async () => {
+  it("loads ten validated bilingual questions per creature", async () => {
     for (const monster of chapter.stages) {
       const pack = await loadMixedQuizPack(monster.quizPackId);
-      expect(pack.questions).toHaveLength(7);
+      expect(pack.questions).toHaveLength(10);
       expect(validateQuizPack(pack)).toEqual([]);
-      expect(pack.questions.filter(({ explanation }) => explanation?.ko && explanation.en)).toHaveLength(7);
-      expect(new Set(pack.questions.map(({ prompt }) => prompt.en)).size).toBe(7);
+      expect(pack.questions.filter(({ explanation }) => explanation?.ko && explanation.en)).toHaveLength(10);
+      expect(new Set(pack.questions.map(({ prompt }) => prompt.en)).size).toBe(10);
     }
   });
   it("plays sequentially, preserves careers and restores captures and the next mission", async () => {

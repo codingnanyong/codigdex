@@ -16,13 +16,13 @@ describe("manual web QA starting states", () => {
       const save = parseSave(JSON.stringify(preset.save))!;
       expect(save.ui.locale).toBe("ko");
       const next = resumeCheckpoint(save);
-      expect(canEnterBattle(save, next.monster.id)).toBe(!preset.id.startsWith("workshop:"));
+      expect(canEnterBattle(save, next.monster.id)).toBe(true);
       if (preset.id.startsWith("encounter:")) {
         expect(next.chapter.id).not.toMatch(/^open-source:/);
         expect(save.player.secondaryJobId ?? save.player.primaryJobId).toBe(preset.id.slice("encounter:".length));
       }
       if (preset.id.startsWith("promotion:")) {
-        expect(next.chapter.id).toBe(preset.id);
+        expect(next.chapter.id.startsWith(preset.id + ":")).toBe(true);
         expect(save.player.secondaryJobId).toBe(preset.id.slice(10));
         expect(save.progress.careers.filter(({ masteredAt }) => masteredAt)).toHaveLength(3);
       }

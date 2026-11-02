@@ -10,9 +10,11 @@ import { CAREER_CATALOG, isCareerId, normalizeCareerDexState, reconcileCareerDex
 import { canSelectPrimaryJob, canSelectSecondaryJob, completedSecondaryJobIds, findJob, findSecondaryJob, findTertiaryJob, TERTIARY_JOB_OPTIONS, isSecondaryJobUnlocked, type JobId, type SecondaryJobId, type TertiaryJobId } from "./player/jobs";
 import { promotionChapterFor } from "./promotionChapters";
 import { OPEN_SOURCE_CHAPTERS } from "./openSourceChapters";
-import { stageStatus } from "./chapters";
 import { masterChapterFor, finalProjectId } from "./masterChapters";
 import { workshopTaskId } from "./promotionWorkshops";
+import { secondaryRegionsFor, secondaryRegionForStage, type SecondaryRegion } from "./secondaryExploration";
+import { evolutionIdentity } from "./secondaryEvolutionIds";
+import { openSourceIdentity, openSourceEvolutionId } from "./openSourceEvolutionIds";
 
 export interface Checkpoint { chapter: ChapterDefinition; monster: MonsterDefinition; status: ChapterStatus }
 
@@ -45,6 +47,7 @@ export function captureIds(save: StoredGameStateV3): Set<string> {
 
 /** Sanitize only new promotion selections; keep legacy primary saves and history intact. */
 export function normalizePromotionSelection(save: StoredGameStateV3): StoredGameStateV3 {
+  save = recoverEvolutionPractice(save);
   save = settleFinalProject(save);
   const captured = captureIds(save);
   const secondary = findSecondaryJob(save.player.secondaryJobId);
@@ -72,14 +75,18 @@ export function careerCheckpoints(save: StoredGameStateV3, jobId: JobId): Checkp
 export function playableCheckpoints(save: StoredGameStateV3): Checkpoint[] {
   const common = checkpoints(captureIds(save));
   const job = findJob(save.player.primaryJobId);
-  return [...common, ...promotionCheckpoints(save), ...masterCheckpoints(save), ...(job.id === "junior" ? [] : careerCheckpoints(save, job.id)), ...openSourceCheckpoints(save)];
+  return [...common, ...secondaryExplorationCheckpoints(save), ...masterCheckpoints(save), ...(job.id === "junior" ? [] : careerCheckpoints(save, job.id)), ...openSourceCheckpoints(save)];
 }
 
 /** Optional expeditions share the common-path gate but never add career MASTER requirements. */
 export function openSourceCheckpoints(save: StoredGameStateV3): Checkpoint[] {
   const captured = captureIds(save);
   const open = isCommonPathComplete(captured);
-  return OPEN_SOURCE_CHAPTERS.flatMap((chapter) => chapter.stages.map((monster, index) => ({ chapter, monster, status: open ? stageStatus(chapter, index, captured) : "locked" as const })));
+  return OPEN_SOURCE_CHAPTERS.flatMap((chapter) => chapter.stages.map((monster): Checkpoint => {
+    const identity = openSourceIdentity(monster.id)!;
+    const previous = Array.from({ length: identity.level - 1 }, (_, index) => openSourceEvolutionId(identity.toolId, index + 1));
+    return { chapter, monster, status: !open ? "locked" : captured.has(monster.id) ? "cleared" : previous.every((id) => captured.has(id)) ? "available" : "locked" };
+  }));
 }
 
 export function nextOpenSourceCheckpoint(save: StoredGameStateV3, family: string): Checkpoint | undefined {
@@ -89,17 +96,36 @@ export function nextOpenSourceCheckpoint(save: StoredGameStateV3, family: string
 
 /** A released integration chapter opens only for an equipped, earned secondary job. */
 export function promotionCheckpoints(save: StoredGameStateV3): Checkpoint[] {
+  return secondaryExplorationCheckpoints(save).filter(({ monster }) => evolutionIdentity(monster.id)?.level === 5);
+}
+
+export interface SecondaryRegionProgress { region: SecondaryRegion; status: "locked" | "available" | "completed"; captured: number }
+export function secondaryRegionProgression(save: StoredGameStateV3): SecondaryRegionProgress[] {
   const job = findSecondaryJob(save.player.secondaryJobId);
-  const chapter = promotionChapterFor(job?.id);
-  if (!job || !chapter) return [];
+  if (!job) return [];
   const captured = captureIds(save);
   const open = isCommonPathComplete(captured) && canSelectSecondaryJob(job, completedCareerPathIds(captured));
-  let precedingComplete = true;
-  return chapter.stages.map((monster) => {
-    const cleared = captured.has(monster.id);
-    const status: ChapterStatus = !open ? "locked" : cleared ? "cleared" : precedingComplete ? "available" : "locked";
-    precedingComplete = precedingComplete && cleared;
-    return { chapter, monster, status };
+  let previousGuardian = true;
+  return secondaryRegionsFor(job.id).map((region) => {
+    const count = region.chapter.stages.filter(({ id }) => captured.has(id)).length;
+    const status = !open || !previousGuardian ? "locked" : count === 5 ? "completed" : "available";
+    // Legacy guardians retain their earned access; new players must traverse
+    // four earlier forms before they can capture each guardian.
+    previousGuardian = previousGuardian && captured.has(region.core.id);
+    return { region, status, captured: count };
+  });
+}
+
+export function secondaryExplorationCheckpoints(save: StoredGameStateV3): Checkpoint[] {
+  const captured = captureIds(save);
+  return secondaryRegionProgression(save).flatMap(({ region, status }) => {
+    let previous = true;
+    return region.chapter.stages.map((monster): Checkpoint => {
+      const cleared = captured.has(monster.id);
+      const stageStatus: ChapterStatus = status === "locked" ? "locked" : cleared ? "cleared" : previous ? "available" : "locked";
+      previous = previous && cleared;
+      return { chapter: region.chapter, monster, status: stageStatus };
+    });
   });
 }
 
@@ -117,7 +143,8 @@ export function nextWorkshopPhase(save: StoredGameStateV3, stageId: string): num
 }
 
 export function completeWorkshopPractice(save: StoredGameStateV3, stageId: string, phase: number, battle: BattleState, now = () => new Date().toISOString()): StoredGameStateV3 {
-  const checkpoint = promotionCheckpoints(save).find(({ monster }) => monster.id === stageId);
+  const region = secondaryRegionForStage(stageId);
+  const checkpoint = secondaryRegionProgression(save).find(({ region: candidate }) => candidate.id === region?.id);
   if (!checkpoint || checkpoint.status === "locked" || !Number.isInteger(phase) || phase < 0 || phase > 3 ||
     nextWorkshopPhase(save, stageId) !== phase || battle.questions.length !== 5 || battle.status !== "passed") return save;
   return { ...save, progress: { ...save.progress, projects: [...(save.progress.projects ?? []), { id: workshopTaskId(stageId, phase), completedAt: now() }] } };
@@ -125,7 +152,9 @@ export function completeWorkshopPractice(save: StoredGameStateV3, stageId: strin
 
 export function isSecondaryStudyComplete(save: StoredGameStateV3, jobId: SecondaryJobId): boolean {
   const chapter = promotionChapterFor(jobId);
-  return !!chapter && chapter.stages.every(({ id }) => nextWorkshopPhase(save, id) === 4);
+  const captured = captureIds(save);
+  return !!chapter && chapter.stages.every(({ id }) => nextWorkshopPhase(save, id) === 4) &&
+    secondaryRegionsFor(jobId).every(({ chapter }) => chapter.stages.every(({ id }) => captured.has(id)));
 }
 
 export function canStartMasterProject(save: StoredGameStateV3, jobId: TertiaryJobId): boolean {
@@ -133,7 +162,11 @@ export function canStartMasterProject(save: StoredGameStateV3, jobId: TertiaryJo
   const captured = captureIds(save);
   return !!job && save.player.secondaryJobId === job.requires && isCommonPathComplete(captured) &&
     canSelectSecondaryJob(findSecondaryJob(job.requires)!, completedCareerPathIds(captured)) &&
-    completedSecondaryJobIds(captured).has(job.requires) && isSecondaryStudyComplete(save, job.requires);
+    completedSecondaryJobIds(captured).has(job.requires) && (isSecondaryStudyComplete(save, job.requires) ||
+      // Preserve a genuinely completed pre-expansion master project; adding
+      // exploration must not revoke an already earned tier-three identity.
+      (!!masterChapterFor(jobId)?.stages.every(({ id }) => captured.has(id)) &&
+        promotionChapterFor(job.requires)!.stages.every(({ id }) => nextWorkshopPhase(save, id) === 4)));
 }
 
 export function isFinalProjectComplete(save: StoredGameStateV3, jobId: TertiaryJobId): boolean {
@@ -183,7 +216,7 @@ export function nextPlayableCheckpoint(save: StoredGameStateV3): Checkpoint {
   }
   const master = masterCheckpoints(save);
   if (master.some(({ status }) => status !== "locked")) return master.find(({ status }) => status === "available") ?? master.at(-1)!;
-  const promotion = promotionCheckpoints(save);
+  const promotion = secondaryExplorationCheckpoints(save);
   if (promotion.some(({ status }) => status !== "locked")) return promotion.find(({ status }) => status === "available") ?? promotion.at(-1)!;
   const path = playableCheckpoints(save).filter(({ chapter }) => !chapter.id.startsWith("open-source:"));
   return path.find(({ status }) => status === "available") ?? path.at(-1)!;
@@ -201,6 +234,7 @@ export function rememberCheckpoint(save: StoredGameStateV3, id: string): StoredG
 
 /** Derive mastery from released captures instead of trusting uploaded mastery flags. */
 export function normalizeGameSave(save: StoredGameStateV3): StoredGameStateV3 {
+  save = recoverEvolutionPractice(save);
   save = settleFinalProject(save);
   const monsters = new Set(DEX_MONSTERS.map(({ id }) => id));
   // Content versions may differ between clients. Preserve unknown records in
@@ -280,18 +314,42 @@ export function selectSecondaryCareer(save: StoredGameStateV3, jobId: SecondaryJ
   const careers = [...selectCareer({ careers: records }, jobId, now).careers, ...normalized.progress.careers.filter(({ id }) => !isCareerId(id))];
   const selected = { ...normalized, progress: { ...normalized.progress, careers }, player: { ...normalized.player, secondaryJobId: jobId,
     tertiaryJobId: normalized.player.secondaryJobId === jobId ? normalized.player.tertiaryJobId : null } };
-  const captured = captureIds(selected);
-  const next = chapter.stages.find(({ id }) => !captured.has(id)) ?? chapter.stages.at(-1)!;
-  return { ...selected, ui: { ...selected.ui, checkpointId: next.id } };
+  const path = secondaryExplorationCheckpoints(selected);
+  const next = path.find(({ status }) => status === "available") ?? path.at(-1)!;
+  return { ...selected, ui: { ...selected.ui, checkpointId: next.monster.id } };
 }
 
 export function captureCheckpoint(save: StoredGameStateV3, id: string, battle: BattleState): StoredGameStateV3 {
   if (!canEnterBattle(save, id)) return save;
   let captured = applyBattleCapture(save, id, battle);
   if (captured === save) return save;
+  captured = settleEvolutionPractice(captured, id);
   captured = settleFinalProject(captured);
   const next = normalizeGameSave(id.startsWith("open-source:") ? rememberCheckpoint(captured, id) : captured);
   return rememberCheckpoint(next, nextPlayableCheckpoint(next).monster.id);
+}
+
+/** The first four evolution battles ARE the regional practice checkpoints. */
+export function settleEvolutionPractice(save: StoredGameStateV3, id: string): StoredGameStateV3 {
+  const identity = evolutionIdentity(id);
+  if (!identity || identity.level === 5 || !captureIds(save).has(id)) return save;
+  const key = workshopTaskId(identity.coreId, identity.level - 1);
+  if (save.progress.projects?.some(({ id }) => id === key)) return save;
+  const completedAt = save.progress.captures.find((record) => record.id === id)!.capturedAt;
+  return { ...save, progress: { ...save.progress, projects: [...(save.progress.projects ?? []), { id: key, completedAt }] } };
+}
+
+export function recoverEvolutionPractice(save: StoredGameStateV3): StoredGameStateV3 {
+  const done = new Set((save.progress.projects ?? []).map(({ id }) => id));
+  const added = save.progress.captures.flatMap(({ id, capturedAt }) => {
+    const identity = evolutionIdentity(id);
+    if (!identity || identity.level === 5) return [];
+    const key = workshopTaskId(identity.coreId, identity.level - 1);
+    if (done.has(key)) return [];
+    done.add(key);
+    return [{ id: key, completedAt: Number.isFinite(Date.parse(capturedAt)) ? capturedAt : "1970-01-01T00:00:00.000Z" }];
+  });
+  return added.length ? { ...save, progress: { ...save.progress, projects: [...(save.progress.projects ?? []), ...added] } } : save;
 }
 
 export function selectTertiaryCareer(save: StoredGameStateV3, jobId: TertiaryJobId, now = () => new Date().toISOString()): StoredGameStateV3 {

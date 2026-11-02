@@ -6,6 +6,7 @@ import { CAREER_CHAPTERS } from "./career";
 import { PROMOTION_CHAPTERS } from "../promotionChapters";
 import { OPEN_SOURCE_CHAPTERS } from "../openSourceChapters";
 import { MASTER_CHAPTERS } from "../masterChapters";
+import { SECONDARY_REGION_CHAPTERS } from "../secondaryExploration";
 import type { ChapterDefinition, ChapterId, MonsterDefinition } from "@codigdex/game-core/domain/chapters/types";
 
 export type ChapterStatus = "locked" | "available" | "cleared";
@@ -18,7 +19,7 @@ export type Unlock =
 
 /** Play order. Each chapter's `requires` points at the one before it. */
 export const CHAPTERS: readonly ChapterDefinition[] = [TUTORIAL_CHAPTER, GIT_CHAPTER, LINUX_CHAPTER];
-export const ALL_CHAPTERS: readonly ChapterDefinition[] = [...CHAPTERS, ...CAREER_CHAPTERS, ...PROMOTION_CHAPTERS, ...OPEN_SOURCE_CHAPTERS, ...MASTER_CHAPTERS];
+export const ALL_CHAPTERS: readonly ChapterDefinition[] = [...CHAPTERS, ...CAREER_CHAPTERS, ...SECONDARY_REGION_CHAPTERS, ...MASTER_CHAPTERS, ...OPEN_SOURCE_CHAPTERS];
 
 /** The junior common path a player clears before choosing a job. */
 const COMMON_PATH: readonly ChapterId[] = ["git", "linux"];
@@ -35,7 +36,7 @@ export const DEX_MONSTERS: readonly MonsterDefinition[] = ALL_CHAPTERS.flatMap(
 export const CAPTURABLE_MONSTERS = DEX_MONSTERS;
 
 export function getChapter(id: ChapterId): ChapterDefinition {
-  const chapter = ALL_CHAPTERS.find((candidate) => candidate.id === id);
+  const chapter = ALL_CHAPTERS.find((candidate) => candidate.id === id) ?? PROMOTION_CHAPTERS.find((candidate) => candidate.id === id);
   if (!chapter) throw new Error(`Unknown chapter: ${id}`);
   return chapter;
 }

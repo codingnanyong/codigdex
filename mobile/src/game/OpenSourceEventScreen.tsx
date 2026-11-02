@@ -1,5 +1,6 @@
 import { Image, StyleSheet, Text, View } from "react-native";
 import type { Locale } from "@codigdex/game-core/i18n/locale";
+import type { MonsterDefinition } from "@codigdex/game-core/domain/chapters/types";
 import { localize } from "@codigdex/game-core/i18n/locale";
 import { findOpenSource } from "@codigdex/game-content/domain/openSourceCatalog";
 import { sourceCareer, sourceCareerName, type SourceEncounter } from "@codigdex/game-content/domain/openSourceEncounters";
@@ -8,13 +9,14 @@ import { PixelButton } from "../ui/PixelButton";
 import { mobileAssetSource } from "../assets";
 import { colors, font, pixelPanel } from "../ui/theme";
 
-export function OpenSourceEventScreen({ encounter, captured, locale, onAccept, onLater, saveError, onRetrySave }: { encounter: SourceEncounter; captured: boolean; locale: Locale; onAccept(): void; onLater(): void; saveError: boolean; onRetrySave(): void }) {
+export function OpenSourceEventScreen({ encounter, stage, captured, locale, onAccept, onLater, saveError, onRetrySave }: { encounter: SourceEncounter; stage: MonsterDefinition; captured: boolean; locale: Locale; onAccept(): void; onLater(): void; saveError: boolean; onRetrySave(): void }) {
   const entry = findOpenSource(encounter.toolId)!;
   const ko = locale === "ko";
   return <Screen scroll><View style={styles.content}>
     <Text testID="source-event-title" accessibilityRole="header" style={styles.heading}>{ko ? "돌발 의뢰 · 오픈소스와의 만남" : "SURPRISE REQUEST · OPEN SOURCE"}</Text>
     <Text testID="source-event-career" style={styles.body}>{localize(sourceCareerName(encounter.careerId), locale)}</Text>
-    <Image accessibilityLabel={localize(entry.character.name, locale)} source={mobileAssetSource(entry.character.assetKey!)} resizeMode="contain" style={styles.portrait} />
+    <Image accessibilityLabel={localize(stage.name, locale)} source={mobileAssetSource(stage.assetKey)} resizeMode="contain" style={styles.portrait} />
+    <Text style={styles.clue}>No.{stage.dexNumber} · Lv.{stage.level}/5</Text>
     <Text testID="source-event-tool" style={styles.heading}>{entry.name}</Text>
     <Text style={styles.body}>{localize(sourceCareer(encounter.careerId)!.workplace, locale)}</Text>
     <Text style={styles.body}>{localize(entry.role, locale)}</Text>

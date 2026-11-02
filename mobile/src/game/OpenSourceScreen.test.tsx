@@ -36,7 +36,7 @@ describe("native discovery notes", () => {
     save.progress.captures = OPEN_SOURCE_CATALOG.map(({ id }) => ({ id: `open-source:${id}`, capturedAt: "2026-10-28T00:00:00.000Z" }));
     const html = renderToStaticMarkup(<OpenSourceScreen locale="en" save={save} onBack={() => {}} />);
     for (const entry of OPEN_SOURCE_CATALOG) expect(html).toContain(entry.name.replaceAll("&", "&amp;"));
-    expect((html.match(/role="img"/g) ?? []).length).toBe(38);
+    expect((html.match(/role="img"/g) ?? []).length).toBe(38 * 6);
     expect(html).toContain("REGISTERED IN DEX");
     expect(html).not.toContain("START MISSION BATTLE");
   });

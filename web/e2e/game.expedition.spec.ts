@@ -10,7 +10,7 @@ import { careerCheckpointLayout } from "../lib/phaser/worldMap/careerCheckpointL
 import type { JobId } from "@codigdex/game-content/domain/player/jobs";
 
 async function firstCareerBattle(page: Page, save: StoredGameStateV3) {
-  if (save.player.secondaryJobId) { await scene(page, "promotion-chapter"); await click(page, 742, 509); }
+  if (save.player.secondaryJobId) { await scene(page, "secondary-region"); await click(page, 736, 511); await page.locator(".career-workshop").getByRole("button", { name: "START EVOLUTION BATTLE", exact: true }).click(); }
   else {
     await scene(page, "world-map");
     const job = save.player.primaryJobId as JobId;
@@ -60,17 +60,17 @@ for (const career of SOURCE_CAREERS) test(`meets ${career.firstTool} inside the 
   if (career.id === "frontend") { await reload(page); await scene(page, "open-source-event"); }
   await click(page, 718, 501);
   await scene(page, "code-battle");
-  await answerBattle(page, `open-source:${career.firstTool}`);
+  await answerBattle(page, `open-source:${career.firstTool}:lv1`);
   const captured = await readSave(page);
   expect(captured.ui.checkpointId).toBe(normalCheckpoint);
   expect(captured.player).toEqual(seed.player);
-  expect(captured.progress.captures.filter(({ id }) => id === `open-source:${career.firstTool}`)).toHaveLength(1);
+  expect(captured.progress.captures.filter(({ id }) => id === `open-source:${career.firstTool}:lv1`)).toHaveLength(1);
   expect(captured.progress.captures).toEqual(expect.arrayContaining(seed.progress.captures));
   if (career.id === "data-engineer") { await reload(page); await scene(page, "open-source-event"); await click(page, 718, 501); }
   else await confirmResult(page);
-  await scene(page, seed.player.secondaryJobId ? "promotion-chapter" : "career-region");
+  await scene(page, seed.player.secondaryJobId ? "secondary-region" : "career-region");
   await reload(page);
-  await scene(page, seed.player.secondaryJobId ? "promotion-chapter" : "world-map");
+  await scene(page, seed.player.secondaryJobId ? "secondary-region" : "world-map");
   expect((await readSave(page)).ui.checkpointId).toBe(normalCheckpoint);
   expect(errors).toEqual([]);
 });

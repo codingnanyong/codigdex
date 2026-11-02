@@ -8,6 +8,7 @@ import { normalizeGameSave, selectSecondaryCareer } from "./gameProgress";
 import { promotionChapterFor } from "./promotionChapters";
 import { workshopTaskId } from "./promotionWorkshops";
 import { masterChapterFor } from "./masterChapters";
+import { secondaryRegionsFor } from "./secondaryExploration";
 import type { Locale } from "@codigdex/game-core/i18n/locale";
 
 export interface GameQAPreset {
@@ -38,18 +39,21 @@ export function gameQAPresets(locale: Locale, now = new Date().toISOString()): G
     }),
     ...SECONDARY_JOB_OPTIONS.map((job): GameQAPreset => {
       const primary = job.requires.flatMap((id) => CAREER_PATHS[id].regions.flatMap(({ id }) => monstersForCareerRegion(id).map(({ id }) => id)));
-      const save = seeded([...common, ...primary]);
+      const earlyForms = secondaryRegionsFor(job.id).flatMap(({ chapter }) => chapter.stages.slice(0, 4).map(({ id }) => id));
+      const save = seeded([...common, ...primary, ...earlyForms]);
       save.player.primaryJobId = job.requires[0];
       // Isolated battle/encounter QA starts after practice. Workshop flow has its
       // own regression journey; no runtime gate is disabled by this fixture.
       save.progress.projects = promotionChapterFor(job.id)!.stages.flatMap(({ id }) => Array.from({ length: 4 }, (_, phase) => ({ id: workshopTaskId(id, phase), completedAt: now })));
-      return { id: `promotion:${job.id}`, title: job.name.ko, description: "선행 1차 두 경로와 구역 실습을 완료하고 전직한 QA 상태입니다. 다섯 배틀·포획·MASTER·이어하기를 확인하세요.", group: "2차 전직", save: selectSecondaryCareer(save, job.id, () => now) };
+      return { id: `promotion:${job.id}`, title: job.name.ko, description: "선행 1차와 초기 진화형 20개를 완료한 배틀 QA입니다. 다섯 지역의 Lv.5 수호자·포획·MASTER·이어하기를 확인하세요.", group: "2차 전직", save: selectSecondaryCareer(save, job.id, () => now) };
     }),
     { id: "dex", title: `전체 도감 ${DEX_MONSTERS.length}종`, description: "모든 카드를 포획한 상태입니다. 이어하기 후 하단 코디덱스 버튼에서 이미지·이름·설명을 확인하세요.", group: "도감", save: fullDex },
   ];
   const promotions = result.filter(({ group }) => group === "2차 전직");
   const workshop = parseSave(JSON.stringify(promotions.find(({ id }) => id === "promotion:platform-engineer")!.save))!;
   workshop.progress.projects = [];
+  workshop.progress.captures = workshop.progress.captures.filter(({ id }) => !id.startsWith("evolution:"));
+  workshop.ui.checkpointId = secondaryRegionsFor("platform-engineer")[0].chapter.stages[0].id;
   result.push({ id: "workshop:platform-engineer", title: "플랫폼 구역 학습·실습", description: "첫 구역의 네 실습·오답·저장·이어하기를 확인합니다.", group: "전직 실습", save: workshop });
   TERTIARY_JOB_OPTIONS.forEach((job) => {
     const save = parseSave(JSON.stringify(promotions.find(({ id }) => id === `promotion:${job.requires}`)!.save))!;

@@ -1,5 +1,6 @@
 import { text, type LocalizedText } from "@codigdex/game-core/i18n/locale";
 import type { QuizQuestion } from "@codigdex/game-core/domain/chapters/types";
+import { openSourceIdentity } from "@codigdex/game-content/domain/openSourceEvolutionIds";
 import { OPEN_SOURCE_CATALOG, OPEN_SOURCE_KIND_LABELS, type OpenSourceKind } from "@codigdex/game-content/domain/openSourceCatalog";
 
 type Pair = readonly [ko: string, en: string];
@@ -209,7 +210,7 @@ function question(prompt: LocalizedText, correct: LocalizedText, distractors: re
   return { prompt, choices, answerIndex, explanation };
 }
 export function openSourceQuizSource(stageId: string): readonly QuizQuestion[] {
-  const id = stageId.replace(/^open-source:/, "");
+  const id = openSourceIdentity(stageId)?.toolId ?? "";
   const entry = OPEN_SOURCE_CATALOG.find((candidate) => candidate.id === id);
   const authored = lessons[id];
   if (!entry || !authored) throw new Error(`Missing open-source lesson: ${stageId}`);
@@ -228,5 +229,9 @@ export function openSourceQuizSource(stageId: string): readonly QuizQuestion[] {
       return question(text(ko, en), correct, authored.actions.filter((_, i) => i !== index).map(([a, b]) => text(a, b)), index + 3,
         text(`${correct.ko}. ${entry.role.ko}.`, `${correct.en}. ${entry.role.en}.`));
     }),
+    ...authored.actions.slice(0, 3).map(([ko, en], index) => question(
+      text(`${entry.name}에서 '${ko}' 판단이 필요한 상황은?`, `Which ${entry.name} situation calls for '${en}'?`),
+      text(...authored.situations[index]), authored.situations.filter((_, i) => i !== index).map(([a, b]) => text(a, b)), index + 7,
+      text(`${ko}. ${entry.role.ko}.`, `${en}. ${entry.role.en}.`))),
   ];
 }

@@ -5,6 +5,8 @@ import { masterLessonFor } from "@codigdex/game-content/domain/masterChapters";
 import { PROMOTION_WORKSHOPS, WORKSHOP_PHASES } from "@codigdex/game-content/domain/promotionWorkshops";
 import { promotionChapterFor } from "@codigdex/game-content/domain/promotionChapters";
 import { nextWorkshopPhase } from "@codigdex/game-content/domain/gameProgress";
+import { evolutionIdentity } from "@codigdex/game-content/domain/secondaryEvolutionIds";
+import { EVOLUTION_LESSON_PHASES } from "@codigdex/game-content/domain/secondaryExploration";
 import type { SecondaryJobId } from "@codigdex/game-content/domain/player/jobs";
 import { createBattleState, submitBattleAnswer, type BattleState } from "@codigdex/game-core/domain/dex/battle";
 import { loadQuizPack } from "@codigdex/quiz-content/loader";
@@ -17,7 +19,8 @@ export function CareerWorkshop({ jobId, stageId, onBack, onBattle }: { jobId: st
   const { save, locale, saveError, retrySave, selectCheckpoint } = useSave();
   useEffect(() => { selectCheckpoint(stageId); }, [stageId, selectCheckpoint]);
   const master = masterLessonFor(stageId);
-  const index = promotionChapterFor(jobId)?.stages.findIndex(({ id }) => id === stageId) ?? -1;
+  const identity = evolutionIdentity(stageId);
+  const index = identity?.regionIndex ?? promotionChapterFor(jobId)?.stages.findIndex(({ id }) => id === stageId) ?? -1;
   const lesson = master ?? PROMOTION_WORKSHOPS[jobId as SecondaryJobId]?.[index];
   const monster = findStage(stageId).monster;
   const ko = locale === "ko";
@@ -31,7 +34,8 @@ export function CareerWorkshop({ jobId, stageId, onBack, onBattle }: { jobId: st
     <Text style={styles.body}>{"reasoning" in lesson ? lesson.reasoning[locale] : lesson.explanation[locale]}</Text>
     <PixelButton variant="quiet" onPress={() => { void Linking.openURL(lesson.source); }}>{ko ? "공식 참고 자료 ↗" : "OFFICIAL REFERENCE ↗"}</PixelButton>
     {saveError ? <><Text accessibilityRole="alert" style={styles.body}>{ko ? "저장하지 못했습니다. 종료 전에 다시 저장하세요." : "Could not save. Retry before closing."}</Text><PixelButton onPress={retrySave}>{ko ? "다시 저장" : "RETRY SAVE"}</PixelButton></> : null}
-    {master || phase === 4 ? <PixelButton testID="workshop-start-battle" onPress={() => onBattle(stageId)}>{master ? (ko ? "설계 검증 배틀 시작" : "START DESIGN VERIFICATION") : (ko ? "수호 생물 배틀 시작" : "START GUARDIAN BATTLE")}</PixelButton>
+    {identity ? <Text style={styles.body}>No.{monster.dexNumber} · Lv.{identity.level} · {EVOLUTION_LESSON_PHASES[identity.level - 1][locale]}{ko ? " · 앞 네 진화형 포획은 구역 실습으로 함께 저장됩니다." : " · Capturing the first four forms also saves regional practice."}</Text> : null}
+    {master || identity || phase === 4 ? <PixelButton testID="workshop-start-battle" onPress={() => onBattle(stageId)}>{master ? (ko ? "설계 검증 배틀 시작" : "START DESIGN VERIFICATION") : (ko ? "진화 배틀 시작" : "START EVOLUTION BATTLE")}</PixelButton>
       : <Practice key={`${stageId}:${phase}`} stageId={stageId} phase={phase} reasoning={"reasoning" in lesson ? lesson.reasoning[locale] : lesson.explanation[locale]} />}
   </Screen>;
 }

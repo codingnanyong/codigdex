@@ -14,7 +14,7 @@ import { createHomeButton } from "../navigation";
 import { describeUnlock } from "../capture/unlockNotice";
 import { lt, sceneLocale, t } from "../i18n";
 import { readDexState, reconcileCareerDexRegistry, writeDexState, snapshotRegistry, applySaveToRegistry } from "../registryAdapter";
-import { nextPlayableCheckpoint, rememberCheckpoint, settleFinalProject } from "@codigdex/game-content/domain/gameProgress";
+import { nextPlayableCheckpoint, rememberCheckpoint, settleFinalProject, settleEvolutionPractice } from "@codigdex/game-content/domain/gameProgress";
 import { addShade, applyPixelFontToScene } from "../ui";
 import { didUnlockPrimaryJobSelection } from "../worldMap/progression";
 import { findJob, JOB_REGISTRY_KEY } from "@codigdex/game-content/domain/player/jobs";
@@ -151,7 +151,7 @@ export class CaptureQuizScene extends Phaser.Scene {
       this.nextTarget = { scene: "job-select" };
     }
     writeDexState(this.registry, after);
-    const settled = settleFinalProject(snapshotRegistry(this.registry));
+    const settled = settleFinalProject(settleEvolutionPractice(snapshotRegistry(this.registry), this.monster.id));
     if (settled.progress.projects !== this.beforeCapture.progress.projects) applySaveToRegistry(this.registry, settled);
     reconcileCareerDexRegistry(this.registry);
     if (after !== before && !this.sourceEventId) {

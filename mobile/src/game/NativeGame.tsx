@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { ActivityIndicator, Text, View } from "react-native";
 import { findStage } from "@codigdex/game-content/domain/chapters";
-import { openSourceStageFor } from "@codigdex/game-content/domain/openSourceChapters";
+import { sourceEncounterStage } from "@codigdex/game-content/domain/openSourceChapters";
+import { evolutionIdentity } from "@codigdex/game-content/domain/secondaryEvolutionIds";
 import type { SourceReturnTarget } from "@codigdex/game-content/domain/openSourceEncounters";
 import type { MonsterDefinition } from "@codigdex/game-core/domain/chapters/types";
 import { mobileAssetSource } from "../assets";
@@ -67,7 +68,8 @@ export function NativeGame() {
     }
     const next = advance ? nextPlayableCheckpoint(save) : findStage(result.monster.id);
     if (advance) { selectCheckpoint(next.monster.id); setWorldStageId(next.monster.id); }
-    const target = destinationFor(save, next.monster.id);
+    const secondary = evolutionIdentity(result.monster.id);
+    const target: SourceReturnTarget = !advance && secondary ? { scene: "secondary-atlas", data: { jobId: secondary.jobId } } : destinationFor(save, next.monster.id);
     const offered = result.passed && sourceEvents.resolvePending(save);
     if (offered) setRoute({ name: "encounter" }); else navigate(target);
   };
@@ -76,9 +78,10 @@ export function NativeGame() {
   switch (route.name) {
     case "title": return title();
     case "qa": return QA_ENABLED ? <QAScreen checked={qaChecks} onToggleCheck={(check) => setQaChecks((items) => items.includes(check) ? items.filter((item) => item !== check) : [...items, check])} onBack={() => setRoute({ name: "title" })} onBattle={(monster) => startBattle(monster, undefined, true)} onWorld={() => { setWorldStageId(resumeCheckpoint(save).monster.id); setRoute({ name: "world" }); }} onDex={() => setRoute({ name: "dex" })} /> : title();
-    case "encounter": return pending ? <OpenSourceEventScreen encounter={pending} captured={captured.has("open-source:" + pending.toolId)} locale={locale} saveError={saveError} onRetrySave={retrySave} onLater={finishEncounter} onAccept={() => {
-      if (captured.has("open-source:" + pending.toolId)) { finishEncounter(); return; }
-      if (sourceEvents.accept(save, pending.id)) startBattle(openSourceStageFor(pending.toolId)!, pending.id);
+    case "encounter": return pending ? <OpenSourceEventScreen encounter={pending} stage={sourceEncounterStage(save, pending)!} captured={captured.has(sourceEncounterStage(save, pending)!.id)} locale={locale} saveError={saveError} onRetrySave={retrySave} onLater={finishEncounter} onAccept={() => {
+      const stage = sourceEncounterStage(save, pending);
+      if (!stage || captured.has(stage.id)) { finishEncounter(); return; }
+      if (sourceEvents.accept(save, pending.id)) startBattle(stage, pending.id);
     }} /> : title();
     case "open-source": return <OpenSourceScreen locale={locale} save={save} history={sourceHistory} initialIds={route.ids} onBack={() => setRoute({ name: route.returnTo })} />;
     case "career": return <CareerScreen selectedRegionId={careerRegionId} onRegionChange={setCareerRegionId} onBack={() => setRoute({ name: "title" })} onBattle={(id) => startBattle(findStage(id).monster)} onOpenSources={(ids) => setRoute({ name: "open-source", ids, returnTo: "career" })} />;

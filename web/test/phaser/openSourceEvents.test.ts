@@ -29,7 +29,7 @@ describe("local encounter session", () => {
     notify.mockClear();
     const changed = { ...after, player: { ...after.player, primaryJobId: "backend" } };
     expect(session.pending(changed)).toBeUndefined();
-    expect(session.canBattle(changed, "old-id", "open-source:tanstack-query")).toBe(false);
+    expect(session.canBattle(changed, "old-id", "open-source:tanstack-query:lv1")).toBe(false);
     expect(storage.setItem).not.toHaveBeenCalled();
     expect(notify).not.toHaveBeenCalled();
     expect(session.resolvePending(changed)).toBeUndefined();
@@ -45,10 +45,10 @@ describe("local encounter session", () => {
     const target = { scene: "career-region" as const, data: { careerId: "frontend", regionId: "html-css" } };
     const pending = session.queue(before, after, trigger, target)!;
     expect(new SourceEventSession(io).pending(after)).toEqual(pending);
-    expect(session.canBattle(after, pending.id, "open-source:tanstack-query")).toBe(false);
+    expect(session.canBattle(after, pending.id, "open-source:tanstack-query:lv1")).toBe(false);
     expect(session.accept(after, pending.id)).toBe(true);
     const reloaded = new SourceEventSession(io);
-    expect(reloaded.canBattle(after, pending.id, "open-source:tanstack-query")).toBe(true);
+    expect(reloaded.canBattle(after, pending.id, "open-source:tanstack-query:lv1")).toBe(true);
     expect(reloaded.canBattle(after, pending.id, "open-source:hadoop")).toBe(false);
     expect(reloaded.finish(after, pending.id)).toEqual(target);
     expect(new SourceEventSession(io).pending(after)).toBeUndefined();
@@ -89,7 +89,7 @@ describe("local encounter session", () => {
     const pending = new SourceEventSession(io).queue(before, after, trigger, { scene: "world-map" })!;
     expect(new SourceEventSession(io).resolvePending(before)).toBeUndefined();
     expect(new SourceEventSession(io).read(after).discoveries).toHaveLength(1);
-    after.progress.captures.push({ id: "open-source:tanstack-query", capturedAt: "2026-10-28T02:00:00.000Z" });
+    after.progress.captures.push({ id: "open-source:tanstack-query:lv1", capturedAt: "2026-10-28T02:00:00.000Z" });
     const savedCards = JSON.stringify(after.progress.captures);
     values.delete(sourceEventStorageKey(after)!);
     const cleared = new SourceEventSession(io);

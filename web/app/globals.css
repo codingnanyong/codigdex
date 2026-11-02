@@ -139,6 +139,9 @@ body {
 .source-card { display: flex; flex-direction: column; gap: 10px; padding: 16px; min-width: 0; border: 2px solid #93704b; background: #fff8e8; overflow-wrap: anywhere; }
 .source-card h3 { font-size: 21px; color: #a33422; }
 .source-character { width: 192px; height: 192px; align-self: center; object-fit: contain; image-rendering: pixelated; }
+.source-evolutions { display: flex; flex-wrap: wrap; gap: 8px; padding-top: 10px; }
+.source-evolutions figure { margin: 0; text-align: center; font-size: 12px; }
+.source-evolutions img { image-rendering: pixelated; }
 .source-learning { padding: 8px; background: #ead6b3; }
 .source-creature { border-top: 1px solid #c9a876; padding-top: 10px; }
 .source-card a { color: #8c392a; text-decoration: underline; margin-top: auto; }

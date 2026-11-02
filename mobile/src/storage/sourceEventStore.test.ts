@@ -22,7 +22,7 @@ describe("mobile encounter persistence", () => {
     await store.retry(after);
     const reloaded = new MobileSourceEventStore(io, () => {}, "qa");
     await reloaded.load(after); reloaded.activate(after);
-    expect(reloaded.session.canBattle(after, pending.id, "open-source:tanstack-query")).toBe(true);
+    expect(reloaded.session.canBattle(after, pending.id, "open-source:tanstack-query:lv1")).toBe(true);
     expect(reloaded.session.finish(after, pending.id)).toEqual(target);
     await reloaded.retry(after);
     expect(JSON.parse(values.get(`qa:${sourceEventStorageKey(after)}`)!).pending).toBeUndefined();

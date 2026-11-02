@@ -1,6 +1,6 @@
 import Phaser from "phaser";
 import { findOpenSource } from "@codigdex/game-content/domain/openSourceCatalog";
-import { openSourceStageFor } from "@codigdex/game-content/domain/openSourceChapters";
+import { sourceEncounterStage } from "@codigdex/game-content/domain/openSourceChapters";
 import { sourceCareer, sourceCareerName } from "@codigdex/game-content/domain/openSourceEncounters";
 import { snapshotRegistry } from "../registryAdapter";
 import { sourceEvents } from "../openSourceEvents";
@@ -17,7 +17,7 @@ export class OpenSourceEventScene extends Phaser.Scene {
 
   preload() {
     const pending = sourceEvents(this.registry).resolvePending(snapshotRegistry(this.registry));
-    const stage = pending && openSourceStageFor(pending.toolId);
+    const stage = pending && sourceEncounterStage(snapshotRegistry(this.registry), pending);
     if (stage) showLoadingScreen(this, queueImages(this, [{ key: stage.textureKey, url: assetUrl(stage.assetKey) }]), lt(this, stage.name));
   }
 
@@ -26,7 +26,7 @@ export class OpenSourceEventScene extends Phaser.Scene {
     const session = sourceEvents(this.registry);
     const pending = session.resolvePending(save);
     const entry = pending && findOpenSource(pending.toolId);
-    const stage = pending && openSourceStageFor(pending.toolId);
+    const stage = pending && sourceEncounterStage(save, pending);
     if (!pending || !entry || !stage) { this.scene.start("world-map"); return; }
     const ko = sceneLocale(this) === "ko";
     const captured = save.progress.captures.some(({ id }) => id === stage.id);
@@ -39,6 +39,7 @@ export class OpenSourceEventScene extends Phaser.Scene {
     this.add.image(228, 262, stage.textureKey).setDisplaySize(192, 192);
     const name = this.add.text(228, 384, entry.name, { ...pixelText("subtitle"), color: PALETTE_HEX.maroon }).setOrigin(0.5);
     fitTextInside(name, 280, 30);
+    this.add.text(228, 420, `No.${stage.dexNumber} · Lv.${stage.level}/5`, { ...pixelText("caption"), color: PALETTE_HEX.maroon }).setOrigin(0.5);
     const workplace = this.add.text(398, 142, lt(this, sourceCareer(pending.careerId)!.workplace), { ...pixelText("body"), color: PALETTE_HEX.ink, wordWrap: { width: 475 }, lineSpacing: 7 });
     fitTextInside(workplace, 475, 112);
     const task = this.add.text(398, 274, `${ko ? "도구의 역할" : "TOOL'S ROLE"}\n${lt(this, entry.role)}\n\n${ko ? "해결의 단서" : "CLUES"}\n${lt(this, entry.learning)}`, { ...pixelText("body"), color: PALETTE_HEX.ink, wordWrap: { width: 475 }, lineSpacing: 5 });

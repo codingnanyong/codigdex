@@ -2,6 +2,8 @@ import { text, type LocalizedText } from "@codigdex/game-core/i18n/locale";
 import type { StoredGameStateV3 } from "@codigdex/game-core/save/schema";
 import { findStage, isCommonPathComplete } from "./chapters";
 import { completedCareerPathIds } from "./careerPaths";
+import { openSourceIdentity } from "./openSourceEvolutionIds";
+import { openSourceEvolutionCount } from "./openSourceChapters";
 import { OPEN_SOURCE_CATALOG, findOpenSource } from "./openSourceCatalog";
 import { canSelectSecondaryJob, findJob, findSecondaryJob, type JobId, type SecondaryJobId } from "./player/jobs";
 
@@ -53,7 +55,7 @@ export function encounterTools(id: SourceCareerId) {
   return [...tools].sort((a, b) => Number(b.id === career.firstTool) - Number(a.id === career.firstTool));
 }
 
-export type SourceReturnTarget = { scene: "world-map" | "job-select" | "career-region" | "promotion-chapter"; data?: Record<string, unknown> };
+export type SourceReturnTarget = { scene: "world-map" | "job-select" | "career-region" | "promotion-chapter" | "secondary-atlas" | "secondary-region"; data?: Record<string, unknown> };
 export interface SourceEncounter {
   id: string;
   careerId: SourceCareerId;
@@ -61,6 +63,7 @@ export interface SourceEncounter {
   triggerId: string;
   triggerAt: string;
   victoryId?: string;
+  stageId?: string;
   state: "offered" | "active";
   returnTo: SourceReturnTarget;
 }
@@ -77,7 +80,7 @@ export function emptyEncounterHistory(): SourceEncounterHistory {
 
 export function discoveredSourceIds(save: StoredGameStateV3, history?: Pick<SourceEncounterHistory, "discoveries">) {
   return new Set([...(history?.discoveries ?? []).map(({ toolId }) => toolId),
-    ...save.progress.captures.filter(({ id }) => id.startsWith("open-source:")).map(({ id }) => id.slice(12))]);
+    ...save.progress.captures.flatMap(({ id }) => { const identity = openSourceIdentity(id); return identity && findOpenSource(identity.toolId) ? [identity.toolId] : []; })]);
 }
 
 export const MAX_PROCESSED_SOURCE_VICTORIES = 256;
@@ -97,8 +100,7 @@ export function planSourceEncounter(before: StoredGameStateV3, after: StoredGame
   const stamp = `${careerId}:${triggerId}:${victoryId ?? capture.capturedAt}`;
   if (history.processed.includes(stamp)) return history;
   const next = { ...history, processed: [...history.processed, stamp].slice(-MAX_PROCESSED_SOURCE_VICTORIES), sinceOffer: history.sinceOffer + 1 };
-  const captured = new Set(after.progress.captures.map(({ id }) => id));
-  const remaining = encounterTools(careerId).filter(({ id }) => !captured.has(`open-source:${id}`));
+  const remaining = encounterTools(careerId).filter(({ id }) => openSourceEvolutionCount(after, id) < 5);
   if (!remaining.length) return next;
   const first = !history.offeredCareers.includes(careerId);
   if (!first && (next.sinceOffer < MIN_BATTLE_GAP || (next.sinceOffer < MAX_BATTLE_GAP && random() >= ENCOUNTER_CHANCE))) return next;

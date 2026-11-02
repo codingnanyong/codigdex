@@ -47,7 +47,7 @@ First learn Git and Linux, the skills every developer needs, then pick a career 
 
 ## Things to collect
 
-- **Monster dex** — 199 entries, from the Loop Bug to the Git Sprout, the Kernel Guardian and open-source tool cards. Git, Linux and the career specialist chapters have monsters that evolve from Lv.1 to Lv.5. Monsters you have not captured yet stay as `???`.
+- **Monster dex** — 451 entries, from the Loop Bug to the Git Sprout, the Kernel Guardian and open-source tool cards. Git, Linux and the career specialist chapters have monsters that evolve from Lv.1 to Lv.5. Monsters you have not captured yet stay as `???`.
 - **Career dex** — collect 16 career emblems, from junior developer to tier 3 master careers. First promotion and mastery dates are recorded. Tier 3 requires tier 2 MASTER, regional practice and a completed final design project.
 
 ![Career emblems from junior to tier 3](packages/game-assets/files/career-emblems/career-emblem-archive-v1.png)
@@ -56,11 +56,11 @@ First learn Git and Linux, the skills every developer needs, then pick a career 
 
 - Collect 11 monsters across the common tutorial, Git and Linux chapters
 - Promote into one of 5 tier 1 careers and battle through its specialist chapters (HTML/CSS, Docker, SQL and more)
-- Promotion chapters for 5 tier 2 careers: 5 missions each, 25 stages in all, with 500 questions in Korean and English
-- Regional workshops: 25 worked examples and 100 saved practice checkpoints. Five tier 3 final projects add 25 guardians and 75 required design questions, alongside related foundation review.
-- Career surprise requests: optional requests that appear after career battle wins, covering 38 open-source tools and 266 questions
+- Five tier 2 careers with five regions each and 125 evolution forms, sharing 500 authored bilingual questions
+- Secondary exploration: five career atlases, 25 regions and 125 evolution forms. Capturing the first four forms saves regional practice. There are 25 worked examples and five tier 3 projects with 25 guardians and 75 required design questions.
+- Career surprise requests: 38 tools with 190 evolution forms and 10 questions per tool (380 shared questions). Original appearances and capture IDs remain the final forms; later encounters offer the next uncaptured form.
 - Open-source notes: review the tools you discovered through surprise requests. There is no separate open-source expedition entrance
-- Monster dex with 199 entries and career dex with 16
+- Monster dex with 451 entries and career dex with 16
 - Switch between Korean and English in settings
 
 Your progress is saved automatically: in the browser on the web, and on the device in the mobile app. Surprise request and discovery history stays with each browser or device, while captured cards are stored in the regular save.

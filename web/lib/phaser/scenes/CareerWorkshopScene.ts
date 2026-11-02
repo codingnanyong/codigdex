@@ -3,7 +3,9 @@ import { findStage } from "@codigdex/game-content/domain/chapters";
 import { masterLessonFor } from "@codigdex/game-content/domain/masterChapters";
 import { PROMOTION_WORKSHOPS, WORKSHOP_PHASES } from "@codigdex/game-content/domain/promotionWorkshops";
 import { promotionChapterFor } from "@codigdex/game-content/domain/promotionChapters";
-import { canStartMasterProject, completeWorkshopPractice, nextWorkshopPhase, promotionCheckpoints, masterCheckpoints, rememberCheckpoint } from "@codigdex/game-content/domain/gameProgress";
+import { canStartMasterProject, completeWorkshopPractice, nextWorkshopPhase, promotionCheckpoints, secondaryExplorationCheckpoints, masterCheckpoints, rememberCheckpoint } from "@codigdex/game-content/domain/gameProgress";
+import { evolutionIdentity } from "@codigdex/game-content/domain/secondaryEvolutionIds";
+import { EVOLUTION_LESSON_PHASES } from "@codigdex/game-content/domain/secondaryExploration";
 import { findTertiaryJob, type SecondaryJobId } from "@codigdex/game-content/domain/player/jobs";
 import { createBattleState, submitBattleAnswer, type BattleState } from "@codigdex/game-core/domain/dex/battle";
 import { loadQuizPack } from "@codigdex/quiz-content/loader";
@@ -14,9 +16,10 @@ import { sceneLocale } from "../i18n";
 export class CareerWorkshopScene extends Phaser.Scene {
   private jobId = "";
   private monsterId = "";
+  private evolutionId?: string;
   private root?: HTMLElement;
   constructor() { super("career-workshop"); }
-  init(data: { jobId: string; monsterId: string }) { this.jobId = data.jobId; this.monsterId = data.monsterId; }
+  init(data: { jobId: string; monsterId: string; evolutionId?: string }) { this.jobId = data.jobId; this.monsterId = data.monsterId; this.evolutionId = data.evolutionId; }
   create() {
     const root = document.createElement("section");
     root.className = "career-workshop";
@@ -42,13 +45,13 @@ export class CareerWorkshopScene extends Phaser.Scene {
   }
   private line(tag: string, copy: string) { const node = document.createElement(tag); node.textContent = copy; this.root!.append(node); return node; }
   private button(copy: string, action: () => void) { const node = document.createElement("button"); node.textContent = copy; node.onclick = action; this.root!.append(node); return node; }
-  private back() { this.button(sceneLocale(this) === "ko" ? "의뢰 지도로 돌아가기" : "BACK TO MISSION MAP", () => this.scene.start("promotion-chapter", { jobId: this.jobId, monsterId: this.monsterId })); }
+  private back() { this.button(sceneLocale(this) === "ko" ? "의뢰 지도로 돌아가기" : "BACK TO MISSION MAP", () => this.scene.start(this.evolutionId ? "secondary-region" : "promotion-chapter", { jobId: this.jobId, regionId: evolutionIdentity(this.monsterId)?.coreId, monsterId: this.monsterId })); }
   private async show() {
     const root = this.root!;
     root.replaceChildren();
     const save = snapshotRegistry(this.registry);
     const tertiary = findTertiaryJob(this.jobId);
-    const path = tertiary ? masterCheckpoints(save) : promotionCheckpoints(save);
+    const path = tertiary ? masterCheckpoints(save) : this.evolutionId ? secondaryExplorationCheckpoints(save) : promotionCheckpoints(save);
     const checkpoint = path.find(({ monster }) => monster.id === this.monsterId);
     if (!checkpoint || checkpoint.status === "locked" || (tertiary && !canStartMasterProject(save, tertiary.id))) {
       this.scene.start("job-select"); return;
@@ -57,7 +60,8 @@ export class CareerWorkshopScene extends Phaser.Scene {
     const ko = sceneLocale(this) === "ko";
     const locale = ko ? "ko" : "en";
     const { monster } = findStage(this.monsterId);
-    const index = promotionChapterFor(this.jobId)?.stages.findIndex(({ id }) => id === this.monsterId) ?? -1;
+    const identity = evolutionIdentity(this.monsterId);
+    const index = identity?.regionIndex ?? promotionChapterFor(this.jobId)?.stages.findIndex(({ id }) => id === this.monsterId) ?? -1;
     const master = masterLessonFor(this.monsterId);
     const lesson = master ?? PROMOTION_WORKSHOPS[this.jobId as SecondaryJobId]?.[index];
     if (!lesson) throw new Error("Unknown lesson");
@@ -67,6 +71,12 @@ export class CareerWorkshopScene extends Phaser.Scene {
     this.line("p", "reasoning" in lesson ? lesson.reasoning[locale] : lesson.explanation[locale]);
     const link = this.line("a", ko ? "공식 참고 자료 ↗" : "OFFICIAL REFERENCE ↗") as HTMLAnchorElement;
     link.href = lesson.source; link.target = "_blank"; link.rel = "noopener noreferrer";
+    if (this.evolutionId && identity) {
+      this.line("h3", `No.${monster.dexNumber} · Lv.${identity.level} · ${EVOLUTION_LESSON_PHASES[identity.level - 1][locale]}`);
+      this.line("p", ko ? "앞 네 단계의 진화형을 포획하면 구역 실습이 함께 저장됩니다. Lv.5는 배운 내용을 통합하는 수호자입니다." : "Capturing each of the first four forms also saves its regional practice checkpoint. The Lv.5 guardian integrates the whole lesson.");
+      this.button(ko ? "진화 배틀 시작" : "START EVOLUTION BATTLE", () => this.scene.start("code-battle", { monsterId: this.monsterId, returnTo: { scene: "secondary-region", data: { jobId: this.jobId, regionId: identity.coreId } } }));
+      this.back(); return;
+    }
     if (tertiary) {
       this.button(ko ? "설계 검증 배틀 시작" : "START DESIGN VERIFICATION", () => this.scene.start("code-battle", { monsterId: this.monsterId, returnTo: { scene: "promotion-chapter", data: { jobId: this.jobId } } }));
       this.back(); return;

@@ -2,6 +2,7 @@ import { Image, Text, View, useWindowDimensions } from "react-native";
 import { CHAPTERS } from "@codigdex/game-content/domain/chapters";
 import { promotionMissionFor } from "@codigdex/game-content/domain/promotionChapters";
 import { masterMissionFor } from "@codigdex/game-content/domain/masterChapters";
+import { secondaryRegionForStage } from "@codigdex/game-content/domain/secondaryExploration";
 import { localize } from "@codigdex/game-core/i18n/locale";
 import { mobileAssetSource } from "../assets";
 import { PixelScene, type PixelScenery } from "../ui/PixelScene";
@@ -32,7 +33,7 @@ export function ResultScreen({ onDex, onWorld, onRetry, onQA, onContinue, result
   return (
     <Screen scroll>
       <View style={[styles.resultLayout, narrow && styles.verticalLayout]}>
-        <View style={styles.resultStage}><PixelScene backdrop scene={event ? "field" : (promotionMissionFor(chapter?.id.replace(/^promotion:/, ""))?.scenery ?? masterMissionFor(chapter?.id.replace(/^mastery:/, ""))?.scenery ?? (chapter?.id.startsWith("career:") ? "field" : chapter?.id ?? "field")) as PixelScenery} /><Image resizeMode="contain" source={mobileAssetSource(result.monster.assetKey)} style={styles.resultMonster} /></View>
+        <View style={styles.resultStage}><PixelScene backdrop assetKey={secondaryRegionForStage(result.monster.id)?.chapter.arena?.assetKey} scene={event ? "field" : (promotionMissionFor(chapter?.id.replace(/^promotion:/, ""))?.scenery ?? masterMissionFor(chapter?.id.replace(/^mastery:/, ""))?.scenery ?? (chapter?.id.startsWith("career:") ? "field" : chapter?.id ?? "field")) as PixelScenery} /><Image resizeMode="contain" source={mobileAssetSource(result.monster.assetKey)} style={styles.resultMonster} /></View>
         <View style={styles.resultCopy}>
           <Text testID="result-title" style={[styles.resultGrade, result.passed ? styles.correct : styles.wrong]}>{result.passed ? (ko ? "포획 성공" : "CAPTURED") : (ko ? "재도전" : "TRY AGAIN")}</Text>
           <Text style={styles.logo}>{battlePercent(result.correct, result.total)}%</Text>

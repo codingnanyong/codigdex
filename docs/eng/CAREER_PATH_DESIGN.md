@@ -108,7 +108,7 @@ Bug researcher Lupi (루피) guides the common path before promotion. After prom
 | Guide NPC | `assets/characters/career-path/<career-id>/guide-v1.png` | Dialog portrait |
 | Field player (junior) | `assets/characters/player/overworld-player-v1.png` | Walking common-path chapter routes |
 | Field player (tier 1 career) | `assets/characters/career-path/<career-id>/overworld-v1.png` | Walking the world map after promotion, detail map `MY PLAYER` |
-| Character sheet | `assets/characters/career-path/career-character-guide-v2.png` | Archive of players and guides from junior to tier 3 |
+| Character sheet | `assets/characters/career-path/character-collection-guide-v3.png` | All 17 existing junior/primary player and guide portraits plus secondary guides; tertiary projects use career emblems |
 | Career emblem | `assets/career-emblems/<career-id>-v1.png` | Career dex (16 emblems) |
 
 ## Technologies shared between careers
@@ -141,7 +141,7 @@ Captures go into one dex regardless of career, so a player who captured a shared
 
 ## Tier 2 promotion (hybrid careers)
 
-Completing two tier 1 career paths opens a tier 2 career that bridges both fields. Together with the rule that shared cards are kept, this gives a player who finished one career a reason to explore another. All five integration chapters are playable: 5 chapters, 25 stages and 500 bilingual questions (20 per stage). Stages open in order and use the same battle and capture rules as other chapters.
+Completing two tier 1 career paths opens a tier 2 career that bridges both fields. Together with the rule that shared cards are kept, this gives a player who finished one career a reason to explore another. Five careers now contain 25 regions and 125 evolution forms, sharing 500 authored bilingual questions. Stages open within each species in order and use the same battle and capture rules as other chapters.
 
 The career lineage screen shows four columns from left to right: **pre-promotion junior developer → tier 1 → tier 2 → tier 3**. Lines branch from the junior card to every tier 1 career, and each tier 1 career connects to the tier 2 careers it can combine into. The name and selection of a tier 2 career are revealed only when the set of tier 1 careers with a MASTER record covers that career's `requires` pair. For example, completing Frontend and Backend opens Fullstack Engineer, but Platform Engineer / SRE stays locked until DevOps is also complete. Each tier 2 career links horizontally to exactly one tier 3 career so the full lineage never tangles.
 
@@ -155,7 +155,7 @@ The career lineage screen shows four columns from left to right: **pre-promotion
 
 - **Only combinations with a real job title exist.** Building all 10 combinations of five tier 1 careers would add content while blurring what each career means.
 - **Reveal like a dex silhouette.** The lineage screen and detail map show only a `◆ ???` slot. The detail map slot only says the identity is revealed after completing another tier 1 career path, while the lineage and Path map slots state the requirement, e.g. "Opens after completing both `<Career A> + <Career B>` paths." Hiding them entirely would leave players unaware they exist, with no motivation to reach them.
-- **Uncaptured monsters hold a dex slot.** They show only a number and `???`, and they do not count toward the dex's registered total or completion. The dex has 199 entries, including tier 2 stages, 38 open-source tool cards and 25 final-project guardians.
+- **Uncaptured monsters hold a dex slot.** They show only a number and `???`, and they do not count toward the dex's registered total or completion. The dex has 451 entries: 111 common/primary monsters, 125 secondary forms, 25 project guardians and 190 forms belonging to 38 open-source tools.
 - **Not just a title.** Each tier 2 career comes with a five-stage integration chapter bridging both fields, its own guide NPC and a career emblem.
 - **Unlocks are recomputed from captures.** Tier 1 and tier 2 mastery are derived from released captures each time a save is normalized, not trusted from stored flags. Unearned mastery or unlock records are removed, while captures and records for unknown content are preserved.
 
@@ -165,7 +165,9 @@ Tier 3 does not require another career combination. Completing every stage of a 
 
 The source now implements five playable final design projects (CH.28–32), one per tier 3 career. Each project has five milestones. Each milestone provides a worked example and rationale, three new required design questions and seven related tier 2 review questions. Every draw includes all three required questions; all must be correct and the normal 60% score also applies. Completing five milestones records the final project; explicit confirmation then equips tier 3. This implementation is pending publication and deployment. The earlier production acceptance does not certify this change.
 
-Entry requires the matching tier 2 MASTER and all 20 regional practice checkpoints. The 25 tier 2 regions now have worked examples, official references and four five-question practice decks. Passing 3 of 5 saves a checkpoint; failure adds no completion. New guardian battles require all four regional checkpoints. Existing captures and earned tier 2 mastery remain; legacy players must finish the added practice before entering a final project. There are 100 practice checkpoints and 25 new project guardians, taking the dex to 199 entries.
+Each tier 2 career now has a painted atlas with five regions. Hovering or selecting an island lifts its matching terrain above a shadow; locked regions remain closed until the previous Lv.5 guardian is captured. Each region contains one species with five evolution forms. Capturing Lv.1–4 saves the four regional practice checkpoints; Lv.5 integrates the lesson. Worked examples and official references remain available before every battle. The early packs reuse progressively larger subsets of the existing authored pools rather than claiming new questions.
+
+Entry to a new final project requires all 25 secondary captures and 20 practice records for the matching career. Existing guardian IDs, captures and earned tier 2 MASTER timestamps remain valid. A genuinely completed legacy final project remains valid too. Interrupted practice settlement is recovered from captured evolution IDs. The dex has 451 entries: common/primary 000–110, secondary 111–235, tertiary 236–260, and open source 261–450. Every evolution family has five consecutive numbers.
 
 | Tier 2 career | Tier 3 career | Guide NPC |
 | --- | --- | --- |
@@ -189,12 +191,14 @@ The screen shows locked · available · current · MASTER states and a `register
 
 ## Career surprise requests and discovery notes
 
-After a career or promotion battle win, the game may offer an optional request that introduces an open-source tool through the player's current role. Web and mobile share these rules. The catalog has 38 tools with 7 bilingual questions each, 266 in all.
+After a career or promotion battle win, the game may offer an optional request that introduces an open-source tool through the player's current role. Web and mobile share these rules. The catalog has 38 tools with 10 bilingual questions each, 380 in all. Each tool has its own five-form evolution family; related projects or components never evolve into one another. Evolution stages share the tool's question pool.
 
 - **Who gets one:** the equipped tier 2 career decides the request; otherwise the tier 1 career does. Common-path battles and request battles do not trigger one.
 - **When:** the first qualifying win in each career makes an offer. After that, no offer comes before 3 wins since the last one, each later win has a 25% chance, and the 6th win always offers while uncaptured tools remain for that career. Only one request can be pending.
 - **Choice:** the player can accept or choose later. Later returns to the normal path, and an offered tool counts as discovered even if it is declined. A failed request battle can be retried, and the normal career checkpoint is kept.
 - **Progress:** tool cards go into the regular dex, but they are never MASTER requirements.
+- **Evolution:** one request captures one form, then returns to the career. A later request offers the next uncaptured form. Accepting pins the stage ID so failure, reload and post-capture authorization refer to the same battle. Old final-form IDs remain Lv.5 captures; players can collect the four new forms without losing that card. Notes show discovery by tool and capture progress out of five.
+- **Art:** original OSS images move byte-for-byte to `monsters/open-source/<family>/<tool>/<tool>-lv5-v1.png`. New forms retain the original friendly 64px-grid, 16-color pixel style. Active tertiary guardians use the simplified v3 designs; the rejected detailed v2 sheet is excluded. The canonical archive generator reads actual dex metadata, not filename level suffixes.
 - **Notes:** the discovery notes review tools the player has already discovered, and relevant discovered tools link from career screens. **There is no independent expedition entrance.** Old expedition bookmarks return to the career path, and tool cards captured before this change stay in the save.
 
 ## Save format
@@ -236,7 +240,7 @@ This compares the current detail map regions against the prepared representative
 | Data Engineer | 6 | 6 | None |
 | Data Analyst | 5 | 5 | None |
 
-All 28 current technology regions have a matching creature. There are 22 technology creatures (2 common + 20 specialist), and each chapter folder from `packages/game-assets/files/monsters/ch01.git/` to `ch22.bi-tools/` holds a specimen, a Lv.1–Lv.5 evolution set and an evolution sheet. `packages/game-assets/files/monsters/all-monster-evolution-guide-v1.png` shows the full set at a glance. The tutorial's Loop Bug (`ch00.tutorial`) is a single-stage creature that does not evolve, so its remaining cells are marked `N/A`. `web/test/domain/assets.test.ts` checks that every folder has its specimen and full evolution set.
+All 28 current technology regions have a matching creature. There are 22 technology creatures (2 common + 20 specialist), and each chapter folder from `packages/game-assets/files/monsters/ch01.git/` to `ch22.bi-tools/` holds a specimen, a Lv.1–Lv.5 evolution set and an evolution sheet. `packages/game-assets/files/monsters/all-monster-evolution-guide-v2.png` shows the full set at a glance. The tutorial's Loop Bug (`ch00.tutorial`) is a single-stage creature that does not evolve, so its remaining cells are marked `N/A`. `web/test/domain/assets.test.ts` checks that every folder has its specimen and full evolution set.
 
 Instead of stamping a technology's name on like a logo, each technology's core idea becomes a creature silhouette that is easy to remember in the dex. The Git creature from the original blog is the visual anchor, and its shared language is bold dark outlines, warm cream, Git-orange accents and small white eyes.
 
