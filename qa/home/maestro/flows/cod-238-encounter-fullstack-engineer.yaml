@@ -1,5 +1,5 @@
 appId: com.codingnanyong.codigdex
-name: COD-238 fullstack-engineer request, native persistence, capture and notes
+name: COD-238 fullstack-engineer five-stage request, pause, persistence and notes
 tags:
   - cod-238
   - encounters
@@ -242,12 +242,431 @@ tags:
     text: CAPTURED
 - scrollUntilVisible:
     element:
-      id: result-world
+      id: result-continue
     direction: DOWN
     timeout: 60000
     speed: 20
 - tapOn:
-    id: result-world
+    id: result-continue
+- scrollUntilVisible:
+    element:
+      id: battle-choice-3
+    direction: DOWN
+    timeout: 60000
+    speed: 20
+- tapOn:
+    id: battle-choice-3
+- scrollUntilVisible:
+    element:
+      id: battle-feedback
+    direction: DOWN
+    timeout: 60000
+    speed: 20
+- assertVisible:
+    id: battle-feedback
+    text: CORRECT!
+- scrollUntilVisible:
+    element:
+      id: battle-next
+    direction: DOWN
+    timeout: 60000
+    speed: 20
+- tapOn:
+    id: battle-next
+- scrollUntilVisible:
+    element:
+      id: battle-choice-2
+    direction: DOWN
+    timeout: 60000
+    speed: 20
+- tapOn:
+    id: battle-choice-2
+- scrollUntilVisible:
+    element:
+      id: battle-feedback
+    direction: DOWN
+    timeout: 60000
+    speed: 20
+- assertVisible:
+    id: battle-feedback
+    text: CORRECT!
+- scrollUntilVisible:
+    element:
+      id: battle-next
+    direction: DOWN
+    timeout: 60000
+    speed: 20
+- tapOn:
+    id: battle-next
+- scrollUntilVisible:
+    element:
+      id: battle-choice-2
+    direction: DOWN
+    timeout: 60000
+    speed: 20
+- tapOn:
+    id: battle-choice-2
+- scrollUntilVisible:
+    element:
+      id: battle-feedback
+    direction: DOWN
+    timeout: 60000
+    speed: 20
+- assertVisible:
+    id: battle-feedback
+    text: CORRECT!
+- scrollUntilVisible:
+    element:
+      id: battle-next
+    direction: DOWN
+    timeout: 60000
+    speed: 20
+- tapOn:
+    id: battle-next
+- assertVisible:
+    id: result-title
+    text: CAPTURED
+- scrollUntilVisible:
+    element:
+      id: result-continue
+    direction: DOWN
+    timeout: 60000
+    speed: 20
+- tapOn:
+    id: result-continue
+- scrollUntilVisible:
+    element:
+      id: battle-choice-3
+    direction: DOWN
+    timeout: 60000
+    speed: 20
+- tapOn:
+    id: battle-choice-3
+- scrollUntilVisible:
+    element:
+      id: battle-feedback
+    direction: DOWN
+    timeout: 60000
+    speed: 20
+- assertVisible:
+    id: battle-feedback
+    text: CORRECT!
+- scrollUntilVisible:
+    element:
+      id: battle-next
+    direction: DOWN
+    timeout: 60000
+    speed: 20
+- tapOn:
+    id: battle-next
+- scrollUntilVisible:
+    element:
+      id: battle-choice-2
+    direction: DOWN
+    timeout: 60000
+    speed: 20
+- tapOn:
+    id: battle-choice-2
+- scrollUntilVisible:
+    element:
+      id: battle-feedback
+    direction: DOWN
+    timeout: 60000
+    speed: 20
+- assertVisible:
+    id: battle-feedback
+    text: CORRECT!
+- scrollUntilVisible:
+    element:
+      id: battle-next
+    direction: DOWN
+    timeout: 60000
+    speed: 20
+- tapOn:
+    id: battle-next
+- scrollUntilVisible:
+    element:
+      id: battle-choice-2
+    direction: DOWN
+    timeout: 60000
+    speed: 20
+- tapOn:
+    id: battle-choice-2
+- scrollUntilVisible:
+    element:
+      id: battle-feedback
+    direction: DOWN
+    timeout: 60000
+    speed: 20
+- assertVisible:
+    id: battle-feedback
+    text: CORRECT!
+- scrollUntilVisible:
+    element:
+      id: battle-next
+    direction: DOWN
+    timeout: 60000
+    speed: 20
+- tapOn:
+    id: battle-next
+- assertVisible:
+    id: result-title
+    text: CAPTURED
+- scrollUntilVisible:
+    element:
+      id: result-continue
+    direction: DOWN
+    timeout: 60000
+    speed: 20
+- tapOn:
+    id: result-continue
+- scrollUntilVisible:
+    element:
+      id: battle-choice-3
+    direction: DOWN
+    timeout: 60000
+    speed: 20
+- tapOn:
+    id: battle-choice-3
+- scrollUntilVisible:
+    element:
+      id: battle-feedback
+    direction: DOWN
+    timeout: 60000
+    speed: 20
+- assertVisible:
+    id: battle-feedback
+    text: CORRECT!
+- scrollUntilVisible:
+    element:
+      id: battle-next
+    direction: DOWN
+    timeout: 60000
+    speed: 20
+- tapOn:
+    id: battle-next
+- scrollUntilVisible:
+    element:
+      id: battle-choice-2
+    direction: DOWN
+    timeout: 60000
+    speed: 20
+- tapOn:
+    id: battle-choice-2
+- scrollUntilVisible:
+    element:
+      id: battle-feedback
+    direction: DOWN
+    timeout: 60000
+    speed: 20
+- assertVisible:
+    id: battle-feedback
+    text: CORRECT!
+- scrollUntilVisible:
+    element:
+      id: battle-next
+    direction: DOWN
+    timeout: 60000
+    speed: 20
+- tapOn:
+    id: battle-next
+- scrollUntilVisible:
+    element:
+      id: battle-choice-2
+    direction: DOWN
+    timeout: 60000
+    speed: 20
+- tapOn:
+    id: battle-choice-2
+- scrollUntilVisible:
+    element:
+      id: battle-feedback
+    direction: DOWN
+    timeout: 60000
+    speed: 20
+- assertVisible:
+    id: battle-feedback
+    text: CORRECT!
+- scrollUntilVisible:
+    element:
+      id: battle-next
+    direction: DOWN
+    timeout: 60000
+    speed: 20
+- tapOn:
+    id: battle-next
+- scrollUntilVisible:
+    element:
+      id: battle-choice-1
+    direction: DOWN
+    timeout: 60000
+    speed: 20
+- tapOn:
+    id: battle-choice-1
+- scrollUntilVisible:
+    element:
+      id: battle-feedback
+    direction: DOWN
+    timeout: 60000
+    speed: 20
+- assertVisible:
+    id: battle-feedback
+    text: CORRECT!
+- scrollUntilVisible:
+    element:
+      id: battle-next
+    direction: DOWN
+    timeout: 60000
+    speed: 20
+- tapOn:
+    id: battle-next
+- assertVisible:
+    id: result-title
+    text: CAPTURED
+- scrollUntilVisible:
+    element:
+      id: result-continue
+    direction: DOWN
+    timeout: 60000
+    speed: 20
+- tapOn:
+    id: result-continue
+- scrollUntilVisible:
+    element:
+      id: battle-choice-3
+    direction: DOWN
+    timeout: 60000
+    speed: 20
+- tapOn:
+    id: battle-choice-3
+- scrollUntilVisible:
+    element:
+      id: battle-feedback
+    direction: DOWN
+    timeout: 60000
+    speed: 20
+- assertVisible:
+    id: battle-feedback
+    text: CORRECT!
+- scrollUntilVisible:
+    element:
+      id: battle-next
+    direction: DOWN
+    timeout: 60000
+    speed: 20
+- tapOn:
+    id: battle-next
+- scrollUntilVisible:
+    element:
+      id: battle-choice-2
+    direction: DOWN
+    timeout: 60000
+    speed: 20
+- tapOn:
+    id: battle-choice-2
+- scrollUntilVisible:
+    element:
+      id: battle-feedback
+    direction: DOWN
+    timeout: 60000
+    speed: 20
+- assertVisible:
+    id: battle-feedback
+    text: CORRECT!
+- scrollUntilVisible:
+    element:
+      id: battle-next
+    direction: DOWN
+    timeout: 60000
+    speed: 20
+- tapOn:
+    id: battle-next
+- scrollUntilVisible:
+    element:
+      id: battle-choice-2
+    direction: DOWN
+    timeout: 60000
+    speed: 20
+- tapOn:
+    id: battle-choice-2
+- scrollUntilVisible:
+    element:
+      id: battle-feedback
+    direction: DOWN
+    timeout: 60000
+    speed: 20
+- assertVisible:
+    id: battle-feedback
+    text: CORRECT!
+- scrollUntilVisible:
+    element:
+      id: battle-next
+    direction: DOWN
+    timeout: 60000
+    speed: 20
+- tapOn:
+    id: battle-next
+- scrollUntilVisible:
+    element:
+      id: battle-choice-1
+    direction: DOWN
+    timeout: 60000
+    speed: 20
+- tapOn:
+    id: battle-choice-1
+- scrollUntilVisible:
+    element:
+      id: battle-feedback
+    direction: DOWN
+    timeout: 60000
+    speed: 20
+- assertVisible:
+    id: battle-feedback
+    text: CORRECT!
+- scrollUntilVisible:
+    element:
+      id: battle-next
+    direction: DOWN
+    timeout: 60000
+    speed: 20
+- tapOn:
+    id: battle-next
+- scrollUntilVisible:
+    element:
+      id: battle-choice-2
+    direction: DOWN
+    timeout: 60000
+    speed: 20
+- tapOn:
+    id: battle-choice-2
+- scrollUntilVisible:
+    element:
+      id: battle-feedback
+    direction: DOWN
+    timeout: 60000
+    speed: 20
+- assertVisible:
+    id: battle-feedback
+    text: CORRECT!
+- scrollUntilVisible:
+    element:
+      id: battle-next
+    direction: DOWN
+    timeout: 60000
+    speed: 20
+- tapOn:
+    id: battle-next
+- assertVisible:
+    id: result-title
+    text: CAPTURED
+- scrollUntilVisible:
+    element:
+      id: result-continue
+    direction: DOWN
+    timeout: 60000
+    speed: 20
+- tapOn:
+    id: result-continue
 - assertVisible:
     id: career-title
 - scrollUntilVisible:
@@ -268,7 +687,7 @@ tags:
     id: home-qa
 - assertVisible:
     id: qa-captures
-    text: "83"
+    text: "87"
 - assertVisible:
     id: qa-save-status
     text: SAVED

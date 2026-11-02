@@ -13,6 +13,7 @@ import { createHomeButton } from "../navigation";
 import { openSourcesForMonster } from "@codigdex/game-content/domain/openSourceLinks";
 import { discoveredSourceIds } from "../openSourceEvents";
 import { showOpenSourceNotes } from "../openSourceNotes";
+import { drawFiveStageRoute } from "../fiveStageRoute";
 
 const atlasKey = (id: string) => `secondary-atlas-${id}`;
 const terrainKey = (id: string) => `secondary-terrain-${id}`;
@@ -79,7 +80,6 @@ export class SecondaryAtlasScene extends Phaser.Scene {
     createHomeButton(this).setDepth(20); applyPixelFontToScene(this);
   }
 }
-
 export class SecondaryRegionScene extends Phaser.Scene {
   private jobId = "";
   private regionId = "";
@@ -105,22 +105,18 @@ export class SecondaryRegionScene extends Phaser.Scene {
     drawOrnateFrame(this, 480, 45, 730, 64, { fillAlpha: 0.97, radius: 10 });
     this.add.text(480, 29, `${lt(this, region.label)} · ${item.captured}/5`, { ...pixelText("subtitle"), color: PALETTE_HEX.maroon }).setOrigin(0.5);
     this.add.text(480, 56, ko ? "한 종의 성장과 함께 원리 → 구현 → 진단 → 검증 → 통합" : "ONE SPECIES · DISCOVER → BUILD → DIAGNOSE → VERIFY → INTEGRATE", { ...pixelText("caption"), color: PALETTE_HEX.ink }).setOrigin(0.5);
-    const route = this.add.graphics().lineStyle(4, PALETTE.sand, 0.9);
-    route.beginPath(); path.forEach((_, i) => i ? route.lineTo(128 + i * 176, i % 2 ? 222 : 187) : route.moveTo(128, 187)); route.strokePath();
-    path.forEach(({ monster, status }, i) => {
-      const x = 128 + i * 176, y = i % 2 ? 222 : 187;
-      this.add.ellipse(x, y + 32, 118, 34, PALETTE.nightBrown, 0.6).setStrokeStyle(selected.monster.id === monster.id ? 4 : 1, PALETTE.amber);
-      if (status !== "locked") this.add.image(x, y - 20, monster.textureKey).setDisplaySize(140, 140).setInteractive({ useHandCursor: true }).on("pointerup", () => this.scene.restart({ jobId: this.jobId, regionId: this.regionId, monsterId: monster.id }));
-      else this.add.text(x, y - 12, "?", { ...pixelText("title"), color: PALETTE_HEX.cream }).setOrigin(0.5);
-      this.add.text(x, y + 63, `No.${monster.dexNumber} · Lv.${monster.level}${status === "cleared" ? " ✓" : ""}\n${lt(this, EVOLUTION_LESSON_PHASES[i])}`, { ...pixelText("caption"), color: PALETTE_HEX.cream, align: "center", backgroundColor: PALETTE_HEX.nightBrown, padding: { x: 5, y: 4 } }).setOrigin(0.5);
+    const learn = () => this.scene.start("career-workshop", { jobId: this.jobId, monsterId: selected.monster.id, evolutionId: selected.monster.id });
+    drawFiveStageRoute(this, path, selected.monster.id, (monsterId) => this.scene.restart({ jobId: this.jobId, regionId: this.regionId, monsterId }), {
+      arena: region.chapter.arena!.assetKey, onEnter: learn, captions: EVOLUTION_LESSON_PHASES.map((phase) => lt(this, phase)),
     });
     drawOrnateFrame(this, 480, 409, 858, 150, { fillAlpha: 0.98, radius: 12 });
     this.add.text(84, 350, `No.${selected.monster.dexNumber} · ${lt(this, selected.monster.name)}`, { ...pixelText("body"), color: PALETTE_HEX.maroon });
-    this.add.text(84, 379, lt(this, selected.monster.briefing), { ...pixelText("body"), color: PALETTE_HEX.ink, wordWrap: { width: 788 }, lineSpacing: 4 });
+    const brief = this.add.text(84, 379, lt(this, selected.monster.briefing), { ...pixelText("body"), color: PALETTE_HEX.ink, wordWrap: { width: 788 }, lineSpacing: 4 });
+    fitTextInside(brief, 788, 65);
     const discovered = discoveredSourceIds(this.registry, save), tools = openSourcesForMonster(region.core.id).filter(({ id }) => discovered.has(id));
     if (tools.length) this.add.text(84, 452, `${ko ? "연관 도구" : "RELATED TOOLS"} · ${tools.map(({ name }) => name).join(" · ")} ↗`, { ...pixelText("caption"), color: PALETTE_HEX.maroon }).setInteractive({ useHandCursor: true }).on("pointerup", () => showOpenSourceNotes(tools.map(({ id }) => id)));
     createButton(this, 216, 511, 320, 36, ko ? "← 2차 지역 지도" : "← SECONDARY ATLAS", () => this.scene.start("secondary-atlas", { jobId: this.jobId, regionId: this.regionId }));
-    createButton(this, 736, 511, 350, 36, ko ? "학습 자료 · 진화 배틀" : "LEARNING BRIEF · EVOLUTION BATTLE", () => this.scene.start("career-workshop", { jobId: this.jobId, monsterId: selected.monster.id, evolutionId: selected.monster.id }));
+    createButton(this, 736, 511, 350, 36, ko ? "학습 자료 · 진화 배틀" : "LEARNING BRIEF · EVOLUTION BATTLE", learn);
     createHomeButton(this).setDepth(20); applyPixelFontToScene(this);
   }
 }

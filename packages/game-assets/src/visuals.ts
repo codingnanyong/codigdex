@@ -9,6 +9,11 @@ export const WALLPAPERS = {
   ml: "wallpapers/promotion/ml-developer-arena-v1.png",
   mlops: "wallpapers/promotion/mlops-engineer-arena-v1.png",
   analytics: "wallpapers/promotion/analytics-engineer-arena-v1.png",
+  "software-architect": "wallpapers/mastery/software-architect-arena-v1.png",
+  "cloud-platform-architect": "wallpapers/mastery/cloud-platform-architect-arena-v1.png",
+  "ai-product-engineer": "wallpapers/mastery/ai-product-engineer-arena-v1.png",
+  "ai-platform-architect": "wallpapers/mastery/ai-platform-architect-arena-v1.png",
+  "data-architect": "wallpapers/mastery/data-architect-arena-v1.png",
 } as const;
 
 export type Scenery = keyof typeof WALLPAPERS;

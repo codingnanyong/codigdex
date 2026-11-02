@@ -59,4 +59,29 @@ describe("mobile encounter persistence", () => {
     store.activate(after);
     expect(store.session.pending(after)).toBeUndefined();
   });
+
+  it("waits for the matching progress write before replacing durable history and retries failures", async () => {
+    const { before, after, io, values, target } = fixture();
+    let progress = Promise.resolve();
+    const store = new MobileSourceEventStore(io, () => {}, undefined, () => progress);
+    await store.load(after); store.activate(after);
+    const pending = store.session.queue(before, after, before.ui.checkpointId!, target)!;
+    store.session.accept(after, pending.id);
+    await store.retry(after);
+    const key = sourceEventStorageKey(after)!;
+    const active = values.get(key);
+    let reject!: (reason: Error) => void;
+    progress = new Promise<void>((_, fail) => { reject = fail; });
+    store.session.finish(after, pending.id);
+    await Promise.resolve();
+    expect(values.get(key)).toBe(active);
+    reject(Error("capture write failed"));
+    await vi.waitFor(() => expect(store.saving).toBe(false));
+    expect(store.error).toBe(true);
+    expect(values.get(key)).toBe(active);
+    progress = Promise.resolve();
+    await store.retry(after);
+    expect(JSON.parse(values.get(key)!).pending).toBeUndefined();
+    expect(store.error).toBe(false);
+  });
 });

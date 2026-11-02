@@ -3,6 +3,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { WALLPAPERS } from "../../packages/game-assets/src/visuals.ts";
 import { SECONDARY_MOBILE_ART } from "../../packages/game-assets/src/secondaryArt.ts";
+import { OPEN_SOURCE_MOBILE_ART } from "../../packages/game-assets/src/openSourceArt.ts";
 
 const mobile = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const repo = path.resolve(mobile, "..");
@@ -19,7 +20,7 @@ const bundledBytes = (await Promise.all(importedFiles.map(size))).reduce((sum, v
 // The four shared web originals replace separate native artwork.
 const limitBytes = 14 * 1024 * 1024;
 if (bundledBytes > limitBytes) throw new Error(`Mobile source images exceed the 14 MiB budget: ${bundledBytes} bytes`);
-if (keys.some((key) => !(key.startsWith("monsters/") || /^characters\/promotion\/[^/]+\/guide-v1\.png$/.test(key) || Object.values(WALLPAPERS).includes(key) || SECONDARY_MOBILE_ART.includes(key)) || !allKeys.includes(key))) throw new Error("Unexpected asset in the mobile map");
+if (keys.some((key) => !(key.startsWith("monsters/") || /^characters\/promotion\/[^/]+\/guide-v1\.png$/.test(key) || Object.values(WALLPAPERS).includes(key) || SECONDARY_MOBILE_ART.includes(key) || OPEN_SOURCE_MOBILE_ART.includes(key)) || !allKeys.includes(key))) throw new Error("Unexpected asset in the mobile map");
 const fontBytes = await size("fonts/Galmuri14.ttf");
 const totalLimitBytes = 20 * 1024 * 1024;
 if (bundledBytes + fontBytes > totalLimitBytes) throw new Error("Mobile images and pixel font exceed the 20 MiB combined source budget");

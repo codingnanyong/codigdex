@@ -11,6 +11,7 @@ import { createBattleState, submitBattleAnswer, type BattleState } from "@codigd
 import { loadQuizPack } from "@codigdex/quiz-content/loader";
 import { applySaveToRegistry, snapshotRegistry } from "../registryAdapter";
 import { sceneLocale } from "../i18n";
+import { assetUrl } from "../../assets";
 
 /** Scrollable, keyboard-accessible reading and practice, with explicit answer feedback. */
 export class CareerWorkshopScene extends Phaser.Scene {
@@ -59,13 +60,24 @@ export class CareerWorkshopScene extends Phaser.Scene {
     applySaveToRegistry(this.registry, rememberCheckpoint(save, this.monsterId));
     const ko = sceneLocale(this) === "ko";
     const locale = ko ? "ko" : "en";
-    const { monster } = findStage(this.monsterId);
+    const { monster, chapter } = findStage(this.monsterId);
     const identity = evolutionIdentity(this.monsterId);
     const index = identity?.regionIndex ?? promotionChapterFor(this.jobId)?.stages.findIndex(({ id }) => id === this.monsterId) ?? -1;
     const master = masterLessonFor(this.monsterId);
     const lesson = master ?? PROMOTION_WORKSHOPS[this.jobId as SecondaryJobId]?.[index];
     if (!lesson) throw new Error("Unknown lesson");
     this.line("h2", monster.classification[locale]);
+    if (chapter.arena) {
+      const figure = document.createElement("figure"); figure.className = "workshop-stage";
+      figure.dataset.arena = chapter.arena.assetKey;
+      const backdrop = document.createElement("img"); backdrop.className = "workshop-backdrop";
+      backdrop.src = assetUrl(chapter.arena.assetKey); backdrop.alt = "";
+      const portrait = document.createElement("img"); portrait.className = "workshop-monster";
+      portrait.src = assetUrl(monster.assetKey); portrait.alt = monster.name[locale];
+      const caption = document.createElement("figcaption");
+      caption.textContent = `${ko ? "단계" : "STAGE"} ${monster.level}/5 · No.${monster.dexNumber} · ${monster.name[locale]}`;
+      figure.append(backdrop, portrait, caption); root.append(figure);
+    }
     this.line("p", monster.briefing[locale]);
     this.line("pre", lesson.example);
     this.line("p", "reasoning" in lesson ? lesson.reasoning[locale] : lesson.explanation[locale]);

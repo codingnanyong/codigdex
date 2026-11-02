@@ -3,6 +3,7 @@ import { fileURLToPath } from "node:url";
 import path from "node:path";
 import { WALLPAPERS } from "../../packages/game-assets/src/visuals.ts";
 import { SECONDARY_MOBILE_ART } from "../../packages/game-assets/src/secondaryArt.ts";
+import { OPEN_SOURCE_MOBILE_ART } from "../../packages/game-assets/src/openSourceArt.ts";
 
 const mobileRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const repositoryRoot = path.resolve(mobileRoot, "..");
@@ -10,7 +11,7 @@ const manifestPath = path.join(repositoryRoot, "packages/game-assets/src/manifes
 const outputPath = path.join(mobileRoot, "src/assets.generated.ts");
 const manifest = await readFile(manifestPath, "utf8");
 const allKeys = [...manifest.matchAll(/^  "([^"]+)",$/gm)].map((match) => match[1]);
-const wallpapers = new Set([...Object.values(WALLPAPERS), ...SECONDARY_MOBILE_ART]);
+const wallpapers = new Set([...Object.values(WALLPAPERS), ...SECONDARY_MOBILE_ART, ...OPEN_SOURCE_MOBILE_ART]);
 const keys = allKeys.filter((key) => (key.startsWith("monsters/") && key.endsWith(".png") &&
   !/evolution-(?:guide|sheet)|concept-sheet|specimen|\/reference\/|\/archives\//.test(key) &&
   !(key.startsWith("monsters/mastery/") && /guardian-[1-5]\.png$/.test(key) && allKeys.includes(key.replace(/\.png$/, "-v3.png")))) ||

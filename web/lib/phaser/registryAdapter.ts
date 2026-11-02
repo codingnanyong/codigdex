@@ -121,15 +121,16 @@ export function hydrateRegistry(
   }
 }
 
-export function persistRegistry(registry: Phaser.Data.DataManager, storage = browserStorage()) {
-  if (applying.has(registry)) return;
-  if (!storage) return;
+export function persistRegistry(registry: Phaser.Data.DataManager, storage = browserStorage()): boolean {
+  if (applying.has(registry) || !storage) return false;
   const save = snapshotRegistry(registry);
   try {
     storage.setItem(SAVE_STORAGE_KEY, JSON.stringify(save));
     if (typeof window !== "undefined") window.dispatchEvent(new Event(SAVE_CHANGE_EVENT));
+    return true;
   } catch {
     if (typeof window !== "undefined") window.dispatchEvent(new Event("codigdex-save-error"));
+    return false;
   }
 }
 

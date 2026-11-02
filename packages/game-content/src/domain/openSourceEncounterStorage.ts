@@ -46,7 +46,7 @@ function parsePending(value: unknown): SourceEncounter | undefined {
   const returnTo = parseReturnTarget(value.returnTo);
   if (!returnTo || !isBoundedString(value.id, LIMITS.stamp)
     || !isBoundedString(value.triggerId, LIMITS.id) || !isBoundedString(value.triggerAt, LIMITS.timestamp)
-    || (value.state !== "offered" && value.state !== "active")) return;
+    || (value.state !== "offered" && value.state !== "active" && value.state !== "paused")) return;
   if (value.stageId !== undefined && (typeof value.stageId !== "string" || openSourceIdentity(value.stageId)?.toolId !== value.toolId)) return;
   return {
     id: value.id, careerId: value.careerId, toolId: value.toolId,

@@ -74,6 +74,7 @@ export const MASTER_CHAPTERS: readonly ChapterDefinition[] = paths.map(([jobId, 
   const chapterId = `mastery:${jobId}` as const;
   return { ...base, id: chapterId, label: `CH.${28 + pathIndex}`, name: text(...name), npcName: text(...guide),
     place: text("3차 전직 · 최종 설계 프로젝트", "Tier-three final design project"),
+    arena: { textureKey: `master-arena-${jobId}`, assetKey: `wallpapers/mastery/${jobId}-arena-v1.png` },
     stages: MASTER_LESSONS[jobId].map((entry, index) => ({ ...base.stages[index], id: `mastery:${jobId}:${index + 1}`,
       dexNumber: String(236 + pathIndex * 5 + index).padStart(3, "0"), name: entry.name, level: index + 1,
       textureKey: `mastery-${jobId}-${index + 1}`, assetKey: `monsters/mastery/${jobId}/guardian-${index + 1}-v3.png`,

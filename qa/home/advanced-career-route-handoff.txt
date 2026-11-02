@@ -1,0 +1,35 @@
+Handoff: advanced career maps and five-stage requests, 2026-11-02 KST
+
+- Owner: Codex.
+- Reviewer: Independent read-only Codex reviewer /root/review_oss_journey using skills/shared-change-review/SKILL.md. Claude executable is unavailable. Final source review: No blocking findings.
+- Scope:
+  - User authorized improving secondary careers, tertiary careers and open source to match primary-career background maps with individually implemented stages 1-5, followed by review and Web production deployment.
+  - Secondary: five careers, five painted regions per career, five sequential evolution stages per region (125 stages). Tertiary: five careers, each with a distinct new background and five sequential design milestones (25 stages). Open source: 38 tools across nine ecosystems, each with five forms in a continuous request (190 stages).
+  - Existing canonical monster IDs, dex numbering, captures, earned careers and save-v3 format are retained. Existing ea4a2a9/f3c391c career/project/atlas expansion and the uncommitted OSS journey packet are included in this release scope.
+- Changed files:
+  - web/lib/phaser/fiveStageRoute.ts: common connected route, visible completed/ready/locked badges, large monster stops, current selection, pointer targets, 1-5/arrow selection, Enter action and ordinary accessible HTML controls. Locked choices cannot change the selected stage. DOM and keyboard cleanup handles both shutdown and destruction.
+  - web/lib/phaser/scenes/SecondaryExplorationScenes.ts, PromotionChapterScene.ts, OpenSourceEventScene.ts: use the shared route. Secondary retains five-region atlas entry and lessons. Tertiary has its own background and explicit final-career confirmation. OSS previews captured/current forms while acceptance always starts the authorized current form, preserving paused requests and original return routes.
+  - packages/game-content/src/domain/masterChapters.ts; packages/game-assets/src/visuals.ts: unique tertiary arena references. No curriculum or quiz-answer changes.
+  - web/lib/phaser/scenes/CareerWorkshopScene.ts and CaptureQuizScene.ts; web/app/globals.css: matching background/monster in the reading brief and arena-backed success/failure results. Text fitting prevents long bilingual briefs overflowing their panels.
+  - mobile/src/game/BattleView.tsx and ResultScreen.tsx: matching tertiary backgrounds; mobile/src/assets.generated.ts and packages/game-assets/src/manifest.generated.ts regenerated.
+  - scripts/prepare-master-art.mts and qa/art/master-arena-generation.json: reproducible runtime/native derivatives and exact built-in image generation prompt set.
+  - web/e2e/game.master-project.spec.ts: five complete tertiary paths plus five fresh secondary Lv1-5 paths; keyboard/focused DOM action, locks, real image decoding, failure/retry, practice settlement, reload, career confirmation and bilingual screenshots. game.expedition.spec.ts adds route lock and captured-form preview assertions.
+  - web/test/domain/advancedArenas.test.ts and test/phaser/fiveStageRoute.test.ts: all 340 advanced stage-to-arena mappings, unique tertiary art and native sizes, focused learning action and destruction without shutdown.
+  - Existing OSS journey files, assets, generated Maestro flows and last-capture persistence fixes are enumerated in qa/home/open-source-journey-handoff.txt. This packet retains them and is their first authorized publication.
+  - This handoff. No README, docs or agent-owned policy text rewritten; any documentation expansion remains in Claude's lane.
+- Generated assets:
+  - Five original source PNGs under packages/game-assets/files/wallpapers/mastery/source/; five 320x180 runtime arenas under wallpapers/mastery/; five 640x360 derivatives under wallpapers/mobile/.
+  - software-architect: coral/turquoise modular workshop village; cloud-platform-architect: gold cloud harbor/lighthouse; ai-product-engineer: mint/lavender prototype greenhouse; ai-platform-architect: jade pipeline/library campus; data-architect: navy/gold observatory/archive.
+  - Generated with built-in image_gen; exact prompts are in qa/art/master-arena-generation.json. Originals retained, no art overwritten. Existing nine OSS arenas and native derivatives included. No audio generated.
+  - 904 manifest keys, 588 native imports. Native images 12,497,335 / 14,680,064 bytes; with font 18,121,407 / 20,971,520 bytes. Web public mirror updated only by the normal sync/build.
+- Checks run:
+  - Web unit/domain/storage/lifecycle tests: 734/734 passed. Native host/component/storage: 149/149 passed.
+  - check:agents, QA consistency (36 files) and runner tests (11/11), workspace typecheck/package boundaries, explicit Web TypeScript and lint passed.
+  - Web production build passed; Android/iOS JS/Hermes exports and source image/font budgets passed. These are not native compilation or device acceptance.
+  - Initial browser run was interrupted after 11 passing OSS scenarios to include accessibility fixes. One subsequent development-server startup timed out without running scenarios; final verification uses the production build instead.
+  - Final production-browser run, exact-head CI and live deployment evidence are recorded on the feature/release PRs. Do not infer their completion from this static pre-release report.
+  - Independent source review raised keyboard activation and destruction cleanup gaps, both corrected and re-reviewed. No blocking findings remain.
+- Remaining risks or review items:
+  - Actual simulator/physical-device acceptance remains unperformed. This release is Web only; native store/EAS release excluded.
+  - Authenticated Preview verification, account/cloud work and audio remain separate deferred work.
+  - Local runtime is Node v24.20.0; repository CI uses the declared Node 22.x version.

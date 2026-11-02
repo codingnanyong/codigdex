@@ -7,6 +7,7 @@
     "./manifest": "./src/manifest.ts",
     "./visuals": "./src/visuals.ts",
     "./secondaryArt": "./src/secondaryArt.ts",
+    "./openSourceArt": "./src/openSourceArt.ts",
     "./files/*": "./files/*",
     "./package.json": "./package.json"
   },

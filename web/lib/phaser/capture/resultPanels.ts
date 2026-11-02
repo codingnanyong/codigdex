@@ -1,6 +1,6 @@
 import type Phaser from "phaser";
 import type { MonsterDefinition } from "@codigdex/game-core/domain/chapters/types";
-import { lt, t } from "../i18n";
+import { lt, t, sceneLocale } from "../i18n";
 import { PALETTE_HEX } from "../palette";
 import { pixelText } from "../pixelFont";
 import { addSnippetBlock, createButton, drawOrnateFrame, fitTextInside, popIn } from "../ui";
@@ -21,6 +21,7 @@ export interface CapturedPanelOptions {
   isNewEntry: boolean;
   unlockNotice?: string;
   onConfirm: () => void;
+  onPause?: () => void;
 }
 
 /** The card-registered panel: what the monster teaches, a code sample, and what opened up. */
@@ -105,6 +106,7 @@ export function showCapturedPanel(scene: Phaser.Scene, options: CapturedPanelOpt
   const panel = scene.add
     .container(width / 2, height / 2, [frame, ...content, confirm])
     .setDepth(1);
+  if (options.onPause) createButton(scene, width - 116, 32, 180, 34, sceneLocale(scene) === "ko" ? "잠시 멈춤" : "PAUSE", options.onPause).setDepth(5);
   popIn(scene, panel, 0.85, panelScaleToViewport(CAPTURED_PANEL.width, panelHeight, width, height));
   return panel;
 }
@@ -115,6 +117,7 @@ export interface MissedPanelOptions {
   resultLine: string;
   npcLine: string;
   onRetry: () => void;
+  onPause?: () => void;
 }
 
 /** The capture-failed panel: nothing is registered, just a nudge and a retry. */
@@ -154,6 +157,7 @@ export function showMissedPanel(scene: Phaser.Scene, options: MissedPanelOptions
   const panel = scene.add
     .container(width / 2, height / 2, [frame, title, resultLine, npcLine, retry])
     .setDepth(1);
+  if (options.onPause) createButton(scene, width - 116, 32, 180, 34, sceneLocale(scene) === "ko" ? "잠시 멈춤" : "PAUSE", options.onPause).setDepth(5);
   popIn(scene, panel, 0.85, panelScaleToViewport(MISSED_PANEL.width, MISSED_PANEL.height, width, height));
   return panel;
 }

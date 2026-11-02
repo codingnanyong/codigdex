@@ -64,7 +64,7 @@ export interface SourceEncounter {
   triggerAt: string;
   victoryId?: string;
   stageId?: string;
-  state: "offered" | "active";
+  state: "offered" | "active" | "paused";
   returnTo: SourceReturnTarget;
 }
 export interface SourceEncounterHistory {

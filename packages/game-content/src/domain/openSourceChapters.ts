@@ -32,6 +32,7 @@ export const OPEN_SOURCE_EXPEDITIONS: readonly OpenSourceExpedition[] = (Object.
     successLine: text("역할의 단서를 되찾았어요. 다음 의뢰에도 배운 것을 이어 주세요!", "A responsibility clue is restored. Carry it into the next mission!"),
     retryLine: text("역할과 학습 노트를 다시 읽고 재도전해요.", "Read the role and learning notes, then try again."),
     retryScene: "open-source-chapter",
+    arena: { textureKey: `open-source-arena-${family}`, assetKey: `wallpapers/open-source/${family}-arena-v1.png` },
     stages: OPEN_SOURCE_CATALOG.filter((entry) => entry.family === family).flatMap((entry) => Array.from({ length: 5 }, (_, phase): MonsterDefinition => {
       const level = phase + 1, monsterId = openSourceEvolutionId(entry.id, level);
       const prefix = [text("아기", "Young"), text("견습", "Apprentice"), text("성장한", "Growing"), text("숙련된", "Seasoned")][phase];
@@ -65,10 +66,14 @@ export function openSourceEvolutionCount(save: StoredGameStateV3, toolId: string
 }
 /** Active requests pin the battle ID, including legacy requests started at Lv.5. */
 export function sourceEncounterStage(save: StoredGameStateV3, encounter: { toolId: string; state: string; stageId?: string }) {
-  if (encounter.state === "active") {
+  if (encounter.state === "active" || encounter.state === "paused") {
     const identity = openSourceIdentity(encounter.stageId ?? `open-source:${encounter.toolId}`);
     if (!identity || identity.toolId !== encounter.toolId) return undefined;
     return openSourceStageFor(encounter.toolId, identity.level);
   }
   return nextOpenSourceEvolution(save, encounter.toolId);
+}
+export function openSourceArenaForStage(id: string) {
+  const identity = openSourceIdentity(id);
+  return identity && OPEN_SOURCE_CHAPTERS.find(({ stages }) => stages.some(({ id }) => openSourceIdentity(id)?.toolId === identity.toolId))?.arena;
 }

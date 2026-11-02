@@ -1,9 +1,12 @@
-import { describe, expect, it, vi } from "vitest";
-import { createEmptySave } from "@codigdex/game-core/save/schema";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import type Phaser from "phaser";
+import { createEmptySave, parseSave } from "@codigdex/game-core/save/schema";
 import { CHAPTERS } from "@codigdex/game-content/domain/chapters";
 import { CAREER_PATHS } from "@codigdex/game-content/domain/careerPaths";
 import { monstersForCareerRegion } from "@codigdex/game-content/domain/careerRegionMonsters";
-import { SourceEventSession } from "@/lib/phaser/openSourceEvents";
+import { SourceEventSession, sourceEvents } from "@/lib/phaser/openSourceEvents";
+import { applySaveToRegistry, hydrateRegistry, SAVE_STORAGE_KEY, snapshotRegistry } from "@/lib/phaser/registryAdapter";
+import { openSourceEvolutionFor } from "@codigdex/game-content/domain/openSourceChapters";
 import { parseEncounterHistory, sourceEventStorageKey } from "@/lib/phaser/openSourceEventStorage";
 
 function fixture() {
@@ -17,6 +20,40 @@ function fixture() {
   const io = { getItem: (key: string) => values.get(key) ?? null, setItem: (key: string, value: string) => { values.set(key, value); } };
   return { before, after, trigger, io, values };
 }
+
+afterEach(() => vi.unstubAllGlobals());
+
+for (const exit of ["complete", "leave"]) it(`preserves the final request on reload when browser capture storage fails before ${exit}`, () => {
+  const { before, after, trigger, io, values } = fixture();
+  let failCapture = false;
+  const storage = { ...io, setItem(key: string, raw: string) {
+    if (failCapture && key === SAVE_STORAGE_KEY) throw Error("save quota");
+    io.setItem(key, raw);
+  } } as Storage;
+  vi.stubGlobal("window", { localStorage: storage, dispatchEvent: vi.fn() });
+  const entries = new Map<string, unknown>();
+  const registry = { get: (key: string) => entries.get(key), set: (key: string, value: unknown) => entries.set(key, value) } as unknown as Phaser.Data.DataManager;
+  hydrateRegistry(registry, storage);
+  const session = sourceEvents(registry);
+  const pending = session.queue(before, snapshotRegistry(registry), trigger, { scene: "world-map" })!;
+  session.accept(after, pending.id);
+  const forms = openSourceEvolutionFor("tanstack-query");
+  for (const form of forms.slice(0, 4)) {
+    const save = snapshotRegistry(registry);
+    save.progress.captures.push({ id: form.id, capturedAt: "2026-11-02T00:00:00.000Z" });
+    applySaveToRegistry(registry, save);
+    session.completeStage(snapshotRegistry(registry), pending.id, form.id);
+  }
+  failCapture = true;
+  const final = snapshotRegistry(registry);
+  final.progress.captures.push({ id: forms[4].id, capturedAt: "2026-11-02T00:00:00.000Z" });
+  applySaveToRegistry(registry, final);
+  if (exit === "complete") session.completeStage(snapshotRegistry(registry), pending.id, forms[4].id);
+  else session.leave(snapshotRegistry(registry), pending.id);
+  const restored = parseSave(values.get(SAVE_STORAGE_KEY)!)!;
+  expect(restored.progress.captures.some(({ id }) => id === forms[4].id)).toBe(false);
+  expect(new SourceEventSession(io).resolvePending(restored)).toMatchObject({ id: pending.id, stageId: forms[4].id });
+});
 
 describe("local encounter session", () => {
   it("keeps queries read-only and persists stale cleanup only when explicitly resolved", () => {

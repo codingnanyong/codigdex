@@ -22,6 +22,9 @@ import { careerPathFor, isCareerPathComplete } from "../worldMap/careerPaths";
 import type { StoredGameStateV3 } from "@codigdex/game-core/save/schema";
 import { sourceEvents } from "../openSourceEvents";
 import type { SourceReturnTarget } from "@codigdex/game-content/domain/openSourceEncounters";
+import { openSourceIdentity } from "@codigdex/game-content/domain/openSourceEvolutionIds";
+import { openSourceEvolutionCount, nextOpenSourceEvolution } from "@codigdex/game-content/domain/openSourceChapters";
+import { assetUrl } from "../../assets";
 
 export interface CaptureResultData {
   monsterId: string;
@@ -62,7 +65,10 @@ export class CaptureQuizScene extends Phaser.Scene {
     this.nextTarget = data.returnTo ?? { scene: "world-map" };
   }
 
+  preload() { if (this.chapter.arena) this.load.image(this.chapter.arena.textureKey, assetUrl(this.chapter.arena.assetKey)); }
+
   create() {
+    if (this.chapter.arena) this.add.image(480, 270, this.chapter.arena.textureKey).setDisplaySize(960, 540);
     addShade(this, 0.55);
     createHomeButton(this).setDepth(30);
 
@@ -90,6 +96,10 @@ export class CaptureQuizScene extends Phaser.Scene {
       { careerCleared, sourceEventId: this.sourceEventId }
     );
     this.nextTarget = flow.target;
+    const tool = this.sourceEventId && openSourceIdentity(monster.id);
+    const save = snapshotRegistry(this.registry);
+    const count = tool ? openSourceEvolutionCount(save, tool.toolId) : 0;
+    const nextForm = tool ? nextOpenSourceEvolution(save, tool.toolId) : undefined;
     // Persist the victory's encounter outcome before HOME, card inspection or reload can leave this result.
     if (!this.sourceEventId && this.beforeCapture) {
       sourceEvents(this.registry).queue(this.beforeCapture, snapshotRegistry(this.registry), monster.id, this.nextTarget, Math.random, this.victoryId);
@@ -102,14 +112,15 @@ export class CaptureQuizScene extends Phaser.Scene {
         : flow.regionCleared
           ? t(this, "capture.regionCleared", { region: lt(this, chapter.name) })
           : undefined,
-      confirmLabel: flow.careerCleared
+      confirmLabel: tool ? count === 5 ? (sceneLocale(this) === "ko" ? "5단계 의뢰 완료" : "FINISH REQUEST") : `${sceneLocale(this) === "ko" ? "다음 진화" : "NEXT FORM"} · Lv.${nextForm!.level}` : flow.careerCleared
         ? t(this, "capture.chooseCareer")
         : flow.regionCleared
           ? t(this, "capture.returnToMap")
           : undefined,
       npcLine: `${lt(this, chapter.npcName)}: ${lt(this, chapter.successLine)}`,
       isNewEntry,
-      unlockNotice: isNewEntry ? unlock.notice : undefined,
+      unlockNotice: tool ? `${sceneLocale(this) === "ko" ? "진화 진행" : "EVOLUTION PROGRESS"} · ${count}/5` : isNewEntry ? unlock.notice : undefined,
+      onPause: this.sourceEventId && count < 5 ? () => this.pauseRequest() : undefined,
       // Carry on where the player is headed: the newly opened stage or
       // chapter, or straight back into this chapter after a replay.
       onConfirm: () => {
@@ -133,11 +144,17 @@ export class CaptureQuizScene extends Phaser.Scene {
         required: requiredCorrectAnswers(this.total),
       }) + (monster.id.startsWith("mastery:") ? (sceneLocale(this) === "ko" ? " · 필수 설계 판단도 모두 맞혀야 합니다." : " · All required design checks must also be correct.") : ""),
       npcLine: `${lt(this, chapter.npcName)}: ${lt(this, chapter.retryLine)}`,
+      onPause: this.sourceEventId ? () => this.pauseRequest() : undefined,
       onRetry: () => {
         const target = retryCaptureTarget(this.sourceEventId, this.nextTarget);
         this.scene.start(target.scene, target.data);
       },
     });
+  }
+
+  private pauseRequest() {
+    const target = sourceEvents(this.registry).leave(snapshotRegistry(this.registry), this.sourceEventId!);
+    this.scene.start(target?.scene ?? this.nextTarget.scene, target?.data ?? this.nextTarget.data);
   }
 
   /** Registers the card and exposes the capture transition for milestone checks. */

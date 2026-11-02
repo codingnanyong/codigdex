@@ -49,8 +49,9 @@ export function SaveProvider({ children }: PropsWithChildren) {
   const pendingWrites = useRef(0);
   const currentSave = useRef(save);
   const writer = useMemo(() => createSaveWriter(mobileSaveStorage), []);
+  const latestSaveWrite = useRef<Promise<void>>(Promise.resolve());
   const [sourceRevision, refreshSources] = useState(0);
-  const sourceStore = useMemo(() => new MobileSourceEventStore(mobileSourceStorage, () => refreshSources((revision) => revision + 1), mobileSaveNamespace), []);
+  const sourceStore = useMemo(() => new MobileSourceEventStore(mobileSourceStorage, () => refreshSources((revision) => revision + 1), mobileSaveNamespace, () => latestSaveWrite.current), []);
   const changeRevision = useRef(0);
 
   useEffect(() => {
@@ -83,7 +84,9 @@ export function SaveProvider({ children }: PropsWithChildren) {
   const write = (next: StoredGameStateV3) => {
     pendingWrites.current++;
     setSaving(true);
-    return writer.save(next).finally(() => {
+    const saved = writer.save(next);
+    latestSaveWrite.current = saved;
+    return saved.finally(() => {
       pendingWrites.current--;
       setSaving(pendingWrites.current > 0);
     });
