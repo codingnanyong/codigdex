@@ -1,3 +1,4 @@
+import { GAME_SIZE } from "../gameViewport";
 import type Phaser from "phaser";
 import { t } from "../i18n";
 import { PALETTE, PALETTE_HEX } from "../palette";
@@ -20,7 +21,7 @@ export function showQuestDialog(
   scene: Phaser.Scene,
   options: QuestDialogOptions
 ): Phaser.GameObjects.Container {
-  const { width, height } = scene.scale;
+  const { width, height } = GAME_SIZE;
   const centerY = height - BOX_HEIGHT / 2;
   const top = height - BOX_HEIGHT;
   const textLeft = options.portraitTextureKey ? 270 : 30;

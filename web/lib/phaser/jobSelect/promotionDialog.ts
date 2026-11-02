@@ -1,3 +1,4 @@
+import { GAME_SIZE } from "../gameViewport";
 import Phaser from "phaser";
 import { guideDisplayName, type PrimaryJobOption } from "@codigdex/game-content/domain/player/jobs";
 import { lt, t } from "../i18n";
@@ -22,7 +23,7 @@ export function createPromotionDialog(
   job: PrimaryJobOption,
   options: PromotionDialogOptions
 ): Phaser.GameObjects.Container {
-  const { width, height } = scene.scale;
+  const { width, height } = GAME_SIZE;
   const shade = addShade(scene, 0.62, 20);
   const frame = drawOrnateFrame(scene, width / 2, height / 2, 690, 310, { radius: 14 });
   const title = scene.add

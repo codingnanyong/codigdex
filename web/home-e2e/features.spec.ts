@@ -9,7 +9,7 @@ import type { QuizQuestion } from "@codigdex/game-core/domain/chapters/types";
 import type { JobId } from "@codigdex/game-content/domain/player/jobs";
 import { careerCheckpointLayout } from "../lib/phaser/worldMap/careerCheckpointLayout";
 
-import { SAVE_KEY as KEY, bootGame, scene, clickGame, frames, readSave } from "../test-support/game";
+import { SAVE_KEY as KEY, bootGame, scene, clickGame, frames, readSave, openGameMenu } from "../test-support/game";
 const tutorial = cases.battles.tutorial as unknown as { monsterId: string; questions: QuizQuestion[] };
 
 function fixture(chapters = 0) {
@@ -115,6 +115,7 @@ test("@cod-234 capture and replay keep one dex card", async ({ page }) => {
 test("@cod-236 startup, locale restore and unconfigured account UI", async ({ page }) => {
   await boot(page);
   await expect(page.locator("html")).toHaveAttribute("lang", "en");
+  await openGameMenu(page);
   await page.getByRole("button", { name: "ACCOUNT · SAVE" }).click();
   const panel = page.getByRole("region", { name: "Account and save" });
   await expect(panel).toContainText("device");

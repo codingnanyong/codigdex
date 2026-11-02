@@ -1,3 +1,4 @@
+import { GAME_SIZE } from "../gameViewport";
 import Phaser from "phaser";
 import type { ChapterDefinition, MonsterDefinition } from "@codigdex/game-core/domain/chapters/types";
 import type { JobOption } from "@codigdex/game-content/domain/player/jobs";
@@ -48,9 +49,9 @@ export function createQuestStage(
   const npcTargetX = point
     ? point.x
     : Phaser.Math.Clamp(
-        monsterX + (monsterX < scene.scale.width / 2 ? 126 : -126),
+        monsterX + (monsterX < GAME_SIZE.width / 2 ? 126 : -126),
         92,
-        scene.scale.width - 92
+        GAME_SIZE.width - 92
       );
   const npcTargetY = point?.y ?? monsterY + 18;
   const lastIndex = options.lastRouteIndex.get(chapter.id);
@@ -91,14 +92,14 @@ export function createQuestStage(
 
   const movementFrame = drawOrnateFrame(
     scene,
-    scene.scale.width / 2,
-    scene.scale.height - 18,
+    GAME_SIZE.width / 2,
+    GAME_SIZE.height - 18,
     520,
     28,
     { fillAlpha: 0.98, radius: 8 }
   );
   const movementHint = scene.add
-    .text(scene.scale.width / 2, scene.scale.height - 18, options.movementHint, {
+    .text(GAME_SIZE.width / 2, GAME_SIZE.height - 18, options.movementHint, {
       ...pixelText("caption"),
       color: PALETTE_HEX.ink,
     })

@@ -64,12 +64,15 @@ export class SecondaryAtlasScene extends Phaser.Scene {
       if (item) hint.setText(item.status === "locked" ? (ko ? "앞 지역의 Lv.5 수호자를 포획하면 열립니다." : "CAPTURE THE PREVIOUS REGION'S LV.5 GUARDIAN TO UNLOCK.") : `${lt(this, item.region.label)} · ${item.captured}/5 · ${ko ? "클릭 또는 Enter로 탐험" : "CLICK OR ENTER TO EXPLORE"}`);
     };
     const enter = () => { const item = progression[focused]; if (item && item.status !== "locked") this.scene.start("secondary-region", { jobId: job.id, regionId: item.region.id }); };
-    const regionAt = (pointer: Phaser.Input.Pointer) => layers.map(({ polygon }, index) => ({ index, inside: Phaser.Geom.Polygon.Contains(polygon, pointer.x, pointer.y), distance: Phaser.Math.Distance.Between(pointer.x, pointer.y, ...progression[index].region.center) }))
-      .filter(({ inside }) => inside).sort((a, b) => a.distance - b.distance)[0]?.index ?? -1;
+    const regionAt = (pointer: Phaser.Input.Pointer) => {
+      const point = this.cameras.main.getWorldPoint(pointer.x, pointer.y);
+      return layers.map(({ polygon }, index) => ({ index, inside: Phaser.Geom.Polygon.Contains(polygon, point.x, point.y), distance: Phaser.Math.Distance.Between(point.x, point.y, ...progression[index].region.center) }))
+        .filter(({ inside }) => inside).sort((a, b) => a.distance - b.distance)[0]?.index ?? -1;
+    };
     this.input.on("pointermove", (pointer: Phaser.Input.Pointer) => focus(regionAt(pointer)));
     this.input.on("pointerup", (pointer: Phaser.Input.Pointer) => { const i = regionAt(pointer); if (i >= 0) { focus(i); enter(); } });
     const keyboard = this.input.keyboard;
-    const onKey = (event: KeyboardEvent) => { const i = Number(event.key) - 1; if (i >= 0 && i < 5) focus(i); else if (event.key === "Enter") enter(); };
+    const onKey = (event: KeyboardEvent) => { const i = Number(event.key) - 1; if (i >= 0 && i < 5) focus(i); else if (event.key === "Enter") { event.stopPropagation(); enter(); } };
     keyboard?.on("keydown", onKey);
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => { keyboard?.off("keydown", onKey); this.game.canvas.style.cursor = "default"; });
     const initial = progression.findIndex(({ region, status }) => region.id === this.regionId && status !== "locked");

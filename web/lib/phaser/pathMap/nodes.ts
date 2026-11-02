@@ -127,33 +127,36 @@ export function drawSecondaryCareerNode(
   }
 ) {
   const width = 104;
-  const height = 54;
+  const height = 62;
+  const locked = !options.unlocked || options.selectable === false;
   const panel = scene.add
     .rectangle(
       0,
       0,
       width,
       height,
-      options.selected ? PALETTE.sand : options.unlocked ? PALETTE.cream : PALETTE.nightBrown,
+      options.selected ? PALETTE.sand : PALETTE.cream,
       0.96
     )
-    .setStrokeStyle(2, options.unlocked ? PALETTE.amber : PALETTE.mutedBrown);
+    .setStrokeStyle(2, PALETTE.amber).setAlpha(locked ? 0.5 : 1);
   const eyebrow = scene.add
-    .text(0, -13, options.selected ? t(scene, "path.tierCurrent", { tier: options.tierLabel ?? t(scene, "path.tier2") }) : options.tierLabel ?? t(scene, "path.tier2"), {
+    .text(0, -13, options.selected ? t(scene, "path.tierCurrent", { tier: options.tierLabel ?? t(scene, "path.tier2") }) : locked ? `${options.tierLabel ?? t(scene, "path.tier2")} · ${t(scene, "common.locked")}` : options.tierLabel ?? t(scene, "path.tier2"), {
       ...pixelText("caption"),
-      color: options.unlocked ? PALETTE_HEX.maroon : PALETTE_HEX.sand,
+      color: PALETTE_HEX.mutedBrown,
     })
     .setOrigin(0.5);
   fitTextInside(eyebrow, width - 8, 14);
   const label = scene.add
-    .text(0, 11, options.unlocked ? options.name : "◆  ???", {
+    .text(0, 11, options.unlocked ? options.name : t(scene, "common.locked"), {
       ...pixelText("caption"),
-      color: options.unlocked ? PALETTE_HEX.ink : PALETTE_HEX.cream,
+      color: PALETTE_HEX.ink,
       align: "center",
       wordWrap: { width: width - 10 },
     })
     .setOrigin(0.5);
   fitTextInside(label, width - 10, 22);
+  label.setAlpha(locked ? 0.75 : 1);
+  eyebrow.setAlpha(locked ? 0.75 : 1);
   const card = scene.add.container(x, y, [panel, eyebrow, label]);
   if (options.selectable !== false) {
     makePressable(

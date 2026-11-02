@@ -1,3 +1,4 @@
+import { GAME_SIZE } from "../gameViewport";
 import type Phaser from "phaser";
 import type { AmbienceId } from "@codigdex/game-core/domain/chapters/types";
 import { driftMotes, flickerGlow, pulseGlow } from "./effects";
@@ -24,7 +25,7 @@ const LIGHTS = {
 const TITLE_AMBIENCE_DEPTH = 3;
 
 const loopForest: Preset = (scene) => {
-  const { width, height } = scene.scale;
+  const { width, height } = GAME_SIZE;
   const everywhere = { x: 0, y: 0, width, height };
 
   // Fireflies wandering over the clearing.
@@ -53,7 +54,7 @@ const loopForest: Preset = (scene) => {
 };
 
 const gitField: Preset = (scene) => {
-  const { width, height } = scene.scale;
+  const { width, height } = GAME_SIZE;
   const [sunX, sunY] = LIGHTS.gitSun;
 
   pulseGlow(scene, { x: sunX, y: sunY, radius: 72, color: 0xffb46b, alpha: [0.18, 0.34], duration: 3200 });
@@ -86,7 +87,7 @@ const gitField: Preset = (scene) => {
 };
 
 const linuxCave: Preset = (scene) => {
-  const { height } = scene.scale;
+  const { height } = GAME_SIZE;
 
   // Snow falling in through the cave mouth.
   driftMotes(scene, {

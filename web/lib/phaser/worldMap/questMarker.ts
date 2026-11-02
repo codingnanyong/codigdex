@@ -1,3 +1,4 @@
+import { GAME_SIZE } from "../gameViewport";
 import type Phaser from "phaser";
 import { t } from "../i18n";
 import { PALETTE, PALETTE_HEX } from "../palette";
@@ -12,7 +13,7 @@ export class QuestMarker {
   private readonly label: Phaser.GameObjects.Text;
 
   constructor(scene: Phaser.Scene, onClick: () => void, position?: { x: number; y: number }) {
-    const { width, height } = scene.scale;
+    const { width, height } = GAME_SIZE;
     const x = position?.x ?? width / 2;
     const y = position?.y ?? height / 2 + 12;
 

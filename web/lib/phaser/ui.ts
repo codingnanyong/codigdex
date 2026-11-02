@@ -1,3 +1,4 @@
+import { GAME_SIZE } from "./gameViewport";
 import Phaser from "phaser";
 import { PALETTE, PALETTE_HEX } from "./palette";
 import { pixelText, whenPixelFontReady } from "./pixelFont";
@@ -149,7 +150,7 @@ export function drawOrnateFrame(
 
 /** Full-screen dimmer behind a modal. It's interactive, so clicks can't reach the scene below. */
 export function addShade(scene: Phaser.Scene, alpha: number, depth = 0): Phaser.GameObjects.Rectangle {
-  const { width, height } = scene.scale;
+  const { width, height } = GAME_SIZE;
   return scene.add
     .rectangle(width / 2, height / 2, width, height, PALETTE.nightBrown, alpha)
     .setInteractive()
@@ -208,7 +209,7 @@ export function showToast(
   previous?: Phaser.GameObjects.Text
 ): Phaser.GameObjects.Text {
   previous?.destroy();
-  const { width, height } = scene.scale;
+  const { width, height } = GAME_SIZE;
   const toast = scene.add
     .text(width / 2, height - 65, message, {
       ...pixelText("body"),

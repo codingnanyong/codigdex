@@ -4,6 +4,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { gameQAPresets } from "@codigdex/game-content/domain/qaPresets";
 import { CHAPTERS } from "@codigdex/game-content/domain/chapters";
 import { createEmptySave, type StoredGameStateV3 } from "@codigdex/game-core/save/schema";
 import { normalizeGameSave, selectGameCareer, selectSecondaryCareer } from "@codigdex/game-content/domain/gameProgress";
@@ -33,7 +34,8 @@ const render = () => renderToStaticMarkup(<CareerScreen onBack={() => {}} onBatt
 describe("native career route", () => {
   it("keeps primary careers locked until common-path completion", () => {
     expect(render()).toContain("Complete Tutorial");
-    expect(state.controls.filter(({ disabled }) => disabled)).toHaveLength(5);
+    expect(state.controls.filter(({ testID, disabled }) => testID?.startsWith("career-select-") && disabled)).toHaveLength(5);
+    expect(state.controls.filter(({ testID, disabled }) => testID?.startsWith("promotion-select-") && disabled)).toHaveLength(10);
   });
   it("renders all checkpoints in the selected released region and preserves path binding", () => {
     state.save.progress.captures = CHAPTERS.flatMap(({ stages }) => stages.map(({ id }) => ({ id, capturedAt: "2026-10-23T00:00:00.000Z" })));
@@ -70,11 +72,25 @@ describe("native career route", () => {
     expect(state.controls.some(({ testID }) => testID?.startsWith("secondary-region-"))).toBe(true);
     expect(html).toContain("Finish the current tier-two path");
     state.save.progress.captures.push(...PROMOTION_MISSIONS["fullstack-engineer"].chapter.stages.map(({ id }) => ({ id, capturedAt: "2026-10-28T00:00:00.000Z" })));
+    const guardiansOnly = normalizeGameSave(state.save);
+    expect(selectGameCareer(guardiansOnly, "devops")).toBe(guardiansOnly);
+    state.save = gameQAPresets("en").find(({ id }) => id === "promotion:fullstack-engineer")!.save;
+    state.save.progress.captures.push(...PROMOTION_MISSIONS["fullstack-engineer"].chapter.stages.map(({ id }) => ({ id, capturedAt: "2026-11-02T00:00:00.000Z" })));
     state.save = selectGameCareer(normalizeGameSave(state.save), "devops");
     state.controls = [];
     render();
     expect(state.save.player.secondaryJobId).toBe("fullstack-engineer");
     expect(state.controls.find(({ testID }) => testID === "career-select-devops")?.disabled).toBe(false);
+  });
+
+  it.each(SECONDARY_JOB_OPTIONS)("keeps alternate unfinished secondaries locked while $id is in progress", (job) => {
+    const seed = platformSave(job.id);
+    seed.progress.captures = [...new Set([...seed.progress.captures.map(({ id }) => id), ...Object.values(CAREER_PATHS).flatMap(path => path.completionCaptureIds)])].map(id => ({ id, capturedAt: "2026-11-02T00:00:00.000Z" }));
+    state.save = selectSecondaryCareer(seed, job.id);
+    render();
+    for (const other of SECONDARY_JOB_OPTIONS) {
+      expect(state.controls.find(({ testID }) => testID === `promotion-select-${other.id}`)?.disabled).toBe(other.id !== job.id);
+    }
   });
 
   it.each(SECONDARY_JOB_OPTIONS)("offers $id after both required primary paths are mastered", (job) => {

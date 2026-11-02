@@ -32,9 +32,9 @@ export function createGameConfig(
       },
     },
     scale: {
-      // The page sizes the container to the viewport at 16:9 (globals.css);
-      // FIT fills it, and rounding keeps the canvas box on whole CSS pixels.
-      mode: Phaser.Scale.FIT,
+      // The renderbuffer owns the viewport. gameViewport fits authored content
+      // with a uniform camera zoom, independently of the decorative background.
+      mode: Phaser.Scale.RESIZE,
       autoCenter: Phaser.Scale.CENTER_BOTH,
       expandParent: false,
       autoRound: true,

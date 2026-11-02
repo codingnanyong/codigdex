@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { createEmptySave, parseSave } from "@codigdex/game-core/save/schema";
+import { gameQAPresets } from "@codigdex/game-content/domain/qaPresets";
 import { CHAPTERS } from "@codigdex/game-content/domain/chapters";
 import { CAREER_PATHS } from "@codigdex/game-content/domain/careerPaths";
 import { monstersForCareerRegion } from "@codigdex/game-content/domain/careerRegionMonsters";
@@ -79,7 +80,8 @@ describe.each(SECONDARY_JOB_OPTIONS)("$id promotion mission", (job) => {
     expect(resumeCheckpoint(oldBookmark).chapter.id).toBe(secondaryRegionsFor(job.id)[0].chapter.id);
     const replay = selectGameCareer(selected, job.requires[0]);
     expect(replay.player.secondaryJobId).toBe(job.id);
-    const mastered = normalizeGameSave({ ...selected, progress: { ...selected.progress, captures: [...selected.progress.captures, ...chapter.stages.map(({ id }) => ({ id, capturedAt: at }))] } });
+    const fullyStudied = gameQAPresets("en", at).find(({ id }) => id === `promotion:${job.id}`)!.save;
+    const mastered = normalizeGameSave({ ...fullyStudied, progress: { ...fullyStudied.progress, captures: [...fullyStudied.progress.captures, ...chapter.stages.map(({ id }) => ({ id, capturedAt: at }))] } });
     const studying = selectGameCareer(mastered, other);
     expect(studying.player.secondaryJobId).toBe(job.id);
     expect(studying.player.primaryJobId).toBe(other);
@@ -89,7 +91,7 @@ describe.each(SECONDARY_JOB_OPTIONS)("$id promotion mission", (job) => {
     expect(resumeCheckpoint(restored).monster.id).toBe(studying.ui.checkpointId);
     // The newly chosen primary remains binding until its own path is complete.
     expect(selectGameCareer(restored, job.requires[0])).toBe(restored);
-    expect(selectSecondaryCareer(restored, job.id).ui.checkpointId).toBe(secondaryRegionsFor(job.id)[0].chapter.stages[0].id);
+    expect(selectSecondaryCareer(restored, job.id).ui.checkpointId).toBe(chapter.stages.at(-1)!.id);
   });
 
   it("loads twenty distinct bilingual questions per stage and validates each pack", async () => {
@@ -155,12 +157,13 @@ describe.each(SECONDARY_JOB_OPTIONS)("$id promotion mission", (job) => {
   });
 });
 
-it("keeps each promotion bookmark and captures when switching among all five paths", async () => {
+it("retains partial promotion captures and refuses switching to another unfinished path", async () => {
   let save = eligibleSave("platform-engineer");
   const primary = Object.values(CAREER_PATHS).flatMap(({ regions }) => regions.flatMap(({ id }) => monstersForCareerRegion(id)));
   save.progress.captures = [...new Set([...save.progress.captures.map(({ id }) => id), ...primary.map(({ id }) => id)])].map((id) => ({ id, capturedAt: at }));
+  const seed = save;
   for (const job of SECONDARY_JOB_OPTIONS) {
-    save = selectSecondaryCareer(save, job.id);
+    save = selectSecondaryCareer(seed, job.id);
     const monster = promotionChapterFor(job.id)!.stages[0];
     save = await practice(save, monster.id);
     const pack = await loadMixedQuizPack(monster.quizPackId);
@@ -171,13 +174,13 @@ it("keeps each promotion bookmark and captures when switching among all five pat
       battle = submitBattleAnswer(battle, battle.questionIndex, q.answerIndex);
     }
     save = captureCheckpoint(save, monster.id, battle);
-  }
-  for (const job of SECONDARY_JOB_OPTIONS) {
-    save = normalizeGameSave(parseSave(JSON.stringify(selectSecondaryCareer(save, job.id)))!);
-    expect(resumeCheckpoint(save).monster.id).toBe(secondaryRegionsFor(job.id)[1].chapter.stages[0].id);
-    expect(SECONDARY_JOB_OPTIONS.every(({ id }) => captureIdsForTest(save).has(promotionChapterFor(id)!.stages[0].id))).toBe(true);
-    const other = SECONDARY_JOB_OPTIONS.find(({ id }) => id !== job.id)!;
-    expect(canEnterBattle(save, promotionChapterFor(other.id)!.stages[0].id)).toBe(false);
+    const restored = normalizeGameSave(parseSave(JSON.stringify(save))!);
+    expect(restored.player.secondaryJobId).toBe(job.id);
+    expect(captureIdsForTest(restored).has(monster.id)).toBe(true);
+    for (const other of SECONDARY_JOB_OPTIONS.filter(other => other.id !== job.id)) {
+      expect(selectSecondaryCareer(restored, other.id)).toBe(restored);
+      expect(canEnterBattle(restored, promotionChapterFor(other.id)!.stages[0].id)).toBe(false);
+    }
   }
 });
 

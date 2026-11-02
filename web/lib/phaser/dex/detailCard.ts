@@ -1,3 +1,4 @@
+import { GAME_SIZE } from "../gameViewport";
 import type Phaser from "phaser";
 import type { CapturedCard, MonsterDefinition } from "@codigdex/game-core/domain/chapters/types";
 import { fitTexture } from "../monsterArt";
@@ -34,7 +35,7 @@ export class DetailCard {
   open(monster: MonsterDefinition, card: CapturedCard) {
     if (this.group) return;
     const { scene } = this;
-    const { width, height } = scene.scale;
+    const { width, height } = GAME_SIZE;
     const infoWidth = PANEL_WIDTH - 120;
 
     this.shade = addShade(scene, 0.75, 20);

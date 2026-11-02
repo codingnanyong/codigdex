@@ -1,3 +1,4 @@
+import { GAME_SIZE } from "../gameViewport";
 import Phaser from "phaser";
 import { lt, t } from "../i18n";
 import { createHomeButton } from "../navigation";
@@ -19,7 +20,7 @@ export function createWorldMapHud(
   scene: Phaser.Scene,
   options: WorldMapHudOptions
 ): Phaser.GameObjects.Container {
-  const { width, height } = scene.scale;
+  const { width, height } = GAME_SIZE;
   const chapterFrame = drawOrnateFrame(scene, width / 2, 24, 340, 34, { radius: 10 });
   const chapterTitle = scene.add
     .text(width / 2, 24, `📘 ${lt(scene, options.backdrop.title)}  ▾`, {

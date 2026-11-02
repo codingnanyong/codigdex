@@ -1,3 +1,4 @@
+import { GAME_SIZE } from "../gameViewport";
 import type Phaser from "phaser";
 import { t } from "../i18n";
 import { PALETTE_HEX } from "../palette";
@@ -10,7 +11,7 @@ export function showGuideHint(
   message = t(scene, "world.hintQuestMarker"),
   target?: { x: number; y: number }
 ): Phaser.GameObjects.Container {
-  const { width, height } = scene.scale;
+  const { width, height } = GAME_SIZE;
   const targetX = target?.x ?? width / 2;
   const targetY = target?.y ?? height / 2 + 12;
   const placeOnRight = targetX < width * 0.72;

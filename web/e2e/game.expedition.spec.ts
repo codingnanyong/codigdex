@@ -1,3 +1,4 @@
+import { openGameMenu } from "../test-support/game";
 import { test, expect, type Page } from "@playwright/test";
 import { CHAPTERS } from "@codigdex/game-content/domain/chapters";
 import { CAREER_PATHS } from "@codigdex/game-content/domain/careerPaths";
@@ -56,6 +57,7 @@ test("keeps a settled career offer when notes are inspected and the result is re
   await firstCareerBattle(page, seed);
   await answerBattle(page, seed.ui.checkpointId!);
   const checkpoint = (await readSave(page)).ui.checkpointId;
+  await openGameMenu(page);
   await page.getByRole("button", { name: "OPEN-SOURCE NOTES", exact: true }).click();
   await expect(page.getByRole("dialog").locator('[data-project="tanstack-query"]')).toBeVisible();
   await page.keyboard.press("Escape");
@@ -83,6 +85,7 @@ for (const career of SOURCE_CAREERS) test(`meets ${career.firstTool} inside the 
   await confirmResult(page);
   await scene(page, "open-source-event");
   await page.screenshot({ path: `../mobile/.tmp-qa/encounter-${career.id}.png` });
+  await openGameMenu(page);
   await page.getByRole("button", { name: "OPEN-SOURCE NOTES", exact: true }).click();
   const notes = page.getByRole("dialog");
   await expect(notes.locator("article")).toHaveCount(1);
@@ -121,6 +124,7 @@ test("can postpone a request and keep its note without rerolling a replay", asyn
   expect((await readSave(page)).progress.captures.some(({ id }) => id.startsWith("open-source:"))).toBe(false);
   await reload(page);
   await scene(page, "world-map");
+  await openGameMenu(page);
   await page.getByRole("button", { name: "OPEN-SOURCE NOTES", exact: true }).click();
   await expect(page.getByRole("dialog").locator('[data-project="tanstack-query"]')).toBeVisible();
   await page.keyboard.press("Escape");
@@ -161,7 +165,7 @@ test("pauses a five-form request without interrupting career battles, then resum
   await answerBattle(page, seed.ui.checkpointId!); await confirmResult(page);
   const bookmark = (await readSave(page)).ui.checkpointId!;
   await startSourceBattle(page); await answerBattle(page, "open-source:tanstack-query:lv1");
-  await click(page, 844, 32); await scene(page, "career-region");
+  await click(page, 730, 32); await scene(page, "career-region");
   expect((await readSave(page)).ui.checkpointId).toBe(bookmark);
   const point = careerCheckpointLayout("frontend", "html-css")[1];
   await click(page, point.x, point.y); await answerBattle(page, bookmark); await confirmResult(page);
@@ -190,6 +194,7 @@ for (const job of ["junior", "backend"] as const) test(`migrates old expedition 
   await scene(page, job === "junior" ? "job-select" : "world-map");
   expect((await readSave(page)).progress.captures).toEqual(expect.arrayContaining(save.progress.captures));
   expect((await readSave(page)).ui.checkpointId).toBeUndefined();
+  await openGameMenu(page);
   await page.getByRole("button", { name: "OPEN-SOURCE NOTES", exact: true }).click();
   await expect(page.getByRole("dialog").locator('[data-project="hadoop"]')).toBeVisible();
 });

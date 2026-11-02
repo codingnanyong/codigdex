@@ -1,3 +1,5 @@
+import { canSelectSecondaryCareer, isSecondaryStudyComplete, canStartMasterProject } from "@codigdex/game-content/domain/gameProgress";
+import { GAME_SIZE } from "../gameViewport";
 import Phaser from "phaser";
 import {
   masteredPrimaryJobIds,
@@ -46,7 +48,7 @@ import {
   type PathMapReturnTarget,
 } from "../pathMap/returnTarget";
 import {
-  activateCareerInRegistry,
+  snapshotRegistry,
   readDexState,
   reconcileCareerDexRegistry,
 } from "../registryAdapter";
@@ -94,7 +96,7 @@ export class PathMapScene extends Phaser.Scene {
   }
 
   create() {
-    const { width, height } = this.scale;
+    const { width, height } = GAME_SIZE;
     // Scene instances outlive restarts, so drop references to the last run's objects.
     this.toast = undefined;
     this.stagePanel = undefined;
@@ -162,7 +164,7 @@ export class PathMapScene extends Phaser.Scene {
     createHomeButton(this).setDepth(30);
     createSettingsButton(this).setDepth(30);
     if (this.captured.size > 0) {
-      createButton(this, width - 92, 47, 120, 32, t(this, "common.codigdex"), () => this.openCodigdex());
+      createButton(this, width - 200, 47, 120, 32, t(this, "common.codigdex"), () => this.openCodigdex());
     }
 
     applyPixelFontToScene(this);
@@ -197,7 +199,7 @@ export class PathMapScene extends Phaser.Scene {
         name: lt(this, candidate.name),
         unlocked,
         selected: this.selectedSecondaryJobId === candidate.id,
-        selectable: !unlocked || canSelectSecondaryJob(candidate, this.completedCareerIds),
+        selectable: canSelectSecondaryCareer(snapshotRegistry(this.registry), candidate.id) || isSecondaryStudyComplete(snapshotRegistry(this.registry), candidate.id),
         onSelect: () => this.onSecondaryCareerSelected(candidate),
       });
     });
@@ -220,6 +222,7 @@ export class PathMapScene extends Phaser.Scene {
       name: tertiary ? lt(this, tertiary.name) : "",
       unlocked: tertiary ? isTertiaryJobUnlocked(tertiary, this.completedSecondaryIds) : false,
       selected: Boolean(tertiary) && tertiary?.id === this.selectedTertiaryJobId,
+      selectable: !!tertiary && (canStartMasterProject(snapshotRegistry(this.registry), tertiary.id) || isSecondaryStudyComplete(snapshotRegistry(this.registry), tertiary.requires)),
       tierLabel: t(this, "path.tier3"),
       onSelect: () => {
         if (tertiary) this.onTertiaryCareerSelected(tertiary);
@@ -239,12 +242,12 @@ export class PathMapScene extends Phaser.Scene {
       return;
     }
 
-    if (this.selectedSecondaryJobId !== job.id) {
-      this.registry.set(TERTIARY_JOB_REGISTRY_KEY, null);
+    const save = snapshotRegistry(this.registry);
+    if (!canSelectSecondaryCareer(save, job.id) && !isSecondaryStudyComplete(save, job.id)) {
+      this.notify(sceneLocale(this) === "ko" ? "현재 직군의 모든 지역 학습·실습을 먼저 완료하세요." : "Finish the current career's regional lessons and practice first.");
+      return;
     }
-    activateCareerInRegistry(this.registry, job.id);
-    this.registry.set(SECONDARY_JOB_REGISTRY_KEY, job.id);
-    this.scene.restart({ careerId: this.selectedCareerId, returnTo: this.returnTarget });
+    this.scene.start("promotion-chapter", { jobId: job.id });
   }
 
   private onTertiaryCareerSelected(job: TertiaryJobOption) {

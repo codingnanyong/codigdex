@@ -5,7 +5,7 @@ import { loadMixedQuizPack } from "@codigdex/quiz-content";
 
 export const SAVE_KEY = "codigdex:save:v3";
 const SEED_KEY = "codigdex-test-seeded";
-const CANVAS_SIZE = { width: 960, height: 540 };
+import { gameViewport } from "../lib/phaser/gameViewport";
 
 export const game = (page: Page) => page.getByRole("application");
 
@@ -25,7 +25,8 @@ export async function clickGame(page: Page, x: number, y: number) {
   await frames(page);
   const box = await canvas.boundingBox();
   if (!box) throw new Error("Game canvas is not visible");
-  await canvas.click({ position: { x: x * box.width / CANVAS_SIZE.width, y: y * box.height / CANVAS_SIZE.height } });
+  const viewport = gameViewport(box.width, box.height);
+  await canvas.click({ position: { x: viewport.x + x * viewport.zoom, y: viewport.y + y * viewport.zoom } });
   await frames(page);
 }
 
@@ -90,4 +91,8 @@ export async function confirmResult(page: Page) {
     await clickGame(page, 480, y);
   }
   await expect(game(page)).not.toHaveAttribute("data-scene", "capture-quiz");
+}
+
+export async function openGameMenu(page: Page) {
+  if (await page.locator(".game-menu-toggle").getAttribute("aria-expanded") !== "true") await page.locator(".game-menu-toggle").click();
 }

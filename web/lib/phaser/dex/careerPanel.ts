@@ -1,3 +1,4 @@
+import { GAME_SIZE } from "../gameViewport";
 import Phaser from "phaser";
 import {
   CAREER_CATALOG,
@@ -248,7 +249,7 @@ export class CareerPanel {
   private openDetail(entry: CareerCatalogEntry, index: number, status: CareerStatus) {
     if (this.detail) return;
     const record = careerRecord(this.state, entry.id);
-    const { width, height } = this.scene.scale;
+    const { width, height } = GAME_SIZE;
     this.detailShade = addShade(this.scene, 0.78, 30);
     this.detailShade.on("pointerup", () => this.closeDetail());
     const panelWidth = 610;

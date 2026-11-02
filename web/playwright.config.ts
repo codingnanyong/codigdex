@@ -19,7 +19,13 @@ export default defineConfig({
   projects: [
     {
       name: "chromium",
-      use: { ...devices["Desktop Chrome"] },
+      use: {
+        ...devices["Desktop Chrome"],
+        // Exercise ordinary journeys at the authored game resolution. The
+        // shell suite explicitly covers desktop, portrait and landscape sizes;
+        // those full-viewport checks still use their real renderbuffer sizes.
+        viewport: { width: 960, height: 540 },
+      },
     },
   ],
   webServer: externalBaseURL ? undefined : {

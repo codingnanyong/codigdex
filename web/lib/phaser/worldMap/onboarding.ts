@@ -1,3 +1,4 @@
+import { GAME_SIZE } from "../gameViewport";
 import Phaser from "phaser";
 import { t } from "../i18n";
 import { PALETTE, PALETTE_HEX } from "../palette";
@@ -27,7 +28,7 @@ export class OnboardingDialog {
   constructor(scene: Phaser.Scene, options: OnboardingOptions) {
     this.scene = scene;
     this.options = options;
-    const { width, height } = scene.scale;
+    const { width, height } = GAME_SIZE;
     const dialogHeight = 150;
     const dialogTop = height - dialogHeight;
 
@@ -82,7 +83,7 @@ export class OnboardingDialog {
       .setOrigin(1, 0.5)
       .setInteractive({ useHandCursor: true })
       .on("pointerup", () => this.advance());
-    const skipButton = createButton(scene, width - 72, 28, 112, 30, t(scene, "world.onboardingSkip"), () => this.finish());
+    const skipButton = createButton(scene, width - 180, 28, 112, 30, t(scene, "world.onboardingSkip"), () => this.finish());
 
     this.group = scene.add
       .container(0, 12, [

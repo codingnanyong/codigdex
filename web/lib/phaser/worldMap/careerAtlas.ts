@@ -1,3 +1,4 @@
+import { GAME_SIZE } from "../gameViewport";
 import Phaser from "phaser";
 import {
   careerTerrainAssetKey,
@@ -35,8 +36,8 @@ export function drawCareerAtlas(scene: Phaser.Scene, options: CareerAtlasOptions
   const startingRegion = storedProgress?.status !== "locked"
     ? storedProgress?.region ?? progression.find(({ status }) => status === "available")?.region
     : progression.find(({ status }) => status === "available")?.region;
-  const startX = startingRegion?.x ?? scene.scale.width / 2;
-  const startY = startingRegion?.y ?? scene.scale.height / 2;
+  const startX = startingRegion?.x ?? GAME_SIZE.width / 2;
+  const startY = startingRegion?.y ?? GAME_SIZE.height / 2;
   const playerShadow = scene.add
     .ellipse(startX, startY + 26, 36, 10, PALETTE.nightBrown, 0.28)
     .setDepth(6);
@@ -164,7 +165,7 @@ function drawRegion(
   status: CareerRegionStatus,
   onSelect: (region: CareerRegion) => void
 ) {
-  const { width, height } = scene.scale;
+  const { width, height } = GAME_SIZE;
   const { lift } = region;
   const terrainTextureKey = careerTerrainTextureKey(path, region);
   const labelCenter = { x: lift.x, y: lift.y };
