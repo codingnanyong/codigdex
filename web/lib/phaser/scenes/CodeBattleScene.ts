@@ -154,6 +154,7 @@ export class CodeBattleScene extends Phaser.Scene {
       this.scene.start('capture-quiz', {
         monsterId: this.monster.id, correctCount: next.correctCount,
         total: next.questions.length, returnTo: this.returnTo,
+          passed: next.status === "passed",
         sourceEventId: this.sourceEventId,
         victoryId: this.victoryId,
       });

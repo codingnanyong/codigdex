@@ -2,43 +2,123 @@
   "version": 1,
   "reviewedOn": "2026-11-02",
   "owner": "Codex",
-  "scope": "Targeted fact review; not an exhaustive certification of all quiz content",
+  "scope": "Source and generated-choice semantic review of all 500 tier-two and 266 open-source questions, plus 75 new required design questions and 25 worked examples. Official documentation checks are targeted; this is not a certification by executing every technology.",
   "reviewedGroups": [
     {
-      "stageIds": ["check-scout", "case-inspector"],
-      "questionRange": [1, 10],
+      "stageIds": [
+        "check-scout",
+        "case-inspector"
+      ],
+      "questionRange": [
+        1,
+        10
+      ],
       "questionCount": 20,
       "source": "packages/quiz-content/src/sources/career/testing.ts",
-      "references": ["https://vitest.dev/api/expect.html", "https://vitest.dev/guide/coverage"],
+      "references": [
+        "https://vitest.dev/api/expect.html",
+        "https://vitest.dev/guide/coverage"
+      ],
       "finding": "100% coverage does not imply correct behavior OR a passing test run; the old q08 contained both as possible answers.",
       "change": "Rewrite these 20 bilingual prompts as concrete cart, discount, exception and CI scenarios. Clarify q08 as line coverage and remove the second valid answer. Keep existing stage IDs, question order and ten questions per stage."
     },
     {
-      "stageIds": ["platform-release-ferry"],
-      "questionRange": [1, 20],
+      "stageIds": [
+        "platform-release-ferry"
+      ],
+      "questionRange": [
+        1,
+        20
+      ],
       "questionCount": 20,
       "source": "packages/quiz-content/src/sources/platform.ts",
-      "references": ["https://sre.google/workbook/canarying-releases/"],
+      "references": [
+        "https://sre.google/workbook/canarying-releases/"
+      ],
       "finding": "Release scenarios distinguish required checks, artifact promotion, canaries, rollback, reproducibility and secret handling. All platform correct answers were authored in position zero.",
       "change": "Use the existing fieldMission helper for all five platform pools (100 questions), rotating correct answer positions while preserving prompts and correct action meanings. This also changes distractor subsets in later questions; only the release pool was manually fact-reviewed in this batch. Regenerate content-derived native QA flows."
     },
     {
-      "stageIds": ["open-source:yarn"],
-      "questionRange": [4, 7],
+      "stageIds": [
+        "open-source:yarn"
+      ],
+      "questionRange": [
+        4,
+        7
+      ],
       "questionCount": 4,
       "source": "packages/quiz-content/src/sources/openSource.ts",
-      "references": ["https://hadoop.apache.org/docs/stable/hadoop-yarn/hadoop-yarn-site/YARN.html"],
+      "references": [
+        "https://hadoop.apache.org/docs/stable/hadoop-yarn/hadoop-yarn-site/YARN.html"
+      ],
       "finding": "The four scenarios correctly distinguish ResourceManager, NodeManager, ApplicationMaster and container resource limits.",
       "change": "No content change."
     }
   ],
   "manualFactReviewCount": 44,
-  "remainingFactReview": "Other tier-two and open-source questions still require manual fact and distractor review; structural validation is not semantic verification.",
+  "remainingFactReview": "All scoped tier-two/open-source prompts and generated choices were read. Runtime execution of every command and exhaustive official-document certification were not performed. Primary questions outside the earlier testing sample remain outside this review.",
   "primaryPoolInventory": {
     "technologyCount": 20,
     "stageCount": 100,
     "questionsPerStage": 10,
     "questionCount": 1000,
     "finding": "Every currently released primary stage uses an authored pool. The legacy generated twenty-question fallback is not used by a released primary stage."
+  },
+  "sourceAndChoiceReview": {
+    "reviewer": "Codex independent read-only reviewer",
+    "date": "2026-11-02",
+    "existingSecondary": 500,
+    "existingOpenSource": 266,
+    "newRequiredDesign": 75,
+    "workedExamples": 25,
+    "method": "Read Korean/English authored prompts, answer vocabularies and generated distractors; inspect all generated master choice sets; target official checks at findings. No blocking findings after corrections.",
+    "references": [
+      "https://sre.google/workbook/implementing-slos/",
+      "https://docs.getdbt.com/docs/build/metrics-overview",
+      "https://doc.dvc.org/user-guide/pipelines/run-cache",
+      "https://doc.dvc.org/user-guide/project-structure/dvcyaml-files",
+      "https://argo-cd.readthedocs.io/en/stable/"
+    ],
+    "corrections": [
+      {
+        "source": "analytics.ts",
+        "questions": [
+          "metrics q01",
+          "metrics q06",
+          "metrics q13",
+          "metrics q19"
+        ],
+        "change": "Exclude overlapping population/grain/filter actions from distractors so two valid actions are not offered."
+      },
+      {
+        "source": "mlops.ts",
+        "change": "Cache reuse requires matching data inputs, configuration, code, dependencies and environment versions."
+      },
+      {
+        "source": "platform.ts",
+        "question": "SLO q01",
+        "change": "Korean asks for the calculation, matching the English question and ratio answer."
+      },
+      {
+        "source": "openSource.ts",
+        "question": "Argo CD q06",
+        "change": "Distinguish desired-state source from inspecting already-reported OutOfSync resource differences and health in both languages."
+      },
+      {
+        "source": "master.ts",
+        "question": "Software Architect boundaries q03",
+        "change": "Replace the additional consumer-testing distractor that could also be a valid contract-verification action."
+      },
+      {
+        "source": "masterChapters.ts",
+        "question": "Data Architect lineage q02",
+        "change": "State that lineage is already complete and ask specifically for change-notice recipients in both languages."
+      },
+      {
+        "source": "game-core quiz/battle",
+        "change": "Always draw the three required design questions. Reject any wrong required answer and block early passing until all required answers are correct; propagate reducer outcome to Web capture results."
+      }
+    ],
+    "limits": "String/shape validation is separate from semantic review. Facts were not independently executed on every framework or deployment. New device acceptance and live protected Preview verification remain outstanding."
   }
 }

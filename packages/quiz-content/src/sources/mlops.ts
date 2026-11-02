@@ -34,7 +34,7 @@ const pipelines = mission([
   ["고정한 데이터·코드·환경으로 실행한다", "Run with pinned data, code and environment"],
   ["실패한 필수 검사가 후속 단계를 막게 한다", "Let failed required checks block downstream stages"],
   ["재시도가 중복 결과를 만들지 않게 한다", "Make retries avoid duplicate effects"],
-  ["입력과 설정이 같은 경우에만 캐시를 재사용한다", "Reuse cache only when inputs and configuration match"],
+  ["입력·설정·코드·의존성·환경 버전이 일치할 때만 캐시를 재사용한다", "Reuse cache only when inputs, configuration, code, dependency and environment versions match"],
   ["단계별 결과물과 오류를 기록한다", "Record per-stage artifacts and errors"],
 ], [
   ["비버가 평가보다 학습을 나중에 실행한다. 무엇을 명시할까?", "The beaver evaluates before training. What should be declared?", 0],

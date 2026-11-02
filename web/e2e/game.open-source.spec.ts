@@ -5,8 +5,10 @@ import { CHAPTERS } from "@codigdex/game-content/domain/chapters";
 import { CAREER_PATHS } from "@codigdex/game-content/domain/careerPaths";
 import { monstersForCareerRegion } from "@codigdex/game-content/domain/careerRegionMonsters";
 import { selectSecondaryCareer } from "@codigdex/game-content/domain/gameProgress";
+import { workshopTaskId } from "@codigdex/game-content/domain/promotionWorkshops";
+import { secondaryRegionsFor } from "@codigdex/game-content/domain/secondaryExploration";
 import { webQAPresets } from "../lib/qa/presets";
-import { continueGame } from "../test-support/game";
+import { continueGame, clickGame } from "../test-support/game";
 
 test("starts with a discovery notebook instead of a separate expedition menu", async ({ page }) => {
   await page.addInitScript((save) => localStorage.setItem("codigdex:save:v3", JSON.stringify(save)), createEmptySave("en"));
@@ -60,18 +62,18 @@ test("opens chapter-related notes, resumes its battle and keeps save progress un
   const monsters = [...CHAPTERS.flatMap(({ stages }) => stages), ...[CAREER_PATHS.backend, CAREER_PATHS.devops].flatMap(({ regions }) => regions.flatMap(({ id }) => monstersForCareerRegion(id)))];
   seed.progress.captures = [...new Set(monsters.map(({ id }) => id))].map((id) => ({ id, capturedAt: "2026-10-27T00:00:00.000Z" }));
   seed.player.primaryJobId = "backend";
+  seed.progress.projects = Array.from({ length: 4 }, (_, phase) => ({ id: workshopTaskId("platform-release-ferry", phase), completedAt: "2026-11-02T00:00:00.000Z" }));
+  seed.progress.captures.push(...secondaryRegionsFor("platform-engineer")[0].chapter.stages.slice(0, 4).map(({ id }) => ({ id, capturedAt: "2026-11-02T00:00:00.000Z" })));
   seed.progress.captures.push(...["argo-cd", "openlineage"].map((id) => ({ id: `open-source:${id}`, capturedAt: "2026-10-28T00:00:00.000Z" })));
   seed.ui.tutorialOnboardingSeen = true;
   await page.addInitScript((save) => localStorage.setItem("codigdex:save:v3", JSON.stringify(save)), selectSecondaryCareer(seed, "platform-engineer"));
   await page.goto("/");
   const game = page.getByRole("application");
-  await expect(game).toHaveAttribute("data-scene", "intro", { timeout: 20_000 });
-  await page.keyboard.press("Enter");
-  await expect(game).toHaveAttribute("data-scene", "promotion-chapter");
-  const canvas = page.locator(".pixel-canvas canvas");
-  const click = async (x: number, y: number) => { const box = (await canvas.boundingBox())!; await canvas.click({ position: { x: x * box.width / 960, y: y * box.height / 540 } }); };
+  await continueGame(page);
+  await expect(game).toHaveAttribute("data-scene", "secondary-region");
+  const click = (x: number, y: number) => clickGame(page, x, y);
   const before = await page.evaluate(() => localStorage.getItem("codigdex:save:v3"));
-  await click(300, 455);
+  await click(160, 458);
   const dialog = page.getByRole("dialog", { name: "발견한 오픈소스 노트" });
   await expect(dialog).toBeVisible();
   await expect(dialog.locator("article")).toHaveCount(1);
@@ -81,6 +83,7 @@ test("opens chapter-related notes, resumes its battle and keeps save progress un
   await dialog.getByRole("button", { name: "오픈소스 노트 닫기", exact: true }).click();
   expect(await page.evaluate(() => localStorage.getItem("codigdex:save:v3"))).toBe(before);
   await click(742, 509);
+  await page.locator(".career-workshop").getByRole("button", { name: "진화 배틀 시작", exact: true }).click();
   const controls = page.locator(".battle-controls");
   await expect(controls).toBeVisible();
   const prompt = await controls.locator(".battle-prompt").innerText();

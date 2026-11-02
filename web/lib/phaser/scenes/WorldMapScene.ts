@@ -23,6 +23,7 @@ import {
   CHECKPOINT_REGISTRY_KEY,
 } from "../registryAdapter";
 import { resumeCheckpoint } from "@codigdex/game-content/domain/gameProgress";
+import { evolutionIdentity } from "@codigdex/game-content/domain/secondaryEvolutionIds";
 import { applyPixelFontToScene, showToast } from "../ui";
 import { drawCareerAtlas } from "../worldMap/careerAtlas";
 import { routePointsFor } from "../worldMap/chapterRoute";
@@ -138,8 +139,10 @@ export class WorldMapScene extends Phaser.Scene {
       return;
     }
     const resume = resumeCheckpoint(snapshotRegistry(this.registry));
-    if (resume.chapter.id.startsWith("promotion:")) {
-      this.scene.start("promotion-chapter", { jobId: resume.chapter.id.slice("promotion:".length), monsterId: resume.monster.id });
+    const secondary = evolutionIdentity(resume.monster.id);
+    if (secondary) { this.scene.start("secondary-region", { jobId: secondary.jobId, regionId: secondary.coreId, monsterId: resume.monster.id }); return; }
+    if (resume.chapter.id.startsWith("mastery:")) {
+      this.scene.start("promotion-chapter", { jobId: resume.chapter.id.slice(resume.chapter.id.indexOf(":") + 1), monsterId: resume.monster.id });
       return;
     }
     this.activeChapter = this.commonResumeChapter() ?? selectActiveChapter(this.captured);

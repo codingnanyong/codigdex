@@ -12,6 +12,7 @@ import { monstersForCareerRegion } from "@codigdex/game-content/domain/careerReg
 import { PROMOTION_MISSIONS } from "@codigdex/game-content/domain/promotionChapters";
 import { SECONDARY_JOB_OPTIONS, type SecondaryJobId } from "@codigdex/game-content/domain/player/jobs";
 import { CareerScreen } from "./CareerScreen";
+import { secondaryRegionsFor } from "@codigdex/game-content/domain/secondaryExploration";
 
 interface Props { children?: ReactNode; disabled?: boolean; onPress?(): void; style?: unknown; testID?: string }
 const state = vi.hoisted(() => ({ save: undefined as unknown as StoredGameStateV3, controls: [] as Props[], selected: [] as string[] }));
@@ -66,7 +67,7 @@ describe("native career route", () => {
     expect(state.controls.find(({ testID }) => testID === "career-select-devops")?.disabled).toBe(true);
     expect(state.controls.find(({ testID }) => testID === "career-select-backend")?.disabled).toBe(false);
     expect(state.controls.some(({ testID }) => testID?.startsWith("career-checkpoint-"))).toBe(true);
-    expect(state.controls.some(({ testID }) => testID?.startsWith("promotion-checkpoint-"))).toBe(true);
+    expect(state.controls.some(({ testID }) => testID?.startsWith("secondary-region-"))).toBe(true);
     expect(html).toContain("Finish the current tier-two path");
     state.save.progress.captures.push(...PROMOTION_MISSIONS["fullstack-engineer"].chapter.stages.map(({ id }) => ({ id, capturedAt: "2026-10-28T00:00:00.000Z" })));
     state.save = selectGameCareer(normalizeGameSave(state.save), "devops");
@@ -82,14 +83,19 @@ describe("native career route", () => {
     expect(state.controls.some(({ testID }) => testID === `promotion-select-${job.id}`)).toBe(true);
   });
 
-  it.each(SECONDARY_JOB_OPTIONS)("shows $id story, five ordered checkpoints and mastery ending", (job) => {
+  it.each(SECONDARY_JOB_OPTIONS)("shows $id atlas, one species per region and mastery ending", (job) => {
     state.save = selectSecondaryCareer(platformSave(job.id), job.id);
     const mission = PROMOTION_MISSIONS[job.id];
     const html = render();
     expect(html).toContain(mission.chapter.name.en);
     expect(html).toContain(mission.chapter.npcName.en);
+    expect(state.controls.filter(({ testID }) => testID?.startsWith("secondary-region-")).map(({ disabled }) => disabled)).toEqual([false, true, true, true, true]);
+    state.controls = [];
+    const region = secondaryRegionsFor(job.id)[0];
+    const regionHtml = renderToStaticMarkup(<CareerScreen selectedRegionId={region.id} onBack={() => {}} onBattle={() => {}} />);
+    expect(regionHtml).toContain("No." + region.chapter.stages[0].dexNumber);
     expect(state.controls.filter(({ testID }) => testID?.startsWith("promotion-checkpoint-")).map(({ disabled }) => disabled)).toEqual([false, true, true, true, true]);
-    state.save.progress.captures.push(...mission.chapter.stages.map(({ id }) => ({ id, capturedAt: "2026-10-27T00:00:00.000Z" })));
+    state.save.progress.captures.push(...secondaryRegionsFor(job.id).flatMap(({ chapter }) => chapter.stages.map(({ id }) => ({ id, capturedAt: "2026-10-27T00:00:00.000Z" }))));
     state.save = normalizeGameSave(state.save);
     expect(render()).toContain("PATH MASTER");
     expect(render()).toContain(mission.story.ending.en.split(".")[0]);

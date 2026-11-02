@@ -1,0 +1,36 @@
+{
+  "tool": "built-in image_gen",
+  "date": "2026-11-02",
+  "outputs": [
+    {
+      "id": "software-architect",
+      "prompt": "Use case: stylized-concept. Production pixel-art RPG game background, landscape 16:9, native logical detail 320x180; obvious chunky square pixels, simple cute 16-bit handheld-game scenery, clean outlines, flat limited palette, warm cozy friendly coding adventure. Wide slightly top-down game map with FIVE broad unoccupied sandy/grass checkpoint clearings arranged left-to-right as a shallow winding path across the middle. Keep foreground center floor spacious, backdrop trees/buildings in upper half and edges. This is a game background for monster and UI overlays; no characters, monsters, people, numbers, labels, words, logos, icons, UI, frames, watermarks. No photorealism, no fine painterly detail, no smooth gradients, no dramatic realism or ornate palaces. Five clearings should be readable within one connected environment. Warm coral and turquoise hillside artisan town of modular timber workshops, small bridges and castle blueprint pavilion in far background. Theme: software architecture, stable contracts, modular building blocks.",
+      "sourceAssetKey": "wallpapers/mastery/source/software-architect-source-v1.png",
+      "runtimeAssetKey": "wallpapers/mastery/software-architect-arena-v1.png"
+    },
+    {
+      "id": "cloud-platform-architect",
+      "prompt": "Use case: stylized-concept. Production pixel-art RPG game background, landscape 16:9, native logical detail 320x180; obvious chunky square pixels, simple cute 16-bit handheld-game scenery, clean outlines, flat limited palette, warm cozy friendly coding adventure. Wide slightly top-down game map with FIVE broad unoccupied sandy/grass checkpoint clearings arranged left-to-right as a shallow winding path across the middle. Keep foreground center floor spacious, backdrop trees/buildings in upper half and edges. This is a game background for monster and UI overlays; no characters, monsters, people, numbers, labels, words, logos, icons, UI, frames, watermarks. No photorealism, no fine painterly detail, no smooth gradients, no dramatic realism or ornate palaces. Five clearings should be readable within one connected environment. Warm gold and sky blue cloud island harbor with a modest lighthouse, separated little service huts, sturdy bridge and rescue shelter. Theme: reliable cloud platforms and recovery.",
+      "sourceAssetKey": "wallpapers/mastery/source/cloud-platform-architect-source-v1.png",
+      "runtimeAssetKey": "wallpapers/mastery/cloud-platform-architect-arena-v1.png"
+    },
+    {
+      "id": "ai-product-engineer",
+      "prompt": "Use case: stylized-concept. Production pixel-art RPG game background, landscape 16:9, native logical detail 320x180; obvious chunky square pixels, simple cute 16-bit handheld-game scenery, clean outlines, flat limited palette, warm cozy friendly coding adventure. Wide slightly top-down game map with FIVE broad unoccupied sandy/grass checkpoint clearings arranged left-to-right as a shallow winding path across the middle. Keep foreground center floor spacious, backdrop trees/buildings in upper half and edges. This is a game background for monster and UI overlays; no characters, monsters, people, numbers, labels, words, logos, icons, UI, frames, watermarks. No photorealism, no fine painterly detail, no smooth gradients, no dramatic realism or ornate palaces. Five clearings should be readable within one connected environment. Mint and lavender greenhouse village with small prototype workshop, seed testing garden, evaluation kiosk and friendly product delivery hut. Theme: useful AI products with evaluation and human control.",
+      "sourceAssetKey": "wallpapers/mastery/source/ai-product-engineer-source-v1.png",
+      "runtimeAssetKey": "wallpapers/mastery/ai-product-engineer-arena-v1.png"
+    },
+    {
+      "id": "ai-platform-architect",
+      "prompt": "Use case: stylized-concept. Production pixel-art RPG game background, landscape 16:9, native logical detail 320x180; obvious chunky square pixels, simple cute 16-bit handheld-game scenery, clean outlines, flat limited palette, warm cozy friendly coding adventure. Wide slightly top-down game map with FIVE broad unoccupied sandy/grass checkpoint clearings arranged left-to-right as a shallow winding path across the middle. Keep foreground center floor spacious, backdrop trees/buildings in upper half and edges. This is a game background for monster and UI overlays; no characters, monsters, people, numbers, labels, words, logos, icons, UI, frames, watermarks. No photorealism, no fine painterly detail, no smooth gradients, no dramatic realism or ornate palaces. Five clearings should be readable within one connected environment. Jade and teal watermill research campus with model registry library, pipeline canals, monitoring beacon and safe rollback gate. Theme: repeatable ML platform operations.",
+      "sourceAssetKey": "wallpapers/mastery/source/ai-platform-architect-source-v1.png",
+      "runtimeAssetKey": "wallpapers/mastery/ai-platform-architect-arena-v1.png"
+    },
+    {
+      "id": "data-architect",
+      "prompt": "Use case: stylized-concept. Production pixel-art RPG game background, landscape 16:9, native logical detail 320x180; obvious chunky square pixels, simple cute 16-bit handheld-game scenery, clean outlines, flat limited palette, warm cozy friendly coding adventure. Wide slightly top-down game map with FIVE broad unoccupied sandy/grass checkpoint clearings arranged left-to-right as a shallow winding path across the middle. Keep foreground center floor spacious, backdrop trees/buildings in upper half and edges. This is a game background for monster and UI overlays; no characters, monsters, people, numbers, labels, words, logos, icons, UI, frames, watermarks. No photorealism, no fine painterly detail, no smooth gradients, no dramatic realism or ornate palaces. Five clearings should be readable within one connected environment. Navy and gold star observatory village with archive granaries, orderly garden beds, connected lineage stream and night-blue metric tower. Theme: trustworthy data models and lineage.",
+      "sourceAssetKey": "wallpapers/mastery/source/data-architect-source-v1.png",
+      "runtimeAssetKey": "wallpapers/mastery/data-architect-arena-v1.png"
+    }
+  ]
+}

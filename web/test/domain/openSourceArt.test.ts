@@ -12,7 +12,7 @@ describe("open-source creature sprites", () => {
     for (const entry of OPEN_SOURCE_CATALOG) {
       expect(entry.character.artStatus).toBe("ready");
       const key = entry.character.assetKey!;
-      expect(key).toBe(`characters/open-source/${entry.id}-v1.png`);
+      expect(key).toBe(`monsters/open-source/${entry.family}/${entry.id}/${entry.id}-lv5-v1.png`);
       expect(ASSET_KEYS).toContain(key);
       keys.add(key);
       const { data, info } = await sharp(path.resolve(import.meta.dirname, "../../../packages/game-assets/files", key)).ensureAlpha().raw().toBuffer({ resolveWithObject: true });

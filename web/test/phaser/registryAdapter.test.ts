@@ -213,7 +213,7 @@ describe("persistRegistry", () => {
       }),
       ["ko-KR"]
     );
-    persistRegistry(source, storage);
+    expect(persistRegistry(source, storage)).toBe(true);
 
     expect(JSON.parse(storage.getItem(SAVE_STORAGE_KEY)!)).toEqual({
       version: 3,
@@ -245,7 +245,7 @@ describe("persistRegistry", () => {
   });
 
   it("keeps play going when storage rejects the write", () => {
-    expect(() => persistRegistry(fakeRegistry(), failingStorage)).not.toThrow();
+    expect(persistRegistry(fakeRegistry(), failingStorage)).toBe(false);
   });
 });
 

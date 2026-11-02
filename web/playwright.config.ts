@@ -13,7 +13,8 @@ export default defineConfig({
   use: {
     baseURL: externalBaseURL ?? "http://127.0.0.1:3001",
     locale: "ko-KR",
-    trace: "on-first-retry",
+    // Authenticated traces can contain the deployment cookie or bootstrap header.
+    trace: process.env.VERCEL_AUTOMATION_BYPASS_SECRET ? "off" : "on-first-retry",
   },
   projects: [
     {

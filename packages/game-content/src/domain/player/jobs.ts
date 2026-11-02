@@ -63,7 +63,7 @@ const careerOverworldArt = (careerId: JobId) =>
   `characters/player/overworld-player-${careerId}-v1.png`;
 
 export const CAREER_CHARACTER_GUIDE_ASSET_KEY =
-  "characters/career-path/career-character-guide-v2.png";
+  "characters/career-path/character-collection-guide-v3.png";
 export const OVERWORLD_PLAYER_TEXTURE_KEY = "player-overworld";
 export const OVERWORLD_PLAYER_ASSET_KEY =
   "characters/player/overworld-player-v1.png";
@@ -195,7 +195,7 @@ export const SECONDARY_JOB_OPTIONS: readonly SecondaryJobOption[] = [
   },
 ];
 
-/** Tier-three mastery jobs; their playable capstone chapters ship later. */
+/** Tier-three careers are awarded after the corresponding final design project. */
 export const TERTIARY_JOB_OPTIONS: readonly TertiaryJobOption[] = [
   {
     id: "software-architect",
@@ -243,8 +243,7 @@ export const SECONDARY_JOB_REGISTRY_KEY = "selectedSecondaryJob";
 export const TERTIARY_JOB_REGISTRY_KEY = "selectedTertiaryJob";
 /** All five tier-two paths have released integration chapters. */
 export const SECONDARY_JOB_SELECTION_ENABLED = true;
-/** Identity and mastery may be revealed before tier-three gameplay ships. */
-export const TERTIARY_JOB_SELECTION_ENABLED = false;
+export const TERTIARY_JOB_SELECTION_ENABLED = true;
 
 export function findJob(id: string | undefined): JobOption {
   if (!id) return DEFAULT_JOB;

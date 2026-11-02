@@ -24,7 +24,7 @@ describe("open-source learning notes", () => {
       expect(entry.learning.ko.length).toBeGreaterThan(2);
       expect(entry.learning.en.length).toBeGreaterThan(2);
       expect(entry.character.artStatus).toBe("ready");
-      expect(entry.character.assetKey).toBe(`characters/open-source/${entry.id}-v1.png`);
+      expect(entry.character.assetKey).toBe(`monsters/open-source/${entry.family}/${entry.id}/${entry.id}-lv5-v1.png`);
     }
   });
   it("distinguishes actual subcomponents from independently related projects without parent cycles", () => {

@@ -9,6 +9,9 @@ import { colors, font } from "../ui/theme";
 import { battleMeters, expectedAnswer, keyboardAnswer, quizCopy } from "./battlePresentation";
 import { PixelScene } from "../ui/PixelScene";
 import { promotionMissionFor } from "@codigdex/game-content/domain/promotionChapters";
+import { masterMissionFor, masterChapterFor } from "@codigdex/game-content/domain/masterChapters";
+import { secondaryRegionForStage } from "@codigdex/game-content/domain/secondaryExploration";
+import { openSourceArenaForStage } from "@codigdex/game-content/domain/openSourceChapters";
 
 export interface BattleFeedback { nextBattle: BattleState; attempt: BattleAttempt }
 
@@ -46,10 +49,13 @@ export function BattleView(props: BattleViewProps) {
   const playerAnswer = feedback && (typeof feedback.attempt.answer === "number" && question.type !== "freeText"
     ? localize(question.choices[feedback.attempt.answer], locale) : String(feedback.attempt.answer));
   const finished = settled.status !== "active";
+  const backdrop = openSourceArenaForStage(monster.id)?.assetKey ?? secondaryRegionForStage(monster.id)?.chapter.arena?.assetKey ?? masterChapterFor(monster.id.split(":")[1])?.arena?.assetKey;
   const scenery = promotionMissionFor(monster.quizPackId.split(".")[0].replace(/^promotion:/, ""))?.scenery
+    ?? masterMissionFor(monster.quizPackId.split(".")[0].replace(/^mastery:/, ""))?.scenery
     ?? (monster.quizPackId.startsWith("linux.") ? "linux" : monster.quizPackId.startsWith("git.") ? "git" : "tutorial");
 
   return <View style={[styles.root, keyboardVisible && styles.typingRoot]}>
+    {question.required ? <Text accessibilityRole="alert" style={styles.passLine}>{ko ? "필수 설계 판단 · 오답 시 재도전" : "REQUIRED DESIGN CHECK · RETRY ON A WRONG ANSWER"}</Text> : null}
     <View style={styles.header}>
       <PixelButton testID="battle-exit" accessibilityLabel={ko ? "배틀 나가기" : "Exit battle"} onPress={props.onExit} variant="quiet">×</PixelButton>
       <View style={styles.headerCopy}>
@@ -68,7 +74,7 @@ export function BattleView(props: BattleViewProps) {
 
     <View style={styles.layout}>
       {!compact ? <View style={styles.specimen}>
-        <PixelScene backdrop scene={scenery} />
+        <PixelScene backdrop scene={scenery} assetKey={backdrop} />
         <Image accessibilityLabel={localize(monster.name, locale)} resizeMode="contain" source={monsterImage} style={styles.monsterImage} />
         <Text style={styles.specimenTitle}>LV.{monster.level}</Text>
         <Text style={[styles.caption, styles.specimenCaption]}>{localize(monster.classification, locale)}</Text>
@@ -76,7 +82,7 @@ export function BattleView(props: BattleViewProps) {
       <ScrollView testID="battle-scroll" ref={props.scrollRef} style={styles.conversation} contentContainerStyle={[styles.conversationContent, keyboardVisible && styles.typingContent]}
         keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag" onContentSizeChange={props.onContentSizeChange}>
         {compact && !keyboardVisible ? <View style={styles.compactStage}>
-          <PixelScene backdrop scene={scenery} />
+          <PixelScene backdrop scene={scenery} assetKey={backdrop} />
           <Image accessibilityLabel={localize(monster.name, locale)} resizeMode="contain" source={monsterImage} style={styles.compactMonster} />
           <Text style={styles.stageLabel}>LV.{monster.level}</Text>
         </View> : null}

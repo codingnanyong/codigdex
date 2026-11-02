@@ -1,5 +1,6 @@
 import { text, type LocalizedText } from "@codigdex/game-core/i18n/locale";
 import type { QuizQuestion } from "@codigdex/game-core/domain/chapters/types";
+import { openSourceIdentity } from "@codigdex/game-content/domain/openSourceEvolutionIds";
 import { OPEN_SOURCE_CATALOG, OPEN_SOURCE_KIND_LABELS, type OpenSourceKind } from "@codigdex/game-content/domain/openSourceCatalog";
 
 type Pair = readonly [ko: string, en: string];
@@ -173,7 +174,7 @@ const lessons: Record<string, Lesson> = {
   "argo-cd": lesson([
     ["Git의 원하는 상태와 비교", "Compare with desired state in Git"], ["동기화로 선언 반영", "Apply declarations through synchronization"], ["차이와 상태 확인", "Inspect drift and health"], ["검토한 Git 변경으로 되돌리기", "Revert through a reviewed Git change"],
   ], [
-    ["Argo CD가 클러스터에서 지킬 배포 약속의 기준은?", "What is Argo CD's declared reference for a cluster deployment?"], ["Argo CD에서 승인된 선언을 실제 클러스터에 적용하려면?", "What Argo CD operation applies approved declarations to the cluster?"], ["Argo CD에서 운영자가 수동 변경한 뒤 불일치를 찾으려면?", "How can Argo CD reveal a mismatch after a manual cluster change?"], ["Argo CD의 GitOps 흐름에서 잘못된 선언을 이전 상태로 복구하려면?", "How can an Argo CD GitOps workflow restore a previous declared state?"],
+    ["Argo CD가 클러스터에서 지킬 배포 약속의 기준은?", "What is Argo CD's declared reference for a cluster deployment?"], ["Argo CD에서 승인된 선언을 실제 클러스터에 적용하려면?", "What Argo CD operation applies approved declarations to the cluster?"], ["Argo CD에 이미 OutOfSync가 표시됐다. 구체적인 리소스 차이와 건강 상태를 조사하려면?", "Argo CD already reports OutOfSync. How should resource-level differences and health be investigated?"], ["Argo CD의 GitOps 흐름에서 잘못된 선언을 이전 상태로 복구하려면?", "How can an Argo CD GitOps workflow restore a previous declared state?"],
   ]),
   opentofu: lesson([
     ["구성으로 자원 선언", "Declare resources in configuration"], ["plan으로 변경 검토", "Review changes with plan"], ["apply로 승인한 변경 적용", "Apply approved changes"], ["상태와 실제 자원 관계 관리", "Manage state-to-resource relationships"],
@@ -209,7 +210,7 @@ function question(prompt: LocalizedText, correct: LocalizedText, distractors: re
   return { prompt, choices, answerIndex, explanation };
 }
 export function openSourceQuizSource(stageId: string): readonly QuizQuestion[] {
-  const id = stageId.replace(/^open-source:/, "");
+  const id = openSourceIdentity(stageId)?.toolId ?? "";
   const entry = OPEN_SOURCE_CATALOG.find((candidate) => candidate.id === id);
   const authored = lessons[id];
   if (!entry || !authored) throw new Error(`Missing open-source lesson: ${stageId}`);
@@ -228,5 +229,9 @@ export function openSourceQuizSource(stageId: string): readonly QuizQuestion[] {
       return question(text(ko, en), correct, authored.actions.filter((_, i) => i !== index).map(([a, b]) => text(a, b)), index + 3,
         text(`${correct.ko}. ${entry.role.ko}.`, `${correct.en}. ${entry.role.en}.`));
     }),
+    ...authored.actions.slice(0, 3).map(([ko, en], index) => question(
+      text(`${entry.name}에서 '${ko}' 판단이 필요한 상황은?`, `Which ${entry.name} situation calls for '${en}'?`),
+      text(...authored.situations[index]), authored.situations.filter((_, i) => i !== index).map(([a, b]) => text(a, b)), index + 7,
+      text(`${ko}. ${entry.role.ko}.`, `${en}. ${entry.role.en}.`))),
   ];
 }

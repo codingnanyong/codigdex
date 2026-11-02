@@ -1,6 +1,7 @@
 import type { StoredGameStateV3 } from "@codigdex/game-core/save/schema";
 import { CHAPTERS } from "./chapters";
 import { OPEN_SOURCE_CATALOG } from "./openSourceCatalog";
+import { openSourceIdentity } from "./openSourceEvolutionIds";
 import { SOURCE_CAREERS, MAX_PROCESSED_SOURCE_VICTORIES, emptyEncounterHistory, encounterTools, sourceCareer, type SourceCareerId, type SourceEncounter, type SourceEncounterHistory, type SourceReturnTarget } from "./openSourceEncounters";
 
 export interface EncounterStorage { getItem(key: string): string | null; setItem(key: string, value: string): void }
@@ -13,7 +14,7 @@ const LIMITS = {
   timestamp: 64,
   discoveries: OPEN_SOURCE_CATALOG.length * SOURCE_CAREERS.length,
 };
-const RETURN_SCENES: readonly SourceReturnTarget["scene"][] = ["world-map", "job-select", "career-region", "promotion-chapter"];
+const RETURN_SCENES: readonly SourceReturnTarget["scene"][] = ["world-map", "job-select", "career-region", "promotion-chapter", "secondary-atlas", "secondary-region"];
 const RETURN_DATA_KEYS = new Set(["careerId", "regionId", "jobId", "monsterId", "focusChapterId"]);
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -45,11 +46,13 @@ function parsePending(value: unknown): SourceEncounter | undefined {
   const returnTo = parseReturnTarget(value.returnTo);
   if (!returnTo || !isBoundedString(value.id, LIMITS.stamp)
     || !isBoundedString(value.triggerId, LIMITS.id) || !isBoundedString(value.triggerAt, LIMITS.timestamp)
-    || (value.state !== "offered" && value.state !== "active")) return;
+    || (value.state !== "offered" && value.state !== "active" && value.state !== "paused")) return;
+  if (value.stageId !== undefined && (typeof value.stageId !== "string" || openSourceIdentity(value.stageId)?.toolId !== value.toolId)) return;
   return {
     id: value.id, careerId: value.careerId, toolId: value.toolId,
     triggerId: value.triggerId, triggerAt: value.triggerAt, state: value.state, returnTo,
     ...(isBoundedString(value.victoryId, LIMITS.id) ? { victoryId: value.victoryId } : {}),
+    ...(typeof value.stageId === "string" ? { stageId: value.stageId } : {}),
   };
 }
 

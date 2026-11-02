@@ -1,0 +1,230 @@
+[
+  {
+    "id": "hadoop",
+    "oldKey": "characters/open-source/hadoop-v1.png",
+    "assetKey": "monsters/open-source/hadoop/hadoop/hadoop-lv5-v1.png",
+    "sha256": "2d555ac012644cb92de1397f4b5b33ce4fb71033ad292e45c94b7014d0a0ea50"
+  },
+  {
+    "id": "hdfs",
+    "oldKey": "characters/open-source/hdfs-v1.png",
+    "assetKey": "monsters/open-source/hadoop/hdfs/hdfs-lv5-v1.png",
+    "sha256": "c411757d29f9f9963adca640a94028a7411b282d4bdef5e635d702c0b8585179"
+  },
+  {
+    "id": "yarn",
+    "oldKey": "characters/open-source/yarn-v1.png",
+    "assetKey": "monsters/open-source/hadoop/yarn/yarn-lv5-v1.png",
+    "sha256": "53d0d3e85ee066abc86b76254c90c0afe86bfbc3d638571902af7e68ee24adb6"
+  },
+  {
+    "id": "mapreduce",
+    "oldKey": "characters/open-source/mapreduce-v1.png",
+    "assetKey": "monsters/open-source/hadoop/mapreduce/mapreduce-lv5-v1.png",
+    "sha256": "d23b4503f2ec5020ea105f2697c794cc52da8faec537fb1d2379b4ba2da27764"
+  },
+  {
+    "id": "hive",
+    "oldKey": "characters/open-source/hive-v1.png",
+    "assetKey": "monsters/open-source/hadoop/hive/hive-lv5-v1.png",
+    "sha256": "550c58fc6f7a3e56158dea62389598b989f0bdb99e612621712e84276208ec91"
+  },
+  {
+    "id": "hbase",
+    "oldKey": "characters/open-source/hbase-v1.png",
+    "assetKey": "monsters/open-source/hadoop/hbase/hbase-lv5-v1.png",
+    "sha256": "7a6a3551a79dd202ee1fa97e433fcc08c9b472e133644a9f0c9007a82dbb0d58"
+  },
+  {
+    "id": "zookeeper",
+    "oldKey": "characters/open-source/zookeeper-v1.png",
+    "assetKey": "monsters/open-source/hadoop/zookeeper/zookeeper-lv5-v1.png",
+    "sha256": "e0a507197d2982f897131def82bc1affc1c52b5112e874937ecbc8dd5ab86cee"
+  },
+  {
+    "id": "avro",
+    "oldKey": "characters/open-source/avro-v1.png",
+    "assetKey": "monsters/open-source/hadoop/avro/avro-lv5-v1.png",
+    "sha256": "bf15f327fd4377a907dbf688868cdc1a60438a05eec80a66f5cf3b0a66a8b079"
+  },
+  {
+    "id": "parquet",
+    "oldKey": "characters/open-source/parquet-v1.png",
+    "assetKey": "monsters/open-source/hadoop/parquet/parquet-lv5-v1.png",
+    "sha256": "d513f9336403d3aa4bc1ed83fb5b192c86edcfd4aeefe34498e120d685f8eae9"
+  },
+  {
+    "id": "airflow",
+    "oldKey": "characters/open-source/airflow-v1.png",
+    "assetKey": "monsters/open-source/orchestration/airflow/airflow-lv5-v1.png",
+    "sha256": "6d56abf81895d24ac712b659265db95310dd3596206daf976e7cfaf83158acb2"
+  },
+  {
+    "id": "kafka",
+    "oldKey": "characters/open-source/kafka-v1.png",
+    "assetKey": "monsters/open-source/streaming/kafka/kafka-lv5-v1.png",
+    "sha256": "5a88e70f0aa900d71ecd1b6826cc278cba689914b070552508951f2750da0763"
+  },
+  {
+    "id": "kafka-connect",
+    "oldKey": "characters/open-source/kafka-connect-v1.png",
+    "assetKey": "monsters/open-source/streaming/kafka-connect/kafka-connect-lv5-v1.png",
+    "sha256": "3d903f501cc587213dbcb1d8c4f5109692a4ba9c632f55ec037b4fdd0e40f532"
+  },
+  {
+    "id": "debezium",
+    "oldKey": "characters/open-source/debezium-v1.png",
+    "assetKey": "monsters/open-source/streaming/debezium/debezium-lv5-v1.png",
+    "sha256": "df6c13c03d26b9cadc7ba497aca4ad10769faaf0c139b2896a4eba0b70b46b95"
+  },
+  {
+    "id": "flink",
+    "oldKey": "characters/open-source/flink-v1.png",
+    "assetKey": "monsters/open-source/streaming/flink/flink-lv5-v1.png",
+    "sha256": "5686eec3c35d0bd4e1d478092b8cc6172df96db3193099fc12ddced165577baa"
+  },
+  {
+    "id": "spark",
+    "oldKey": "characters/open-source/spark-v1.png",
+    "assetKey": "monsters/open-source/lakehouse/spark/spark-lv5-v1.png",
+    "sha256": "82f6419827fadac19cbca094e654a8e5d5631de1f4f44ae0d9226107c8fa4fe4"
+  },
+  {
+    "id": "iceberg",
+    "oldKey": "characters/open-source/iceberg-v1.png",
+    "assetKey": "monsters/open-source/lakehouse/iceberg/iceberg-lv5-v1.png",
+    "sha256": "038f8baa7afe0cca5688de9cd0dd6581ef660437262b4ce66c9804061a0874b6"
+  },
+  {
+    "id": "hudi",
+    "oldKey": "characters/open-source/hudi-v1.png",
+    "assetKey": "monsters/open-source/lakehouse/hudi/hudi-lv5-v1.png",
+    "sha256": "2daf7eb1e385f3511e9ba4dad1af20ed8220e813fdffc010216ce0bc554f17f6"
+  },
+  {
+    "id": "delta-lake",
+    "oldKey": "characters/open-source/delta-lake-v1.png",
+    "assetKey": "monsters/open-source/lakehouse/delta-lake/delta-lake-lv5-v1.png",
+    "sha256": "67c8997e874e5451793c821ac414c3860c6b6f4d91c2c69fdf0448926aa82d30"
+  },
+  {
+    "id": "trino",
+    "oldKey": "characters/open-source/trino-v1.png",
+    "assetKey": "monsters/open-source/lakehouse/trino/trino-lv5-v1.png",
+    "sha256": "cb532b15b62dfeb926680a7e94c782d5b24db6637a1365cc108b4843d680da17"
+  },
+  {
+    "id": "duckdb",
+    "oldKey": "characters/open-source/duckdb-v1.png",
+    "assetKey": "monsters/open-source/lakehouse/duckdb/duckdb-lv5-v1.png",
+    "sha256": "a4e50317005a16636981f22c0bc86480ea647ffd6f2ee7c099edbcbd1efad954"
+  },
+  {
+    "id": "dbt-core",
+    "oldKey": "characters/open-source/dbt-core-v1.png",
+    "assetKey": "monsters/open-source/quality/dbt-core/dbt-core-lv5-v1.png",
+    "sha256": "d395fd4f54732e8f02c611f38db098aba6a5d97f65e85b5baa57bc25b30969d8"
+  },
+  {
+    "id": "great-expectations",
+    "oldKey": "characters/open-source/great-expectations-v1.png",
+    "assetKey": "monsters/open-source/quality/great-expectations/great-expectations-lv5-v1.png",
+    "sha256": "574b9990f4713c241ab8befc513077f67d6082cb6d044a1f661b5357f3daec2e"
+  },
+  {
+    "id": "openlineage",
+    "oldKey": "characters/open-source/openlineage-v1.png",
+    "assetKey": "monsters/open-source/quality/openlineage/openlineage-lv5-v1.png",
+    "sha256": "7055f300f73480cbb8c92e469b8aceece077330bf3dd55ddb5d77eb708a8c005"
+  },
+  {
+    "id": "marquez",
+    "oldKey": "characters/open-source/marquez-v1.png",
+    "assetKey": "monsters/open-source/quality/marquez/marquez-lv5-v1.png",
+    "sha256": "7d0d28f48152f82da4d31dda1162a77b4494c197c3d60bb476adfa989927959f"
+  },
+  {
+    "id": "superset",
+    "oldKey": "characters/open-source/superset-v1.png",
+    "assetKey": "monsters/open-source/analytics/superset/superset-lv5-v1.png",
+    "sha256": "a0f81d260c5259408d62a64b739048e96fcb22c38f1d2cbd4a7905ea8a644df2"
+  },
+  {
+    "id": "mlflow",
+    "oldKey": "characters/open-source/mlflow-v1.png",
+    "assetKey": "monsters/open-source/ml/mlflow/mlflow-lv5-v1.png",
+    "sha256": "8932fff639976ec3cf51dcff1a668ba0e16280dd041ae81e9da2c50d7fd3c9e0"
+  },
+  {
+    "id": "dvc",
+    "oldKey": "characters/open-source/dvc-v1.png",
+    "assetKey": "monsters/open-source/ml/dvc/dvc-lv5-v1.png",
+    "sha256": "102fdcdbf1967acc2bc9901f7b846be2ee16abd2481f93c1be6d56dbce0c0543"
+  },
+  {
+    "id": "feast",
+    "oldKey": "characters/open-source/feast-v1.png",
+    "assetKey": "monsters/open-source/ml/feast/feast-lv5-v1.png",
+    "sha256": "dd66081bc647763ff5d4dd21ef7b850571b867038713b76a09c48587e6aa64b9"
+  },
+  {
+    "id": "scikit-learn",
+    "oldKey": "characters/open-source/scikit-learn-v1.png",
+    "assetKey": "monsters/open-source/ml/scikit-learn/scikit-learn-lv5-v1.png",
+    "sha256": "36972cc66ac4c299d0d9bff5bb28146b854dd528a5944493cdd5f255427aa33b"
+  },
+  {
+    "id": "opentelemetry",
+    "oldKey": "characters/open-source/opentelemetry-v1.png",
+    "assetKey": "monsters/open-source/platform/opentelemetry/opentelemetry-lv5-v1.png",
+    "sha256": "1eddc8752cc6b2e1f5db31f266a7a62ea7a877c8b0edbb7c2a46acba6e02c6c9"
+  },
+  {
+    "id": "prometheus",
+    "oldKey": "characters/open-source/prometheus-v1.png",
+    "assetKey": "monsters/open-source/platform/prometheus/prometheus-lv5-v1.png",
+    "sha256": "714b56d6530f9f384aa632f276032afc2b39991e32d8aa576a973f2253ca619c"
+  },
+  {
+    "id": "grafana",
+    "oldKey": "characters/open-source/grafana-v1.png",
+    "assetKey": "monsters/open-source/platform/grafana/grafana-lv5-v1.png",
+    "sha256": "6109dc90175f6f4bf2c407309924201fb9fbdaca6a56e235dec7d92f84403a38"
+  },
+  {
+    "id": "argo-cd",
+    "oldKey": "characters/open-source/argo-cd-v1.png",
+    "assetKey": "monsters/open-source/platform/argo-cd/argo-cd-lv5-v1.png",
+    "sha256": "e11135df8294e64fa4e0432847f24ae8bc24c30379afa00d81b534631e5de6b4"
+  },
+  {
+    "id": "opentofu",
+    "oldKey": "characters/open-source/opentofu-v1.png",
+    "assetKey": "monsters/open-source/platform/opentofu/opentofu-lv5-v1.png",
+    "sha256": "8553cc4b8317d8c63d80516df7b98a49a6eafc917ed9ef544b01961b6451d412"
+  },
+  {
+    "id": "postgresql",
+    "oldKey": "characters/open-source/postgresql-v1.png",
+    "assetKey": "monsters/open-source/application/postgresql/postgresql-lv5-v1.png",
+    "sha256": "ca2e9e1ed9f1789cab68e8ac8f8610b5c2ec4b839ab531002b6ec1c403ac9bfb"
+  },
+  {
+    "id": "tanstack-query",
+    "oldKey": "characters/open-source/tanstack-query-v1.png",
+    "assetKey": "monsters/open-source/application/tanstack-query/tanstack-query-lv5-v1.png",
+    "sha256": "f11dd76b2476e173ea1f47701ba5b4b8fad9b267d2804fd15e77a7b113e88832"
+  },
+  {
+    "id": "zod",
+    "oldKey": "characters/open-source/zod-v1.png",
+    "assetKey": "monsters/open-source/application/zod/zod-lv5-v1.png",
+    "sha256": "eb084c4e9f38993900ed5b88a01b8003288baca62510fc1f7514a0b9ffc94a0f"
+  },
+  {
+    "id": "playwright",
+    "oldKey": "characters/open-source/playwright-v1.png",
+    "assetKey": "monsters/open-source/application/playwright/playwright-lv5-v1.png",
+    "sha256": "06955688913468e9cbc12ef9baa0755e3bb95e885c412f974a2003923fc60150"
+  }
+]

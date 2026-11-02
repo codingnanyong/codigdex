@@ -4,6 +4,7 @@ import { CHAPTERS } from "@codigdex/game-content/domain/chapters";
 import { CAREER_REGION_MONSTERS } from "@codigdex/game-content/domain/careerRegionMonsters";
 import { SourceEventSession } from "@/lib/phaser/openSourceEvents";
 import { confirmCaptureTarget, retryCaptureTarget } from "@/lib/phaser/capture/resultNavigation";
+import { openSourceEvolutionFor } from "@codigdex/game-content/domain/openSourceChapters";
 
 function victory() {
   const beforeCapture = createEmptySave("en");
@@ -36,7 +37,7 @@ describe("capture navigation with the real encounter session", () => {
     expect(JSON.stringify(context.save)).toBe(snapshot);
   });
 
-  it("finishes the accepted request at its stored career target, and retry keeps it active", () => {
+  it("continues all five forms in one accepted request and returns only after completion", () => {
     const context = victory();
     const events = new SourceEventSession();
     confirmCaptureTarget(context, events);
@@ -45,8 +46,13 @@ describe("capture navigation with the real encounter session", () => {
     expect(retryCaptureTarget(pending.id, { scene: "world-map" })).toEqual({ scene: "open-source-event" });
     expect(events.pending(context.save)?.state).toBe("active");
     const completed = structuredClone(context.save);
-    completed.progress.captures.push({ id: "open-source:tanstack-query", capturedAt: "2026-10-28T02:00:00.000Z" });
-    expect(confirmCaptureTarget({ ...context, save: completed, monsterId: "open-source:tanstack-query", sourceEventId: pending.id, fallback: { scene: "world-map" } }, events)).toEqual(context.fallback);
+    const forms = openSourceEvolutionFor("tanstack-query");
+    for (const [index, form] of forms.entries()) {
+      completed.progress.captures.push({ id: form.id, capturedAt: "2026-10-28T02:00:00.000Z" });
+      const target = confirmCaptureTarget({ ...context, save: completed, monsterId: form.id, sourceEventId: pending.id, fallback: { scene: "world-map" } }, events);
+      expect(target).toEqual(index === 4 ? context.fallback : { scene: "code-battle", data: { monsterId: forms[index + 1].id, sourceEventId: pending.id, returnTo: context.fallback } });
+      if (index < 4) expect(events.pending(completed)?.id).toBe(pending.id);
+    }
     expect(events.pending(completed)).toBeUndefined();
     expect(completed.ui.checkpointId).toBe(context.save.ui.checkpointId);
     expect(events.read(completed).processed).toHaveLength(1);

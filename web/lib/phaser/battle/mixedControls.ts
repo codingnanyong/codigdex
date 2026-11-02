@@ -58,6 +58,12 @@ export class MixedControls {
     prompt.className = "battle-prompt";
     prompt.textContent = localize(question.prompt, locale);
     this.root.append(progress, prompt);
+    if (question.required) {
+      const criterion = document.createElement("p");
+      criterion.className = "battle-hint";
+      criterion.textContent = ko ? "필수 설계 판단 · 틀리면 프로젝트를 다시 검증합니다." : "REQUIRED DESIGN CHECK · A wrong answer requires project verification again.";
+      this.root.append(criterion);
+    }
     for (const hint of (question.hints ?? []).slice(0, feedback ? feedback.attempts.at(-1)!.hintsUsed : battle.hintsUsed)) {
       const line = document.createElement("p");
       line.className = "battle-hint";

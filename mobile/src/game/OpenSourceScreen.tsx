@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { openSourceEvolutionFor, openSourceEvolutionCount } from "@codigdex/game-content/domain/openSourceChapters";
 import { Alert, Image, Linking, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { localize, type Locale } from "@codigdex/game-core/i18n/locale";
 import { OPEN_SOURCE_FAMILIES, OPEN_SOURCE_KIND_LABELS, filterOpenSources, findOpenSource, type OpenSourceFamily } from "@codigdex/game-content/domain/openSourceCatalog";
@@ -36,7 +37,8 @@ export function OpenSourceScreen({ locale, save, initialIds, onBack, history = e
     <Text testID="open-source-count" accessibilityLiveRegion="polite" style={styles.count}>{entries.length}/{discovered.size} · {ids ? (ko ? "발견한 관련 도구" : "Discovered related tools") : (ko ? "직무 모험에서 발견한 기록" : "Discoveries from your career adventure")}</Text>
     {!entries.length ? <Text testID="open-source-empty" style={styles.body}>{discovered.size ? (ko ? "조건에 맞는 기록이 없습니다. 검색이나 필터를 바꿔 보세요." : "No matching discoveries. Try changing the search or filters.") : (ko ? "아직 만난 도구가 없습니다. 직무 전투를 완료하면 돌발 의뢰로 도구를 만날 수 있어요." : "No tools discovered yet. Finish career battles to meet tools through surprise requests.")}</Text> : null}
     {entries.map((entry) => {
-      const captured = save.progress.captures.some(({ id }) => id === "open-source:" + entry.id);
+      const evolutionCount = openSourceEvolutionCount(save, entry.id);
+      const captured = evolutionCount > 0;
       const roles = [...new Set(history.discoveries.filter(({ toolId }) => toolId === entry.id).map(({ careerId }) => careerId))];
       return <View testID={`open-source-${entry.id}`} key={entry.id} style={styles.card}>
       <Text style={styles.muted}>{localize(OPEN_SOURCE_FAMILIES[entry.family], locale)} · {localize(OPEN_SOURCE_KIND_LABELS[entry.kind], locale)}</Text>
@@ -47,6 +49,11 @@ export function OpenSourceScreen({ locale, save, initialIds, onBack, history = e
       <Text style={styles.learning}>{localize(entry.learning, locale)}</Text>
       <Text style={styles.title}>{localize(entry.character.name, locale)}</Text>
       <Text style={styles.body}>{localize(entry.character.motif, locale)}</Text>
+      <Text style={styles.body}>{ko ? "진화 도감" : "EVOLUTION DEX"} · {evolutionCount}/5</Text>
+      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>{openSourceEvolutionFor(entry.id).map((stage) => <View key={stage.id}>
+        <Image accessibilityLabel={localize(stage.name, locale)} source={mobileAssetSource(stage.assetKey)} style={{ width: 56, height: 56 }} resizeMode="contain" />
+        <Text style={styles.muted}>No.{stage.dexNumber}{"\n"}Lv.{stage.level}{save.progress.captures.some(({ id }) => id === stage.id) ? " ✓" : ""}</Text>
+      </View>)}</View>
       {roles.map((id) => <Text key={id} style={styles.body}>{localize(sourceCareerName(id), locale)} · {localize(sourceCareer(id)!.workplace, locale)}</Text>)}
       <Text style={styles.muted}>{captured ? (ko ? "✓ 도감 등록 완료" : "✓ REGISTERED IN DEX") : (ko ? "발견 기록 · 직무 모험 중 다시 만날 수 있어요." : "Discovered · You can meet this tool again during your career adventure.")}</Text>
       <PixelButton compact accessibilityLabel={`${entry.name} · ${ko ? "공식 프로젝트 자료" : "Official project documentation"}`} variant="quiet" onPress={() => { void Linking.openURL(entry.officialUrl).catch(() => Alert.alert(ko ? "자료를 열지 못했습니다." : "Could not open documentation.")); }}>{ko ? "공식 프로젝트 자료 ↗" : "OFFICIAL DOCUMENTATION ↗"}</PixelButton>

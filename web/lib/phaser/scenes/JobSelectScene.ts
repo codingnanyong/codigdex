@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { canStudyPrimaryCareer, selectGameCareer } from "@codigdex/game-content/domain/gameProgress";
+import { canStudyPrimaryCareer, selectGameCareer, canStartMasterProject } from "@codigdex/game-content/domain/gameProgress";
 import { isCommonPathComplete } from "@codigdex/game-content/domain/chapters";
 import {
   masteredPrimaryJobIds,
@@ -33,7 +33,6 @@ import { createHomeButton } from "../navigation";
 import { PALETTE, PALETTE_HEX } from "../palette";
 import { pixelText } from "../pixelFont";
 import {
-  activateCareerInRegistry,
   applySaveToRegistry,
   snapshotRegistry,
   readDexState,
@@ -175,14 +174,8 @@ export class JobSelectScene extends Phaser.Scene {
       return;
     }
 
-    activateCareerInRegistry(this.registry, job.id);
-    this.registry.set(TERTIARY_JOB_REGISTRY_KEY, job.id);
-    const requiredSecondary = findSecondaryJob(job.requires);
-    const selectedPrimary =
-      this.selectedJobId !== "junior" && requiredSecondary?.requires.includes(this.selectedJobId)
-        ? this.selectedJobId
-        : requiredSecondary?.requires[0];
-    this.scene.start("path-map", { careerId: selectedPrimary });
+    const save = snapshotRegistry(this.registry);
+    this.scene.start("promotion-chapter", { jobId: canStartMasterProject(save, job.id) ? job.id : job.requires });
   }
 
   private selectPrimaryJob(job: PrimaryJobOption) {
