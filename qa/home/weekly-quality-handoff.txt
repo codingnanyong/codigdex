@@ -1,0 +1,31 @@
+# Handoff: weekly quality followups, 2026-11-02 KST
+
+- Owner: Codex for quiz/code/QA/operational changes; Claude for the separate COD-411 documentation task.
+- Reviewer: Claude CLI read-only code review, with blocking rollover concern fixed and final review reporting No blocking findings. Codex reviewed the seven Claude-authored documentation files and requested corrections to primary question counts and release status.
+- Scope: COD-249 tooling/smoke and sprint-status reconciliation; COD-250 first scenario-improvement batch; COD-251 targeted fact review; COD-411 bilingual documentation refresh. BGM, account/DB/cloud integration, native release and tier-three gameplay are excluded. COD-224 received a foundation review only and remains Backlog.
+- Changed files:
+  - .github/scripts/sync_linear_notion_sprint.mjs and .test.mjs: reconcile current live metrics and previous sprint status. Preserve an ended sprint's last Notion percentage because Linear rolls unfinished issues out; skip missing snapshots. Date boundaries are start-inclusive/end-exclusive.
+  - .github/workflows/ci.yml, .github/workflows/web-smoke.yml, package.json, web/playwright.config.ts: use Node 22 from .nvmrc/npm 10.9.2; forward build/e2e flags; add external-URL smoke with HTTPS/team-host validation and access diagnostics. Automatic smoke targets Production; public previews can be tested manually. One browser worker matches verified WebGL execution.
+  - web/e2e/game.smoke.spec.ts: verify HTTP 200, actual image assets, app readiness and browser errors with remote-appropriate waits.
+  - web/test-support/game.ts, web/e2e/game.promotion.spec.ts, game.mixed.spec.ts, game.open-source.spec.ts: wait for render frames before pointer/intro input and share the intro continuation helper.
+  - packages/quiz-content/src/sources/career/testing.ts: improve 20 bilingual prompts while keeping stage/question IDs and pool sizes; remove a second valid answer about 100% coverage.
+  - packages/quiz-content/src/sources/platform.ts: use fieldMission for all 100 platform questions to vary correct-answer positions. Correct answers and prompts stay equivalent; distractor subsets also change.
+  - web/test/domain/quizContent.test.ts, qa/home/quiz-quality-audit.json: primary-pool inventory and release-answer regression; record the exact 44-question manual fact-review scope and official references.
+  - qa/home/maestro/flows/cod-238-encounter-platform-engineer.yaml and cod-238-promotion-platform-engineer.yaml: regenerate content-derived answer taps.
+  - README.md, README.en.md, mobile/README.md, docs/eng/CAREER_PATH_DESIGN.md, docs/kor/CAREER_PATH_DESIGN.md, docs/eng/MONOREPO_ARCHITECTURE.md, docs/kor/MONOREPO_ARCHITECTURE.md: Claude-authored updates to current content, requests/notes, saves, simulator QA and deferred work.
+  - qa/home/career-progression-handoff.txt: replace stale review/rerun/deployment-pending statements with completed PR #141/#142 results.
+- Generated assets: No new art or audio. Two generated Maestro files changed. JS/Hermes bundles, temporary Node/npm tools, browser artifacts and detailed logs remain ignored.
+- Checks run:
+  - Web 627/627; Mobile 139/139 after regenerating the two stale native flows. The original 137/139 failure log remains under qa-results/weekly-all-tests.log.
+  - Sprint sync 11/11, including rollover preserving 50%, missing snapshot, duplicate mapping, incomplete pagination and real-newline GitHub outputs.
+  - Generated QA 30 files and 11/11 runner tests; check:agents; workspace type/package boundaries; lint; production Web build; Android/iOS JS/Hermes bundle and asset budgets passed.
+  - Production-build Chromium 40/40 with one worker and retries off after adding input frame waits. Earlier 35/40 and 37/40 runs are retained as failures; focused 3-case retest also passed. Final shared-helper/default-worker run passed 40/40 in 4.6 minutes (qa-results/weekly-browser-serial-final.log). Explicit web tsc --noEmit also passed after those helper imports.
+  - Workflow YAML parsed successfully; git diff --check passed. No native simulator or physical-device rerun is claimed for this batch.
+- Separate approved production release:
+  - PR #141 merged to develop cea77f2; PR #142 merged to main eeddbd03ecc3757359c3a2073c9758c98264df6d. CI #125, Claude/Codex reviews and the main SHA's Vercel status succeeded.
+  - Actual https://codigdex.vercel.app verification passed 12/12: startup/assets, save/language restoration and ten progression regressions across five secondary careers. Command context used PLAYWRIGHT_BASE_URL=https://codigdex.vercel.app. Evidence qa-results/weekly-production.log and weekly-production-context.json (home 200, /qa 404, no QA link). These new quality changes are separate from that release.
+- Remaining risks or review items:
+  - Current protected Vercel Preview redirects to vercel.com authentication. No protection settings or secrets were changed; fully automatic protected-preview testing awaits an approved access method. First remote CI/deployment event execution remains to be checked.
+  - Manual fact review covers 44 questions only (20 primary testing, 20 platform release, four YARN situations). Other tier-two/open-source semantics and new distractor pairings require further review; structural validation is not exhaustive semantic verification.
+  - A duplicate previous-sprint Notion mapping intentionally fails the sync instead of selecting a row arbitrarily. Ended-sprint metrics are preserved, not reconstructed from historical Linear snapshots.
+  - Final remote CI/review, publication and any merge of this new branch must be recorded on its PR. Prior approval explicitly covered PR #141/#142 and that Web release.

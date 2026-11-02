@@ -1,0 +1,42 @@
+name: Web deployment smoke
+
+on:
+  deployment_status:
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: Web URL to verify
+        required: true
+        default: https://codigdex.vercel.app
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    if: github.event_name == 'workflow_dispatch' || (github.event.deployment_status.state == 'success' && contains(fromJSON('["production", "Production"]'), github.event.deployment.environment))
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      PLAYWRIGHT_BASE_URL: ${{ inputs.base_url || github.event.deployment_status.environment_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - name: Check deployment URL
+        run: node -e "const u = new URL(process.env.PLAYWRIGHT_BASE_URL); const allowed = u.hostname === 'codigdex.vercel.app' || /^codigdex-[a-z0-9-]+-codingnanyongs-projects[.]vercel[.]app$/.test(u.hostname); if (u.protocol !== 'https:' || !allowed || u.username || u.password || u.port) throw new Error('Use the Codigdex production URL or a Codigdex team preview URL'); console.log('Verifying', u.origin)"
+      - name: Check deployment access
+        run: node --input-type=module -e "const u = new URL(process.env.PLAYWRIGHT_BASE_URL); const r = await fetch(u); if (new URL(r.url).origin !== u.origin || [401,403].includes(r.status)) throw new Error('Deployment protection blocks this URL. Use an accessible preview; no authentication bypass is configured.'); if (r.status !== 200) throw new Error('Deployment home returned HTTP ' + r.status)"
+      - run: npm install --global npm@10.9.2
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run smoke:web
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: web-smoke-failure
+          path: web/test-results/
+          if-no-files-found: ignore
