@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "../test-support/previewFixture";
 
 test("boots the game shell and Phaser canvas", async ({ page }) => {
   const pageErrors: Error[] = [];

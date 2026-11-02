@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import type Phaser from "phaser";
 import { localize, type Locale } from "@codigdex/game-core/i18n/locale";
+import { openSourceEvolutionFor, openSourceEvolutionCount } from "@codigdex/game-content/domain/openSourceChapters";
 import { OPEN_SOURCE_FAMILIES, OPEN_SOURCE_KIND_LABELS, filterOpenSources, findOpenSource, type OpenSourceFamily } from "@codigdex/game-content/domain/openSourceCatalog";
 import { JOB_OPTIONS } from "@codigdex/game-content/domain/player/jobs";
 import { SOURCE_CAREERS, activeSourceCareer, encounterTools, sourceCareer, sourceCareerName, type SourceCareerId } from "@codigdex/game-content/domain/openSourceEncounters";
@@ -82,12 +83,17 @@ export function OpenSourcePanel({ game, locale }: { game: Phaser.Game; locale: L
       <div className="source-results">
         {!entries.length ? <p>{discovered.size ? (ko ? "조건에 맞는 기록이 없습니다. 검색이나 필터를 바꿔 보세요." : "No matching discoveries. Try changing the search or filters.") : (ko ? "아직 만난 도구가 없습니다. 직무를 선택하고 전투를 완료하면 돌발 의뢰로 오픈소스를 만날 수 있어요." : "No tools discovered yet. Choose a career and finish battles to meet open source through surprise requests.")}</p> : null}
         <div className="source-grid">{entries.map((entry) => {
-          const captured = save.progress.captures.some(({ id }) => id === `open-source:${entry.id}`);
+          const evolutionCount = openSourceEvolutionCount(save, entry.id);
+          const captured = evolutionCount > 0;
           const roles = [...new Set(history.discoveries.filter(({ toolId }) => toolId === entry.id).map(({ careerId }) => careerId))];
           return <article className="source-card" key={entry.id} data-project={entry.id}>
           <p className="source-kicker">{localize(OPEN_SOURCE_FAMILIES[entry.family], locale)} · {localize(OPEN_SOURCE_KIND_LABELS[entry.kind], locale)}</p>
           {entry.character.assetKey ? <Image className="source-character" src={assetUrl(entry.character.assetKey)} alt={localize(entry.character.name, locale)} width={256} height={256} unoptimized /> : null}
           <h3>{entry.name}</h3>
+          <details className="source-story"><summary>{ko ? "진화 도감" : "EVOLUTION DEX"} · {evolutionCount}/5</summary><div className="source-evolutions">{openSourceEvolutionFor(entry.id).map((stage) => <figure key={stage.id}>
+            <Image src={assetUrl(stage.assetKey)} alt={localize(stage.name, locale)} width={64} height={64} unoptimized />
+            <figcaption>No.{stage.dexNumber}<br />Lv.{stage.level}{save.progress.captures.some(({ id }) => id === stage.id) ? " ✓" : ""}</figcaption>
+          </figure>)}</div></details>
           {entry.parentId ? <p className="source-parent">{ko ? "구성요소:" : "Component of:"} {findOpenSource(entry.parentId)!.name}</p> : null}
           <p>{localize(entry.role, locale)}</p>
           <p className="source-learning">{localize(entry.learning, locale)}</p>

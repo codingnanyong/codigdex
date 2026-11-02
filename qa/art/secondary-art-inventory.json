@@ -1,0 +1,45 @@
+{
+  "generationTool": "image_gen",
+  "runtimeSpritePreparation": "64x64 logical grid, nearest 4x, <=16 colors, binary alpha; preserve original OSS Lv5 bytes",
+  "tertiarySourceVersion": "v3; detailed v2 rejected and excluded",
+  "secondaryEarlyForms": 100,
+  "openSourceEarlyForms": 152,
+  "tertiaryGuardians": 25,
+  "scenes": [
+    {
+      "career": "platform-engineer",
+      "sourceAssetKey": "wallpapers/secondary-careers/source/platform-engineer-atlas-source-v1.png",
+      "atlasAssetKey": "wallpapers/secondary-careers/platform-engineer/atlas-v1.png",
+      "terrainCount": 5,
+      "regionalWallpaperCount": 5
+    },
+    {
+      "career": "fullstack-engineer",
+      "sourceAssetKey": "wallpapers/secondary-careers/source/fullstack-engineer-atlas-source-v1.png",
+      "atlasAssetKey": "wallpapers/secondary-careers/fullstack-engineer/atlas-v1.png",
+      "terrainCount": 5,
+      "regionalWallpaperCount": 5
+    },
+    {
+      "career": "ml-developer",
+      "sourceAssetKey": "wallpapers/secondary-careers/source/ml-developer-atlas-source-v1.png",
+      "atlasAssetKey": "wallpapers/secondary-careers/ml-developer/atlas-v1.png",
+      "terrainCount": 5,
+      "regionalWallpaperCount": 5
+    },
+    {
+      "career": "mlops-engineer",
+      "sourceAssetKey": "wallpapers/secondary-careers/source/mlops-engineer-atlas-source-v1.png",
+      "atlasAssetKey": "wallpapers/secondary-careers/mlops-engineer/atlas-v1.png",
+      "terrainCount": 5,
+      "regionalWallpaperCount": 5
+    },
+    {
+      "career": "analytics-engineer",
+      "sourceAssetKey": "wallpapers/secondary-careers/source/analytics-engineer-atlas-source-v1.png",
+      "atlasAssetKey": "wallpapers/secondary-careers/analytics-engineer/atlas-v1.png",
+      "terrainCount": 5,
+      "regionalWallpaperCount": 5
+    }
+  ]
+}

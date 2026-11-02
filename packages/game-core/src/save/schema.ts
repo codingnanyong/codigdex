@@ -12,6 +12,11 @@ export interface StoredCareerMilestone {
   masteredAt?: string;
 }
 
+export interface StoredProjectCompletion {
+  id: string;
+  completedAt: string;
+}
+
 interface StoredGameStateV1 {
   version: 1;
   captures: StoredCapture[];
@@ -24,6 +29,8 @@ export interface StoredGameStateV3 {
   progress: {
     captures: StoredCapture[];
     careers: StoredCareerMilestone[];
+    /** Optional on older v3 saves. Completed workshop/project decisions. */
+    projects?: StoredProjectCompletion[];
   };
   player: {
     primaryJobId: string;
@@ -42,6 +49,7 @@ export interface StoredGameStateV3 {
 export interface SaveSnapshot {
   captures: StoredCapture[];
   careers: StoredCareerMilestone[];
+  projects?: StoredProjectCompletion[];
   primaryJobId: string;
   secondaryJobId: string | null;
   tertiaryJobId: string | null;
@@ -65,7 +73,8 @@ export function createEmptySave(locale?: Locale): StoredGameStateV3 {
 export function createSave(snapshot: SaveSnapshot): StoredGameStateV3 {
   return {
     version: 3,
-    progress: { captures: snapshot.captures, careers: snapshot.careers },
+    progress: { captures: snapshot.captures, careers: snapshot.careers,
+      ...(snapshot.projects?.length ? { projects: snapshot.projects } : {}) },
     player: {
       primaryJobId: snapshot.primaryJobId,
       secondaryJobId: snapshot.secondaryJobId,
@@ -99,6 +108,10 @@ export function parseSave(raw: string): StoredGameStateV3 | undefined {
   return createSave({
     captures: validCaptures(value.progress.captures),
     careers: validCareers(value.progress.careers),
+    projects: Array.isArray(value.progress.projects) ? value.progress.projects.filter(
+      (entry): entry is StoredProjectCompletion => isRecord(entry) && typeof entry.id === "string" &&
+        typeof entry.completedAt === "string" && Number.isFinite(Date.parse(entry.completedAt))
+    ) : [],
     primaryJobId: typeof value.player.primaryJobId === "string" ? value.player.primaryJobId : "junior",
     secondaryJobId: typeof value.player.secondaryJobId === "string" ? value.player.secondaryJobId : null,
     tertiaryJobId: typeof value.player.tertiaryJobId === "string" ? value.player.tertiaryJobId : null,

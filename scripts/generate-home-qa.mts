@@ -13,8 +13,10 @@ import { createQaRandom, HOME_QA_SEED } from "@codigdex/game-core/domain/dex/qaR
 import { careerQAPresets } from "@codigdex/game-content/domain/careerQAPresets";
 import { resumeCheckpoint } from "@codigdex/game-content/domain/gameProgress";
 import { SOURCE_CAREERS } from "@codigdex/game-content/domain/openSourceEncounters";
-import { openSourceStageFor } from "@codigdex/game-content/domain/openSourceChapters";
+import { openSourceStageFor, openSourceEvolutionFor } from "@codigdex/game-content/domain/openSourceChapters";
 import { PROMOTION_CHAPTERS } from "@codigdex/game-content/domain/promotionChapters";
+import { MASTER_CHAPTERS } from "@codigdex/game-content/domain/masterChapters";
+import { secondaryRegionsFor } from "@codigdex/game-content/domain/secondaryExploration";
 import { findOpenSource } from "@codigdex/game-content/domain/openSourceCatalog";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -161,41 +163,67 @@ for (const [index, career] of SOURCE_CAREERS.entries()) {
   const preset = presets.find(({ id }) => id === `encounter:${career.id}`)!;
   const first = resumeCheckpoint(preset.save).monster;
   const checkpoint = `${preset.save.player.secondaryJobId ? "promotion" : "career"}-checkpoint-${first.id}`;
-  const tool = openSourceStageFor(career.firstTool)!;
-  yaml(`flows/cod-238-encounter-${career.id}`, `COD-238 ${career.id} request, native persistence, capture and notes`, ["cod-238", "encounters"], [
-    ...start, ...tap(`qa-start-${preset.id}`), ...tap("home-play"), ...tap(checkpoint),
-    ...battleSteps(true, false, await questionsFor(first)),
-    // A first offer must already be durable before confirming the victory.
-    ...(index === 0 ? restart : tap("result-world")),
+  const commands: Command[] = [
+    ...start, ...tap(`qa-start-${preset.id}`), ...tap("home-play"), ...tap(checkpoint), ...(preset.save.player.secondaryJobId ? tap("workshop-start-battle") : []),
+    ...battleSteps(true, false, await questionsFor(first)), ...(index === 0 ? restart : tap("result-world")),
     visible("source-event-tool", findOpenSource(career.firstTool)!.name),
     ...(index === 1 ? [...restart, visible("source-event-title")] : []),
     ...tap("source-event-accept"), visible("battle-prompt"),
     ...(index === 2 ? [...restart, ...tap("source-event-accept"), visible("battle-prompt")] : []),
-    ...battleSteps(true, false, await questionsFor(tool)),
-    ...(index === 3 ? [...restart, ...tap("source-event-accept")] : tap("result-world")),
-    visible("career-title"), ...tap("career-menu", "UP"), ...tap("home-qa"),
-    visible("qa-captures", String(preset.save.progress.captures.length + 2)), saved(),
+  ];
+  for (const [phase, form] of openSourceEvolutionFor(career.firstTool).entries()) {
+    commands.push(...battleSteps(true, false, await questionsFor(form)));
+    if (index === 3 && phase === 0) commands.push(...restart, ...tap("source-event-accept"));
+    else if (index === 4 && phase === 1) commands.push(...tap("result-world"), visible("career-title"), ...tap("career-menu", "UP"), ...restart, ...tap("source-event-accept"));
+    else commands.push(...tap("result-continue"));
+  }
+  commands.push(visible("career-title"), ...tap("career-menu", "UP"), ...tap("home-qa"),
+    visible("qa-captures", String(preset.save.progress.captures.length + 6)), saved(),
     ...tap("qa-menu", "UP"), ...tap("home-open-source"),
-    scroll("open-source-count"), visible("open-source-count", "1/1 · Discoveries from your career adventure"),
+    scroll("open-source-count"), visible("open-source-count", "1/1 \u00b7 Discoveries from your career adventure"),
     scroll(`open-source-${career.firstTool}`), visible(`open-source-${career.firstTool}`),
-    { takeScreenshot: `cod-238-encounter-${career.id}` },
-  ]);
+    { takeScreenshot: `cod-238-encounter-${career.id}` });
+  yaml(`flows/cod-238-encounter-${career.id}`, `COD-238 ${career.id} five-stage request, pause, persistence and notes`, ["cod-238", "encounters"], commands);
 }
 for (const chapter of PROMOTION_CHAPTERS) {
   const preset = presets.find(({ id }) => id === chapter.id)!;
   const commands: Command[] = [...start, ...tap(`qa-start-${preset.id}`), ...tap("home-play")];
   for (const monster of chapter.stages) {
-    commands.push(...tap(`promotion-checkpoint-${monster.id}`), ...battleSteps(true, false, await questionsFor(monster)), ...tap("result-world"),
+    commands.push(...tap(`promotion-checkpoint-${monster.id}`), ...tap("workshop-start-battle"), ...battleSteps(true, false, await questionsFor(monster)), ...tap("result-continue"),
       { runFlow: { when: { visible: id("source-event-title") }, commands: tap("source-event-later") } }, visible("career-title"));
   }
-  commands.push(scroll("promotion-story"), { assertVisible: "★ PATH MASTER · Tier-three chapter coming later." }, ...tap("career-menu", "UP"),
-    ...restart, scroll("promotion-story"), { assertVisible: "★ PATH MASTER · Tier-three chapter coming later." }, { takeScreenshot: `cod-238-${chapter.id.replace(":", "-")}-master` });
+  commands.push(visible("secondary-master"), ...tap("career-menu", "UP"),
+    ...restart, visible("secondary-master"), { takeScreenshot: `cod-238-${chapter.id.replace(":", "-")}-master` });
   yaml(`flows/cod-238-${chapter.id.replace(":", "-")}`, `COD-238 ${chapter.id} five missions, MASTER and restart`, ["cod-238", "promotions"], commands);
+}
+for (const chapter of MASTER_CHAPTERS) {
+  const jobId = chapter.id.slice("mastery:".length);
+  const commands: Command[] = [...start, ...tap(`qa-start-master-project:${jobId}`), ...tap("home-play")];
+  for (const monster of chapter.stages) {
+    commands.push(...tap(`master-checkpoint-${monster.id}`), ...tap("workshop-start-battle"),
+      ...battleSteps(true, false, await questionsFor(monster)), ...tap("result-world"), visible("career-title"));
+  }
+  commands.push(...tap("master-confirm"), visible("master-active"), ...tap("career-menu", "UP"), ...restart, visible("master-active"),
+    { takeScreenshot: `cod-238-master-${jobId}` });
+  yaml(`flows/cod-238-master-${jobId}`, `COD-238 ${jobId} final project, tier-three confirmation and restart`, ["cod-238", "master-projects"], commands);
+}
+{
+  const preset = presets.find(({ id }) => id === "workshop:platform-engineer")!;
+  const region = secondaryRegionsFor("platform-engineer")[0];
+  const commands: Command[] = [...start, ...tap(`qa-start-${preset.id}`), ...tap("home-play")];
+  for (const [phase, monster] of region.chapter.stages.entries()) {
+    commands.push(...tap(`promotion-checkpoint-${monster.id}`), ...tap("workshop-start-battle"),
+      ...battleSteps(true, false, await questionsFor(monster)), ...tap("result-continue"),
+      { runFlow: { when: { visible: id("source-event-title") }, commands: tap("source-event-later") } }, visible("career-title"));
+    if (phase === 1) commands.push(...restart);
+  }
+  commands.push({ takeScreenshot: "cod-238-workshop-complete" });
+  yaml("flows/cod-238-workshop-platform", "COD-238 one species, five evolution battles, practice settlement and restart", ["cod-238", "workshops"], commands);
 }
 const recoveryPreset = presets.find(({ id }) => id === "encounter:frontend")!;
 const recoveryMonster = resumeCheckpoint(recoveryPreset.save).monster;
 const recoveryBattle = await questionsFor(recoveryMonster);
-const recoveryTool = openSourceStageFor(SOURCE_CAREERS.find(({ id }) => id === "frontend")!.firstTool)!;
+const recoveryTool = openSourceStageFor(SOURCE_CAREERS.find(({ id }) => id === "frontend")!.firstTool, 1)!;
 const beginRequest: Command[] = [...start, ...tap(`qa-start-${recoveryPreset.id}`), ...tap("home-play"), ...tap(`career-checkpoint-${recoveryMonster.id}`)];
 yaml("flows/cod-238-encounter-save-recovery", "COD-238 request-history save failure, retry, restart and decline", ["cod-238", "encounters"], [
   ...start, ...tap(`qa-start-${recoveryPreset.id}`), ...tap("home-qa"), ...tap("qa-fail-source-save"), ...tap("qa-menu", "UP"), ...tap("home-play"),
@@ -210,7 +238,8 @@ yaml("flows/cod-238-encounter-battle-retry", "COD-238 failed request battle, ret
   ...beginRequest, ...battleSteps(true, false, recoveryBattle), ...tap("result-world"), ...tap("source-event-accept"),
   ...battleSteps(false, false, await questionsFor(recoveryTool)), ...tap("result-retry"), visible("source-event-title"),
   ...tap("source-event-accept"), ...battleSteps(true, false, await questionsFor(recoveryTool)), ...tap("result-continue"),
-  visible("career-title"), ...tap("career-menu", "UP"), ...tap("home-qa"), visible("qa-captures", String(recoveryPreset.save.progress.captures.length + 2)), saved(),
+  ...(await Promise.all(openSourceEvolutionFor("tanstack-query").slice(1).map(async (form) => [...battleSteps(true, false, await questionsFor(form)), ...tap("result-continue")]))).flat(),
+  visible("career-title"), ...tap("career-menu", "UP"), ...tap("home-qa"), visible("qa-captures", String(recoveryPreset.save.progress.captures.length + 6)), saved(),
   { takeScreenshot: "cod-238-request-battle-retried" },
 ]);
 

@@ -24,7 +24,7 @@ export function resolveCaptureSuccessFlow(
     target: careerCleared
       ? { scene: "job-select" }
       : regionCleared
-        ? fallback.scene === "promotion-chapter" ? fallback : { scene: "world-map" }
+        ? ["promotion-chapter", "secondary-atlas", "secondary-region"].includes(fallback.scene) ? fallback : { scene: "world-map" }
         : fallback,
   };
 }

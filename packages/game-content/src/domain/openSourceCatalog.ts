@@ -1,5 +1,6 @@
 import { text, type LocalizedText } from "@codigdex/game-core/i18n/locale";
 import type { JobId } from "./player/jobs";
+import { openSourceArtKey } from "./openSourceEvolutionIds";
 
 export const OPEN_SOURCE_FAMILIES = {
   hadoop: text("하둡 생태계", "Hadoop ecosystem"),
@@ -35,7 +36,7 @@ function entry(id: string, name: string, family: OpenSourceFamily, priority: 1 |
   character: Pair, motif: Pair, paths: readonly JobId[], regions: readonly string[], officialUrl: string,
   kind: OpenSourceKind = "project", parentId?: string): OpenSourceEntry {
   return { id, name, family, priority, role: text(...role), learning: text(...learning),
-    character: { name: text(...character), motif: text(...motif), artStatus: "ready", assetKey: `characters/open-source/${id}-v1.png` }, paths, regions, officialUrl, kind, ...(parentId ? { parentId } : {}) };
+    character: { name: text(...character), motif: text(...motif), artStatus: "ready", assetKey: openSourceArtKey(family, id, 5) }, paths, regions, officialUrl, kind, ...(parentId ? { parentId } : {}) };
 }
 
 /** Tool identities and portraits shared by learning notes and optional capturable expeditions.

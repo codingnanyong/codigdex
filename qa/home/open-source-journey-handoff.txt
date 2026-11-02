@@ -1,0 +1,35 @@
+Handoff: continuous open-source requests, 2026-11-02 KST
+
+- Owner: Codex.
+- Reviewer: Independent read-only Codex reviewer /root/review_oss_journey using skills/shared-change-review/SKILL.md. Claude executable was unavailable. Final review: No blocking findings.
+- Scope:
+  - Resumed the uncommitted work after f3c391c on feat/career-project-workshops. Career workshops/final projects and secondary atlases/evolution archives were already committed in ea4a2a9 and f3c391c.
+  - Verified the existing five-form open-source request implementation, pause/resume, interrupted-write recovery, ecosystem arenas and matching Web/Mobile flow coverage.
+  - Found and fixed terminal data loss: if the last capture save failed, finishing or leaving could erase the durable request. Both platforms now persist progress successfully before changing durable request history. A failed write leaves the old request available after restart.
+- Changed files:
+  - Existing shared changes: packages/game-content/src/domain/openSourceChapters.ts, openSourceEncounterSession.ts, openSourceEncounterStorage.ts and openSourceEncounters.ts. Same request spans five forms; active/paused stages stay pinned; separate history/capture writes recover to a playable form; legacy final cards remain collected.
+  - Existing Web changes: web/lib/phaser/scenes/OpenSourceEventScene.ts and CaptureQuizScene.ts; capture/resultNavigation.ts and resultPanels.ts. Arena, evolution strip, next-form confirmation, pause and original-career return.
+  - Existing native changes: mobile/src/game/NativeGame.tsx, BattleView.tsx, OpenSourceEventScreen.tsx and ResultScreen.tsx; mobile/src/storage/sourceEventStore.ts. Matching request/battle/result backgrounds, five-form progress and pause/resume.
+  - New recovery fix in this resumed session: mobile/src/state/SaveProvider.tsx and storage/sourceEventStore.ts bind each history write to its matching progress-write promise. Failure preserves durable history, flags retryable storage error and leaves the FIFO queue usable.
+  - New Web recovery fix: web/lib/phaser/registryAdapter.ts returns persistence success; openSourceEvents.ts flushes current progress before each durable history mutation. Failed progress writes preserve the old request, while in-memory play remains usable.
+  - Regression coverage: mobile/src/qa/flows.test.tsx, storage/sourceEventStore.test.ts; web/test/phaser/openSourceEvents.test.ts and registryAdapter.test.ts. Last-form capture save failures cover both finish and return exits; delayed/rejected progress writes cover the storage barrier. Four terminal regressions failed before their platform fixes and passed afterward.
+  - Existing coverage updates: web/test/domain/openSourceJourney.test.ts; test/phaser/captureResultNavigation.test.ts; e2e/game.expedition.spec.ts; mobile/src/qa/readiness.test.ts; scripts/generate-home-qa.mts and eleven generated cod-238 Maestro flows.
+  - Existing asset integration: packages/game-assets/src/openSourceArt.ts, package.json, manifest.generated.ts; mobile/scripts/generate-asset-map.mjs, check-bundle.mjs and src/assets.generated.ts; scripts/prepare-open-source-arenas.mts and qa/art/open-source-arena-generation.json.
+  - This report: qa/home/open-source-journey-handoff.txt. No README, docs, AGENTS or other agent-owned prose was rewritten.
+- Generated assets:
+  - Retained the pre-existing uncommitted nine-panel source sheet at packages/game-assets/files/wallpapers/open-source/source/open-source-arenas-sheet-v1.png, nine 320x180 family arena PNGs under wallpapers/open-source/, and nine 640x360 native derivatives under wallpapers/mobile/.
+  - Families: hadoop, orchestration, streaming, lakehouse, quality, analytics, ml, platform and application. No new art or audio was generated during this resumed session.
+  - Native map: 583 imports. Source images 12,208,579 / 14,680,064 bytes; with font 17,832,651 / 20,971,520 bytes.
+  - Web public mirror was synchronized only through the normal build. Build logs/screenshots remain ignored under qa-results/ and mobile/.tmp-qa/.
+- Checks run:
+  - Web unit/domain/adapter: 731/731 passed; Mobile host/component/storage: 149/149 passed after fixes.
+  - Before final persistence fixes, all 16 request browser scenarios passed against development server, including ten careers, pause/resume, failure/retry, reload and legacy bookmarks.
+  - Final production-build browser run: all 16/16 request scenarios passed in one clean run against the local production server, retries off (3.4 minutes).
+  - Root check:agents; workspace typecheck/package boundaries; explicit Web TypeScript; Web lint; QA generation consistency (36 files) and runner tests (11/11); git diff --check passed.
+  - Web production build passed. Final Android and iOS JS/Hermes exports plus native config and image/font budget checks passed. These are exports, not native compilation or device acceptance.
+  - Independent read-only reviewer checked state transitions, terminal write ordering, retries, Web event-listener reentrancy and operational asset configuration. No blocking findings remain.
+  - Local checks used the installed Node v24.20.0; package engines still target Node 22.x. Remote CI was not run.
+- Remaining risks or review items:
+  - All changes remain local and uncommitted. No push, PR, merge, publication or deployment was performed.
+  - New simulator/physical-device acceptance, authenticated Preview verification, native compilation/store release and Node-22 CI remain unperformed.
+  - The earlier packet still lists account/cloud work and audio as deferred; this resumed task did not expand into those areas.

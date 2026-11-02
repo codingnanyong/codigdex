@@ -8,6 +8,8 @@ import { SAVE_STORAGE_KEYS } from "@codigdex/game-core/save/storage";
 import { createAsyncSaveStorage } from "../storage/saveStorage";
 import { createQaFaults, isE2eEnabled, isQaEnabled } from "./runtime";
 import { WALLPAPERS } from "@codigdex/game-assets/visuals";
+import { SECONDARY_MOBILE_ART } from "@codigdex/game-assets/secondaryArt";
+import { OPEN_SOURCE_MOBILE_ART } from "@codigdex/game-assets/openSourceArt";
 
 describe("QA isolation and deliberate failures", () => {
   it("arms request-history failure independently and disables it outside QA", () => {
@@ -81,7 +83,7 @@ describe("mobile asset completeness", () => {
       expect(keys.has(monster.assetKey), monster.assetKey).toBe(true);
       expect(existsSync(fileURLToPath(new URL(`../../../packages/game-assets/files/${monster.assetKey}`, import.meta.url)))).toBe(true);
     }
-    const wallpapers = new Set<string>(Object.values(WALLPAPERS));
+    const wallpapers = new Set<string>([...Object.values(WALLPAPERS), ...SECONDARY_MOBILE_ART, ...OPEN_SOURCE_MOBILE_ART]);
     expect([...keys].every((key) => key.startsWith("monsters/") || key.startsWith("characters/promotion/") || key.startsWith("characters/open-source/") || wallpapers.has(key))).toBe(true);
     for (const key of wallpapers) expect(keys.has(key)).toBe(true);
     expect(map).not.toContain("evolution-sheet");

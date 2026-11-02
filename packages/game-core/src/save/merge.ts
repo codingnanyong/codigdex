@@ -23,6 +23,11 @@ export function mergeSaves(local: StoredGameStateV3, remote: StoredGameStateV3, 
     careers.set(entry.id, { id: entry.id, unlockedAt, selectedAt: earliest(before?.selectedAt, entry.selectedAt), masteredAt: earliest(before?.masteredAt, entry.masteredAt) });
   }
   const player = { ...remote.player };
+  const projects = new Map<string, string>();
+  for (const entry of [...(local.progress.projects ?? []), ...(remote.progress.projects ?? [])]) {
+    const time = earliest(projects.get(entry.id), entry.completedAt);
+    if (time) projects.set(entry.id, time);
+  }
   const conflicts: SelectionField[] = [];
   for (const field of Object.keys(player) as SelectionField[]) {
     const a = local.player[field], b = remote.player[field], previous = base.player[field];
@@ -35,7 +40,8 @@ export function mergeSaves(local: StoredGameStateV3, remote: StoredGameStateV3, 
   }
   return { conflicts, save: {
     version: 3,
-    progress: { captures: [...captures].sort(([a], [b]) => a.localeCompare(b)).map(([id, capturedAt]) => ({ id, capturedAt })), careers: [...careers.values()].sort((a, b) => a.id.localeCompare(b.id)) },
+    progress: { captures: [...captures].sort(([a], [b]) => a.localeCompare(b)).map(([id, capturedAt]) => ({ id, capturedAt })), careers: [...careers.values()].sort((a, b) => a.id.localeCompare(b.id)),
+      ...(projects.size ? { projects: [...projects].sort(([a], [b]) => a.localeCompare(b)).map(([id, completedAt]) => ({ id, completedAt })) } : {}) },
     player,
     ui: { ...remote.ui, ...local.ui,
       locale: local.ui.locale === base.ui.locale ? remote.ui.locale : local.ui.locale ?? remote.ui.locale,

@@ -1,6 +1,6 @@
 import type { Locale } from "@codigdex/game-core/i18n/locale";
 import { createEmptySave, type StoredGameStateV3 } from "@codigdex/game-core/save/schema";
-import { captureCheckpoint, rememberCheckpoint, selectGameCareer, selectSecondaryCareer, normalizeGameSave } from "../game/progression";
+import { captureCheckpoint, rememberCheckpoint, selectGameCareer, selectSecondaryCareer, normalizeGameSave, completeWorkshopPractice, selectTertiaryCareer } from "../game/progression";
 import { applyBattleCapture } from "@codigdex/game-core/save/battleCapture";
 import type { SourceEventSession } from "@codigdex/game-content/domain/openSourceEncounterSession";
 import type { SourceEncounterHistory } from "@codigdex/game-content/domain/openSourceEncounters";
@@ -32,6 +32,8 @@ interface SaveContextValue {
   loadQAProgress(scenario: QaProgress): void;
   selectJob(id: JobId): void;
   selectSecondaryJob(id: import("@codigdex/game-content/domain/player/jobs").SecondaryJobId): void;
+  selectTertiaryJob(id: import("@codigdex/game-content/domain/player/jobs").TertiaryJobId): void;
+  completePractice(stageId: string, phase: number, battle: BattleState): void;
   replaceSave(save: StoredGameStateV3): Promise<void>;
 }
 
@@ -47,8 +49,9 @@ export function SaveProvider({ children }: PropsWithChildren) {
   const pendingWrites = useRef(0);
   const currentSave = useRef(save);
   const writer = useMemo(() => createSaveWriter(mobileSaveStorage), []);
+  const latestSaveWrite = useRef<Promise<void>>(Promise.resolve());
   const [sourceRevision, refreshSources] = useState(0);
-  const sourceStore = useMemo(() => new MobileSourceEventStore(mobileSourceStorage, () => refreshSources((revision) => revision + 1), mobileSaveNamespace), []);
+  const sourceStore = useMemo(() => new MobileSourceEventStore(mobileSourceStorage, () => refreshSources((revision) => revision + 1), mobileSaveNamespace, () => latestSaveWrite.current), []);
   const changeRevision = useRef(0);
 
   useEffect(() => {
@@ -81,7 +84,9 @@ export function SaveProvider({ children }: PropsWithChildren) {
   const write = (next: StoredGameStateV3) => {
     pendingWrites.current++;
     setSaving(true);
-    return writer.save(next).finally(() => {
+    const saved = writer.save(next);
+    latestSaveWrite.current = saved;
+    return saved.finally(() => {
       pendingWrites.current--;
       setSaving(pendingWrites.current > 0);
     });
@@ -124,6 +129,8 @@ export function SaveProvider({ children }: PropsWithChildren) {
     },
     selectJob(id) { update((current) => selectGameCareer(current, id)); },
     selectSecondaryJob(id) { update((current) => selectSecondaryCareer(current, id)); },
+    selectTertiaryJob(id) { update((current) => selectTertiaryCareer(current, id)); },
+    completePractice(stageId, phase, battle) { update((current) => completeWorkshopPractice(current, stageId, phase, battle)); },
     async replaceSave(next) {
       const revision = ++changeRevision.current;
       next = normalizeMobileSave(next);

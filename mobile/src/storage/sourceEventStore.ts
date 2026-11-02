@@ -12,7 +12,7 @@ export class MobileSourceEventStore {
   private pending = 0;
   private writes = Promise.resolve();
 
-  constructor(private readonly storage: Pick<AsyncStringStorage, "getItem" | "setItem">, private readonly changed: () => void = () => {}, private readonly namespace?: string) {
+  constructor(private readonly storage: Pick<AsyncStringStorage, "getItem" | "setItem">, private readonly changed: () => void = () => {}, private readonly namespace?: string, private readonly progressWrite: () => Promise<void> = () => Promise.resolve()) {
     this.session = new SourceEventSession({
       getItem: (key) => this.cache.get(key) ?? null,
       setItem: (key, raw) => { this.cache.set(key, raw); void this.persist(key, raw).catch(() => undefined); },
@@ -32,22 +32,33 @@ export class MobileSourceEventStore {
     }
   }
 
-  activate(save: StoredGameStateV3) {
+  activate(save: StoredGameStateV3, recoverCaptured = true) {
     this.activeKey = sourceEventStorageKey(save);
-    this.session.resolvePending(save);
+    this.session.resolvePending(save, recoverCaptured);
   }
 
   /** Only a new tutorial capture or reset creates a key during ordinary local updates. */
   prepareNewAdventure(before: StoredGameStateV3, after: StoredGameStateV3) {
     const key = sourceEventStorageKey(after);
     if (key && !sourceEventStorageKey(before) && !this.cache.has(key)) this.cache.set(key, null);
-    this.activate(after);
+    // Keep the battle's pinned ID stable until its post-capture authorization
+    // and result confirmation. Hydration/imports recover interrupted results.
+    this.activate(after, false);
   }
 
   private persist(key: string, raw: string) {
+    // Bind this history snapshot to the progress write it was derived from.
+    // In particular, never durably remove the last request before its capture.
+    const progress = this.progressWrite();
+    // Observe a rejection immediately, even while older history writes are queued.
+    const ready = progress.then(() => ({ ok: true as const }), (error: unknown) => ({ ok: false as const, error }));
     this.pending++;
     this.changed();
-    const write = this.writes.then(() => this.storage.setItem(this.storageKey(key), raw));
+    const write = this.writes.then(async () => {
+      const result = await ready;
+      if (!result.ok) throw result.error;
+      await this.storage.setItem(this.storageKey(key), raw);
+    });
     const settled = write.then(() => this.failed.delete(key), () => { this.failed.add(key); });
     this.writes = settled.then(() => undefined);
     return write.finally(() => { this.pending--; this.changed(); });

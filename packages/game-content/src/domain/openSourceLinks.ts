@@ -1,5 +1,6 @@
 import { findOpenSource, type OpenSourceEntry } from "./openSourceCatalog";
 import { PLATFORM_STAGE_IDS, FULLSTACK_STAGE_IDS, ML_STAGE_IDS, MLOPS_STAGE_IDS, ANALYTICS_STAGE_IDS } from "./promotionIds";
+import { evolutionIdentity } from "./secondaryEvolutionIds";
 
 const link = (stages: readonly string[], tools: readonly (readonly string[])[]) =>
   Object.fromEntries(stages.map((id, i) => [id, tools[i]]));
@@ -13,7 +14,7 @@ export const PROMOTION_OPEN_SOURCE_IDS: Readonly<Record<string, readonly string[
   ...link(ANALYTICS_STAGE_IDS, [["postgresql", "dbt-core"], ["great-expectations", "dbt-core"], ["dbt-core", "superset"], ["openlineage", "marquez"], ["dbt-core", "trino", "superset"]]),
 };
 export function openSourcesForMonster(monsterId: string): readonly OpenSourceEntry[] {
-  return (PROMOTION_OPEN_SOURCE_IDS[monsterId] ?? []).flatMap((id) => {
+  return (PROMOTION_OPEN_SOURCE_IDS[evolutionIdentity(monsterId)?.coreId ?? monsterId] ?? []).flatMap((id) => {
     const entry = findOpenSource(id);
     return entry ? [entry] : [];
   });

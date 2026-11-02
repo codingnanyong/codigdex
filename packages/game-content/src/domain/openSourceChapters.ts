@@ -1,5 +1,7 @@
 import { text, type LocalizedText } from "@codigdex/game-core/i18n/locale";
-import type { ChapterDefinition } from "@codigdex/game-core/domain/chapters/types";
+import type { ChapterDefinition, MonsterDefinition } from "@codigdex/game-core/domain/chapters/types";
+import type { StoredGameStateV3 } from "@codigdex/game-core/save/schema";
+import { openSourceEvolutionId, openSourceIdentity, openSourceArtKey } from "./openSourceEvolutionIds";
 import { quizPackIdFor } from "@codigdex/game-core/domain/dex/quiz";
 import { OPEN_SOURCE_CATALOG, OPEN_SOURCE_FAMILIES, type OpenSourceFamily } from "./openSourceCatalog";
 
@@ -20,7 +22,7 @@ const stories: Record<OpenSourceFamily, readonly [LocalizedText, LocalizedText, 
   application: [text("약속을 지키는 마을", "The Village of Contracts"), text("장부·입구·기억·여정에 서로 다른 문제가 생겼어요. 저장·검증·캐시·브라우저 테스트로 마을의 약속을 되찾아 주세요.", "The ledger, gate, memory and journey each have a different fault. Restore them with storage, validation, caching and browser tests."), text("마을의 약속을 확인했어요. 데이터의 변경부터 사용자의 마지막 발걸음까지 이어집니다.", "The village contracts are verified, from data changes to the user's final step.")],
 };
 
-let dex = 136;
+let dex = 261;
 export const OPEN_SOURCE_EXPEDITIONS: readonly OpenSourceExpedition[] = (Object.keys(OPEN_SOURCE_FAMILIES) as OpenSourceFamily[]).map((family, index) => {
   const [name, intro, ending] = stories[family];
   const id = `open-source:${family}` as const;
@@ -30,23 +32,48 @@ export const OPEN_SOURCE_EXPEDITIONS: readonly OpenSourceExpedition[] = (Object.
     successLine: text("역할의 단서를 되찾았어요. 다음 의뢰에도 배운 것을 이어 주세요!", "A responsibility clue is restored. Carry it into the next mission!"),
     retryLine: text("역할과 학습 노트를 다시 읽고 재도전해요.", "Read the role and learning notes, then try again."),
     retryScene: "open-source-chapter",
-    stages: OPEN_SOURCE_CATALOG.filter((entry) => entry.family === family).map((entry) => {
-      const monsterId = `open-source:${entry.id}`;
+    arena: { textureKey: `open-source-arena-${family}`, assetKey: `wallpapers/open-source/${family}-arena-v1.png` },
+    stages: OPEN_SOURCE_CATALOG.filter((entry) => entry.family === family).flatMap((entry) => Array.from({ length: 5 }, (_, phase): MonsterDefinition => {
+      const level = phase + 1, monsterId = openSourceEvolutionId(entry.id, level);
+      const prefix = [text("아기", "Young"), text("견습", "Apprentice"), text("성장한", "Growing"), text("숙련된", "Seasoned")][phase];
       return {
-        id: monsterId, dexNumber: String(dex++).padStart(3, "0"), level: 2,
-        name: entry.character.name, classification: text(entry.name, entry.name), trait: entry.learning,
+        id: monsterId, dexNumber: String(dex++).padStart(3, "0"), level,
+        name: prefix ? text(`${prefix.ko} ${entry.character.name.ko}`, `${prefix.en} ${entry.character.name.en}`) : entry.character.name, classification: text(entry.name, entry.name), trait: entry.learning,
         description: entry.role, snippet: entry.learning,
-        textureKey: monsterId, assetKey: entry.character.assetKey!, quizPackId: quizPackIdFor(id, monsterId),
+        textureKey: monsterId, assetKey: openSourceArtKey(family, entry.id, level), quizPackId: quizPackIdFor(id, monsterId),
         briefing: text(`${entry.character.motif.ko}. ${entry.name}의 역할을 이해하고 기록을 되찾아 주세요.`, `${entry.character.motif.en}. Understand ${entry.name}'s role to restore its record.`),
         preBattleLine: text(`${entry.name}: ${entry.learning.ko}`, `${entry.name}: ${entry.learning.en}`),
       };
-    }),
+    })),
   } };
 });
 export const OPEN_SOURCE_CHAPTERS = OPEN_SOURCE_EXPEDITIONS.map(({ chapter }) => chapter);
 export function openSourceExpeditionFor(family: string | undefined) {
   return OPEN_SOURCE_EXPEDITIONS.find(({ chapter }) => chapter.id === `open-source:${family}`);
 }
-export function openSourceStageFor(id: string) {
-  return OPEN_SOURCE_CHAPTERS.flatMap(({ stages }) => stages).find((stage) => stage.id === `open-source:${id}`);
+export function openSourceStageFor(id: string, level = 5) {
+  return OPEN_SOURCE_CHAPTERS.flatMap(({ stages }) => stages).find((stage) => stage.id === openSourceEvolutionId(id, level));
+}
+export function openSourceEvolutionFor(toolId: string) { return OPEN_SOURCE_CHAPTERS.flatMap(({ stages }) => stages).filter(({ id }) => openSourceIdentity(id)?.toolId === toolId); }
+export function nextOpenSourceEvolution(save: StoredGameStateV3, toolId: string) {
+  const captured = new Set(save.progress.captures.map(({ id }) => id));
+  const stages = openSourceEvolutionFor(toolId);
+  return stages.find(({ id }) => !captured.has(id)) ?? stages.at(-1);
+}
+export function openSourceEvolutionCount(save: StoredGameStateV3, toolId: string) {
+  const captured = new Set(save.progress.captures.map(({ id }) => id));
+  return openSourceEvolutionFor(toolId).filter(({ id }) => captured.has(id)).length;
+}
+/** Active requests pin the battle ID, including legacy requests started at Lv.5. */
+export function sourceEncounterStage(save: StoredGameStateV3, encounter: { toolId: string; state: string; stageId?: string }) {
+  if (encounter.state === "active" || encounter.state === "paused") {
+    const identity = openSourceIdentity(encounter.stageId ?? `open-source:${encounter.toolId}`);
+    if (!identity || identity.toolId !== encounter.toolId) return undefined;
+    return openSourceStageFor(encounter.toolId, identity.level);
+  }
+  return nextOpenSourceEvolution(save, encounter.toolId);
+}
+export function openSourceArenaForStage(id: string) {
+  const identity = openSourceIdentity(id);
+  return identity && OPEN_SOURCE_CHAPTERS.find(({ stages }) => stages.some(({ id }) => openSourceIdentity(id)?.toolId === identity.toolId))?.arena;
 }

@@ -141,7 +141,7 @@ export function selectCareer(
 ): CareerDexState {
   const unlocked = unlockCareer(state, id, now);
   const tier = CAREER_CATALOG.find((career) => career.id === id)?.tier;
-  if ((tier === 2 && (!SECONDARY_JOB_SELECTION_ENABLED || !canSelectSecondaryJob(findSecondaryJob(id)!, masteredPrimaryJobIds(state)))) || (tier === 3 && !TERTIARY_JOB_SELECTION_ENABLED)) {
+  if ((tier === 2 && (!SECONDARY_JOB_SELECTION_ENABLED || !canSelectSecondaryJob(findSecondaryJob(id)!, masteredPrimaryJobIds(state)))) || (tier === 3 && (!TERTIARY_JOB_SELECTION_ENABLED || !careerRecord(state, id)?.masteredAt))) {
     return unlocked;
   }
   const existing = careerRecord(unlocked, id)!;
@@ -172,6 +172,7 @@ export interface CareerDexProgress {
   commonPathComplete: boolean;
   completedPrimaryJobs: ReadonlySet<JobId>;
   completedSecondaryJobs: ReadonlySet<SecondaryJobId>;
+  completedTertiaryJobs?: ReadonlySet<TertiaryJobId>;
   activePrimaryJob: JobId | "junior";
   activeSecondaryJob?: SecondaryJobId;
   activeTertiaryJob?: TertiaryJobId;
@@ -211,6 +212,7 @@ export function reconcileCareerDex(
   TERTIARY_JOB_OPTIONS.forEach((job) => {
     if (careerRecord(next, job.requires)?.masteredAt) next = unlockCareer(next, job.id, now);
   });
+  progress.completedTertiaryJobs?.forEach((id) => { next = masterCareer(next, id, now); });
   if (progress.activeTertiaryJob && careerRecord(next, progress.activeTertiaryJob)) {
     next = selectCareer(next, progress.activeTertiaryJob, now);
   }

@@ -254,9 +254,7 @@ export class PathMapScene extends Phaser.Scene {
       return;
     }
 
-    activateCareerInRegistry(this.registry, job.id);
-    this.registry.set(TERTIARY_JOB_REGISTRY_KEY, job.id);
-    this.scene.restart({ careerId: this.selectedCareerId, returnTo: this.returnTarget });
+    this.scene.start("job-select");
   }
 
   private statusOf(node: PathNode): ChapterStatus {

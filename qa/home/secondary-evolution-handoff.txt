@@ -1,0 +1,44 @@
+Owner: Codex
+Reviewer: Codex /root/quiz_fact_review, read-only; shared-change-review skill. The user requested Codex-only work while Claude is unavailable.
+
+Scope:
+  Improve secondary exploration, evolution, character consistency and collection archives. Keep the existing friendly, coarse pixel style. Organize OSS art and give each tool its own evolution family. Audio remains last. This packet follows local commit ea4a2a9 (career workshops/final projects); neither packet has been published or deployed.
+
+Changed files:
+  - packages/game-content/src/domain/secondaryEvolutionIds.ts, secondaryExploration.ts, secondaryTerrainGeometry.ts: five career atlases, 25 species/regions, five consecutive forms per species. Stable original guardian IDs remain Lv5.
+  - promotionChapters.ts, additionalPromotionChapters.ts, masterChapters.ts, openSourceChapters.ts, openSourceEvolutionIds.ts, chapters/index.ts, player/jobs.ts: canonical 451-entry dex numbered 000-450 and current character archive.
+  - gameProgress.ts, openSourceEncounters.ts, openSourceEncounterSession.ts, openSourceEncounterStorage.ts, openSourceLinks.ts: progression, automatic practice settlement/recovery, preserved legacy mastery, pinned request stage IDs, discovery normalization and return routes.
+  - packages/quiz-content/src/loader.ts, manifest.ts, sources/openSource.ts: growing subsets of existing secondary pools; 10 questions/tool shared across OSS evolution (380 tool questions, including reverse situation/action review). No claim that reused evolution packs are newly authored questions.
+  - web/lib/phaser/scenes/SecondaryExplorationScenes.ts and scene/config/capture/workshop integration: painted atlas with terrain lift/shadow, five-form region view, examples before evolution battle, related notes and final-project entry.
+  - mobile/src/game/SecondaryExploration.tsx and career/workshop/navigation/battle/result/request/notes integration: touch-selected lifted terrain, five-form regional progression, saved return region, actual arena art and pinned request battle.
+  - mobile/scripts/generate-asset-map.mjs, check-bundle.mjs: optimized wallpaper imports, excluded retired/reference/archive art, actual imported-byte measurement, unchanged-map write avoidance for Windows file locks.
+  - scripts/prepare-secondary-art.mts, migrate-open-source-art.mts, generate-dex-art-archive.mts; packages/game-assets/scripts/generate-evolution-guide.ps1 and prepare-open-source-art.mjs: reproducible art preparation, byte-preserving migration and canonical archive generation.
+  - packages/game-content/src/domain/qaPresets.ts; scripts/generate-home-qa.mts; qa/home/cases.json and maestro flows; Web/Mobile regression tests: guardian-focused fixtures plus a fresh five-form regional journey.
+  - README.md, README.en.md, mobile/README.md, paired docs/eng and docs/kor CAREER_PATH_DESIGN.md and MONOREPO_ARCHITECTURE.md: current source counts, progression, asset locations and verification limits. Historical acceptance is retained as historical evidence.
+
+Generated assets:
+  - 100 new secondary early-form sprites under monsters/secondary-evolutions/<career>/, preserving the 25 original final guardian images.
+  - 152 new OSS early-form sprites; 38 original final images relocated byte-for-byte from characters/open-source to monsters/open-source/<family>/<tool>/<tool>-lv5-v1.png. Old final capture IDs/timestamps remain valid.
+  - 25 distinct, simplified tertiary guardian PNGs at monsters/mastery/<career>/guardian-<n>-v3.png. The user-rejected detailed v2 sheet and derivatives are excluded from source/runtime; original v1 art remains historical, excluded from the native active imports.
+  - Five generated atlas sources, five runtime atlases, 25 traced terrain layers and 25 regional wallpaper crops under wallpapers/secondary-careers/. Regional crops derive from the five atlas sources; they are not 25 separately generated paintings.
+  - 640x360 native wallpaper derivatives under wallpapers/mobile/.
+  - monsters/all-monster-evolution-guide-v2.png plus four section archives under monsters/archives/; each of the 451 canonical IDs occurs once. Tutorial extra cells are N/A; tertiary rows explicitly describe independent guardians.
+  - characters/career-path/character-collection-guide-v3.png includes all 17 existing player/guide portraits without redrawing them.
+  - packages/game-assets/src/manifest.generated.ts; mobile/src/assets.generated.ts; qa/art prompt/source inventories, relocation hashes and canonical 451-image audit.
+
+Checks run:
+  - Web unit/domain: 650/650 pass; Mobile host: 145/145 pass, including 34 generated native journey contracts.
+  - Related browser set: 37 cases. The final broad run passed 32 and exposed five test-only scene-readiness waits after the second reload; the corrected promotion file then passed 16/16, covering all five atlases plus lineage gates. Thus all 37 related cases were verified across these runs, not a claim of one clean 37-case run.
+  - Independent reviewer: all 451 actual quiz packs validate; 125 sequential secondary battles with JSON restore, next-form/region locks and 100 practice records; 152 OSS early-form collections while retaining legacy final cards; 38 legacy active-request restorations; post-capture authorization and original-route return.
+  - Canonical IDs, numbers 000-450 and asset keys unique; 451 actual RGBA hashes match the audit; exact image and identical-alpha-silhouette duplicate groups: zero. Original moved OSS art matches prior Git blobs byte-for-byte.
+  - New 277 sprite outputs retain the 64px logical grid, binary alpha, <=16 colors and clear margins.
+  - Web production build, Android export, iOS export, typecheck/package boundaries, lint, generated QA check/runner tests, manifest/native map checks, check:agents and git diff --check pass.
+  - Native imports: 574, including all 451 canonical monsters and no rejected/reference/retired tertiary art. Actual image bytes 11,724,657 / 14 MiB; with font 17,348,729 / 20 MiB.
+  - iOS first preparation hit a Windows write lock on the unchanged asset map after Android export. Avoiding redundant writes fixed it; iOS re-export passed.
+
+Remaining risks or review items:
+  - Read-only independent review: No blocking findings.
+  - New native simulator/physical-device acceptance and authenticated Preview verification remain unperformed. Exports and host tests do not substitute for device acceptance.
+  - Terrain masks are manually traced silhouettes; fine gaps around branches may retain small painted background fragments. Tested targets resolve small polygon overlaps by the closest region center.
+  - No push, PR, merge or deployment was performed for this packet. Earlier release-specific authorizations do not silently publish these expanded changes.
+  - Audio creation has not started and remains the last work item, per user priority.

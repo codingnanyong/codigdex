@@ -26,7 +26,7 @@ describe("mobile manual QA starting states", () => {
     expect(render().html).toBe("");
     state.enabled = true;
     expect(render().html).toContain("돌발 의뢰");
-    expect(state.controls.filter(({ testID }) => testID?.startsWith("qa-start-"))).toHaveLength(17);
+    expect(state.controls.filter(({ testID }) => testID?.startsWith("qa-start-"))).toHaveLength(23);
   });
   it("saves an earned promotion before returning to the title to continue", async () => {
     const { onBack } = render();

@@ -4,6 +4,7 @@ import type { ChapterDefinition } from "@codigdex/game-core/domain/chapters/type
 import { PLATFORM_STAGE_IDS } from "./promotionIds";
 import { ADDITIONAL_PROMOTION_MISSIONS, type PromotionMission } from "./additionalPromotionChapters";
 import type { SecondaryJobId } from "./player/jobs";
+import { secondaryDexNumber } from "./secondaryEvolutionIds";
 
 export const PLATFORM_CHAPTER_ART = {
   arena: "wallpapers/promotion/platform-engineer-arena-v1.png",
@@ -68,7 +69,7 @@ export const PLATFORM_PROMOTION_CHAPTER: ChapterDefinition = {
   retryScene: "promotion-chapter",
   arena: { textureKey: "arena-platform-harbor", assetKey: PLATFORM_CHAPTER_ART.arena },
   stages: stageCopy.map((copy, index) => ({
-    id: PLATFORM_STAGE_IDS[index], dexNumber: String(111 + index).padStart(3, "0"), level: index + 1,
+    id: PLATFORM_STAGE_IDS[index], dexNumber: secondaryDexNumber("platform-engineer", index, 5), level: 5,
     name: copy.name, classification: copy.concept, trait: copy.concept, description: copy.description,
     snippet: text(copy.snippet, copy.snippet), briefing: copy.briefing, preBattleLine: copy.line,
     textureKey: PLATFORM_STAGE_IDS[index], assetKey: `monsters/ch23.platform-sre/${copy.art}`,
