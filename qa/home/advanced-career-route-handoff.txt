@@ -27,6 +27,7 @@ Handoff: advanced career maps and five-stage requests, 2026-11-02 KST
   - check:agents, QA consistency (36 files) and runner tests (11/11), workspace typecheck/package boundaries, explicit Web TypeScript and lint passed.
   - Web production build passed; Android/iOS JS/Hermes exports and source image/font budgets passed. These are not native compilation or device acceptance.
   - Initial browser run was interrupted after 11 passing OSS scenarios to include accessibility fixes. One subsequent development-server startup timed out without running scenarios; final verification uses the production build instead.
+  - Local production full run: 50/51 passed. The remaining pre-existing notes scenario expected the retired promotion overview; its fixture now seeds the first four regional forms, enters secondary-region and the actual learning brief before battle. The full five-scenario notes file then passed 5/5. These runs are not represented as one clean 51-case local run.
   - Final production-browser run, exact-head CI and live deployment evidence are recorded on the feature/release PRs. Do not infer their completion from this static pre-release report.
   - Independent source review raised keyboard activation and destruction cleanup gaps, both corrected and re-reviewed. No blocking findings remain.
 - Remaining risks or review items:
