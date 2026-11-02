@@ -16,6 +16,7 @@ import { BattleScreen } from "./BattleScreen";
 import { CareerScreen } from "./CareerScreen";
 import { WorldMapScreen } from "./WorldMapScreen";
 import { OpenSourceScreen } from "./OpenSourceScreen";
+import { OpenSourceAtlasScreen } from "./OpenSourceAtlasScreen";
 import { OpenSourceEventScreen } from "./OpenSourceEventScreen";
 import { TitleScreen } from "./TitleScreen";
 import { ResultScreen } from "./ResultScreen";
@@ -69,7 +70,7 @@ export function NativeGame() {
       }
       if (!advance) { navigate(sourceEvents.leave(save, result.sourceEventId) ?? destinationFor(save, result.beforeCapture.ui.checkpointId ?? result.monster.id)); return; }
       const completed = sourceEvents.completeStage(save, result.sourceEventId, result.monster.id);
-      if (completed?.kind === "next") startBattle(completed.stage, result.sourceEventId);
+      if (completed?.kind === "next") setRoute({ name: "source-region" });
       else navigate(completed?.returnTo ?? destinationFor(save, result.beforeCapture.ui.checkpointId ?? result.monster.id));
       return;
     }
@@ -86,7 +87,10 @@ export function NativeGame() {
   switch (route.name) {
     case "title": return title();
     case "qa": return QA_ENABLED ? <QAScreen checked={qaChecks} onToggleCheck={(check) => setQaChecks((items) => items.includes(check) ? items.filter((item) => item !== check) : [...items, check])} onBack={() => setRoute({ name: "title" })} onBattle={(monster) => startBattle(monster, undefined, true)} onWorld={() => { setWorldStageId(resumeCheckpoint(save).monster.id); setRoute({ name: "world" }); }} onDex={() => setRoute({ name: "dex" })} /> : title();
-    case "encounter": return pending ? <OpenSourceEventScreen encounter={pending} stage={sourceEncounterStage(save, pending)!} captured={captured.has(sourceEncounterStage(save, pending)!.id)} capturedLevels={openSourceEvolutionFor(pending.toolId).filter(({ id }) => captured.has(id)).map(({ level }) => level)} locale={locale} saveError={saveError} onRetrySave={retrySave} onLater={finishEncounter} onAccept={() => {
+    case "encounter": return pending ? <OpenSourceAtlasScreen encounter={pending} locale={locale} saveError={saveError} onRetrySave={retrySave} onLater={finishEncounter} onEnter={() => {
+      if (sourceEvents.accept(save, pending.id)) setRoute({ name: "source-region" });
+    }} /> : title();
+    case "source-region": return pending ? <OpenSourceEventScreen encounter={pending} stage={sourceEncounterStage(save, pending)!} captured={captured.has(sourceEncounterStage(save, pending)!.id)} capturedLevels={openSourceEvolutionFor(pending.toolId).filter(({ id }) => captured.has(id)).map(({ level }) => level)} locale={locale} saveError={saveError} onRetrySave={retrySave} onAtlas={() => setRoute({ name: "encounter" })} onLater={finishEncounter} onAccept={() => {
       if (sourceEvents.accept(save, pending.id)) {
         const active = sourceEvents.pending(save);
         const stage = active && sourceEncounterStage(save, active);
@@ -101,7 +105,7 @@ export function NativeGame() {
     case "settings": return <SettingsScreen onBack={() => setRoute({ name: "title" })} />;
     case "battle": {
       const context = route.battle;
-      return <BattleScreen monster={context.monster} monsterImage={mobileAssetSource(context.monster.assetKey)} locale={locale} onExit={() => context.sourceEventId ? setRoute({ name: "encounter" }) : navigate(destinationFor(save, context.monster.id))} onFinish={(battle) => {
+      return <BattleScreen monster={context.monster} monsterImage={mobileAssetSource(context.monster.assetKey)} locale={locale} onExit={() => context.sourceEventId ? setRoute({ name: "source-region" }) : navigate(destinationFor(save, context.monster.id))} onFinish={(battle) => {
         const after = battle.status === "passed" ? capture(context.monster.id, battle, context.sourceEventId) : save;
         const authorized = !context.sourceEventId || sourceEvents.canBattle(after, context.sourceEventId, context.monster.id);
         const passed = battle.status === "passed" && authorized && after.progress.captures.some(({ id }) => id === context.monster.id);
@@ -113,6 +117,6 @@ export function NativeGame() {
         setRoute({ name: "result", result: { ...context, beforeCapture: save, correct: battle.correctCount, passed, newCapture, total: battle.questions.length } });
       }} />;
     }
-    case "result": return <ResultScreen result={route.result} onRetry={() => route.result.sourceEventId ? setRoute({ name: "encounter" }) : startBattle(route.result.monster)} onContinue={() => leaveResult(route.result, true)} onQA={() => setRoute({ name: "qa" })} onDex={() => setRoute({ name: "dex" })} onWorld={() => leaveResult(route.result, false)} />;
+    case "result": return <ResultScreen result={route.result} onRetry={() => route.result.sourceEventId ? setRoute({ name: "source-region" }) : startBattle(route.result.monster)} onContinue={() => leaveResult(route.result, true)} onQA={() => setRoute({ name: "qa" })} onDex={() => setRoute({ name: "dex" })} onWorld={() => leaveResult(route.result, false)} />;
   }
 }

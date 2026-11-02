@@ -13,7 +13,8 @@ test("boots the game shell and Phaser canvas", async ({ page }) => {
   const response = await page.goto("/");
   expect(response?.status(), "Game home must return HTTP 200").toBe(200);
 
-  await expect(page.getByRole("heading", { name: "CODIGDEX" })).toBeVisible();
+  await expect(page).toHaveTitle("Codigdex");
+  await expect(page.locator(".game-toolbar h1, .game-toolbar .game-brand")).toHaveCount(0);
   const canvas = page.locator(".pixel-canvas canvas");
   await expect(canvas).toBeVisible({ timeout: 15_000 });
   await expect(canvas).toHaveAttribute("width", "960");
@@ -48,7 +49,7 @@ test("restores saved progress and language after a reload", async ({ page }) => 
 
   await page.reload();
   await expect(page.locator("html")).toHaveAttribute("lang", "en");
-  await expect(page.getByText("A pixel-art coding game where you collect concepts in a dex")).toBeVisible();
+  await expect(page.getByRole("application")).toHaveAttribute("aria-label", "Codigdex coding education game");
   await expect(page.getByRole("application", { name: "Codigdex coding education game" })).toHaveAttribute(
     "aria-busy",
     "false"

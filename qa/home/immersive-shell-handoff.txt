@@ -1,0 +1,24 @@
+Handoff: immersive game shell and open-source ecosystem travel
+
+- Owner: Codex.
+- Reviewer: Read-only reviewer /root/review_immersive_shell under shared-change-review. Final source verdict: No blocking findings after fixing QA clipping and loader-listener loss. Claude CLI unavailable (Not logged in).
+- Scope:
+  - Start from origin/develop de88ad29 (advanced secondary/tertiary routes). During this task PR148 merged to main 24c5f4a and Vercel reported success; that existing release is separate from these local changes.
+  - Web artwork covers the full browser behind a bottom utility dock (notes, account/save, native Fullscreen API). The external CODIGDEX logo/tagline and header bar are removed at the user's explicit direction. The 960x540 interaction camera remains fitted without cropping its authored controls; the cover layer uses the current scene's original asset URL. Account and notes remain inside the fullscreen subtree. Fonts are explicitly ready before Phaser boots.
+  - Both clients travel from the request to a nine-ecosystem atlas, then the authorized request region and its five stages. Other ecosystems cannot start unauthorized battles. Capture confirmation returns to the current region before the next battle; pause/restart, source identity and career bookmarks are retained.
+- Changed files:
+  - web/app/page.tsx, globals.css; components/GameHeader.tsx, PhaserGame.tsx, AccountPanel.tsx: full-cover artwork, bottom dock without duplicated branding, modal anchoring, fullscreen lifecycle, font readiness and keyboard isolation.
+  - web/lib/phaser/openSourceAtlas.ts, sceneBackdrop.ts, scenes/OpenSourceEventScene.ts, capture/resultNavigation.ts: ecosystem atlas, region entry and return-to-region navigation; original image URLs are tracked across scene restarts (Phaser revokes image blob URLs and clears loader listeners on shutdown).
+  - mobile/src/game/OpenSourceAtlasScreen.tsx, OpenSourceEventScreen.tsx, NativeGame.tsx, navigation.ts: safe-area atlas, current ecosystem region and explicit stage entry after each result.
+  - web/e2e/game.shell.spec.ts, game.expedition.spec.ts; test/phaser/openSourceAtlas.test.ts, sceneBackdrop.test.ts, captureResultNavigation.test.ts; mobile/src/qa/flows.test.tsx: bilingual viewport/fullscreen/modal bounds, authorized-only atlas destination, full requests, pause/restart/failure and DOM cleanup checks.
+  - scripts/generate-home-qa.mts and eleven generated qa/home/maestro/flows/cod-238-encounter-*.yaml files: native journeys now explicitly travel through the atlas and start each regional stage.
+- Generated assets: No new game art or audio. Existing nine ecosystem arenas are reused. Only Maestro YAML is regenerated. Browser screenshots/build outputs stay ignored under qa-results/ and platform output folders.
+- Checks run:
+  - Web 736/736; mobile 149/149 (including 61 real-screen/storage host-flow tests).
+  - Workspace type/package boundaries, explicit web TypeScript, lint, check:agents, QA generation consistency (36 files) and runner 11/11 passed.
+  - Production Web webpack build and Android/iOS JS/Hermes exports passed. Native image/font payload unchanged: 18,121,407 / 20,971,520 bytes. These are not native compilation/device acceptance.
+  - Earlier focused Chromium run: 20/20. A pre-final full run had 57/59 pass and exposed transient landscape clipping; the menu design was subsequently replaced by the user's full-artwork/bottom-dock direction. Interrupted superseded runs remain in ignored QA evidence and are not counted as passing. Final design focused viewport/fullscreen/smoke: 10/10. Final full production Chromium run: 59/59 passed in one run (6.7 minutes), retries off, including all source requests, all five secondary routes, all five tertiary projects and eight bilingual viewport/fullscreen cases. Evidence: qa-results/immersive-shell/accepted-junit.xml. QA-enabled portrait/landscape checks: 2/2 passed.
+- Remaining risks or review items:
+  - Native source, safe-area layout and host flows checked. An installed iOS debug app loaded the latest JS, but Device Hub interaction was unavailable for this task: long UI-tool delay followed by another application's confirmation dialog. No claim of simulator UI acceptance; no other app prompt was touched. Android was not connected.
+  - This local change is not deployed. The separately completed PR148 release contains the earlier advanced routes, not this shell/atlas improvement. Remote publication/PR/merge/deployment needs explicit user authorization under AGENTS.md.
+  - README/docs updates belong to Claude; no policy or bilingual documentation files were rewritten.

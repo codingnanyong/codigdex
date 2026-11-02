@@ -234,8 +234,24 @@ async function startCareer(id: string, locale: "ko" | "en" = "en", confirm = tru
   return { seed, checkpoint };
 }
 
+async function openRequestRegion() {
+  if (container.querySelector('[data-testid="source-atlas-enter"]')) {
+    const destinations = [...container.querySelectorAll<HTMLButtonElement>('[data-testid^="source-atlas-region-"]')];
+    expect(destinations).toHaveLength(9);
+    expect(destinations.filter((button) => !button.disabled)).toHaveLength(1);
+    await tap("source-atlas-enter");
+    await element({ id: "source-event-region" });
+    expect(container.querySelector('[data-testid="battle-prompt"]')).toBeNull();
+  }
+}
+async function enterRequest() {
+  await openRequestRegion();
+  await tap("source-event-accept");
+}
+
 async function finishRequest(toolId: string) {
   for (const form of openSourceEvolutionFor(toolId).filter(({ id }) => !saved().progress.captures.some((record) => record.id === id))) {
+    if (!container.querySelector('[data-testid="battle-prompt"]')) await enterRequest();
     await playBattle(form.id); await tap("result-continue");
   }
 }
@@ -247,7 +263,7 @@ for (const career of SOURCE_CAREERS) it(`completes all five ${career.firstTool} 
     await launch(); await tap("home-play");
     await element({ id: "source-event-title" });
   }
-  await tap("source-event-accept");
+  await enterRequest();
   await playBattle(`open-source:${career.firstTool}:lv1`);
   expect(container.querySelector("[data-pixel-scene]")?.getAttribute("data-pixel-scene")).toBe("field");
   expect(saved().ui.checkpointId).toBe(checkpoint);
@@ -255,7 +271,7 @@ for (const career of SOURCE_CAREERS) it(`completes all five ${career.firstTool} 
   expect(saved().player).toEqual(seed.player);
   expect(saved().progress.captures).toEqual(expect.arrayContaining(seed.progress.captures));
   if (career.id === "data-engineer") {
-    await launch(); await tap("home-play"); await tap("source-event-accept");
+    await launch(); await tap("home-play"); await enterRequest();
   } else await tap("result-continue");
   await finishRequest(career.firstTool);
   for (const form of openSourceEvolutionFor(career.firstTool)) expect(saved().progress.captures.filter(({ id }) => id === form.id)).toHaveLength(1);
@@ -268,13 +284,14 @@ for (const career of SOURCE_CAREERS) it(`completes all five ${career.firstTool} 
 
 it("restores an accepted request after failure and retries without moving its career bookmark", async () => {
   const { checkpoint } = await startCareer("frontend", "ko");
-  await tap("source-event-accept");
+  await enterRequest();
   await playBattle("open-source:tanstack-query:lv1", false);
   expect(saved().progress.captures.some(({ id }) => id === "open-source:tanstack-query:lv1")).toBe(false);
   await tap("result-retry");
   await launch(); await tap("home-play");
+  await openRequestRegion();
   expect((await element({ id: "source-event-accept" })).textContent).toContain("이어하기");
-  await tap("source-event-accept");
+  await enterRequest();
   await playBattle("open-source:tanstack-query:lv1");
   await tap("result-continue");
   await finishRequest("tanstack-query");
@@ -324,7 +341,7 @@ it("retries history reads before showing an adventure and migrates old expeditio
 it("retains encounter authorization when its quiz loading fails and is retried", async () => {
   const { checkpoint } = await startCareer("frontend");
   qaFaults.failNextQuiz();
-  await tap("source-event-accept");
+  await enterRequest();
   await tap("battle-retry-load");
   await playBattle("open-source:tanstack-query:lv1");
   await tap("result-world");
@@ -335,7 +352,7 @@ it("retains encounter authorization when its quiz loading fails and is retried",
 
 it("retries paused-history writes and resumes at the next form without repeating a capture", async () => {
   await startCareer("frontend");
-  await tap("source-event-accept");
+  await enterRequest();
   await playBattle("open-source:tanstack-query:lv1");
   qaFaults.failNextSourceSave();
   await tap("result-world");
@@ -343,40 +360,45 @@ it("retries paused-history writes and resumes at the next form without repeating
   await vi.waitFor(() => expect(container.querySelector('[data-testid="career-retry-save"]')).toBeNull());
   await launch(); await tap("home-play");
   await element({ id: "source-event-title" });
+  await openRequestRegion();
   expect((await element({ id: "source-event-accept" })).textContent).toContain("Lv.2/5");
-  await tap("source-event-accept");
+  await enterRequest();
   await finishRequest("tanstack-query");
   expect(saved().progress.captures.filter(({ id }) => id === "open-source:tanstack-query:lv1")).toHaveLength(1);
 }, 20000);
 
 it("rewinds an advanced request when the capture write failed before restart", async () => {
   await startCareer("frontend");
-  await tap("source-event-accept");
+  await enterRequest();
   qaFaults.failNextSave();
   await playBattle("open-source:tanstack-query:lv1");
   expect(saved().progress.captures.some(({ id }) => id === "open-source:tanstack-query:lv1")).toBe(false);
   await tap("result-continue");
   await launch(); await tap("home-play");
+  await openRequestRegion();
   expect((await element({ id: "source-event-accept" })).textContent).toContain("Lv.1/5");
-  await tap("source-event-accept");
+  await enterRequest();
   await finishRequest("tanstack-query");
   for (const form of openSourceEvolutionFor("tanstack-query")) expect(saved().progress.captures.filter(({ id }) => id === form.id)).toHaveLength(1);
 }, 20000);
 
 for (const exit of ["result-continue", "result-world"]) it(`restores the final request form after a failed capture save and ${exit}`, async () => {
   await startCareer("frontend");
-  await tap("source-event-accept");
+  await enterRequest();
   const forms = openSourceEvolutionFor("tanstack-query");
   for (const form of forms.slice(0, 4)) {
+    if (!container.querySelector('[data-testid="battle-prompt"]')) await enterRequest();
     await playBattle(form.id); await tap("result-continue");
   }
+  await enterRequest();
   qaFaults.failNextSave();
   await playBattle(forms[4].id);
   expect(saved().progress.captures.some(({ id }) => id === forms[4].id)).toBe(false);
   await tap(exit);
   await launch(); await tap("home-play");
+  await openRequestRegion();
   expect((await element({ id: "source-event-accept" })).textContent).toContain("Lv.5/5");
-  await tap("source-event-accept");
+  await enterRequest();
   await finishRequest("tanstack-query");
   await element({ id: "career-title" });
   for (const form of forms) expect(saved().progress.captures.filter(({ id }) => id === form.id)).toHaveLength(1);
@@ -384,7 +406,7 @@ for (const exit of ["result-continue", "result-world"]) it(`restores the final r
 
 it("does not report a rejected encounter capture as successful", async () => {
   await startCareer("frontend");
-  await tap("source-event-accept");
+  await enterRequest();
   await act(async () => {
     const current = controls!;
     current.sourceEvents.finish(current.save, current.sourceEvents.pending(current.save)!.id);

@@ -58,25 +58,23 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
-/* Keep the game inside the visible viewport. `min-height` alone lets a 16:9
-   canvas make the flex page taller than a short browser window, which hides
-   the bottom of modal screens such as the Codigdex. */
-.game-page {
-  height: 100vh;
-  height: 100dvh;
-  min-height: 0;
-  overflow: hidden;
-}
-
-/* Give Phaser the page's actual remaining rectangle. Its FIT scale mode keeps
-   the 16:9 canvas contained and centered; CSS does not need to guess the
-   header height or perform unsupported aspect-ratio arithmetic. */
-.pixel-canvas {
-  position: relative;
-  flex: 1 1 auto;
-  min-height: 0;
-  width: 100%;
-}
+/* Artwork covers the entire browser; only the 16:9 interaction camera is fitted.
+   Utility controls sit in a clear bottom dock over the same artwork, with no
+   repeated page title or separate header bar. */
+.game-page, .game-shell { width: 100%; height: 100vh; height: 100dvh; min-height: 0; overflow: hidden; }
+.game-page { background: #180f08; }
+.game-shell { --hud-height: 68px; position: relative; color: #f1e4cb; background: #180f08; isolation: isolate; }
+.game-shell:fullscreen { width: 100vw; height: 100dvh; }
+.game-backdrop { position: absolute; inset: -12px; background-size: cover; background-position: center; filter: blur(6px) brightness(.65); pointer-events: none; z-index: 0; }
+.game-toolbar { position: absolute; bottom: max(10px, env(safe-area-inset-bottom)); right: max(12px, env(safe-area-inset-right)); left: max(12px, env(safe-area-inset-left)); display: flex; align-items: center; justify-content: flex-end; z-index: 40; }
+.game-toolbar-actions { min-height: 44px; display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 8px; }
+.game-toolbar-actions > a, .game-toolbar-actions > button, .game-toolbar-actions .account-menu > button { display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-height: 44px; padding: 8px 12px; border: 2px solid #93704b; box-shadow: inset 0 0 0 2px #342215, 0 2px 6px #180f0880; background: #23160eeb; color: #f1e4cb; font: 14px/1.3 Galmuri14, monospace; cursor: pointer; }
+.game-toolbar-actions button:hover { background: #49301c; border-color: #e6bd75; }
+.game-toolbar-actions button:focus-visible, .game-toolbar-actions a:focus-visible { outline: 3px solid #e6bd75; outline-offset: 2px; }
+.fullscreen-notice { position: absolute; top: 12px; left: 50%; transform: translateX(-50%); padding: 10px; background: #49301c; z-index: 60; font: 14px Galmuri14, monospace; }
+.pixel-canvas { z-index: 1; position: absolute; inset: 0 0 calc(var(--hud-height) + env(safe-area-inset-bottom)); min-height: 0; width: 100%; overflow: hidden; }
+@media (max-width: 850px) { .game-toolbar-actions { gap: 4px; } .game-toolbar-actions > a, .game-toolbar-actions > button, .game-toolbar-actions .account-menu > button { padding: 6px 8px; font-size: 12px; } }
+@media (max-width: 550px) { .game-shell { --hud-height: 112px; } .game-toolbar { justify-content: center; } .game-toolbar-actions { width: 100%; justify-content: center; } }
 
 .battle-controls {
   box-sizing: border-box;
@@ -109,14 +107,14 @@ body {
 .battle-answer-form { display: flex; gap: 8px; margin-bottom: 8px; }
 .battle-controls input { flex: 1; min-width: 0; background: #fff8e8; color: #2a1d14; }
 
-.account-menu { position: absolute; z-index: 50; top: 8px; right: 8px; font: 14px/1.5 Galmuri14, monospace; }
+.account-menu { position: relative; z-index: 50; font: 14px/1.5 Galmuri14, monospace; }
 .account-menu button { cursor: pointer; padding: 10px; min-height: 44px; color: #f1e4cb; background: #49301c; border: 2px solid #c9a876; }
 .account-menu button:disabled { opacity: .5; }
 .account-menu button:focus-visible { outline: 3px solid #a33422; }
-.account-panel { display: flex; flex-direction: column; gap: 10px; padding: 16px; width: min(380px, calc(100vw - 16px)); max-height: calc(100dvh - 64px); overflow: auto; color: #2a1d14; background: #f1e4cb; border: 4px solid #684525; box-shadow: 4px 4px #2a1d14; }
+.account-panel { position: absolute; right: 0; bottom: calc(100% + 8px); display: flex; flex-direction: column; gap: 10px; padding: 16px; width: min(380px, calc(100vw - 16px)); max-height: calc(100dvh - 92px); overflow: auto; color: #2a1d14; background: #f1e4cb; border: 4px solid #684525; box-shadow: 4px 4px #2a1d14; }
 .account-panel p { overflow-wrap: anywhere; }
 
-.source-launch { position: absolute; top: 8px; left: 8px; z-index: 45; min-height: 44px; padding: 8px 12px; font: 14px/1.5 Galmuri14, monospace; color: #f1e4cb; background: #49301c; border: 2px solid #c9a876; cursor: pointer; }
+.source-launch { cursor: pointer; }
 .source-dialog { width: min(1080px, calc(100vw - 24px)); max-height: calc(100dvh - 24px); margin: auto; padding: 20px; color: #2a1d14; background: #f1e4cb; border: 5px solid #684525; box-shadow: 5px 5px #2a1d14; font: 16px/1.5 Galmuri14, monospace; }
 .source-dialog[open] { display: flex; flex-direction: column; gap: 14px; }
 .source-dialog::backdrop { background: #180f08c9; }
@@ -146,7 +144,6 @@ body {
 .source-creature { border-top: 1px solid #c9a876; padding-top: 10px; }
 .source-card a { color: #8c392a; text-decoration: underline; margin-top: auto; }
 @media (max-width: 600px) and (min-height: 541px) {
-  .source-launch { position: static; align-self: center; }
   .source-dialog { padding: 12px; }
   .source-heading h2 { font-size: 21px; }
   .source-filters label { flex-basis: 130px; }
@@ -167,6 +164,16 @@ body {
 
 .rotate-hint {
   display: none;
+  position: absolute;
+  bottom: calc(var(--hud-height) + env(safe-area-inset-bottom) + 8px);
+  left: 16px;
+  right: 16px;
+  margin: 0;
+  text-align: center;
+  color: #c9a876;
+  font: 14px/1.4 Galmuri14, monospace;
+  z-index: 2;
+  pointer-events: none;
 }
 
 .career-workshop {
@@ -235,3 +242,10 @@ body {
     display: none;
   }
 }
+
+/* Canvas destinations also have ordinary keyboard-accessible controls. */
+.source-atlas-nav { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+.source-atlas-nav:focus-within { width: auto; height: auto; clip-path: none; left: 8px; right: 8px; bottom: 8px; z-index: 35; display: flex; flex-wrap: wrap; gap: 4px; background: #23160e; padding: 8px; }
+.source-atlas-nav button { min-height: 44px; padding: 6px 10px; font: 14px Galmuri14, monospace; background: #49301c; color: #f1e4cb; border: 1px solid #c9a876; }
+.source-atlas-nav button:disabled { opacity: .4; }
+@media (max-width: 550px) { .account-menu { position: static; } .account-panel { position: absolute; width: min(380px, calc(100vw - 40px)); right: 8px; bottom: calc(100% + 8px); max-height: calc(100dvh - 160px); } }
