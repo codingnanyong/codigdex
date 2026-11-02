@@ -23,9 +23,28 @@ async function firstCareerBattle(page: Page, save: StoredGameStateV3) {
   await scene(page, "code-battle");
 }
 
+async function enterSourceRegion(page: Page) {
+  await scene(page, "open-source-event");
+  const atlas = page.locator(".source-atlas-nav");
+  if (await atlas.count()) {
+    await expect(atlas.locator("button[data-family]")).toHaveCount(9);
+    await expect(atlas.locator("button[data-family]:enabled")).toHaveCount(1);
+    await click(page, 718, 501);
+  }
+  await expect(page.locator(".stage-route-nav button[data-stage-id]")).toHaveCount(5);
+  const arena = await page.locator(".stage-route-nav").getAttribute("data-arena");
+  await expect.poll(() => page.locator(".game-backdrop").evaluate((el) => getComputedStyle(el).backgroundImage)).toContain(arena!);
+}
+async function startSourceBattle(page: Page) {
+  await enterSourceRegion(page);
+  await click(page, 718, 501);
+  await scene(page, "code-battle");
+}
+
 async function finishRequest(page: Page, toolId: string) {
   const captured = new Set((await readSave(page)).progress.captures.map(({ id }) => id));
   for (const form of openSourceEvolutionFor(toolId).filter(({ id }) => !captured.has(id))) {
+    if (await page.getByRole("application").getAttribute("data-scene") === "open-source-event") await startSourceBattle(page);
     await answerBattle(page, form.id);
     await confirmResult(page);
   }
@@ -42,6 +61,7 @@ test("keeps a settled career offer when notes are inspected and the result is re
   await page.keyboard.press("Escape");
   await reload(page);
   await scene(page, "open-source-event");
+  await enterSourceRegion(page);
   await expect(page.locator(".stage-route-nav button[data-stage-id]")).toHaveCount(5);
   await expect(page.locator(".stage-route-nav button[data-stage-id]:enabled")).toHaveCount(1);
   await page.keyboard.press("5");
@@ -70,7 +90,7 @@ for (const career of SOURCE_CAREERS) test(`meets ${career.firstTool} inside the 
   await expect(notes.getByRole("button", { name: /START MISSION|REPLAY MISSION/ })).toHaveCount(0);
   await page.keyboard.press("Escape");
   if (career.id === "frontend") { await reload(page); await scene(page, "open-source-event"); }
-  await click(page, 718, 501);
+  await startSourceBattle(page);
   await scene(page, "code-battle");
   await answerBattle(page, `open-source:${career.firstTool}:lv1`);
   const captured = await readSave(page);
@@ -78,7 +98,7 @@ for (const career of SOURCE_CAREERS) test(`meets ${career.firstTool} inside the 
   expect(captured.player).toEqual(seed.player);
   expect(captured.progress.captures.filter(({ id }) => id === `open-source:${career.firstTool}:lv1`)).toHaveLength(1);
   expect(captured.progress.captures).toEqual(expect.arrayContaining(seed.progress.captures));
-  if (career.id === "data-engineer") { await reload(page); await scene(page, "open-source-event"); await click(page, 718, 501); }
+  if (career.id === "data-engineer") { await reload(page); await scene(page, "open-source-event"); await startSourceBattle(page); }
   else await confirmResult(page);
   await finishRequest(page, career.firstTool);
   for (const form of openSourceEvolutionFor(career.firstTool)) expect((await readSave(page)).progress.captures.filter(({ id }) => id === form.id)).toHaveLength(1);
@@ -121,12 +141,12 @@ test("retries an event after failure and restores a pending request on reload", 
   await confirmResult(page);
   await scene(page, "open-source-event");
   await page.screenshot({ path: "../mobile/.tmp-qa/encounter-narrow-ko.png" });
-  await click(page, 718, 501);
+  await startSourceBattle(page);
   await answerBattle(page, "open-source:tanstack-query:lv1", false);
   expect((await readSave(page)).progress.captures.some(({ id }) => id === "open-source:tanstack-query:lv1")).toBe(false);
   await reload(page);
   await scene(page, "open-source-event");
-  await click(page, 718, 501);
+  await startSourceBattle(page);
   await answerBattle(page, "open-source:tanstack-query:lv1");
   await confirmResult(page);
   await finishRequest(page, "tanstack-query");
@@ -140,20 +160,21 @@ test("pauses a five-form request without interrupting career battles, then resum
   await boot(page, seed); await firstCareerBattle(page, seed);
   await answerBattle(page, seed.ui.checkpointId!); await confirmResult(page);
   const bookmark = (await readSave(page)).ui.checkpointId!;
-  await click(page, 718, 501); await answerBattle(page, "open-source:tanstack-query:lv1");
+  await startSourceBattle(page); await answerBattle(page, "open-source:tanstack-query:lv1");
   await click(page, 844, 32); await scene(page, "career-region");
   expect((await readSave(page)).ui.checkpointId).toBe(bookmark);
   const point = careerCheckpointLayout("frontend", "html-css")[1];
   await click(page, point.x, point.y); await answerBattle(page, bookmark); await confirmResult(page);
   await scene(page, "career-region");
   await reload(page); await scene(page, "open-source-event");
+  await enterSourceRegion(page);
   await expect(page.locator(".stage-route-nav button[data-stage-id]:enabled")).toHaveCount(2);
   await page.keyboard.press("1");
   await expect(page.locator('.stage-route-nav [aria-current="step"]')).toHaveAttribute("data-stage-id", "open-source:tanstack-query:lv1");
   await page.keyboard.press("2");
   await expect(page.locator('.stage-route-nav [aria-current="step"]')).toHaveAttribute("data-stage-id", "open-source:tanstack-query:lv2");
   await page.screenshot({ path: "../qa-results/oss-request-paused-lv2-en.png" });
-  await click(page, 718, 501); await scene(page, "code-battle");
+  await startSourceBattle(page); await scene(page, "code-battle");
   await finishRequest(page, "tanstack-query");
   await scene(page, "career-region");
   for (const form of openSourceEvolutionFor("tanstack-query")) expect((await readSave(page)).progress.captures.filter(({ id }) => id === form.id)).toHaveLength(1);

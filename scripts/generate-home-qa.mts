@@ -168,14 +168,14 @@ for (const [index, career] of SOURCE_CAREERS.entries()) {
     ...battleSteps(true, false, await questionsFor(first)), ...(index === 0 ? restart : tap("result-world")),
     visible("source-event-tool", findOpenSource(career.firstTool)!.name),
     ...(index === 1 ? [...restart, visible("source-event-title")] : []),
-    ...tap("source-event-accept"), visible("battle-prompt"),
-    ...(index === 2 ? [...restart, ...tap("source-event-accept"), visible("battle-prompt")] : []),
+    ...tap("source-atlas-enter"), ...tap("source-event-accept"), visible("battle-prompt"),
+    ...(index === 2 ? [...restart, ...tap("source-atlas-enter"), ...tap("source-event-accept"), visible("battle-prompt")] : []),
   ];
   for (const [phase, form] of openSourceEvolutionFor(career.firstTool).entries()) {
     commands.push(...battleSteps(true, false, await questionsFor(form)));
-    if (index === 3 && phase === 0) commands.push(...restart, ...tap("source-event-accept"));
-    else if (index === 4 && phase === 1) commands.push(...tap("result-world"), visible("career-title"), ...tap("career-menu", "UP"), ...restart, ...tap("source-event-accept"));
-    else commands.push(...tap("result-continue"));
+    if (index === 3 && phase === 0) commands.push(...restart, ...tap("source-atlas-enter"), ...tap("source-event-accept"));
+    else if (index === 4 && phase === 1) commands.push(...tap("result-world"), visible("career-title"), ...tap("career-menu", "UP"), ...restart, ...tap("source-atlas-enter"), ...tap("source-event-accept"));
+    else commands.push(...tap("result-continue"), ...(phase < 4 ? tap("source-event-accept") : []));
   }
   commands.push(visible("career-title"), ...tap("career-menu", "UP"), ...tap("home-qa"),
     visible("qa-captures", String(preset.save.progress.captures.length + 6)), saved(),
@@ -235,10 +235,10 @@ yaml("flows/cod-238-encounter-save-recovery", "COD-238 request-history save fail
   { takeScreenshot: "cod-238-request-save-recovered" },
 ]);
 yaml("flows/cod-238-encounter-battle-retry", "COD-238 failed request battle, retry and original career return", ["cod-238", "encounters"], [
-  ...beginRequest, ...battleSteps(true, false, recoveryBattle), ...tap("result-world"), ...tap("source-event-accept"),
+  ...beginRequest, ...battleSteps(true, false, recoveryBattle), ...tap("result-world"), ...tap("source-atlas-enter"), ...tap("source-event-accept"),
   ...battleSteps(false, false, await questionsFor(recoveryTool)), ...tap("result-retry"), visible("source-event-title"),
   ...tap("source-event-accept"), ...battleSteps(true, false, await questionsFor(recoveryTool)), ...tap("result-continue"),
-  ...(await Promise.all(openSourceEvolutionFor("tanstack-query").slice(1).map(async (form) => [...battleSteps(true, false, await questionsFor(form)), ...tap("result-continue")]))).flat(),
+  ...(await Promise.all(openSourceEvolutionFor("tanstack-query").slice(1).map(async (form) => [...tap("source-event-accept"), ...battleSteps(true, false, await questionsFor(form)), ...tap("result-continue")]))).flat(),
   visible("career-title"), ...tap("career-menu", "UP"), ...tap("home-qa"), visible("qa-captures", String(recoveryPreset.save.progress.captures.length + 6)), saved(),
   { takeScreenshot: "cod-238-request-battle-retried" },
 ]);

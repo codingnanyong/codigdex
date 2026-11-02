@@ -43,14 +43,14 @@ describe("capture navigation with the real encounter session", () => {
     confirmCaptureTarget(context, events);
     const pending = events.pending(context.save)!;
     events.accept(context.save, pending.id);
-    expect(retryCaptureTarget(pending.id, { scene: "world-map" })).toEqual({ scene: "open-source-event" });
+    expect(retryCaptureTarget(pending.id, { scene: "world-map" })).toEqual({ scene: "open-source-event", data: { view: "region" } });
     expect(events.pending(context.save)?.state).toBe("active");
     const completed = structuredClone(context.save);
     const forms = openSourceEvolutionFor("tanstack-query");
     for (const [index, form] of forms.entries()) {
       completed.progress.captures.push({ id: form.id, capturedAt: "2026-10-28T02:00:00.000Z" });
       const target = confirmCaptureTarget({ ...context, save: completed, monsterId: form.id, sourceEventId: pending.id, fallback: { scene: "world-map" } }, events);
-      expect(target).toEqual(index === 4 ? context.fallback : { scene: "code-battle", data: { monsterId: forms[index + 1].id, sourceEventId: pending.id, returnTo: context.fallback } });
+      expect(target).toEqual(index === 4 ? context.fallback : { scene: "open-source-event", data: { view: "region" } });
       if (index < 4) expect(events.pending(completed)?.id).toBe(pending.id);
     }
     expect(events.pending(completed)).toBeUndefined();
