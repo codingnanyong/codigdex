@@ -36,7 +36,7 @@
     "qa:web": "node scripts/web-qa.mjs",
     "qa:report": "node scripts/home-qa-report.mjs",
     "qa:generate": "tsx scripts/generate-home-qa.mts",
-    "qa:check": "tsx scripts/generate-home-qa.mts --check && node --test scripts/home-qa.test.mjs",
+    "qa:check": "tsx scripts/generate-home-qa.mts --check && node --test scripts/home-qa.test.mjs scripts/home-qa-launcher.test.mjs",
     "typecheck": "npm run check:boundaries && npm run typecheck --workspaces --if-present"
   },
   "dependencies": {
