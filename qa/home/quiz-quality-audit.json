@@ -1,8 +1,8 @@
 {
-  "version": 1,
-  "reviewedOn": "2026-11-02",
+  "version": 2,
+  "reviewedOn": "2026-11-03",
   "owner": "Codex",
-  "scope": "Source and generated-choice semantic review of all 500 tier-two and 266 open-source questions, plus 75 new required design questions and 25 worked examples. Official documentation checks are targeted; this is not a certification by executing every technology.",
+  "scope": "Source and generated-choice review of 500 tier-two and the current 380 open-source questions, plus 75 required design questions. Preserve the historical 266-question OSS review below; the 2026-11-03 follow-up separately covers the 114 added reverse questions, 25 workshop examples and 25 master briefs/examples. Official documentation and runtime checks are targeted, not certification of every technology.",
   "reviewedGroups": [
     {
       "stageIds": [
@@ -56,7 +56,7 @@
     }
   ],
   "manualFactReviewCount": 44,
-  "remainingFactReview": "All scoped tier-two/open-source prompts and generated choices were read. Runtime execution of every command and exhaustive official-document certification were not performed. Primary questions outside the earlier testing sample remain outside this review.",
+  "remainingFactReview": "The scoped tier-two/current OSS source-and-choice review is covered by the historical review plus the follow-up below. Official references and eight executable examples target semantic findings. Primary questions outside the earlier testing sample and exhaustive execution of every technology remain outside this scope.",
   "primaryPoolInventory": {
     "technologyCount": 20,
     "stageCount": 100,
@@ -119,6 +119,56 @@
         "change": "Always draw the three required design questions. Reject any wrong required answer and block early passing until all required answers are correct; propagate reducer outcome to Web capture results."
       }
     ],
-    "limits": "String/shape validation is separate from semantic review. Facts were not independently executed on every framework or deployment. New device acceptance and live protected Preview verification remain outstanding."
+    "limits": "Historical 2026-11-02 scope. String/shape validation is separate from semantic review. Facts were not independently executed on every framework or deployment. New device acceptance and live protected Preview verification remained outstanding."
+  },
+  "weeklyCloseout": {
+    "date": "2026-11-03",
+    "baseCommit": "46997b2d20e3511c02d8b94eaf797a2007f0a86e",
+    "owner": "Codex",
+    "reviewer": "Independent read-only reviewer using shared-change-review",
+    "inventory": {
+      "secondaryQuestions": 500,
+      "openSourceTools": 38,
+      "openSourceQuestionsPerTool": 10,
+      "openSourceQuestions": 380,
+      "newReverseQuestionsSinceHistoricalReview": 114,
+      "requiredDesignQuestions": 75,
+      "totalScopedAuthoredQuestions": 955,
+      "workshopExamples": 25,
+      "masterBriefExamples": 25,
+      "note": "Counts describe authored source questions; reusing a tool pool across its five evolution forms does not multiply the semantic-review count. The primary inventory and historical 44-question fact sample remain separate."
+    },
+    "method": "Read all current OSS prompts/choices including 114 reverse questions; reconcile the historical 500+266+75 review with the current inventory; inspect workshop/master examples and target official references at overlapping actions. Validate generated four-choice sets and bilingual parity separately. Narrow the six affected tool lessons and analytics lineage premises without changing canonical IDs or grading.",
+    "corrections": [
+      { "tool": "tanstack-query", "finding": "Active-query invalidation can also refetch, so generic refresh scenarios admitted both answers.", "change": "Distinguish marking related queries stale after mutation from direct selected-query refetch without invalidation; reverse questions inherit the clarified situations." },
+      { "tool": "avro", "finding": "Reader-writer schema resolution includes defaults, so the default-field scenario also answered the reverse compatibility question.", "change": "State compatibility has passed and ask specifically for the declared fill value of the missing reader field." },
+      { "tool": "scikit-learn", "finding": "Train-only preprocessing is also required inside cross-validation pipelines.", "change": "Separate unsplit data, an already-completed split, and already-verified train-only transforms that now need a Pipeline composition." },
+      { "tool": "feast", "finding": "Historical dataset retrieval includes point-in-time joins.", "change": "Separate an existing dataset with temporal leakage from bulk offline dataset assembly after temporal checks have passed." },
+      { "tool": "hive", "finding": "Generic SQL/WHERE includes aggregation and partition filtering.", "change": "Narrow the first action to original-row filtering on a non-partition column and state the partition scope is already selected." },
+      { "tool": "duckdb", "finding": "Direct Parquet queries also execute in-process.", "change": "State embedding is complete and ask for file-path queries without first loading a table." },
+      { "source": "analytics.ts lineage", "finding": "Tracing dependencies can also identify affected consumers.", "change": "Exclude the overlapping consumer action from the path-tracing case and state known lineage before asking for consumers/owners to notify." }
+    ],
+    "officialReferences": [
+      "https://tanstack.com/query/latest/docs/framework/react/guides/query-invalidation",
+      "https://tanstack.com/query/latest/docs/framework/react/reference/classes/QueryClient",
+      "https://docs.getdbt.com/docs/build/exposures",
+      "https://avro.apache.org/docs/1.12.0/specification/#schema-resolution",
+      "https://scikit-learn.org/stable/common_pitfalls.html#data-leakage",
+      "https://docs.feast.dev/getting-started/concepts/point-in-time-joins",
+      "https://hive.apache.org/docs/latest/language/languagemanual-select/",
+      "https://hive.apache.org/docs/latest/language/languagemanual-groupby/",
+      "https://duckdb.org/docs/2.0/clients/overview",
+      "https://duckdb.org/docs/2.0/data/parquet/overview"
+    ],
+    "runtimeProof": {
+      "script": "qa/home/quiz-fact-proof.mjs",
+      "command": "node qa/home/quiz-fact-proof.mjs",
+      "optionalIsolatedInstall": "npm install --prefix qa-results/tools/query-proof --no-save --ignore-scripts @tanstack/query-core@5.105.3",
+      "queryCoreVersion": "5.105.3",
+      "postgresVersion": "18.6 (PGlite 0.5.11)",
+      "passed": 8,
+      "checks": ["Invalidation without refetch", "Active-query invalidation with refetch", "Direct refetch without invalidating another query", "One-to-many aggregate inflation 250 versus corrected 150", "Transfer ROLLBACK restores 100/50", "Duplicate primary-key rejection", "Population-weighted ratio 901/1010 versus unweighted 0.5", "99.9% request error budget: 100 allowed, 80 consumed, 20 remaining"]
+    },
+    "limits": "Targeted official-document checks and executable examples, not every framework/version executed. Native host tests and JS exports are distinct from physical-device acceptance; the user will perform device checks at home. Protected Preview access still requires the repository automation credential and a successful live authenticated run. BGM and account/cloud implementation are excluded. Final CI/deployment evidence belongs on the feature/release PRs."
   }
 }
