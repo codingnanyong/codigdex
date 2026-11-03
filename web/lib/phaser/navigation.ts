@@ -9,6 +9,12 @@ const PLAY_SCENES = [
   "code-battle",
   "capture-quiz",
   "codigdex",
+  "promotion-chapter",
+  "career-workshop",
+  "secondary-atlas",
+  "secondary-region",
+  "open-source-event",
+  "settings",
 ] as const;
 
 /** Returns to the title without clearing saved progress or leaving paused scenes behind. */

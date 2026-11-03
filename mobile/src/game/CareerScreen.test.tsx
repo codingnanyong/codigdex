@@ -52,7 +52,7 @@ describe("native career route", () => {
     state.save = platformSave("platform-engineer");
     state.save.progress.captures.push({ id: "open-source:postgresql", capturedAt: "2026-10-28T00:00:00.000Z" });
     const opened: string[][] = [];
-    renderToStaticMarkup(<CareerScreen selectedRegionId="sql" onOpenSources={(ids) => opened.push([...ids])} onBack={() => {}} onBattle={() => {}} />);
+    renderToStaticMarkup(<CareerScreen selectedRegionId="sql" onOpenSources={(ids = []) => opened.push([...ids])} onBack={() => {}} onBattle={() => {}} />);
     expect(state.controls.some(({ testID }) => testID === "career-checkpoint-query-mole")).toBe(true);
     state.controls.find(({ testID }) => testID === "career-region-open-source")!.onPress!();
     expect(opened[0]).toContain("postgresql");

@@ -185,14 +185,6 @@ tags:
     text: dbt Core
 - scrollUntilVisible:
     element:
-      id: source-atlas-enter
-    direction: DOWN
-    timeout: 60000
-    speed: 20
-- tapOn:
-    id: source-atlas-enter
-- scrollUntilVisible:
-    element:
       id: source-event-accept
     direction: DOWN
     timeout: 60000

@@ -43,7 +43,7 @@ describe("capture navigation with the real encounter session", () => {
     confirmCaptureTarget(context, events);
     const pending = events.pending(context.save)!;
     events.accept(context.save, pending.id);
-    expect(retryCaptureTarget(pending.id, { scene: "world-map" })).toEqual({ scene: "open-source-event", data: { view: "region" } });
+    expect(retryCaptureTarget(pending.id, { scene: "world-map" })).toEqual({ scene: "open-source-event" });
     expect(events.pending(context.save)?.state).toBe("active");
     const completed = structuredClone(context.save);
     const forms = openSourceEvolutionFor("tanstack-query");
