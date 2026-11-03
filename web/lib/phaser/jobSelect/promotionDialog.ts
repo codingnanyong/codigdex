@@ -113,6 +113,7 @@ export function createPromotionDialog(
       cancel,
       confirm,
     ])
+    .setName("game-dialog")
     .setDepth(20)
     .setAlpha(0);
   scene.tweens.add({

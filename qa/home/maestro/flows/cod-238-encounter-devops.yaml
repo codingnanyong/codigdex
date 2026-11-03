@@ -211,14 +211,6 @@ tags:
     id: result-continue
 - scrollUntilVisible:
     element:
-      id: source-event-accept
-    direction: DOWN
-    timeout: 60000
-    speed: 20
-- tapOn:
-    id: source-event-accept
-- scrollUntilVisible:
-    element:
       id: battle-choice-3
     direction: DOWN
     timeout: 60000
@@ -308,14 +300,6 @@ tags:
     id: result-continue
 - scrollUntilVisible:
     element:
-      id: source-event-accept
-    direction: DOWN
-    timeout: 60000
-    speed: 20
-- tapOn:
-    id: source-event-accept
-- scrollUntilVisible:
-    element:
       id: battle-choice-3
     direction: DOWN
     timeout: 60000
@@ -403,14 +387,6 @@ tags:
     speed: 20
 - tapOn:
     id: result-continue
-- scrollUntilVisible:
-    element:
-      id: source-event-accept
-    direction: DOWN
-    timeout: 60000
-    speed: 20
-- tapOn:
-    id: source-event-accept
 - scrollUntilVisible:
     element:
       id: battle-choice-3
@@ -526,14 +502,6 @@ tags:
     speed: 20
 - tapOn:
     id: result-continue
-- scrollUntilVisible:
-    element:
-      id: source-event-accept
-    direction: DOWN
-    timeout: 60000
-    speed: 20
-- tapOn:
-    id: source-event-accept
 - scrollUntilVisible:
     element:
       id: battle-choice-3

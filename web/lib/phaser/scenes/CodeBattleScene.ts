@@ -113,7 +113,7 @@ export class CodeBattleScene extends Phaser.Scene {
 
     const { npcName } = this.chapter;
 
-    drawNpcBanner(this, `${lt(this, npcName)}: ${lt(this, this.monster.preBattleLine)}`);
+    drawNpcBanner(this, this.sourceEventId ? `${sceneLocale(this) === "ko" ? "오픈소스 의뢰" : "OPEN-SOURCE REQUEST"} · Lv.${this.monster.level}/5` : `${lt(this, npcName)}: ${lt(this, this.monster.preBattleLine)}`);
     this.status = new StatusPanel(this, this.monster);
     this.opponent = new Opponent(this, this.monster);
     this.controls = new MixedControls(this);

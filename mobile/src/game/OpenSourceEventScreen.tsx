@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Image, StyleSheet, Text, View } from "react-native";
 import type { Locale } from "@codigdex/game-core/i18n/locale";
 import type { MonsterDefinition } from "@codigdex/game-core/domain/chapters/types";
@@ -12,6 +13,7 @@ import { PixelScene } from "../ui/PixelScene";
 import { openSourceArenaForStage, openSourceEvolutionFor } from "@codigdex/game-content/domain/openSourceChapters";
 
 export function OpenSourceEventScreen({ encounter, stage, captured, capturedLevels = [], locale, onAccept, onLater, onAtlas, saveError, onRetrySave }: { encounter: SourceEncounter; stage: MonsterDefinition; captured: boolean; capturedLevels?: readonly number[]; locale: Locale; onAccept(): void; onLater(): void; onAtlas(): void; saveError: boolean; onRetrySave(): void }) {
+  const [detailsOpen, setDetailsOpen] = useState(false);
   const entry = findOpenSource(encounter.toolId)!;
   const ko = locale === "ko";
   return <Screen scroll><View style={styles.content}>
@@ -25,9 +27,12 @@ export function OpenSourceEventScreen({ encounter, stage, captured, capturedLeve
     </View>
     <Text style={styles.clue}>No.{stage.dexNumber} · Lv.{stage.level}/5</Text>
     <Text testID="source-event-tool" style={styles.heading}>{entry.name}</Text>
+    <PixelButton testID="source-event-details" compact variant="quiet" onPress={() => setDetailsOpen(!detailsOpen)}>{detailsOpen ? (ko ? "설명 접기" : "HIDE DETAILS") : (ko ? "설명 보기" : "DETAILS")}</PixelButton>
+    {detailsOpen ? <View style={{ gap: 12 }}>
     <Text style={styles.body}>{localize(sourceCareer(encounter.careerId)!.workplace, locale)}</Text>
     <Text style={styles.body}>{localize(entry.role, locale)}</Text>
     <Text style={styles.clue}>{localize(entry.learning, locale)}</Text>
+    </View> : null}
     <Text testID="source-event-progress" style={styles.clue}>{ko ? "같은 의뢰에서 다섯 진화형을 이어서 만납니다." : "Follow all five forms in this request."} · {capturedLevels.length}/5</Text>
     <View style={styles.forms}>{openSourceEvolutionFor(entry.id).map((form) => <View key={form.id} style={[styles.form, form.id === stage.id && styles.current]}>
       <Image accessibilityLabel={localize(form.name, locale)} source={mobileAssetSource(form.assetKey)} resizeMode="contain" style={[styles.smallPortrait, { opacity: capturedLevels.includes(form.level) || form.id === stage.id ? 1 : 0.35 }]} />

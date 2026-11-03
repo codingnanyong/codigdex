@@ -917,6 +917,19 @@ tags:
     speed: 20
 - tapOn:
     id: home-play
+- runFlow:
+    when:
+      visible:
+        id: source-event-title
+    commands:
+      - scrollUntilVisible:
+          element:
+            id: source-event-later
+          direction: DOWN
+          timeout: 60000
+          speed: 20
+      - tapOn:
+          id: source-event-later
 - scrollUntilVisible:
     element:
       id: secondary-master

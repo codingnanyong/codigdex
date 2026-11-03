@@ -10,10 +10,10 @@ export function drawOpenSourceAtlas(scene: Phaser.Scene, entry: OpenSourceEntry,
   const ko = sceneLocale(scene) === "ko";
   scene.cameras.main.setBackgroundColor(PALETTE_HEX.nightBrown);
   scene.add.rectangle(480, 270, 960, 540, PALETTE.nightBrown);
-  drawOrnateFrame(scene, 480, 48, 860, 72, { radius: 10 });
+  drawOrnateFrame(scene, 480, 48, 776, 72, { radius: 10 });
   scene.add.text(480, 31, ko ? "오픈소스 · 생태계 지도" : "OPEN SOURCE · ECOSYSTEM ATLAS", { ...pixelText("subtitle"), color: PALETTE_HEX.maroon }).setOrigin(0.5);
   const subtitle = scene.add.text(480, 64, `${entry.name} → ${lt(scene, OPEN_SOURCE_FAMILIES[entry.family])}`, { ...pixelText("body"), color: PALETTE_HEX.ink }).setOrigin(0.5);
-  fitTextInside(subtitle, 810, 24);
+  fitTextInside(subtitle, 730, 24);
   const nav = document.createElement("nav");
   nav.className = "source-atlas-nav";
   nav.setAttribute("aria-label", ko ? "오픈소스 생태계 지도" : "Open-source ecosystem atlas");

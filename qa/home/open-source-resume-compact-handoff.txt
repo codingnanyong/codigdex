@@ -1,0 +1,22 @@
+Owner: Codex
+Reviewer: /root/review_immersive_shell, read-only shared-change-review; No blocking findings after guarding modal travel and validating native pending state.
+Scope: Recover an opened/paused open-source request after returning to a career; make explanations optional and avoid left utility rail overlap.
+Changed files:
+- packages/game-content/src/domain/openSourceEncounterSession.ts: durable pause including an unaccepted offer; authorized recovery of current-career discovered unfinished tools using a real captured career trigger. Preserve normal save/checkpoint and reject replacing another pending request.
+- web/components/OpenSourcePanel.tsx and web/lib/phaser/openSourceNotes.ts: pending-request rail/notebook actions, legacy discovery recovery after modal cleanup. Explicit active/paused safe-scene checks prevent abandoning quizzes, results, workshops, settings or other protected screens.
+- mobile/src/game/NativeGame.tsx, CareerScreen.tsx, OpenSourceScreen.tsx: career/notebook resume; validated pendingToolId avoids stale foreign-career history disabling recovery.
+- web/lib/phaser/capture/resultNavigation.ts and NativeGame: successful next-form confirmation opens the next battle directly; failures/pauses retain request identity and next missing form.
+- web/lib/phaser/scenes/OpenSourceEventScene.ts and mobile/src/game/OpenSourceEventScreen.tsx: optional collapsed explanation with accessible details toggle.
+- web/components/GameHeader.tsx, PhaserGame.tsx, globals.css; Phaser quest/promotion dialog markers, source atlas header, battle banner: explanations auto-collapse left utility actions; workshop panel and source headings avoid the menu button; source battle banner shows concise level status.
+- Domain, navigation, native UI and browser regression tests; scripts/generate-home-qa.mts; synchronized QA YAMLs/cases.json and QA count contract. New cod-238-request-resume native flow; total35 native flows,37 generated case files. This report.
+Generated assets: None. Screenshots and test logs remain ignored in qa-results/.
+Checks run:
+- Web758/758 and Mobile156/156 unit/domain/component/generated-flow tests passed.
+- Web and Mobile TypeScript, Web lint, production webpack build, qa:check22/22, check:agents and diff check passed.
+- Initial focused dev browser3/3 passed; production-focused run16 passed,1 default-language fixture failure caused by temporary config missing ko-KR. Corrected same default locale as repository; final17/17 production-focused browser tests passed with retries off. Evidence: qa-results/source-resume-junit.xml and open-source-resume-details.png.
+- Dedicated iOS user-regression flow pending on the commit following this report; record its exact JS revision and JUnit after execution.
+Remaining risks / handoff:
+- User clarified overlap means left Home/Settings/account utility icons. Default menu collapse and panel safe inset address that case; users may explicitly reopen the rail.
+- Recovery is for discovered unfinished tools of the active career; other active requests and unearned careers remain protected. Completed notes remain reviewable.
+- The new request flow remains local; no push/PR/merge/deployment authorized or performed in this task. Previous HUD stash remains untouched.
+- This follow-up does not certify the complete35-flow native suite, physical-device acceptance or account/cloud flows. Earlier simulator evidence refers to earlier commits and remains historical.

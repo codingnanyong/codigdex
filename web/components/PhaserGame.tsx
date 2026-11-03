@@ -46,6 +46,7 @@ export default function PhaserGame({ qaEnabled = false }: { qaEnabled?: boolean 
   const [backdrop, setBackdrop] = useState(assetUrl(WALLPAPERS.field));
   const [runtime, setRuntime] = useState<Phaser.Game | null>(null);
   const [activeScene, setActiveScene] = useState("");
+  const [hudCompact, setHudCompact] = useState(false);
   const [controls, setControls] = useState<GameControls>({});
   const [accountOpen, setAccountOpen] = useState(false);
   const [locale, setLocale] = useState<Locale>(DEFAULT_LOCALE);
@@ -102,6 +103,7 @@ export default function PhaserGame({ qaEnabled = false }: { qaEnabled?: boolean 
       const game = new PhaserLib.Game(createGameConfig(containerRef.current));
       gameRef.current = game;
       const textureSources = new Map<string, string>();
+      let previousCompact = false;
       let previousScene = "";
       let previousRoot: unknown;
       let previousBackdrop = "";
@@ -110,6 +112,8 @@ export default function PhaserGame({ qaEnabled = false }: { qaEnabled?: boolean 
         if (cancelled) return;
         const scene = game.scene.getScenes(true).at(-1);
         const current = scene?.sys.settings.key ?? "";
+        const compact = ["open-source-event", "career-workshop"].includes(current) || !!scene?.children.list.some(child => child.name === "game-dialog");
+        if (compact !== previousCompact) { previousCompact = compact; setHudCompact(compact); if (compact) setAccountOpen(false); }
         const nextControls = gameControlsFor(scene);
         if (nextControls !== previousControls) { previousControls = nextControls; setControls(nextControls); }
         const root = scene?.children.list[0];
@@ -191,7 +195,7 @@ export default function PhaserGame({ qaEnabled = false }: { qaEnabled?: boolean 
   return (
     <div ref={shellRef} className="game-shell">
       <div className="game-backdrop" aria-hidden="true" style={{ backgroundImage: `url(${JSON.stringify(backdrop)})` }} />
-      <GameHeader locale={locale} onClose={() => setAccountOpen(false)}>
+      <GameHeader compact={hudCompact} locale={locale} onClose={() => setAccountOpen(false)}>
         <button className="game-home-toggle" disabled={!controls.home} onClick={() => { setAccountOpen(false); controls.home?.(); }} title={locale === "ko" ? "홈으로" : "HOME"}>
           <GameIcon name="home" /><span className="sr-only">{locale === "ko" ? "홈으로" : "HOME"}</span>
         </button>

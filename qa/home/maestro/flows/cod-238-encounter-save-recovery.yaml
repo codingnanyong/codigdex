@@ -1,5 +1,5 @@
 appId: com.codingnanyong.codigdex
-name: COD-238 request-history save failure, retry, restart and decline
+name: COD-238 request-history save failure, retry, restart and pause
 tags:
   - cod-238
   - encounters

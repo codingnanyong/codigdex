@@ -79,7 +79,7 @@ export function showQuestDialog(
   if (namePlate) items.push(namePlate);
   items.push(speaker, body, startButton, closeButton);
 
-  const dialog = scene.add.container(0, 0, items).setDepth(10);
+  const dialog = scene.add.container(0, 0, items).setName("game-dialog").setDepth(10);
   applyPixelFontToScene(scene);
   return dialog;
 }

@@ -5,8 +5,10 @@ import type { Locale } from "@codigdex/game-core/i18n/locale";
 import { GameIcon } from "./GameIcon";
 
 /** An in-game HUD; it never reserves space outside the game canvas. */
-export default function GameHeader({ children, locale, onClose }: PropsWithChildren<{ locale: Locale; onClose(): void }>) {
-  const [open, setOpen] = useState(true);
+export default function GameHeader({ children, locale, onClose, compact = false }: PropsWithChildren<{ locale: Locale; compact?: boolean; onClose(): void }>) {
+  const [open, setOpen] = useState(!compact);
+  const [previousCompact, setPreviousCompact] = useState(compact);
+  if (previousCompact !== compact) { setPreviousCompact(compact); if (compact) setOpen(false); }
   const toggle = useRef<HTMLButtonElement>(null);
   const close = () => { setOpen(false); onClose(); toggle.current?.focus(); };
   useEffect(() => {
