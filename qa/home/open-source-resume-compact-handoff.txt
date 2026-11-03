@@ -28,3 +28,7 @@ Final focused iOS verification:
 - Final production browser17/17, Web758/758, Mobile156/156, QA22/22, types/lint/build/check:agents passed. No generated visual assets. No external publication. User-facing resume route after this fix: left menu → open-source notes → tool → resume request; native career also has RESUME OPEN-SOURCE REQUEST. Existing deployed version may still require Home → Continue for a retained request until this commit is released.
 
 Final evidence reviewer independently confirmed clean61d34dd iOS1/1 and production browser17/17 with no skips; No blocking product findings or acceptance overclaims. Browser JUnit report path corrected after review.
+
+Deployment preparation (user authorized WEB publication/merge/deployment):
+- Career-only browser checks now explicitly return from a retained request after reload, then use the real region/atlas/final-project controls where the test intends mastery review. Existing progress/mastery assertions and OSS-specific resume coverage remain. Changed web/test-support/game.ts plus promotion/master-project specs only; application source61d34dd unchanged.
+- Representative production browser2/2 passed (platform regional evolution/failure/capture/reload and five-region guardians/mastery/bilingual restoration). Independent read-only review: No blocking findings. Final remote CI head gates merge and production verification.
