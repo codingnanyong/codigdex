@@ -1,0 +1,9 @@
+Owner: Codex
+Reviewer: /root/review_immersive_shell; read-only shared-change-review; No blocking findings.
+Scope: Repair simulator encounter-note assertions that required an oversized card to fit wholly on a phone screen.
+Changed files: scripts/generate-home-qa.mts; scripts/home-qa.test.mjs; ten generated qa/home/maestro/flows/cod-238-encounter-*.yaml files; this report.
+Generated assets: None. Generated QA YAMLs remain synchronized with their generator.
+Checks run: QA generation verifies 36 case files; qa:check 22 tests; check:agents; git diff --check. Actual clean simulator reruns follow this commit and their run.json/JUnit are retained under ignored qa-results.
+Baseline evidence: main7613482 iOS passed the first11 scenarios; three encountered-tool note flows failed on 100% card visibility after battle/capture/save checks. Screenshots show completed5/5 cards. Runs were explicitly interrupted to fix the common condition; they are not complete passes. Android baseline was also interrupted; first server-address setup run is not accepted.
+Change rationale: Scroll to the actual tool title and independently verify EVOLUTION DEX · 5/5. Preserve discovery1/1, captures, battle results, pause/resume and restart checks. Native application source is unchanged.
+Remaining risks: Both platforms must finish all34 scenarios on this commit before acceptance. Fresh native apps were built from main7613482, whose native application sources are unchanged here; iOS uses Metro8081 and Android an installed fresh debug build explicitly configured for127.0.0.1:8082. No distribution, external publication, cloud login or physical-device acceptance is claimed.

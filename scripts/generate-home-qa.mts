@@ -181,7 +181,12 @@ for (const [index, career] of SOURCE_CAREERS.entries()) {
     visible("qa-captures", String(preset.save.progress.captures.length + 6)), saved(),
     ...tap("qa-menu", "UP"), ...tap("home-open-source"),
     scroll("open-source-count"), visible("open-source-count", "1/1 \u00b7 Discoveries from your career adventure"),
-    scroll(`open-source-${career.firstTool}`), visible(`open-source-${career.firstTool}`),
+    // A complete evolution card is taller than a phone screen. Verify its
+    // actual title and completed evolution text rather than 100% card visibility.
+    { scrollUntilVisible: { element: { text: findOpenSource(career.firstTool)!.name }, direction: "DOWN", timeout: 60000, speed: 20 } },
+    { assertVisible: { text: findOpenSource(career.firstTool)!.name } },
+    { scrollUntilVisible: { element: { text: "EVOLUTION DEX · 5/5" }, direction: "DOWN", timeout: 60000, speed: 20 } },
+    { assertVisible: { text: "EVOLUTION DEX · 5/5" } },
     { takeScreenshot: `cod-238-encounter-${career.id}` });
   yaml(`flows/cod-238-encounter-${career.id}`, `COD-238 ${career.id} five-stage request, pause, persistence and notes`, ["cod-238", "encounters"], commands);
 }

@@ -706,10 +706,18 @@ tags:
     text: 1/1 · Discoveries from your career adventure
 - scrollUntilVisible:
     element:
-      id: open-source-superset
+      text: Apache Superset
     direction: DOWN
     timeout: 60000
     speed: 20
 - assertVisible:
-    id: open-source-superset
+    text: Apache Superset
+- scrollUntilVisible:
+    element:
+      text: EVOLUTION DEX · 5/5
+    direction: DOWN
+    timeout: 60000
+    speed: 20
+- assertVisible:
+    text: EVOLUTION DEX · 5/5
 - takeScreenshot: cod-238-encounter-data-analyst
