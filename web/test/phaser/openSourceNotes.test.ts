@@ -1,6 +1,6 @@
 import type Phaser from "phaser";
 import { describe, expect, it, vi } from "vitest";
-import { pauseForOpenSourceNotes } from "@/lib/phaser/openSourceNotes";
+import { pauseForOpenSourceNotes, canResumeSourceFrom } from "@/lib/phaser/openSourceNotes";
 
 function runtime() {
   const states = new Map<string, string>([["intro", "active"], ["code-battle", "stopped"], ["open-source-chapter", "stopped"]]);
@@ -42,4 +42,20 @@ describe("notes engine boundary", () => {
     expect(game.scene.resume).not.toHaveBeenCalled();
     expect(states.get("intro")).toBe("stopped");
   });
+});
+
+
+it("allows resume from a paused career but never abandons active or paused protected screens", () => {
+  for (const key of ["code-battle", "capture-quiz", "career-workshop", "settings", "open-source-event"]) {
+    for (const paused of [true, false]) {
+      const scenes = [
+        { sys: { settings: { key: "career-region" }, isActive: () => false, isPaused: () => true } },
+        { sys: { settings: { key }, isActive: () => !paused, isPaused: () => paused } },
+      ];
+      expect(canResumeSourceFrom({ scene: { getScenes: () => scenes } } as unknown as Phaser.Game)).toBe(false);
+    }
+  }
+  const { game } = runtime();
+  pauseForOpenSourceNotes(game);
+  expect(canResumeSourceFrom(game)).toBe(true);
 });

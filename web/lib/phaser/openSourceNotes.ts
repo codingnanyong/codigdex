@@ -1,5 +1,12 @@
 import type Phaser from "phaser";
 
+/** Notes may inspect a paused battle; resuming a request must not discard it. */
+export function canResumeSourceFrom(game: Phaser.Game) {
+  const scenes = game.scene.getScenes(false).filter(scene => scene.sys.isActive() || scene.sys.isPaused());
+  const allowed = ["intro", "world-map", "job-select", "career-region", "promotion-chapter", "secondary-atlas", "secondary-region"];
+  return scenes.length > 0 && scenes.every(scene => allowed.includes(scene.sys.settings.key));
+}
+
 export function showOpenSourceNotes(ids?: readonly string[]) {
   if (!ids || ids.length) window.dispatchEvent(new CustomEvent("codigdex-open-source-notes", { detail: ids ? [...ids] : null }));
 }

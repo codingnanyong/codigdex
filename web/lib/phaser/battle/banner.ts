@@ -12,7 +12,7 @@ export function drawNpcBanner(scene: Phaser.Scene, line: string) {
       color: PALETTE_HEX.ink,
       backgroundColor: "#f1e4cbcc",
       padding: { x: 10, y: 5 },
-      wordWrap: { width: width - 80 },
+      wordWrap: { width: width - 180 },
       align: "center",
     })
     .setOrigin(0.5, 0);

@@ -58,7 +58,7 @@ export function NativeGame() {
     navigate(destinationFor(save, next.monster.id));
   };
   const finishEncounter = () => {
-    const target = pending && sourceEvents.leave(save, pending.id);
+    const target = pending && sourceEvents.pause(save, pending.id);
     navigate(target || { scene: "world-map" });
   };
   const leaveResult = (result: BattleResult, advance: boolean) => {
@@ -70,7 +70,7 @@ export function NativeGame() {
       }
       if (!advance) { navigate(sourceEvents.leave(save, result.sourceEventId) ?? destinationFor(save, result.beforeCapture.ui.checkpointId ?? result.monster.id)); return; }
       const completed = sourceEvents.completeStage(save, result.sourceEventId, result.monster.id);
-      if (completed?.kind === "next") setRoute({ name: "source-region" });
+      if (completed?.kind === "next") startBattle(completed.stage, result.sourceEventId);
       else navigate(completed?.returnTo ?? destinationFor(save, result.beforeCapture.ui.checkpointId ?? result.monster.id));
       return;
     }
@@ -81,6 +81,9 @@ export function NativeGame() {
     const pendingRequest = result.passed && sourceEvents.resolvePending(save);
     const offered = pendingRequest && pendingRequest.state !== "paused";
     if (offered) setRoute({ name: "encounter" }); else navigate(target);
+  };
+  const resumeSource = (toolId: string) => {
+    if (sourceEvents.resumeDiscovered(save, toolId)) setRoute({ name: "source-region" });
   };
   const title = () => <TitleScreen onOpenSources={() => setRoute({ name: "open-source", returnTo: "title" })} onCareer={() => setRoute({ name: "career" })} onQA={() => setRoute({ name: "qa" })} onDex={() => setRoute({ name: "dex" })} onPlay={resume} onSettings={() => setRoute({ name: "settings" })} />;
 
@@ -97,8 +100,8 @@ export function NativeGame() {
         if (stage) startBattle(stage, pending.id);
       }
     }} /> : title();
-    case "open-source": return <OpenSourceScreen locale={locale} save={save} history={sourceHistory} initialIds={route.ids} onBack={() => setRoute({ name: route.returnTo })} />;
-    case "career": return <CareerScreen selectedRegionId={careerRegionId} onRegionChange={setCareerRegionId} onBack={() => setRoute({ name: "title" })} onBattle={(id) => startBattle(findStage(id).monster)} onOpenSources={(ids) => setRoute({ name: "open-source", ids, returnTo: "career" })} />;
+    case "open-source": return <OpenSourceScreen pendingToolId={pending?.toolId} onResume={resumeSource} locale={locale} save={save} history={sourceHistory} initialIds={route.ids} onBack={() => setRoute({ name: route.returnTo })} />;
+    case "career": return <CareerScreen onResumeSource={pending ? () => resumeSource(pending.toolId) : undefined} selectedRegionId={careerRegionId} onRegionChange={setCareerRegionId} onBack={() => setRoute({ name: "title" })} onBattle={(id) => startBattle(findStage(id).monster)} onOpenSources={(ids) => setRoute({ name: "open-source", ids, returnTo: "career" })} />;
     case "world": return <WorldMapScreen selectedId={worldStageId} onSelect={(id) => { setWorldStageId(id); selectCheckpoint(id); }} onBack={() => setRoute({ name: "title" })} onBattle={(id) => startBattle(findStage(id).monster)} onDex={() => setRoute({ name: "dex" })} />;
     case "dex": return <DexScreen onCareer={() => setRoute({ name: "career" })} onBack={() => setRoute({ name: QA_ENABLED ? "qa" : "title" })} onSelect={(monster) => setRoute({ name: "detail", monster })} />;
     case "detail": return <MonsterDetail monster={route.monster} onBack={() => setRoute({ name: "dex" })} onBattle={() => startBattle(route.monster)} />;

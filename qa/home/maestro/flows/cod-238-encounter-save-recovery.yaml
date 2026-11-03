@@ -1,5 +1,5 @@
 appId: com.codingnanyong.codigdex
-name: COD-238 request-history save failure, retry, restart and decline
+name: COD-238 request-history save failure, retry, restart and pause
 tags:
   - cod-238
   - encounters
@@ -11,6 +11,7 @@ tags:
     direction: DOWN
     timeout: 60000
     speed: 20
+    centerElement: true
 - tapOn:
     id: qa-start-encounter:frontend
 - scrollUntilVisible:
@@ -59,6 +60,7 @@ tags:
     direction: DOWN
     timeout: 60000
     speed: 20
+    centerElement: true
 - tapOn:
     id: battle-choice-0
 - scrollUntilVisible:
@@ -84,6 +86,7 @@ tags:
     direction: DOWN
     timeout: 60000
     speed: 20
+    centerElement: true
 - tapOn:
     id: battle-choice-3
 - scrollUntilVisible:

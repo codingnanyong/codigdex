@@ -245,6 +245,7 @@ async function openRequestRegion() {
   }
 }
 async function enterRequest() {
+  if (container.querySelector('[data-testid="battle-prompt"]')) return;
   await openRequestRegion();
   await tap("source-event-accept");
 }
@@ -485,4 +486,24 @@ it("keeps an existing first offer when a captured career battle is retried", asy
   expect(controls!.sourceEvents.read(controls!.save).processed).toHaveLength(1);
   await tap("result-world");
   await element({ id: "source-event-title" });
+}, 20000);
+
+
+it("resumes a paused offer from careers and notes, then advances without another explanation", async () => {
+  await startCareer("frontend");
+  await tap("source-event-later");
+  await element({ id: "career-title" });
+  await tap("career-source-resume");
+  expect((await element({ id: "source-event-details" })).textContent).toBe("DETAILS");
+  await tap("source-event-details");
+  expect((await element({ id: "source-event-details" })).textContent).toBe("HIDE DETAILS");
+  await tap("source-event-later");
+  await tap("career-menu"); await tap("home-open-source");
+  await tap("open-source-resume-tanstack-query");
+  await enterRequest();
+  await playBattle("open-source:tanstack-query:lv1");
+  await tap("result-continue");
+  await element({ id: "battle-prompt" });
+  expect(container.querySelector('[data-testid="source-event-title"]')).toBeNull();
+  expect(controls!.sourceEvents.pending(controls!.save)?.stageId).toBe("open-source:tanstack-query:lv2");
 }, 20000);

@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, type Page } from "@playwright/test";
 import { gameQAPresets } from "@codigdex/game-content/domain/qaPresets";
 import { CHAPTERS } from "@codigdex/game-content/domain/chapters";
 import { CAREER_PATHS } from "@codigdex/game-content/domain/careerPaths";
@@ -10,7 +10,7 @@ import { completedCareerPathIds } from "@codigdex/game-content/domain/careerPath
 import { selectSecondaryCareer } from "@codigdex/game-content/domain/gameProgress";
 import { secondaryRegionsFor } from "@codigdex/game-content/domain/secondaryExploration";
 import { workshopTaskId } from "@codigdex/game-content/domain/promotionWorkshops";
-import { bootGame, clickGame, answerBattle, confirmResult, readSave, reloadGame } from "../test-support/game";
+import { bootGame, clickGame, answerBattle, confirmResult, readSave, reloadCareerGame } from "../test-support/game";
 
 function eligibleSave(jobId: SecondaryJobId = "platform-engineer") {
   const save = createEmptySave("en");
@@ -22,6 +22,14 @@ function eligibleSave(jobId: SecondaryJobId = "platform-engineer") {
   save.progress.projects = PROMOTION_MISSIONS[job.id].chapter.stages.flatMap(({ id }) => Array.from({ length: 4 }, (_, phase) => ({ id: workshopTaskId(id, phase), completedAt: "2026-11-02T00:00:00.000Z" })));
   save.ui.tutorialOnboardingSeen = true;
   return save;
+}
+
+async function openFinalProjectAfterReload(page: Page) {
+  await reloadCareerGame(page);
+  const game = page.getByRole("application");
+  if (await game.getAttribute("data-scene") === "secondary-region") await clickGame(page, 216, 511);
+  if (await game.getAttribute("data-scene") === "secondary-atlas") await clickGame(page, 770, 513);
+  await expect(game).toHaveAttribute("data-scene", "promotion-chapter");
 }
 
 for (const job of SECONDARY_JOB_OPTIONS) test(`restores ${job.id}, visits five painted regions and keeps mastery`, async ({ page }) => {
@@ -44,10 +52,9 @@ for (const job of SECONDARY_JOB_OPTIONS) test(`restores ${job.id}, visits five p
   }
   await page.screenshot({ path: `../qa-results/${job.id}-atlas-en.png` });
   expect((await readSave(page)).progress.careers.find(({ id }) => id === job.id)?.masteredAt).toBeTruthy();
-  await reloadGame(page); await expect(game).toHaveAttribute("data-scene", "promotion-chapter");
+  await openFinalProjectAfterReload(page);
   await page.evaluate(() => { const save=JSON.parse(localStorage.getItem("codigdex:save:v3")!);save.ui.locale="ko";localStorage.setItem("codigdex:save:v3",JSON.stringify(save)); });
-  await reloadGame(page);
-  await expect(game).toHaveAttribute("data-scene", "promotion-chapter");
+  await openFinalProjectAfterReload(page);
   await clickGame(page,190,509);
   await expect(game).toHaveAttribute("data-scene", "job-select");
   await clickGame(page,565,[106,184,262,340,418][SECONDARY_JOB_OPTIONS.indexOf(job)]);
@@ -128,7 +135,7 @@ for (const job of SECONDARY_JOB_OPTIONS) {
     await expect(page.getByRole("application")).toHaveAttribute("data-scene", "world-map");
     expect((await readSave(page)).player.primaryJobId).toBe(replayId);
     expect((await readSave(page)).player.secondaryJobId).toBe(job.id);
-    await reloadGame(page);
+    await reloadCareerGame(page);
     await expect(page.getByRole("application")).toHaveAttribute("data-scene", "world-map");
     expect((await readSave(page)).player.secondaryJobId).toBe(job.id);
     await openLineage(page);
@@ -141,7 +148,7 @@ for (const job of SECONDARY_JOB_OPTIONS) {
     guardiansOnly.progress.captures = guardiansOnly.progress.captures.filter(({ id }) => id !== secondaryRegionsFor(job.id)[0].chapter.stages[1].id);
     guardiansOnly.progress.captures.push(...PROMOTION_MISSIONS[job.id].chapter.stages.map(({ id }) => ({ id, capturedAt: "2026-11-02T00:00:00.000Z" })));
     await page.evaluate((save) => localStorage.setItem("codigdex:save:v3", JSON.stringify(save)), guardiansOnly);
-    await reloadGame(page);
+    await reloadCareerGame(page);
     await openLineage(page);
     await clickGame(page, 850, rows[SECONDARY_JOB_OPTIONS.indexOf(job)]);
     await expect(page.getByRole("application")).toHaveAttribute("data-scene", "job-select");
@@ -151,14 +158,14 @@ for (const job of SECONDARY_JOB_OPTIONS) {
     const mastered = gameQAPresets("en").find(({ id }) => id === `promotion:${job.id}`)!.save;
     mastered.progress.captures.push(...PROMOTION_MISSIONS[job.id].chapter.stages.map(({ id }) => ({ id, capturedAt: "2026-10-30T00:00:00.000Z" })));
     await page.evaluate((save) => localStorage.setItem("codigdex:save:v3", JSON.stringify(save)), mastered);
-    await reloadGame(page);
+    await reloadCareerGame(page);
     await openLineage(page);
     await clickGame(page, 245, rows[primaryIds.indexOf(unfinished)]);
     await expect(page.getByRole("application")).toHaveAttribute("data-scene", "world-map");
     const studying = await readSave(page);
     expect(studying.player.primaryJobId).toBe(unfinished);
     expect(studying.player.secondaryJobId).toBe(job.id);
-    await reloadGame(page);
+    await reloadCareerGame(page);
     await expect(page.getByRole("application")).toHaveAttribute("data-scene", "world-map");
     expect((await readSave(page)).player.secondaryJobId).toBe(job.id);
     await page.screenshot({ path: `../qa-results/career-progression/${job.id}-primary-study.png` });

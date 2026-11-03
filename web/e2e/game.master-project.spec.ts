@@ -4,7 +4,7 @@ import { TERTIARY_JOB_OPTIONS, SECONDARY_JOB_OPTIONS } from "@codigdex/game-cont
 import { masterChapterFor } from "@codigdex/game-content/domain/masterChapters";
 import { secondaryRegionsFor } from "@codigdex/game-content/domain/secondaryExploration";
 
-import { bootGame, clickGame, answerBattle, confirmResult, readSave, reloadGame } from "../test-support/game";
+import { bootGame, clickGame, answerBattle, confirmResult, readSave, reloadCareerGame } from "../test-support/game";
 
 for (const job of TERTIARY_JOB_OPTIONS) test(`${job.id}: completes five design milestones, confirms career and restores it`, async ({ page }) => {
   test.setTimeout(120000);
@@ -44,7 +44,7 @@ for (const job of TERTIARY_JOB_OPTIONS) test(`${job.id}: completes five design m
   expect((await readSave(page)).player.tertiaryJobId).toBeNull();
   await clickGame(page, 742, 509);
   expect((await readSave(page)).player.tertiaryJobId).toBe(job.id);
-  await reloadGame(page);
+  await reloadCareerGame(page);
   await expect(game).toHaveAttribute("data-scene", "promotion-chapter");
   expect((await readSave(page)).player.tertiaryJobId).toBe(job.id);
   await page.screenshot({ path: `../qa-results/master-${job.id}-en.png` });
@@ -53,7 +53,7 @@ for (const job of TERTIARY_JOB_OPTIONS) test(`${job.id}: completes five design m
     save.ui.locale = "ko";
     localStorage.setItem("codigdex:save:v3", JSON.stringify(save));
   });
-  await reloadGame(page);
+  await reloadCareerGame(page);
   await expect(game).toHaveAttribute("data-scene", "promotion-chapter");
   await page.screenshot({ path: `../qa-results/master-${job.id}-ko.png` });
   expect(errors).toEqual([]);
@@ -94,7 +94,7 @@ for (const job of SECONDARY_JOB_OPTIONS) test(`${job.id} regional evolution: fai
     if(await game.getAttribute("data-scene")==="open-source-event")await clickGame(page,242,501);
     expect((await readSave(page)).progress.captures.some(({id})=>id===monster.id)).toBe(true);
     expect((await readSave(page)).progress.projects).toHaveLength(Math.min(index+1,4));
-    if(index===1)await reloadGame(page);
+    if(index===1)await reloadCareerGame(page);
     await expect(game).toHaveAttribute("data-scene","secondary-region");
   }
   await page.screenshot({path:`../qa-results/secondary-${job.id}-five-stages-en.png`});

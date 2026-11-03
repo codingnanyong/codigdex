@@ -112,25 +112,52 @@ for (const career of SOURCE_CAREERS) test(`meets ${career.firstTool} inside the 
   expect(errors).toEqual([]);
 });
 
-test("can postpone a request and keep its note without rerolling a replay", async ({ page }) => {
+test("resumes a closed discovery from notes and keeps explanations compact between levels", async ({ page }) => {
+  test.setTimeout(90000);
   const seed = webQAPresets("en").find(({ id }) => id === "encounter:frontend")!.save;
   await boot(page, seed);
   await firstCareerBattle(page, seed);
   await answerBattle(page, seed.ui.checkpointId!);
   await confirmResult(page);
   await scene(page, "open-source-event");
+  await expect(page.locator(".game-menu-toggle")).toHaveAttribute("aria-expanded", "false");
   await click(page, 242, 501);
   await scene(page, "career-region");
-  expect((await readSave(page)).progress.captures.some(({ id }) => id.startsWith("open-source:"))).toBe(false);
+  await openGameMenu(page);
+  await expect(page.getByRole("button", { name: "RESUME OPEN-SOURCE REQUEST", exact: true })).toBeVisible();
+  // A previously deployed version discarded the offer when returning to a career.
+  await page.evaluate(() => {
+    for (const key of Object.keys(localStorage).filter(key => key.startsWith("codigdex:source-events:v1:"))) {
+      const history = JSON.parse(localStorage.getItem(key)!); delete history.pending;
+      localStorage.setItem(key, JSON.stringify(history));
+    }
+  });
   await reload(page);
   await scene(page, "world-map");
   await openGameMenu(page);
   await page.getByRole("button", { name: "OPEN-SOURCE NOTES", exact: true }).click();
-  await expect(page.getByRole("dialog").locator('[data-project="tanstack-query"]')).toBeVisible();
-  await page.keyboard.press("Escape");
-  await firstCareerBattle(page, seed);
-  await answerBattle(page, seed.ui.checkpointId!);
+  await page.getByRole("dialog").locator('[data-project="tanstack-query"]').getByRole("button", { name: "RESUME REQUEST", exact: true }).click();
+  await scene(page, "open-source-event");
+  await expect(page.getByRole("dialog")).not.toBeVisible();
+  await expect(page.locator('.stage-route-nav [data-route-action="details"]')).toHaveAttribute("aria-expanded", "false");
+  await page.setViewportSize({ width: 844, height: 390 });
+  await click(page, 798, 350);
+  await expect(page.locator('.stage-route-nav [data-route-action="details"]')).toHaveAttribute("aria-expanded", "true");
+  await expect(page.locator(".game-menu-toggle")).toHaveAttribute("aria-expanded", "false");
+  await page.screenshot({ path: "../qa-results/open-source-resume-details.png" });
+  await click(page, 718, 501);
+  await answerBattle(page, "open-source:tanstack-query:lv1");
   await confirmResult(page);
+  await scene(page, "code-battle");
+  await expect(page.locator(".stage-route-nav")).toHaveCount(0);
+  const prompt = await page.locator(".battle-prompt").innerText();
+  await openGameMenu(page);
+  await page.getByRole("button", { name: "OPEN-SOURCE NOTES", exact: true }).click();
+  await expect(page.getByRole("dialog").getByRole("button", { name: /RESUME CURRENT REQUEST/ })).toBeDisabled();
+  await expect(page.getByRole("dialog").getByRole("button", { name: "RESUME REQUEST", exact: true })).toBeDisabled();
+  await page.keyboard.press("Escape");
+  await expect(page.locator(".battle-prompt")).toHaveText(prompt);
+  await finishRequest(page, "tanstack-query");
   await scene(page, "career-region");
 });
 

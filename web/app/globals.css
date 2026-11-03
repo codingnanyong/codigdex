@@ -190,7 +190,7 @@ body {
 
 .career-workshop {
   position: absolute;
-  inset: 0;
+  inset: max(76px, calc(env(safe-area-inset-top) + 64px)) 12px 12px max(92px, calc(env(safe-area-inset-left) + 80px));
   z-index: 15;
   overflow-y: auto;
   touch-action: pan-y;
@@ -260,3 +260,5 @@ body {
 .source-atlas-nav:focus-within { width: auto; height: auto; clip-path: none; left: 8px; right: 8px; bottom: 8px; z-index: 35; display: flex; flex-wrap: wrap; gap: 4px; background: #23160e; padding: 8px; }
 .source-atlas-nav button { min-height: 44px; padding: 6px 10px; font: 14px Galmuri14, monospace; background: #49301c; color: #f1e4cb; border: 1px solid #c9a876; }
 .source-atlas-nav button:disabled { opacity: .4; }
+
+.source-resume { position: relative; }
