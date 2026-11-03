@@ -24,6 +24,8 @@ export function createGameConfig(
     width: 960,
     height: 540,
     pixelArt: true,
+    // The shell supplies a dim backdrop outside the fitted gameplay frame.
+    transparent: true,
     backgroundColor: "#f1e4cb",
     callbacks: {
       preBoot: (game) => {

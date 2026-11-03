@@ -235,14 +235,9 @@ async function startCareer(id: string, locale: "ko" | "en" = "en", confirm = tru
 }
 
 async function openRequestRegion() {
-  if (container.querySelector('[data-testid="source-atlas-enter"]')) {
-    const destinations = [...container.querySelectorAll<HTMLButtonElement>('[data-testid^="source-atlas-region-"]')];
-    expect(destinations).toHaveLength(9);
-    expect(destinations.filter((button) => !button.disabled)).toHaveLength(1);
-    await tap("source-atlas-enter");
-    await element({ id: "source-event-region" });
-    expect(container.querySelector('[data-testid="battle-prompt"]')).toBeNull();
-  }
+  await element({ id: "source-event-region" });
+  expect(container.querySelector('[data-testid="source-atlas"]')).toBeNull();
+  expect(container.querySelector('[data-testid="battle-prompt"]')).toBeNull();
 }
 async function enterRequest() {
   if (container.querySelector('[data-testid="battle-prompt"]')) return;
@@ -335,7 +330,7 @@ it("retries history reads before showing an adventure and migrates old expeditio
   await element({ id: "career-title" });
   await tap("career-menu"); await tap("home-open-source");
   expect(container.textContent).toContain("PostgreSQL");
-  expect(container.textContent).toContain("REGISTERED IN DEX");
+  expect(container.textContent).toContain("IN YOUR DEX");
   expect(storage.get("codigdex:save:v3")).toBe("normal-progress-sentinel");
 }, 20000);
 
@@ -493,7 +488,8 @@ it("resumes a paused offer from careers and notes, then advances without another
   await startCareer("frontend");
   await tap("source-event-later");
   await element({ id: "career-title" });
-  await tap("career-source-resume");
+  await tap("career-source-notes");
+  await tap("open-source-resume-tanstack-query");
   expect((await element({ id: "source-event-details" })).textContent).toBe("DETAILS");
   await tap("source-event-details");
   expect((await element({ id: "source-event-details" })).textContent).toBe("HIDE DETAILS");

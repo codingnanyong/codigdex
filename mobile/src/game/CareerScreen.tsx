@@ -20,7 +20,7 @@ import { mobileAssetSource } from "../assets";
 import { openSourcesForRegion } from "@codigdex/game-content/domain/openSourceCatalog";
 import { discoveredSourceIds } from "@codigdex/game-content/domain/openSourceEncounters";
 
-export function CareerScreen({ onBack, onBattle, onOpenSources, selectedRegionId, onRegionChange, onResumeSource }: { onResumeSource?(): void; onBack(): void; onBattle(id: string): void; onOpenSources?(ids: readonly string[]): void; selectedRegionId?: string; onRegionChange?(id: string | undefined): void }) {
+export function CareerScreen({ onBack, onBattle, onOpenSources, selectedRegionId, onRegionChange }: { onBack(): void; onBattle(id: string): void; onOpenSources?(ids?: readonly string[]): void; selectedRegionId?: string; onRegionChange?(id: string | undefined): void }) {
   const { save, locale, selectJob, selectSecondaryJob, saveError, retrySave } = useSave();
   const [localRegionId, setLocalRegionId] = useState<string>();
   const regionId = selectedRegionId ?? localRegionId;
@@ -38,7 +38,7 @@ export function CareerScreen({ onBack, onBattle, onOpenSources, selectedRegionId
   const careerDex = { careers: normalized.progress.careers.flatMap((record) => isCareerId(record.id) ? [{ ...record, id: record.id }] : []) };
   return <Screen scroll>
     <PixelButton testID="career-menu" onPress={onBack} variant="quiet">← {ko ? "메뉴" : "MENU"}</PixelButton>
-    {onResumeSource ? <PixelButton testID="career-source-resume" onPress={onResumeSource}>{ko ? "오픈소스 의뢰 이어하기" : "RESUME OPEN-SOURCE REQUEST"}</PixelButton> : null}
+    {onOpenSources ? <PixelButton testID="career-source-notes" onPress={() => onOpenSources()}>{ko ? "오픈소스 노트" : "OPEN-SOURCE NOTES"}</PixelButton> : null}
     <Text testID="career-title" accessibilityRole="header" style={styles.heading}>{ko ? "전직 계보 · 직업 경로" : "CAREER LINEAGE · PATHS"}</Text>
     {saveError ? <><Text accessibilityRole="alert" style={styles.hint}>{ko ? "진행 또는 의뢰 기록을 저장하지 못했습니다. 종료 전에 다시 저장하세요." : "Could not save progress or request history. Retry before closing."}</Text><PixelButton testID="career-retry-save" onPress={retrySave}>{ko ? "다시 저장" : "RETRY SAVE"}</PixelButton></> : null}
     {hasEarnedSecondaryCareer(save) ? <Text style={styles.title}>{ko ? "현재 직업" : "CURRENT CAREER"} · {localize((findTertiaryJob(save.player.tertiaryJobId) ?? findSecondaryJob(save.player.secondaryJobId))!.name, locale)}</Text> : null}

@@ -23,7 +23,7 @@ export function OpenSourceScreen({ locale, save, initialIds, onBack, onResume, p
   return <Screen scroll>
     <PixelButton testID="open-source-back" onPress={onBack} variant="quiet">← {ko ? "돌아가기" : "BACK"}</PixelButton>
     <Text accessibilityRole="header" style={styles.heading}>{ko ? "발견한 오픈소스 노트" : "OPEN-SOURCE FIELD NOTES"}</Text>
-    <Text style={styles.body}>{ko ? "직무 전투 뒤 돌발 의뢰로 만난 도구를 복습합니다. 해결한 도구는 도감에도 등록됩니다." : "Review tools met through surprise requests after career battles. Solved tools are also registered in your dex."}</Text>
+    <Text style={styles.body}>{ko ? "만났던 오픈소스를 모아 둔 노트입니다. 처음에 건너뛴 의뢰도 여기서 다시 시작할 수 있습니다. 생태계는 도구를 찾아보기 위한 분류입니다." : "Your record of open-source discoveries. Reopen a request here even if you skipped it the first time. Ecosystems group related tools for browsing."}</Text>
     <TextInput testID="open-source-search" accessibilityLabel={ko ? "오픈소스 검색" : "Search open source"} placeholder={ko ? "Kafka, 하둡, 계보…" : "Kafka, Hadoop, lineage…"} placeholderTextColor={colors.muted} value={query} onChangeText={setQuery} autoCapitalize="none" autoCorrect={false} style={styles.input} />
     <ScrollView horizontal contentContainerStyle={styles.filters} showsHorizontalScrollIndicator>
       <PixelButton compact onPress={() => setFamily(undefined)} variant={!family ? "primary" : "secondary"}>{ko ? "모든 생태계" : "All ecosystems"}</PixelButton>
@@ -55,7 +55,7 @@ export function OpenSourceScreen({ locale, save, initialIds, onBack, onResume, p
         <Text style={styles.muted}>No.{stage.dexNumber}{"\n"}Lv.{stage.level}{save.progress.captures.some(({ id }) => id === stage.id) ? " ✓" : ""}</Text>
       </View>)}</View>
       {roles.map((id) => <Text key={id} style={styles.body}>{localize(sourceCareerName(id), locale)} · {localize(sourceCareer(id)!.workplace, locale)}</Text>)}
-      <Text style={styles.muted}>{captured ? (ko ? "✓ 도감 등록 완료" : "✓ REGISTERED IN DEX") : (ko ? "발견 기록 · 직무 모험 중 다시 만날 수 있어요." : "Discovered · You can meet this tool again during your career adventure.")}</Text>
+      <Text style={styles.muted}>{captured ? (ko ? `도감 등록 · ${evolutionCount}/5단계 완료` : `IN YOUR DEX · ${evolutionCount}/5 STAGES COMPLETE`) : (ko ? "발견한 의뢰 · 건너뛰었어도 여기서 다시 도전할 수 있어요." : "DISCOVERED REQUEST · Return here to play even after skipping.")}</Text>
       {onResume && evolutionCount < 5 && history.discoveries.some(item => item.toolId === entry.id && item.careerId === activeSourceCareer(save)) ? <PixelButton testID={`open-source-resume-${entry.id}`} disabled={!!pendingToolId && pendingToolId !== entry.id} onPress={() => onResume(entry.id)}>{ko ? "의뢰 이어하기" : "RESUME REQUEST"}</PixelButton> : null}
       <PixelButton compact accessibilityLabel={`${entry.name} · ${ko ? "공식 프로젝트 자료" : "Official project documentation"}`} variant="quiet" onPress={() => { void Linking.openURL(entry.officialUrl).catch(() => Alert.alert(ko ? "자료를 열지 못했습니다." : "Could not open documentation.")); }}>{ko ? "공식 프로젝트 자료 ↗" : "OFFICIAL DOCUMENTATION ↗"}</PixelButton>
     </View>; })}

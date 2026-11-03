@@ -154,6 +154,13 @@ export default function PhaserGame({ qaEnabled = false }: { qaEnabled?: boolean 
             scene.events.off(PhaserLib.Scenes.Events.CREATE, fit);
           });
         }
+        // Phaser also resizes after browser/fullscreen events, independently
+        // of ResizeObserver. Refit after that path so cameras keep one frame.
+        const fitScenes = () => {
+          for (const scene of game.scene.getScenes(false)) fitGameScene(scene);
+        };
+        game.scale.on(PhaserLib.Scale.Events.RESIZE, fitScenes);
+        stopTracking.push(() => game.scale.off(PhaserLib.Scale.Events.RESIZE, fitScenes));
         observer = new ResizeObserver(() => {
           const container = containerRef.current;
           if (!container) return;
@@ -162,7 +169,7 @@ export default function PhaserGame({ qaEnabled = false }: { qaEnabled?: boolean 
           shellRef.current?.style.setProperty("--game-inset-y", `${viewport.y}px`);
           // Update the full renderbuffer, then refit each logical game camera.
           game.scale.setParentSize(container.clientWidth, container.clientHeight);
-          for (const scene of game.scene.getScenes(false)) fitGameScene(scene);
+          fitScenes();
           syncRendering();
         });
         observer.observe(containerRef.current);

@@ -1,0 +1,84 @@
+# Handoff
+
+- Owner: Codex
+- Reviewer: Claude (attempted read-only review via the claude-collaboration skill;
+  unavailable because its OAuth session expired and could not refresh).
+- Scope:
+  - Remove the separate open-source ecosystem atlas on web and mobile.
+  - Keep notes as the persistent entry point for discovered, unfinished requests,
+    including offers that were skipped or discarded by an older version.
+  - Keep ecosystem browsing filters without presenting them as geographic travel.
+  - Register web encounter home/settings controls and stop advanced scenes on Home.
+  - Fit terrain, sprites, UI and hit targets into the same centered 960x540 frame
+    on resize/fullscreen. Use the shell's dim background outside that frame.
+- Changed files:
+  - web/app/globals.css
+  - web/components/OpenSourcePanel.tsx
+  - web/components/PhaserGame.tsx
+  - web/lib/phaser/config.ts
+  - web/lib/phaser/gameViewport.ts
+  - web/lib/phaser/navigation.ts
+  - web/lib/phaser/scenes/OpenSourceEventScene.ts
+  - web/lib/phaser/capture/resultNavigation.ts
+  - web/lib/phaser/openSourceAtlas.ts (deleted)
+  - web/e2e/game.expedition.spec.ts
+  - web/e2e/game.shell.spec.ts
+  - web/test/phaser/gameViewport.test.ts
+  - web/test/phaser/captureResultNavigation.test.ts
+  - web/test/phaser/openSourceAtlas.test.ts (deleted with the obsolete atlas)
+  - mobile/src/game/NativeGame.tsx
+  - mobile/src/game/CareerScreen.tsx
+  - mobile/src/game/CareerScreen.test.tsx
+  - mobile/src/game/OpenSourceEventScreen.tsx
+  - mobile/src/game/OpenSourceScreen.tsx
+  - mobile/src/game/OpenSourceScreen.test.tsx
+  - mobile/src/game/OpenSourceAtlasScreen.tsx (deleted)
+  - mobile/src/qa/flows.test.tsx
+  - scripts/generate-home-qa.mts
+  - scripts/home-qa.test.mjs
+  - qa/home/maestro/flows/cod-238-encounter-analytics-engineer.yaml
+  - qa/home/maestro/flows/cod-238-encounter-backend.yaml
+  - qa/home/maestro/flows/cod-238-encounter-battle-retry.yaml
+  - qa/home/maestro/flows/cod-238-encounter-data-analyst.yaml
+  - qa/home/maestro/flows/cod-238-encounter-data-engineer.yaml
+  - qa/home/maestro/flows/cod-238-encounter-devops.yaml
+  - qa/home/maestro/flows/cod-238-encounter-frontend.yaml
+  - qa/home/maestro/flows/cod-238-encounter-fullstack-engineer.yaml
+  - qa/home/maestro/flows/cod-238-encounter-ml-developer.yaml
+  - qa/home/maestro/flows/cod-238-encounter-mlops-engineer.yaml
+  - qa/home/maestro/flows/cod-238-encounter-platform-engineer.yaml
+  - qa/home/maestro/flows/cod-238-request-resume.yaml
+  - qa/home/open-source-notes-layout-handoff.txt
+- Generated assets:
+  - No new game art or asset manifest changes.
+  - Regenerated native QA flows through npm run qa:generate (12 files changed).
+  - Ignored verification screenshots under qa-results/ and mobile/.tmp-qa/.
+  - Visually inspected career-fit-1440x1152.png, open-source-fullscreen.png,
+    open-source-resume-details.png and encounter-narrow-ko.png.
+- Checks run:
+  - npm run check:agents: passed.
+  - npm run qa:check: 37 generated cases verified, 22 runner checks passed.
+  - npm run test --workspace @codigdex/web: 58 files, 757 tests passed.
+  - Focused mobile OpenSourceScreen, CareerScreen and QA flow tests:
+    3 files, 86 tests passed.
+  - Type checks: shared package checks passed; mobile and web passed after fixing
+    the optional notes callback and the removed atlas navigation data type.
+  - npm run lint --workspace @codigdex/web: passed.
+  - npm run build:web: optimized production build and TypeScript checks passed.
+  - Chromium shell/encounter tests: 11 passed, followed by 4 passed covering the
+    final renderer change and additional terrain/pause checks (13 distinct cases).
+  - Coverage includes ko/en, 1440x900, 1920x1080, 390x844, 844x390, fullscreen
+    enter/exit, request home/settings, notes resume, battle retry, next-form
+    recovery, and terrain/checkpoint input after 1440x1152 aspect-ratio changes.
+  - git diff --check: passed.
+- Remaining risks or review items:
+  - Local Claude review was unavailable because its login expired. The user
+    subsequently authorized WEB deployment; GitHub PR review, CI and production
+    smoke results must be checked before reporting that release complete.
+    Release outcome is recorded in the feature/release PRs and chat.
+  - Native flows ran through host React/QA tests; device/emulator visual QA was
+    not run in this Windows session.
+  - Existing career authorization and one-pending-request restrictions remain.
+    Notes cannot interrupt a battle, capture result, settings or workshop.
+  - Portrait web gameplay preserves the authored aspect ratio and its existing
+    rotate hint; this change does not replace canvas scenes with portrait UIs.
