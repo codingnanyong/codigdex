@@ -1,0 +1,32 @@
+# Handoff
+
+- Owner: Codex.
+- Reviewer: Independent read-only reviewer using skills/shared-change-review/SKILL.md. Final source verdict: No blocking findings after making help/list/dry-run bypass installation. Executable mode is verified at staging. Remote Claude review and exact-head CI are recorded on the PR.
+- Scope: The user selected the home Mac but clarified that remote access is not enabled and requested preparation for later local testing. Provide a Mac entry point for the existing QA runner. Actual Mac/simulator/device execution remains deferred in COD-452. Preview credential setup remains a separate COD-249 prerequisite.
+- Changed files:
+  - start-home-qa.command: Finder/Terminal menu or explicit prepare/android/ios/all modes. Uses Node 22, selects an already-installed nvm Node 22 when available, and recovers common Homebrew/Maestro/Android paths in the child process only. Preparation installs repository dependencies with npm 10.9.2 and checks tools; all-platform preparation also installs the Playwright Chromium browser. Actual runs delegate to scripts/home-qa.mjs with all current features. Help/list/dry-run do not install; --doctor refuses a missing dependency tree with a preparation instruction. Original exit codes propagate.
+  - scripts/home-qa-launcher.test.mjs: ten isolated Bash launcher checks with fake command/OS fixtures plus a real dependency-free runner plan in a fresh temporary checkout. Cover non-Mac/wrong-Node stops, noninteractive selection, no-install inspection, paths with spaces, device forwarding, preparation versus execution, default all-platform preparation, nvm selection and failure propagation. Windows hosts without Git Bash explicitly skip only the shell checks; the real Node bootstrap and existing runner checks still run. They do not launch an emulator or certify macOS runtime behavior.
+  - package.json: qa:check runs both the existing runner tests and launcher tests.
+  - .github/workflows/ci.yml: changes to the Mac entry point trigger the existing verification gate.
+  - This report. Existing application code, content, normal player saves and generated source assets are unchanged.
+- Generated assets: None. Existing 36 QA case files (34 native scenarios) verified unchanged. Temporary test fixtures are removed only within their explicitly generated temp directory.
+- Checks run:
+  - Supported Node 22.23.4 / npm 10.9.2 qa:check: final 22/22 passed without skips on this host, covering ten shell checks, the dependency-free bootstrap and eleven existing runner checks. Exact-head CI is recorded on the PR. Verified all 36 generated files against real content.
+  - check:agents passed; Bash syntax check, actual --help invocation and git diff --check passed. Source uses LF. Executable mode 100755 is checked before commit.
+  - Independent source review: No blocking findings. Initial Windows fixture PATH handling was corrected before the passing run; the current tests use an isolated BASH_ENV and command fixtures rather than changing the production OS guard.
+- Remaining risks or review items:
+  - Actual macOS/Bash 3.2, Xcode, SDK, IME/touch/rotation/accessibility/performance and native launch acceptance require the home Mac. Bash 3.2 syntax compatibility was reviewed; Windows Git Bash simulation is not a real Mac pass. Do not reuse October's 28-flow acceptance for the current 34 flows.
+  - Fetch the latest main into the home checkout while preserving local changes. From that repository, double-click start-home-qa.command or run:
+    bash start-home-qa.command
+  - For iOS-only preparation and subsequent booted-simulator testing:
+    bash start-home-qa.command prepare ios
+    bash start-home-qa.command ios
+  - For Android preparation and a connected/booted device or emulator:
+    bash start-home-qa.command prepare android
+    bash start-home-qa.command android
+  - prepare defaults to Web + Android + iOS tool checks. To run all platforms after booting one Android target and one iOS simulator:
+    bash start-home-qa.command prepare
+    bash start-home-qa.command all
+  - Native prerequisites: Java 17+, Maestro CLI 2.11+, Android SDK for Android; macOS/Xcode/CocoaPods for iOS simulators. Missing Node/SDK/native tools are reported rather than installed globally. Multiple devices require --device ID on a single-platform run. Existing busy Metro/test ports stop the runner rather than killing another project.
+  - Existing runner safeguards remain: isolated QA saves, no normal-save/keychain reset, exact commit and dirty-tree provenance, expected count checks, no passing zero/skipped scenarios, and source-change detection after pod install/build. Review and commit any legitimate Podfile.lock change before a final clean acceptance run.
+  - Keep qa-results/<timestamp>-<commit>/run.json plus platform junit.xml, test/build/Metro logs and screenshots. A tool check is not an app test. BGM, account/cloud, native store/EAS release, remote Mac access and credential/security setting changes are excluded.

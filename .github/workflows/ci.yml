@@ -22,6 +22,7 @@ on:
       - "scripts/check-agent-*.mjs"
       - "scripts/link-agent-workspace.mjs"
       - "scripts/home-qa*"
+      - "start-home-qa.command"
       - "scripts/generate-home-qa*"
       - "scripts/generate-master-guardians.mjs"
       - "scripts/web-smoke-target*"
