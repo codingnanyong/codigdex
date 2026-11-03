@@ -11,7 +11,7 @@ import { mobileAssetSource } from "../assets";
 import type { StoredGameStateV3 } from "@codigdex/game-core/save/schema";
 import { SOURCE_CAREERS, activeSourceCareer, discoveredSourceIds, emptyEncounterHistory, encounterTools, sourceCareer, sourceCareerName, type SourceEncounterHistory, type SourceCareerId } from "@codigdex/game-content/domain/openSourceEncounters";
 
-export function OpenSourceScreen({ locale, save, initialIds, onBack, history = emptyEncounterHistory() }: { locale: Locale; save: StoredGameStateV3; initialIds?: readonly string[]; history?: SourceEncounterHistory; onBack(): void }) {
+export function OpenSourceScreen({ locale, save, initialIds, onBack, onResume, pendingToolId, history = emptyEncounterHistory() }: { locale: Locale; save: StoredGameStateV3; initialIds?: readonly string[]; history?: SourceEncounterHistory; onBack(): void; onResume?(toolId: string): void; pendingToolId?: string }) {
   const [query, setQuery] = useState("");
   const [family, setFamily] = useState<OpenSourceFamily>();
   const [jobId, setJobId] = useState<SourceCareerId>();
@@ -56,6 +56,7 @@ export function OpenSourceScreen({ locale, save, initialIds, onBack, history = e
       </View>)}</View>
       {roles.map((id) => <Text key={id} style={styles.body}>{localize(sourceCareerName(id), locale)} · {localize(sourceCareer(id)!.workplace, locale)}</Text>)}
       <Text style={styles.muted}>{captured ? (ko ? "✓ 도감 등록 완료" : "✓ REGISTERED IN DEX") : (ko ? "발견 기록 · 직무 모험 중 다시 만날 수 있어요." : "Discovered · You can meet this tool again during your career adventure.")}</Text>
+      {onResume && evolutionCount < 5 && history.discoveries.some(item => item.toolId === entry.id && item.careerId === activeSourceCareer(save)) ? <PixelButton testID={`open-source-resume-${entry.id}`} disabled={!!pendingToolId && pendingToolId !== entry.id} onPress={() => onResume(entry.id)}>{ko ? "의뢰 이어하기" : "RESUME REQUEST"}</PixelButton> : null}
       <PixelButton compact accessibilityLabel={`${entry.name} · ${ko ? "공식 프로젝트 자료" : "Official project documentation"}`} variant="quiet" onPress={() => { void Linking.openURL(entry.officialUrl).catch(() => Alert.alert(ko ? "자료를 열지 못했습니다." : "Could not open documentation.")); }}>{ko ? "공식 프로젝트 자료 ↗" : "OFFICIAL DOCUMENTATION ↗"}</PixelButton>
     </View>; })}
   </Screen>;

@@ -50,7 +50,7 @@ describe("capture navigation with the real encounter session", () => {
     for (const [index, form] of forms.entries()) {
       completed.progress.captures.push({ id: form.id, capturedAt: "2026-10-28T02:00:00.000Z" });
       const target = confirmCaptureTarget({ ...context, save: completed, monsterId: form.id, sourceEventId: pending.id, fallback: { scene: "world-map" } }, events);
-      expect(target).toEqual(index === 4 ? context.fallback : { scene: "open-source-event", data: { view: "region" } });
+      expect(target).toEqual(index === 4 ? context.fallback : { scene: "code-battle", data: { monsterId: forms[index + 1].id, sourceEventId: pending.id, returnTo: context.fallback } });
       if (index < 4) expect(events.pending(completed)?.id).toBe(pending.id);
     }
     expect(events.pending(completed)).toBeUndefined();

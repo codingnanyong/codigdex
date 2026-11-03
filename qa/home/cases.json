@@ -619,6 +619,10 @@
     {
       "file": "qa/home/maestro/flows/cod-238-encounter-battle-retry.yaml",
       "feature": "cod-238"
+    },
+    {
+      "file": "qa/home/maestro/flows/cod-238-request-resume.yaml",
+      "feature": "cod-238"
     }
   ],
   "deferred": [

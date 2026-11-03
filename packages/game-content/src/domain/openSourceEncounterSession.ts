@@ -5,6 +5,11 @@ import { canEnterBattle } from "./gameProgress";
 import { openSourceIdentity } from "./openSourceEvolutionIds";
 import { activeSourceCareer, emptyEncounterHistory, planSourceEncounter, type SourceEncounter, type SourceEncounterHistory, type SourceReturnTarget } from "./openSourceEncounters";
 import { parseEncounterHistory, sourceEventStorageKey, type EncounterStorage } from "./openSourceEncounterStorage";
+import { careerPathFor } from "./careerPaths";
+import { monstersForCareerRegion } from "./careerRegionMonsters";
+import { secondaryRegionsFor } from "./secondaryExploration";
+import { JOB_OPTIONS } from "./player/jobs";
+import { encounterTools } from "./openSourceEncounters";
 
 export type SourceStageCompletion = { kind: "next"; stage: MonsterDefinition; returnTo: SourceReturnTarget } | { kind: "complete"; returnTo: SourceReturnTarget };
 
@@ -88,6 +93,32 @@ export class SourceEventSession {
     return pending.returnTo;
   }
 
+  /** Reopen only a discovered, unfinished tool belonging to the current career. */
+  resumeDiscovered(save: StoredGameStateV3, toolId: string) {
+    const current = this.resolvePending(save);
+    if (current) return current.toolId === toolId ? current : undefined;
+    const careerId = activeSourceCareer(save);
+    const history = this.read(save);
+    if (!careerId || !history.discoveries.some(item => item.careerId === careerId && item.toolId === toolId)
+      || !encounterTools(careerId).some(tool => tool.id === toolId)) return;
+    const stage = nextOpenSourceEvolution(save, toolId);
+    if (!stage) return;
+    const secondary = secondaryRegionsFor(careerId);
+    const primary = JOB_OPTIONS.find(job => job.id === careerId);
+    if (!secondary.length && !primary) return;
+    const regions = secondary.length ? secondary.map(region => ({ id: region.id, monsters: region.chapter.stages }))
+      : careerPathFor(primary!.id).regions.map(region => ({ id: region.id, monsters: monstersForCareerRegion(region.id) }));
+    const capture = [...save.progress.captures].reverse().find(item => regions.some(region => region.monsters.some(monster => monster.id === item.id)));
+    if (!capture) return;
+    const region = regions.find(region => region.monsters.some(monster => monster.id === capture.id))!;
+    const returnTo: SourceReturnTarget = secondary.length ? { scene: "secondary-atlas", data: { jobId: careerId } }
+      : { scene: "career-region", data: { careerId, regionId: region.id } };
+    const pending: SourceEncounter = { id: `${careerId}:${capture.id}:${capture.capturedAt}`, careerId, toolId,
+      triggerId: capture.id, triggerAt: capture.capturedAt, stageId: stage.id, state: "paused", returnTo };
+    this.write(save, { ...history, pending });
+    return pending;
+  }
+
   /** Settle one captured form and retain the same request through all five forms. */
   completeStage(save: StoredGameStateV3, id: string, monsterId: string): SourceStageCompletion | undefined {
     const pending = this.pending(save);
@@ -113,8 +144,15 @@ export class SourceEventSession {
   leave(save: StoredGameStateV3, id: string) {
     const pending = this.pending(save);
     if (!pending || pending.id !== id) return;
-    const target = pending.returnTo;
     if (pending.state === "offered") return this.finish(save, id);
+    return this.pause(save, id);
+  }
+
+  /** Returning to a career keeps even a not-yet-accepted offer available. */
+  pause(save: StoredGameStateV3, id: string) {
+    const pending = this.pending(save);
+    if (!pending || pending.id !== id) return;
+    const target = pending.returnTo;
     if (openSourceEvolutionCount(save, pending.toolId) === 5) return this.finish(save, id);
     const next = nextOpenSourceEvolution(save, pending.toolId);
     // One durable history write records both the next form and the pause.

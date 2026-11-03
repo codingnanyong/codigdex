@@ -61,6 +61,16 @@ export async function reloadGame(page: Page) {
   await continueGame(page);
 }
 
+/** Career-only checks explicitly postpone a retained request after a reload. */
+export async function reloadCareerGame(page: Page) {
+  await reloadGame(page);
+  await expect(game(page)).not.toHaveAttribute("data-scene", "intro");
+  if (await game(page).getAttribute("data-scene") === "open-source-event") {
+    await clickGame(page, 242, 501);
+    await expect(game(page)).not.toHaveAttribute("data-scene", "open-source-event");
+  }
+}
+
 /** Answer the actual localized question, supporting randomized decks and both input types. */
 export async function answerBattle(page: Page, monsterId: string, pass = true) {
   const pack = await loadMixedQuizPack(findStage(monsterId).monster.quizPackId);

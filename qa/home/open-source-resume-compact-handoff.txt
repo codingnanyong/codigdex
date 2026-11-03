@@ -1,0 +1,34 @@
+Owner: Codex
+Reviewer: /root/review_immersive_shell, read-only shared-change-review; No blocking findings after guarding modal travel and validating native pending state.
+Scope: Recover an opened/paused open-source request after returning to a career; make explanations optional and avoid left utility rail overlap.
+Changed files:
+- packages/game-content/src/domain/openSourceEncounterSession.ts: durable pause including an unaccepted offer; authorized recovery of current-career discovered unfinished tools using a real captured career trigger. Preserve normal save/checkpoint and reject replacing another pending request.
+- web/components/OpenSourcePanel.tsx and web/lib/phaser/openSourceNotes.ts: pending-request rail/notebook actions, legacy discovery recovery after modal cleanup. Explicit active/paused safe-scene checks prevent abandoning quizzes, results, workshops, settings or other protected screens.
+- mobile/src/game/NativeGame.tsx, CareerScreen.tsx, OpenSourceScreen.tsx: career/notebook resume; validated pendingToolId avoids stale foreign-career history disabling recovery.
+- web/lib/phaser/capture/resultNavigation.ts and NativeGame: successful next-form confirmation opens the next battle directly; failures/pauses retain request identity and next missing form.
+- web/lib/phaser/scenes/OpenSourceEventScene.ts and mobile/src/game/OpenSourceEventScreen.tsx: optional collapsed explanation with accessible details toggle.
+- web/components/GameHeader.tsx, PhaserGame.tsx, globals.css; Phaser quest/promotion dialog markers, source atlas header, battle banner: explanations auto-collapse left utility actions; workshop panel and source headings avoid the menu button; source battle banner shows concise level status.
+- Domain, navigation, native UI and browser regression tests; scripts/generate-home-qa.mts; synchronized QA YAMLs/cases.json and QA count contract. New cod-238-request-resume native flow; total35 native flows,37 generated case files. This report.
+Generated assets: None. Screenshots and test logs remain ignored in qa-results/.
+Checks run:
+- Web758/758 and Mobile156/156 unit/domain/component/generated-flow tests passed.
+- Web and Mobile TypeScript, Web lint, production webpack build, qa:check22/22, check:agents and diff check passed.
+- Initial focused dev browser3/3 passed; production-focused run16 passed,1 default-language fixture failure caused by temporary config missing ko-KR. Corrected same default locale as repository; final17/17 production-focused browser tests passed with retries off. Evidence: qa-results/qa-results/source-resume-junit.xml and open-source-resume-details.png.
+- Dedicated iOS user-regression flow pending on the commit following this report; record its exact JS revision and JUnit after execution.
+Remaining risks / handoff:
+- User clarified overlap means left Home/Settings/account utility icons. Default menu collapse and panel safe inset address that case; users may explicitly reopen the rail.
+- Recovery is for discovered unfinished tools of the active career; other active requests and unearned careers remain protected. Completed notes remain reviewable.
+- The new request flow remains local; no push/PR/merge/deployment authorized or performed in this task. Previous HUD stash remains untouched.
+- This follow-up does not certify the complete35-flow native suite, physical-device acceptance or account/cloud flows. Earlier simulator evidence refers to earlier commits and remains historical.
+
+Final focused iOS verification:
+- Clean JS source61d34dd536f9d27531ba99b7780189372195f4fa passed cod-238-request-resume1/1,0 failures,0 skips on dedicated iPhone18Pro/iOS27. Existing native debug shell was reused (no native dependency/Swift/Java change); Metro8090 loaded this exact JS revision, verified by the QA build label.
+- Actual steps: career battle and offered request; return to career before acceptance; resume via career action; verify details initially collapsed and toggle open; pause again; enter notebook and resume the same tool; completeLv1 and directly enterLv2 battle without an explanation screen; finish all5 forms; return to the career and verify capture total/save. Runtime5m30s.
+- Evidence: qa-results/source-resume-ios-61d34dd-1793710852776/focused-retest.json, junit.xml, test.log and screenshots. Source stayed clean and unchanged during execution. This is a focused flow, not acceptance of all35 native cases. Android runtime was not rerun for this follow-up; cross-platform host/component/generated-flow coverage156/156 passed.
+- Final production browser17/17, Web758/758, Mobile156/156, QA22/22, types/lint/build/check:agents passed. No generated visual assets. No external publication. User-facing resume route after this fix: left menu → open-source notes → tool → resume request; native career also has RESUME OPEN-SOURCE REQUEST. Existing deployed version may still require Home → Continue for a retained request until this commit is released.
+
+Final evidence reviewer independently confirmed clean61d34dd iOS1/1 and production browser17/17 with no skips; No blocking product findings or acceptance overclaims. Browser JUnit report path corrected after review.
+
+Deployment preparation (user authorized WEB publication/merge/deployment):
+- Career-only browser checks now explicitly return from a retained request after reload, then use the real region/atlas/final-project controls where the test intends mastery review. Existing progress/mastery assertions and OSS-specific resume coverage remain. Changed web/test-support/game.ts plus promotion/master-project specs only; application source61d34dd unchanged.
+- Representative production browser2/2 passed (platform regional evolution/failure/capture/reload and five-region guardians/mastery/bilingual restoration). Independent read-only review: No blocking findings. Final remote CI head gates merge and production verification.

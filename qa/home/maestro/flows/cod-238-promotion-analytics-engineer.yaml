@@ -11,6 +11,7 @@ tags:
     direction: DOWN
     timeout: 60000
     speed: 20
+    centerElement: true
 - tapOn:
     id: qa-start-promotion:analytics-engineer
 - scrollUntilVisible:
@@ -44,6 +45,7 @@ tags:
     direction: DOWN
     timeout: 60000
     speed: 20
+    centerElement: true
 - tapOn:
     id: battle-choice-0
 - scrollUntilVisible:
@@ -69,6 +71,7 @@ tags:
     direction: DOWN
     timeout: 60000
     speed: 20
+    centerElement: true
 - tapOn:
     id: battle-choice-3
 - scrollUntilVisible:
@@ -94,6 +97,7 @@ tags:
     direction: DOWN
     timeout: 60000
     speed: 20
+    centerElement: true
 - tapOn:
     id: battle-choice-1
 - scrollUntilVisible:
@@ -119,6 +123,7 @@ tags:
     direction: DOWN
     timeout: 60000
     speed: 20
+    centerElement: true
 - tapOn:
     id: battle-choice-0
 - scrollUntilVisible:
@@ -144,6 +149,7 @@ tags:
     direction: DOWN
     timeout: 60000
     speed: 20
+    centerElement: true
 - tapOn:
     id: battle-choice-2
 - scrollUntilVisible:
@@ -212,6 +218,7 @@ tags:
     direction: DOWN
     timeout: 60000
     speed: 20
+    centerElement: true
 - tapOn:
     id: battle-choice-0
 - scrollUntilVisible:
@@ -237,6 +244,7 @@ tags:
     direction: DOWN
     timeout: 60000
     speed: 20
+    centerElement: true
 - tapOn:
     id: battle-choice-3
 - scrollUntilVisible:
@@ -262,6 +270,7 @@ tags:
     direction: DOWN
     timeout: 60000
     speed: 20
+    centerElement: true
 - tapOn:
     id: battle-choice-1
 - scrollUntilVisible:
@@ -287,6 +296,7 @@ tags:
     direction: DOWN
     timeout: 60000
     speed: 20
+    centerElement: true
 - tapOn:
     id: battle-choice-0
 - scrollUntilVisible:
@@ -312,6 +322,7 @@ tags:
     direction: DOWN
     timeout: 60000
     speed: 20
+    centerElement: true
 - tapOn:
     id: battle-choice-2
 - scrollUntilVisible:
@@ -380,6 +391,7 @@ tags:
     direction: DOWN
     timeout: 60000
     speed: 20
+    centerElement: true
 - tapOn:
     id: battle-choice-0
 - scrollUntilVisible:
@@ -405,6 +417,7 @@ tags:
     direction: DOWN
     timeout: 60000
     speed: 20
+    centerElement: true
 - tapOn:
     id: battle-choice-3
 - scrollUntilVisible:
@@ -430,6 +443,7 @@ tags:
     direction: DOWN
     timeout: 60000
     speed: 20
+    centerElement: true
 - tapOn:
     id: battle-choice-1
 - scrollUntilVisible:
@@ -455,6 +469,7 @@ tags:
     direction: DOWN
     timeout: 60000
     speed: 20
+    centerElement: true
 - tapOn:
     id: battle-choice-0
 - scrollUntilVisible:
@@ -480,6 +495,7 @@ tags:
     direction: DOWN
     timeout: 60000
     speed: 20
+    centerElement: true
 - tapOn:
     id: battle-choice-2
 - scrollUntilVisible:
@@ -548,6 +564,7 @@ tags:
     direction: DOWN
     timeout: 60000
     speed: 20
+    centerElement: true
 - tapOn:
     id: battle-choice-0
 - scrollUntilVisible:
@@ -573,6 +590,7 @@ tags:
     direction: DOWN
     timeout: 60000
     speed: 20
+    centerElement: true
 - tapOn:
     id: battle-choice-3
 - scrollUntilVisible:
@@ -598,6 +616,7 @@ tags:
     direction: DOWN
     timeout: 60000
     speed: 20
+    centerElement: true
 - tapOn:
     id: battle-choice-1
 - scrollUntilVisible:
@@ -623,6 +642,7 @@ tags:
     direction: DOWN
     timeout: 60000
     speed: 20
+    centerElement: true
 - tapOn:
     id: battle-choice-0
 - scrollUntilVisible:
@@ -648,6 +668,7 @@ tags:
     direction: DOWN
     timeout: 60000
     speed: 20
+    centerElement: true
 - tapOn:
     id: battle-choice-2
 - scrollUntilVisible:
@@ -716,6 +737,7 @@ tags:
     direction: DOWN
     timeout: 60000
     speed: 20
+    centerElement: true
 - tapOn:
     id: battle-choice-0
 - scrollUntilVisible:
@@ -741,6 +763,7 @@ tags:
     direction: DOWN
     timeout: 60000
     speed: 20
+    centerElement: true
 - tapOn:
     id: battle-choice-3
 - scrollUntilVisible:
@@ -766,6 +789,7 @@ tags:
     direction: DOWN
     timeout: 60000
     speed: 20
+    centerElement: true
 - tapOn:
     id: battle-choice-1
 - scrollUntilVisible:
@@ -791,6 +815,7 @@ tags:
     direction: DOWN
     timeout: 60000
     speed: 20
+    centerElement: true
 - tapOn:
     id: battle-choice-0
 - scrollUntilVisible:
@@ -816,6 +841,7 @@ tags:
     direction: DOWN
     timeout: 60000
     speed: 20
+    centerElement: true
 - tapOn:
     id: battle-choice-2
 - scrollUntilVisible:
@@ -861,6 +887,12 @@ tags:
           id: source-event-later
 - assertVisible:
     id: career-title
+- scrollUntilVisible:
+    element:
+      id: secondary-master
+    direction: DOWN
+    timeout: 60000
+    speed: 20
 - assertVisible:
     id: secondary-master
 - scrollUntilVisible:
@@ -885,6 +917,25 @@ tags:
     speed: 20
 - tapOn:
     id: home-play
+- runFlow:
+    when:
+      visible:
+        id: source-event-title
+    commands:
+      - scrollUntilVisible:
+          element:
+            id: source-event-later
+          direction: DOWN
+          timeout: 60000
+          speed: 20
+      - tapOn:
+          id: source-event-later
+- scrollUntilVisible:
+    element:
+      id: secondary-master
+    direction: DOWN
+    timeout: 60000
+    speed: 20
 - assertVisible:
     id: secondary-master
 - takeScreenshot: cod-238-promotion-analytics-engineer-master

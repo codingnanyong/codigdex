@@ -136,3 +136,43 @@ describe("local encounter session", () => {
     expect(JSON.stringify(after.progress.captures)).toBe(savedCards);
   });
 });
+
+
+describe("request return and notebook recovery", () => {
+  it("preserves an unaccepted offer when returning to a career, including reload", () => {
+    const { before, after, trigger, io } = fixture();
+    const session = new SourceEventSession(io);
+    const offered = session.queue(before, after, trigger, { scene: "world-map" })!;
+    expect(session.pause(after, offered.id)).toEqual({ scene: "world-map" });
+    const restored = new SourceEventSession(io);
+    expect(restored.pending(after)).toMatchObject({ id: offered.id, state: "paused", stageId: "open-source:tanstack-query:lv1" });
+    expect(restored.canBattle(after, offered.id, "open-source:tanstack-query:lv1")).toBe(false);
+    expect(restored.accept(after, offered.id)).toBe(true);
+    expect(restored.canBattle(after, offered.id, "open-source:tanstack-query:lv1")).toBe(true);
+  });
+  it("recovers a previously closed discovery at its first missing form without changing career progress", () => {
+    const { before, after, trigger, io } = fixture();
+    const session = new SourceEventSession(io);
+    const offered = session.queue(before, after, trigger, { scene: "world-map" })!;
+    session.finish(after, offered.id);
+    after.progress.captures.push({ id: "open-source:tanstack-query:lv1", capturedAt: "2026-11-03T00:00:00Z" });
+    const original = structuredClone(after);
+    const restored = new SourceEventSession(io);
+    const resumed = restored.resumeDiscovered(after, "tanstack-query")!;
+    expect(resumed).toMatchObject({ state: "paused", toolId: "tanstack-query", stageId: "open-source:tanstack-query:lv2", returnTo: { scene: "career-region", data: { careerId: "frontend", regionId: "html-css" } } });
+    expect(after).toEqual(original);
+    expect(restored.accept(after, resumed.id)).toBe(true);
+    expect(restored.canBattle(after, resumed.id, "open-source:tanstack-query:lv2")).toBe(true);
+  });
+  it("does not reopen unknown tools, another career's discoveries, or replace a different request", () => {
+    const { before, after, trigger, io } = fixture();
+    const session = new SourceEventSession(io);
+    const offered = session.queue(before, after, trigger, { scene: "world-map" })!;
+    expect(session.resumeDiscovered(after, "postgresql")).toBeUndefined();
+    expect(session.pending(after)?.id).toBe(offered.id);
+    session.finish(after, offered.id);
+    expect(session.resumeDiscovered(after, "postgresql")).toBeUndefined();
+    const changed = structuredClone(after); changed.player.primaryJobId = "backend";
+    expect(session.resumeDiscovered(changed, "tanstack-query")).toBeUndefined();
+  });
+});
