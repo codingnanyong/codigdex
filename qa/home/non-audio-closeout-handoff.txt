@@ -1,0 +1,29 @@
+# Handoff
+
+- Owner: Codex.
+- Reviewer: Independent read-only Codex reviewer using skills/shared-change-review/SKILL.md. Final verdict: No blocking findings after the non-partition Hive clarification and nonempty smoke-save fixture. The reviewer independently executed the fact proof, 8/8 passed. Remote Claude review and exact-head CI are recorded on the PR.
+- Scope: User authorized finishing and publishing the week's non-BGM work. Reconcile COD-251 quiz review with current content, strengthen COD-249's smoke path, and reconcile completed tertiary issues COD-223 through COD-230. The user explicitly deferred native device/simulator execution to home on 2026-11-03; it is tracked as COD-452. Authenticated Preview access awaits the user's automation-secret configuration. Account/DB/cloud and mobile store/EAS publication remain outside this change.
+- Changed files:
+  - packages/quiz-content/src/sources/openSource.ts: distinguish overlapping situations and reverse-question choices for Hive, Avro, DuckDB, Feast, scikit-learn and TanStack Query. Keep tool/question identities, grading and pool counts. Hive now asks about non-partition row filtering; temporal checks, already-completed setup and direct-refetch constraints separate otherwise overlapping operations.
+  - packages/quiz-content/src/sources/analytics.ts: separate dependency-path tracing from notification/owner identification. Exclude the overlapping action from the first lineage question; state known lineage before owner questions.
+  - qa/home/quiz-quality-audit.json: preserve the historical 44-question fact sample and 266-question OSS review, then record the current 380-question OSS review including 114 added reverse questions. Separate 955 source-question structural checks, 25 workshop examples, 25 master examples, official-document checks and eight executed examples.
+  - qa/home/quiz-fact-proof.mjs: reproducible Query Core 5.105.3 and in-memory PostgreSQL/PGlite probes. No remote DB or production dependency change. Optional probe package is isolated under ignored qa-results/tools/query-proof. Command: node qa/home/quiz-fact-proof.mjs.
+  - web/e2e/game.smoke.spec.ts: use the existing authorized Preview fixture to enter the common world, return through the real Home control and preserve a nonempty capture/progress record. The existing deployment smoke command automatically includes this third case after release.
+  - This report. No README/docs/policy files were rewritten.
+- Generated assets: None. QA generation/check verified the existing 36 files, including 34 native scenarios, without a tracked generated diff. Browser screenshots, Hermes bundles and probe dependencies stay ignored. Web public assets were synchronized only by the normal build.
+- Checks run:
+  - Web 754/754 and Mobile host/component 154/154 passed. Mobile host coverage includes the generated native flow interpreter; this is not a device claim.
+  - Workspace type/package boundaries, lint, check:agents and git diff --check passed. Generated QA 36 files and runner 11/11 passed.
+  - Production Web build and Android/iOS JS/Hermes exports passed. Native images 12,497,335 bytes and images plus font 18,121,407 bytes remain within budgets. No native compilation or launch is claimed.
+  - Production-build Chromium: mixed questions/account, notes/content/mobile-width/assets and smoke 10/10 passed with one worker and retries off. Additional actual TanStack request/pause journeys and exact-head CI/live production verification are recorded on the feature/release PRs.
+  - Executed fact examples: three invalidation/refetch cases, one-to-many SUM 250 versus corrected 150, transfer rollback 100/50, duplicate-key rejection, weighted population ratio and request error budget: 8/8 passed. Independent read-only execution also passed.
+- Remaining risks or review items:
+  - COD-249: protected Preview still redirects to Vercel login. Existing access code, trusted same-repository source validation, strict project origins and bootstrap cookie are implemented. The user needs to connect Vercel Protection Bypass for Automation to the GitHub repository secret VERCEL_AUTOMATION_BYPASS_SECRET. No credential was read, created or changed; deployment protection remains enabled. Do not mark authenticated Preview acceptance complete until a real protected run passes. Production deployment smoke succeeds separately.
+  - COD-452: latest native expansion requires home-device/simulator acceptance, per the user's explicit deferral. October's 28-flow acceptance does not certify today's 34-flow content or the latest UI.
+  - Home commands after fetching latest main and npm ci with Node 22.x/npm 10.9.2:
+    npm run qa:home -- --platform android --feature all --doctor
+    npm run qa:home -- --platform android --feature all
+    npm run qa:home -- --platform ios --feature all --doctor
+    npm run qa:home -- --platform ios --feature all
+    Android needs SDK/JDK and one connected/booted device; iOS needs macOS/Xcode and a booted simulator. Maestro must be installed. Use --device ID when multiple devices are present. Keep the tested commit, clean-tree status, actual counts, JUnit and screenshots; review IME, rotation, touch, accessibility and performance directly.
+  - Native distribution, BGM, account/cloud work and exhaustive execution of every technical framework are not included. Final publication/merge/live acceptance evidence belongs on the PRs rather than being pre-claimed here.
