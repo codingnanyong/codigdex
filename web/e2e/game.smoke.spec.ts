@@ -1,4 +1,6 @@
 import { expect, test } from "../test-support/previewFixture";
+import { createEmptySave } from "@codigdex/game-core/save/schema";
+import { continueGame, openGameMenu, readSave, scene } from "../test-support/game";
 
 test("boots the game shell and Phaser canvas", async ({ page }) => {
   const pageErrors: Error[] = [];
@@ -61,4 +63,21 @@ test("restores saved progress and language after a reload", async ({ page }) => 
   expect(save.progress.captures).toContainEqual(
     expect.objectContaining({ id: "infinite-loop-slime" })
   );
+});
+
+test("enters the common world and returns home without losing progress", async ({ page }) => {
+  const initial = createEmptySave("ko");
+  initial.ui.tutorialOnboardingSeen = true;
+  const capture = { id: "infinite-loop-slime", capturedAt: "2026-11-03T00:00:00.000Z" };
+  initial.progress.captures.push(capture);
+  await page.addInitScript((save) => localStorage.setItem("codigdex:save:v3", JSON.stringify(save)), initial);
+  await page.goto("/");
+  await continueGame(page);
+  await scene(page, "world-map");
+  const before = await readSave(page);
+  expect(before.progress.captures).toContainEqual(expect.objectContaining(capture));
+  await openGameMenu(page);
+  await page.getByRole("button", { name: "홈으로", exact: true }).click();
+  await scene(page, "intro");
+  expect((await readSave(page)).progress).toEqual(before.progress);
 });

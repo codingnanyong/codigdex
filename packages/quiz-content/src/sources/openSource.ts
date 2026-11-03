@@ -32,9 +32,9 @@ const lessons: Record<string, Lesson> = {
     ["MapReduce에서 각 씨앗을 종류와 개수로 바꾸는 단계는?", "Which MapReduce step emits a seed type and count from each input?"], ["MapReduce에서 같은 종류의 씨앗을 한곳으로 보내는 단계는?", "Which MapReduce step sends matching seed types to the same group?"], ["MapReduce에서 모인 종류별 개수를 합치는 단계는?", "Which MapReduce step totals each grouped seed type?"], ["MapReduce 처리 중 한 작업이 고장 났다. 정상 작업까지 모두 버리는 대신?", "One MapReduce task fails. What recovery avoids discarding all successful work?"],
   ]),
   hive: lesson([
-    ["SQL로 분석", "Analyze with SQL"], ["메타스토어 확인", "Inspect the metastore"], ["파티션 조건으로 범위 줄이기", "Narrow scans with partition filters"], ["집계와 GROUP BY 사용", "Use aggregation and GROUP BY"],
+    ["비파티션 열의 조건으로 원본 행 조회", "Filter original rows by a non-partition column"], ["메타스토어 확인", "Inspect the metastore"], ["파티션 조건으로 범위 줄이기", "Narrow scans with partition filters"], ["집계와 GROUP BY 사용", "Use aggregation and GROUP BY"],
   ], [
-    ["Hive의 분산 저장 자료를 표 형태의 질의로 읽으려면?", "How can Hive query distributed data as tables?"], ["Hive 테이블의 열과 저장 위치 정의를 찾으려면?", "Where should Hive table columns and storage definitions be checked?"], ["Hive에서 날짜별로 나눈 자료 중 오늘만 읽으려면?", "How can Hive limit reading to today's partitioned records?"], ["Hive에서 지역별 수확 합계를 얻으려면?", "How can Hive compute harvest totals per region?"],
+    ["Hive에서 파티션 범위는 정했다. 비파티션 열인 수확량이 10보다 큰 원본 행을 집계 없이 조회하려면?", "Hive's partition scope is set. How can original rows with harvest, a non-partition column, above 10 be retrieved without aggregation?"], ["Hive 테이블의 열과 저장 위치 정의를 찾으려면?", "Where should Hive table columns and storage definitions be checked?"], ["Hive에서 날짜별로 나눈 자료 중 오늘만 읽으려면?", "How can Hive limit reading to today's partitioned records?"], ["Hive에서 지역별 수확 합계를 얻으려면?", "How can Hive compute harvest totals per region?"],
   ]),
   hbase: lesson([
     ["행 키로 조회", "Look up by row key"], ["컬럼 패밀리로 열 묶기", "Group columns into column families"], ["리전의 범위 확인", "Inspect region key ranges"], ["핫스폿을 줄이는 키 설계", "Design keys to reduce hotspots"],
@@ -49,7 +49,7 @@ const lessons: Record<string, Lesson> = {
   avro: lesson([
     ["스키마로 직렬화", "Serialize using a schema"], ["읽기·쓰기 스키마 호환성 검사", "Check reader-writer schema compatibility"], ["새 필드의 기본값 검토", "Review defaults for new fields"], ["바이트와 스키마를 함께 해석", "Interpret bytes with their schema"],
   ], [
-    ["Avro에서 레코드 구조를 약속하며 바이트로 바꾸려면?", "How does Avro encode records under an agreed structure?"], ["Avro 생산자와 소비자의 구조가 달라졌다. 먼저 확인할 것은?", "Avro producer and consumer structures differ. What must be checked?"], ["Avro의 옛 자료를 새 읽기 스키마로 읽을 때 추가 필드를 다루려면?", "What should be reviewed for an added field when an Avro reader reads old data?"], ["Avro 바이트만 보고 열 이름을 추측하는 대신 올바른 읽기 방법은?", "Instead of guessing field names from Avro bytes, what is needed?"],
+    ["Avro에서 레코드 구조를 약속하며 바이트로 바꾸려면?", "How does Avro encode records under an agreed structure?"], ["Avro 생산자와 소비자의 구조가 달라졌다. 먼저 확인할 것은?", "Avro producer and consumer structures differ. What must be checked?"], ["Avro 읽기·쓰기 스키마의 호환성 검사는 통과했다. 옛 자료에 없는 새 필드에 채울 선언값을 찾으려면?", "Avro reader-writer compatibility has passed. What declares the value used for a new reader field absent from old records?"], ["Avro 바이트만 보고 열 이름을 추측하는 대신 올바른 읽기 방법은?", "Instead of guessing field names from Avro bytes, what is needed?"],
   ]),
   parquet: lesson([
     ["필요한 열만 읽기", "Read only needed columns"], ["같은 열의 값들을 압축", "Compress values within columns"], ["행 그룹 통계로 건너뛰기", "Skip row groups using statistics"], ["열 지향 파일로 저장", "Store as a column-oriented file"],
@@ -109,7 +109,7 @@ const lessons: Record<string, Lesson> = {
   duckdb: lesson([
     ["프로세스 안에서 SQL 실행", "Run SQL inside the process"], ["파일을 직접 분석", "Analyze files directly"], ["열 지향 분석 처리", "Use column-oriented analytics"], ["로컬 자원 한도 점검", "Check local resource limits"],
   ], [
-    ["DuckDB를 별도 DB 서버 없이 앱에서 사용하려면?", "How can an app use DuckDB without a separate database server?"], ["DuckDB로 Parquet 자료를 먼저 전부 서버에 적재하지 않고 보려면?", "How can DuckDB inspect Parquet without first loading it all into a server?"], ["DuckDB가 많은 행의 일부 열을 집계하는 데 활용하는 처리 방향은?", "What processing orientation helps DuckDB aggregate selected columns over many rows?"], ["DuckDB 로컬 분석이 메모리 부족으로 멈춘다. 먼저 볼 것은?", "A local DuckDB analysis runs out of memory. What should be inspected first?"],
+    ["DuckDB를 별도 DB 서버 없이 앱에서 사용하려면?", "How can an app use DuckDB without a separate database server?"], ["DuckDB는 이미 앱 안에 내장됐다. Parquet를 테이블에 먼저 적재하지 않고 파일 경로에서 조회하려면?", "DuckDB is already embedded in the app. How can Parquet be queried by file path without first loading it into a table?"], ["DuckDB가 많은 행의 일부 열을 집계하는 데 활용하는 처리 방향은?", "What processing orientation helps DuckDB aggregate selected columns over many rows?"], ["DuckDB 로컬 분석이 메모리 부족으로 멈춘다. 먼저 볼 것은?", "A local DuckDB analysis runs out of memory. What should be inspected first?"],
   ]),
   "dbt-core": lesson([
     ["모델로 변환 정의", "Define transformations as models"], ["ref로 모델 의존성 연결", "Connect model dependencies with ref"], ["데이터 테스트 실행", "Run data tests"], ["모델 문서와 계보 확인", "Inspect model documentation and lineage"],
@@ -149,12 +149,12 @@ const lessons: Record<string, Lesson> = {
   feast: lesson([
     ["시점에 맞는 과거 특징 조회", "Retrieve point-in-time historical features"], ["온라인 특징 저지연 조회", "Retrieve online features at low latency"], ["오프라인 특징 자료 구성", "Build offline feature datasets"], ["학습·추론 특징 정의 일치", "Align training and serving feature definitions"],
   ], [
-    ["Feast에서 학습 시 미래의 특징이 섞이는 것을 막으려면?", "What Feast retrieval property helps prevent future features leaking into training?"], ["Feast에서 실시간 예측 요청에 특징을 빠르게 제공하려면?", "Which Feast responsibility serves features quickly for a live prediction?"], ["Feast에서 대량 과거 자료로 학습용 특징 표를 만들려면?", "Which Feast responsibility builds feature data for historical training?"], ["Feast의 학습과 실시간 예측이 같은 특징을 다르게 계산한다. 무엇을 맞출까?", "Training and serving disagree on a Feast feature. What definition needs alignment?"],
+    ["Feast 학습 자료는 구성됐지만 미래 특징이 섞였다. 각 행의 시각을 지킬 조회 기준은?", "A Feast training dataset exists but contains future features. Which retrieval property respects each row's event time?"], ["Feast에서 실시간 예측 요청에 특징을 빠르게 제공하려면?", "Which Feast responsibility serves features quickly for a live prediction?"], ["Feast의 시점 누수 검사는 통과했다. 대량의 과거 특징을 학습용 표로 구성할 저장 계층은?", "Feast point-in-time leakage checks have passed. Which storage responsibility assembles historical features into a bulk training dataset?"], ["Feast의 학습과 실시간 예측이 같은 특징을 다르게 계산한다. 무엇을 맞출까?", "Training and serving disagree on a Feast feature. What definition needs alignment?"],
   ]),
   "scikit-learn": lesson([
     ["학습·평가 자료 먼저 분리", "Split training and evaluation data first"], ["학습 자료에만 전처리 fit", "Fit preprocessing only on training data"], ["Pipeline으로 변환·모델 연결", "Connect transforms and models in a Pipeline"], ["보지 않은 자료로 평가", "Evaluate on unseen data"],
   ], [
-    ["scikit-learn에서 평가 정보가 학습으로 새지 않게 하는 첫 경계는?", "What initial boundary helps scikit-learn avoid leaking evaluation data into training?"], ["scikit-learn에서 전체 자료의 평균으로 스케일러를 학습하는 대신?", "Instead of fitting a scikit-learn scaler on the whole dataset, what should happen?"], ["scikit-learn의 교차 검증에서 전처리도 각 학습 구간 안에서 하려면?", "How can scikit-learn keep preprocessing inside each cross-validation training fold?"], ["scikit-learn에서 학습 자료 점수만 좋을 때 일반화를 확인하려면?", "How should scikit-learn check generalization beyond a high training score?"],
+    ["scikit-learn에서 아직 자료를 분리하지 않았다. 평가 정보 유출을 막기 위해 먼저 정할 경계는?", "The scikit-learn data is not split yet. Which boundary should come first to prevent evaluation leakage?"], ["scikit-learn의 학습·평가 자료 분리는 끝났다. 전체 자료로 스케일러를 fit하는 대신 어느 자료로 fit할까?", "The scikit-learn train-evaluation split is complete. Which subset should fit the scaler instead of the whole dataset?"], ["학습 자료에만 fit하는 전처리는 확인했다. scikit-learn 교차 검증에서 그 변환과 모델을 한 구성으로 연결하려면?", "Training-only preprocessing fit is verified. Which scikit-learn component connects those transforms and the model for cross-validation?"], ["scikit-learn에서 학습 자료 점수만 좋을 때 일반화를 확인하려면?", "How should scikit-learn check generalization beyond a high training score?"],
   ]),
   opentelemetry: lesson([
     ["애플리케이션 계측", "Instrument the application"], ["요청 문맥 전파", "Propagate request context"], ["Collector로 신호 전달", "Route signals through a Collector"], ["지표·로그·추적 구분", "Distinguish metrics, logs and traces"],
@@ -189,7 +189,7 @@ const lessons: Record<string, Lesson> = {
   "tanstack-query": lesson([
     ["쿼리 키로 캐시 구분", "Distinguish cached data with query keys"], ["변경 뒤 관련 캐시 무효화", "Invalidate related queries after mutation"], ["로딩·오류 상태 표시", "Display loading and error states"], ["재요청으로 오래된 자료 갱신", "Refetch stale server data"],
   ], [
-    ["TanStack Query에서 다른 사용자의 주문이 같은 캐시에 섞인다. 무엇을 나눌까?", "TanStack Query mixes orders for different users. What cache identity needs separation?"], ["TanStack Query로 주문을 수정했는데 목록이 오래된 값이다. 무엇을 알릴까?", "A TanStack Query mutation succeeds but the list is stale. What should be marked?"], ["TanStack Query 요청이 지연되거나 실패할 때 사용자에게 보여 줄 것은?", "What UI state should accompany a delayed or failed TanStack Query request?"], ["TanStack Query가 가진 서버 자료를 최신 상태와 다시 맞추려면?", "How can TanStack Query refresh its local view of server data?"],
+    ["TanStack Query에서 다른 사용자의 주문이 같은 캐시에 섞인다. 무엇을 나눌까?", "TanStack Query mixes orders for different users. What cache identity needs separation?"], ["TanStack Query로 주문을 수정한 뒤 관련 캐시를 stale로 표시하려면?", "After a TanStack Query mutation, which action marks related cached queries stale?"], ["TanStack Query 요청이 지연되거나 실패할 때 사용자에게 보여 줄 것은?", "What UI state should accompany a delayed or failed TanStack Query request?"], ["TanStack Query에서 캐시 무효화 없이 선택한 쿼리의 요청을 직접 다시 실행하려면?", "How can TanStack Query directly rerun the selected query's request without invalidating cached queries?"],
   ]),
   zod: lesson([
     ["스키마로 입력 구조 선언", "Declare input structure with a schema"], ["런타임 파싱·검증", "Parse and validate at runtime"], ["검증 오류를 명시적으로 처리", "Handle validation errors explicitly"], ["스키마에서 정적 타입 추론", "Infer static types from the schema"],
