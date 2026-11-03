@@ -40,7 +40,7 @@ const visible = (value: string, text?: string) => ({ assertVisible: { ...id(valu
 const saved = () => visible("qa-save-status", "SAVED");
 // Emulator UI hierarchy/swipe calls can take >10s under native test load.
 // Allow several swipes without weakening the element or result assertions.
-const scroll = (value: string, direction = "DOWN") => ({ scrollUntilVisible: { element: id(value), direction, timeout: 60000, speed: 20, ...(["qa-fail-save", "qa-world"].includes(value) || value.startsWith("promotion-checkpoint-") ? { centerElement: true } : {}) } });
+const scroll = (value: string, direction = "DOWN") => ({ scrollUntilVisible: { element: id(value), direction, timeout: 60000, speed: 20, ...(["qa-fail-save", "qa-world"].includes(value) || ["promotion-checkpoint-", "master-checkpoint-", "qa-start-", "battle-choice-"].some(prefix => value.startsWith(prefix)) ? { centerElement: true } : {}) } });
 const tap = (value: string, direction = "DOWN"): Command[] => [scroll(value, direction), { tapOn: id(value) }];
 const start: Command[] = [{ runFlow: "../helpers/start.yaml" }];
 const tutorial = CHAPTERS[0].stages[0];
@@ -197,8 +197,8 @@ for (const chapter of PROMOTION_CHAPTERS) {
     commands.push(...tap(`promotion-checkpoint-${monster.id}`), ...tap("workshop-start-battle"), ...battleSteps(true, false, await questionsFor(monster)), ...tap("result-continue"),
       { runFlow: { when: { visible: id("source-event-title") }, commands: tap("source-event-later") } }, visible("career-title"));
   }
-  commands.push(visible("secondary-master"), ...tap("career-menu", "UP"),
-    ...restart, visible("secondary-master"), { takeScreenshot: `cod-238-${chapter.id.replace(":", "-")}-master` });
+  commands.push(scroll("secondary-master"), visible("secondary-master"), ...tap("career-menu", "UP"),
+    ...restart, scroll("secondary-master"), visible("secondary-master"), { takeScreenshot: `cod-238-${chapter.id.replace(":", "-")}-master` });
   yaml(`flows/cod-238-${chapter.id.replace(":", "-")}`, `COD-238 ${chapter.id} five missions, MASTER and restart`, ["cod-238", "promotions"], commands);
 }
 for (const chapter of MASTER_CHAPTERS) {
@@ -208,7 +208,7 @@ for (const chapter of MASTER_CHAPTERS) {
     commands.push(...tap(`master-checkpoint-${monster.id}`), ...tap("workshop-start-battle"),
       ...battleSteps(true, false, await questionsFor(monster)), ...tap("result-world"), visible("career-title"));
   }
-  commands.push(...tap("master-confirm"), visible("master-active"), ...tap("career-menu", "UP"), ...restart, visible("master-active"),
+  commands.push(...tap("master-confirm"), scroll("master-active"), visible("master-active"), ...tap("career-menu", "UP"), ...restart, scroll("master-active"), visible("master-active"),
     { takeScreenshot: `cod-238-master-${jobId}` });
   yaml(`flows/cod-238-master-${jobId}`, `COD-238 ${jobId} final project, tier-three confirmation and restart`, ["cod-238", "master-projects"], commands);
 }

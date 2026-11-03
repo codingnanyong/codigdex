@@ -12,6 +12,7 @@ tags:
     direction: DOWN
     timeout: 60000
     speed: 20
+    centerElement: true
 - tapOn:
     id: qa-start-master-project:ai-platform-architect
 - scrollUntilVisible:
@@ -28,6 +29,7 @@ tags:
     direction: DOWN
     timeout: 60000
     speed: 20
+    centerElement: true
 - tapOn:
     id: master-checkpoint-mastery:ai-platform-architect:1
 - scrollUntilVisible:
@@ -44,6 +46,7 @@ tags:
     direction: DOWN
     timeout: 60000
     speed: 20
+    centerElement: true
 - tapOn:
     id: battle-choice-2
 - scrollUntilVisible:
@@ -69,6 +72,7 @@ tags:
     direction: DOWN
     timeout: 60000
     speed: 20
+    centerElement: true
 - tapOn:
     id: battle-choice-2
 - scrollUntilVisible:
@@ -94,6 +98,7 @@ tags:
     direction: DOWN
     timeout: 60000
     speed: 20
+    centerElement: true
 - tapOn:
     id: battle-choice-1
 - scrollUntilVisible:
@@ -132,6 +137,7 @@ tags:
     direction: DOWN
     timeout: 60000
     speed: 20
+    centerElement: true
 - tapOn:
     id: master-checkpoint-mastery:ai-platform-architect:2
 - scrollUntilVisible:
@@ -148,6 +154,7 @@ tags:
     direction: DOWN
     timeout: 60000
     speed: 20
+    centerElement: true
 - tapOn:
     id: battle-choice-1
 - scrollUntilVisible:
@@ -173,6 +180,7 @@ tags:
     direction: DOWN
     timeout: 60000
     speed: 20
+    centerElement: true
 - tapOn:
     id: battle-choice-1
 - scrollUntilVisible:
@@ -198,6 +206,7 @@ tags:
     direction: DOWN
     timeout: 60000
     speed: 20
+    centerElement: true
 - tapOn:
     id: battle-choice-1
 - scrollUntilVisible:
@@ -236,6 +245,7 @@ tags:
     direction: DOWN
     timeout: 60000
     speed: 20
+    centerElement: true
 - tapOn:
     id: master-checkpoint-mastery:ai-platform-architect:3
 - scrollUntilVisible:
@@ -252,6 +262,7 @@ tags:
     direction: DOWN
     timeout: 60000
     speed: 20
+    centerElement: true
 - tapOn:
     id: battle-choice-2
 - scrollUntilVisible:
@@ -277,6 +288,7 @@ tags:
     direction: DOWN
     timeout: 60000
     speed: 20
+    centerElement: true
 - tapOn:
     id: battle-choice-0
 - scrollUntilVisible:
@@ -302,6 +314,7 @@ tags:
     direction: DOWN
     timeout: 60000
     speed: 20
+    centerElement: true
 - tapOn:
     id: battle-choice-2
 - scrollUntilVisible:
@@ -327,6 +340,7 @@ tags:
     direction: DOWN
     timeout: 60000
     speed: 20
+    centerElement: true
 - tapOn:
     id: battle-choice-3
 - scrollUntilVisible:
@@ -365,6 +379,7 @@ tags:
     direction: DOWN
     timeout: 60000
     speed: 20
+    centerElement: true
 - tapOn:
     id: master-checkpoint-mastery:ai-platform-architect:4
 - scrollUntilVisible:
@@ -381,6 +396,7 @@ tags:
     direction: DOWN
     timeout: 60000
     speed: 20
+    centerElement: true
 - tapOn:
     id: battle-choice-2
 - scrollUntilVisible:
@@ -406,6 +422,7 @@ tags:
     direction: DOWN
     timeout: 60000
     speed: 20
+    centerElement: true
 - tapOn:
     id: battle-choice-3
 - scrollUntilVisible:
@@ -431,6 +448,7 @@ tags:
     direction: DOWN
     timeout: 60000
     speed: 20
+    centerElement: true
 - tapOn:
     id: battle-choice-2
 - scrollUntilVisible:
@@ -456,6 +474,7 @@ tags:
     direction: DOWN
     timeout: 60000
     speed: 20
+    centerElement: true
 - tapOn:
     id: battle-choice-2
 - scrollUntilVisible:
@@ -494,6 +513,7 @@ tags:
     direction: DOWN
     timeout: 60000
     speed: 20
+    centerElement: true
 - tapOn:
     id: master-checkpoint-mastery:ai-platform-architect:5
 - scrollUntilVisible:
@@ -510,6 +530,7 @@ tags:
     direction: DOWN
     timeout: 60000
     speed: 20
+    centerElement: true
 - tapOn:
     id: battle-choice-3
 - scrollUntilVisible:
@@ -535,6 +556,7 @@ tags:
     direction: DOWN
     timeout: 60000
     speed: 20
+    centerElement: true
 - tapOn:
     id: battle-choice-0
 - scrollUntilVisible:
@@ -560,6 +582,7 @@ tags:
     direction: DOWN
     timeout: 60000
     speed: 20
+    centerElement: true
 - tapOn:
     id: battle-choice-1
 - scrollUntilVisible:
@@ -585,6 +608,7 @@ tags:
     direction: DOWN
     timeout: 60000
     speed: 20
+    centerElement: true
 - tapOn:
     id: battle-choice-1
 - scrollUntilVisible:
@@ -610,6 +634,7 @@ tags:
     direction: DOWN
     timeout: 60000
     speed: 20
+    centerElement: true
 - tapOn:
     id: battle-choice-0
 - scrollUntilVisible:
@@ -650,6 +675,12 @@ tags:
     speed: 20
 - tapOn:
     id: master-confirm
+- scrollUntilVisible:
+    element:
+      id: master-active
+    direction: DOWN
+    timeout: 60000
+    speed: 20
 - assertVisible:
     id: master-active
 - scrollUntilVisible:
@@ -674,6 +705,12 @@ tags:
     speed: 20
 - tapOn:
     id: home-play
+- scrollUntilVisible:
+    element:
+      id: master-active
+    direction: DOWN
+    timeout: 60000
+    speed: 20
 - assertVisible:
     id: master-active
 - takeScreenshot: cod-238-master-ai-platform-architect

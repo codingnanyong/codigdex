@@ -11,6 +11,7 @@ tags:
     direction: DOWN
     timeout: 60000
     speed: 20
+    centerElement: true
 - tapOn:
     id: qa-start-workshop:platform-engineer
 - scrollUntilVisible:
@@ -44,6 +45,7 @@ tags:
     direction: DOWN
     timeout: 60000
     speed: 20
+    centerElement: true
 - tapOn:
     id: battle-choice-0
 - scrollUntilVisible:
@@ -69,6 +71,7 @@ tags:
     direction: DOWN
     timeout: 60000
     speed: 20
+    centerElement: true
 - tapOn:
     id: battle-choice-0
 - scrollUntilVisible:
@@ -137,6 +140,7 @@ tags:
     direction: DOWN
     timeout: 60000
     speed: 20
+    centerElement: true
 - tapOn:
     id: battle-choice-3
 - scrollUntilVisible:
@@ -162,6 +166,7 @@ tags:
     direction: DOWN
     timeout: 60000
     speed: 20
+    centerElement: true
 - tapOn:
     id: battle-choice-2
 - scrollUntilVisible:
@@ -187,6 +192,7 @@ tags:
     direction: DOWN
     timeout: 60000
     speed: 20
+    centerElement: true
 - tapOn:
     id: battle-choice-2
 - scrollUntilVisible:
@@ -269,6 +275,7 @@ tags:
     direction: DOWN
     timeout: 60000
     speed: 20
+    centerElement: true
 - tapOn:
     id: battle-choice-3
 - scrollUntilVisible:
@@ -294,6 +301,7 @@ tags:
     direction: DOWN
     timeout: 60000
     speed: 20
+    centerElement: true
 - tapOn:
     id: battle-choice-3
 - scrollUntilVisible:
@@ -319,6 +327,7 @@ tags:
     direction: DOWN
     timeout: 60000
     speed: 20
+    centerElement: true
 - tapOn:
     id: battle-choice-1
 - scrollUntilVisible:
@@ -387,6 +396,7 @@ tags:
     direction: DOWN
     timeout: 60000
     speed: 20
+    centerElement: true
 - tapOn:
     id: battle-choice-0
 - scrollUntilVisible:
@@ -412,6 +422,7 @@ tags:
     direction: DOWN
     timeout: 60000
     speed: 20
+    centerElement: true
 - tapOn:
     id: battle-choice-0
 - scrollUntilVisible:
@@ -437,6 +448,7 @@ tags:
     direction: DOWN
     timeout: 60000
     speed: 20
+    centerElement: true
 - tapOn:
     id: battle-choice-1
 - scrollUntilVisible:
@@ -462,6 +474,7 @@ tags:
     direction: DOWN
     timeout: 60000
     speed: 20
+    centerElement: true
 - tapOn:
     id: battle-choice-3
 - scrollUntilVisible:
@@ -530,6 +543,7 @@ tags:
     direction: DOWN
     timeout: 60000
     speed: 20
+    centerElement: true
 - tapOn:
     id: battle-choice-0
 - scrollUntilVisible:
@@ -555,6 +569,7 @@ tags:
     direction: DOWN
     timeout: 60000
     speed: 20
+    centerElement: true
 - tapOn:
     id: battle-choice-3
 - scrollUntilVisible:
@@ -580,6 +595,7 @@ tags:
     direction: DOWN
     timeout: 60000
     speed: 20
+    centerElement: true
 - tapOn:
     id: battle-choice-1
 - scrollUntilVisible:
@@ -605,6 +621,7 @@ tags:
     direction: DOWN
     timeout: 60000
     speed: 20
+    centerElement: true
 - tapOn:
     id: battle-choice-0
 - scrollUntilVisible:
@@ -630,6 +647,7 @@ tags:
     direction: DOWN
     timeout: 60000
     speed: 20
+    centerElement: true
 - tapOn:
     id: battle-choice-2
 - scrollUntilVisible:

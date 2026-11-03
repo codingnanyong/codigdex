@@ -18,6 +18,7 @@ tags:
     direction: DOWN
     timeout: 60000
     speed: 20
+    centerElement: true
 - tapOn:
     id: battle-choice-0
 - scrollUntilVisible:
