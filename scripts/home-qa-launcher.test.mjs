@@ -8,7 +8,8 @@ import { spawnSync } from 'node:child_process';
 
 const launcher = fileURLToPath(new URL('../start-home-qa.command', import.meta.url));
 const bash = process.platform === 'win32' ? path.join(process.env.ProgramFiles ?? 'C:/Program Files', 'Git/bin/bash.exe') : 'bash';
-assert.ok(process.platform !== 'win32' || existsSync(bash), 'Install Git Bash to verify the Mac launcher on Windows');
+const shellUnavailable = process.platform === 'win32' && !existsSync(bash);
+const launcherTest = (name, fn) => test(name, { skip: shellUnavailable ? 'Git Bash unavailable; Mac shell behavior not checked on this Windows host' : false }, fn);
 
 function fixture(t, overrides = {}, installed = true) {
   const dir = mkdtempSync(path.join(tmpdir(), 'codigdex-home-launcher-'));
@@ -55,51 +56,67 @@ if (tool === 'node' && !args.includes('--dry-run')) process.exit(Number(process.
   };
 }
 
-test('help is available without macOS, Node or installation', (t) => {
+launcherTest('help is available without macOS, Node or installation', (t) => {
   const f = fixture(t, { QA_TEST_OS: 'Linux', QA_TEST_NODE_MAJOR: '24' });
   const r = f.run(['--help']); assert.equal(r.status, 0, r.stderr); assert.match(r.stdout, /prepare/); assert.deepEqual(f.calls(), []);
 });
-test('non-Mac and wrong-Node launches stop before any installation', (t) => {
+launcherTest('non-Mac and wrong-Node launches stop before any installation', (t) => {
   const nonMac = fixture(t, { QA_TEST_OS: 'Linux' }); assert.notEqual(nonMac.run(['ios']).status, 0); assert.deepEqual(nonMac.calls(), []);
   const wrongNode = fixture(t, { QA_TEST_NODE_MAJOR: '24' }); const r = wrongNode.run(['ios']); assert.notEqual(r.status, 0); assert.match(r.stderr, /Node.js 22/); assert.deepEqual(wrongNode.calls(), []);
 });
-test('noninteractive launch requires a selection rather than silently testing all platforms', (t) => {
+launcherTest('noninteractive launch requires a selection rather than silently testing all platforms', (t) => {
   const f = fixture(t); assert.notEqual(f.run([]).status, 0); assert.deepEqual(f.calls(), []);
 });
-test('runner help, list and dry-run never install dependencies or browsers', (t) => {
+launcherTest('runner help, list and dry-run never install dependencies or browsers', (t) => {
   for (const flag of ['--help', '--list', '--dry-run']) {
     const f = fixture(t, {}, false); const r = f.run(['all', flag]); assert.equal(r.status, 0, r.stderr);
     assert.equal(f.calls().length, 1); assert.equal(f.calls()[0].tool, 'node'); assert.ok(f.calls()[0].args.includes(flag));
   }
 });
-test('ready iOS launch forwards the selected device from a repository path with spaces', (t) => {
+launcherTest('ready iOS launch forwards the selected device from a repository path with spaces', (t) => {
   const f = fixture(t); const r = f.run(['ios', '--device', 'sim-123']); assert.equal(r.status, 0, r.stderr);
   const calls = f.calls(); assert.ok(calls.every(c => c.tool === 'node')); assert.ok(calls[0].args.includes('--dry-run'));
   assert.deepEqual(calls.at(-1).args, ['scripts/home-qa.mjs', '--platform', 'ios', '--feature', 'all', '--device', 'sim-123']);
   assert.ok(calls.at(-1).cwd.includes('repo with spaces'));
 });
-test('prepare installs pinned local dependencies and runs only the doctor', (t) => {
+launcherTest('prepare installs pinned local dependencies and runs only the doctor', (t) => {
   const f = fixture(t, {}, false); const r = f.run(['prepare', 'ios']); assert.equal(r.status, 0, r.stderr);
   const calls = f.calls(); assert.deepEqual(calls.find(c => c.tool === 'npx').args, ['--yes', 'npm@10.9.2', 'ci', '--no-audit', '--no-fund']);
   assert.ok(calls.filter(c => c.tool === 'node').every(c => c.args.includes('--doctor')));
   assert.ok(!calls.some(c => c.args.includes('chromium'))); assert.match(r.stdout, /아직 실행하지 않았습니다/);
 });
-test('default prepare includes Chromium readiness and only checks all-platform tools', (t) => {
+launcherTest('default prepare includes Chromium readiness and only checks all-platform tools', (t) => {
   const f = fixture(t, {}, false); const r = f.run(['prepare']); assert.equal(r.status, 0, r.stderr);
   const calls = f.calls(); assert.ok(calls.some(c => c.tool === 'npx' && JSON.stringify(c.args) === JSON.stringify(['--no-install', 'playwright', 'install', 'chromium'])));
   assert.deepEqual(calls.at(-1).args, ['scripts/home-qa.mjs', '--platform', 'all', '--feature', 'all', '--doctor']);
 });
-test('an existing nvm Node 22 installation can be selected without installing Node', (t) => {
+launcherTest('an existing nvm Node 22 installation can be selected without installing Node', (t) => {
   const f = fixture(t, { QA_TEST_NODE_MAJOR: '24' }); mkdirSync(f.nvmDirectory);
   writeFileSync(path.join(f.nvmDirectory, 'nvm.sh'), 'nvm() { [ "$1" = use ] && [ "$2" = 22 ] || return 1; export QA_TEST_NODE_MAJOR=22; }\n');
   const r = f.run(['ios']); assert.equal(r.status, 0, r.stderr); assert.ok(!f.calls().some(c => c.tool === 'npx'));
   assert.deepEqual(f.calls().at(-1).args, ['scripts/home-qa.mjs', '--platform', 'ios', '--feature', 'all']);
 });
-test('failed installation cannot start tests or report preparation success', (t) => {
+launcherTest('failed installation cannot start tests or report preparation success', (t) => {
   const f = fixture(t, { QA_TEST_INSTALL_EXIT: '19' }, false); const r = f.run(['prepare', 'ios']); assert.equal(r.status, 19, r.stderr);
   assert.ok(f.calls().filter(c => c.tool === 'node').every(c => c.args.includes('--dry-run'))); assert.doesNotMatch(r.stdout, /점검을 마쳤습니다/);
 });
-test('runner failure propagates instead of becoming a successful preparation or test', (t) => {
+launcherTest('runner failure propagates instead of becoming a successful preparation or test', (t) => {
   const f = fixture(t, { QA_TEST_RUN_EXIT: '7' }); const r = f.run(['ios', '--doctor']); assert.equal(r.status, 7, r.stderr);
   assert.doesNotMatch(r.stdout, /점검을 마쳤습니다/); assert.ok(!f.calls().some(c => c.tool === 'npx'));
+});
+
+test('the real runner can plan a fresh checkout without third-party dependencies', (t) => {
+  const dir = mkdtempSync(path.join(tmpdir(), 'codigdex-home-launcher-'));
+  t.after(() => {
+    assert.equal(path.dirname(path.resolve(dir)), path.resolve(tmpdir()));
+    assert.ok(path.basename(dir).startsWith('codigdex-home-launcher-'));
+    rmSync(dir, { recursive: true, force: true });
+  });
+  mkdirSync(path.join(dir, 'scripts')); mkdirSync(path.join(dir, 'qa/home'), { recursive: true });
+  copyFileSync(fileURLToPath(new URL('./home-qa.mjs', import.meta.url)), path.join(dir, 'scripts/home-qa.mjs'));
+  copyFileSync(fileURLToPath(new URL('../qa/home/cases.json', import.meta.url)), path.join(dir, 'qa/home/cases.json'));
+  const r = spawnSync(process.execPath, ['scripts/home-qa.mjs', '--platform', 'ios', '--feature', 'all', '--dry-run'], { cwd: dir, encoding: 'utf8', timeout: 10000, windowsHide: true });
+  assert.equal(r.status, 0, r.stderr);
+  const planned = JSON.parse(r.stdout); assert.deepEqual(planned.platforms, ['ios']); assert.ok(planned.nativeFlows.length > 0);
+  assert.equal(existsSync(path.join(dir, 'node_modules')), false);
 });

@@ -11,7 +11,7 @@ Codigdex 집 Mac 검수
   bash start-home-qa.command all
   bash start-home-qa.command ios --doctor     설치 상태만 확인
 
-prepare는 저장소 의존성을 설치하고 도구를 점검합니다. 앱 테스트는 실행하지 않습니다.
+prepare는 lockfile 기준으로 저장소 의존성을 다시 설치하고 도구를 점검합니다. 앱 테스트는 실행하지 않습니다.
 all은 Web + Android + iOS입니다. 실제 검수 전에 해당 기기/시뮬레이터를 켜 두세요.
 일반 플레이 저장·키체인은 초기화하지 않습니다. 결과는 qa-results/에 남습니다.
 HELP
@@ -79,7 +79,8 @@ qa_args=(--platform "$qa_platform" --feature all "$@")
 if [[ "$qa_prepare" == 1 && "$qa_doctor" == 0 ]]; then qa_args+=(--doctor); qa_doctor=1; fi
 if [[ "$qa_inspect" == 1 ]]; then exec node scripts/home-qa.mjs "${qa_args[@]}"; fi
 if ! command -v npx >/dev/null 2>&1; then echo 'Install npm/npx with Node.js 22 first.' >&2; exit 1; fi
-# Validate runner options before any dependency installation.
+# The runner's help/list/plan path uses only Node built-ins and the committed cases.
+# Validate options before installation; keep that bootstrap path dependency-free.
 node scripts/home-qa.mjs "${qa_args[@]}" --dry-run >/dev/null
 
 if [[ "$qa_prepare" == 1 ]]; then
