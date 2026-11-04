@@ -27,8 +27,13 @@ function eligibleSave(jobId: SecondaryJobId = "platform-engineer") {
 async function openFinalProjectAfterReload(page: Page) {
   await reloadCareerGame(page);
   const game = page.getByRole("application");
-  if (await game.getAttribute("data-scene") === "secondary-region") await clickGame(page, 216, 511);
-  if (await game.getAttribute("data-scene") === "secondary-atlas") await clickGame(page, 770, 513);
+  await expect(game).toHaveAttribute("data-scene", /^(secondary-region|secondary-atlas|promotion-chapter)$/);
+  if (await game.getAttribute("data-scene") === "promotion-chapter") return;
+  if (await game.getAttribute("data-scene") === "secondary-region") {
+    await clickGame(page, 216, 511);
+    await expect(game).toHaveAttribute("data-scene", "secondary-atlas");
+  }
+  await clickGame(page, 770, 513);
   await expect(game).toHaveAttribute("data-scene", "promotion-chapter");
 }
 

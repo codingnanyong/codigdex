@@ -77,6 +77,17 @@
     higher-priority hub music over a primary region, and create/unlock audio on
     the enable action after a persisted-muted startup. Add native route, unit
     and real browser regression coverage for these two findings.
+  - Remote CI 41759034204: all 72 browser cases passed (67 first pass, the same
+    5 existing promotion cases passed on retry), but feature QA had one failure:
+    its background-click coordinate was now under the expanded utility rail.
+    Close the rail using its actual control before clicking, reopen it for HOME,
+    and focus the game for Enter. Stabilize the existing promotion helper by
+    awaiting atlas transitions before inspecting the next scene. No force-clicks
+    or timeout/retry increases are used. Rerun the affected UI paths and CI.
+  - Test-only follow-up passed locally: all 5 affected promotion journeys without
+    retries and all 11 feature journeys using Node 22.23.4/npm 10.9.2. Web lint
+    passed. These final edits change QA interactions only; game source/assets
+    remain the same as the already built/tested 5756590 revision.
   - Whole web unit suite: 769 passed; additional decode-serialization case then
     passed with the 5-test music-player suite (770 cases combined).
   - Mobile suite: 158 passed, one old eager-import regex failed; after updating
