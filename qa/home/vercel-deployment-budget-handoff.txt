@@ -1,0 +1,33 @@
+# Handoff
+
+- Owner: Codex
+- Reviewer: Claude read-only GitHub review is requested by the normal PR workflow.
+- Scope: User requested fewer Vercel deployments/builds because usage reaches
+  100% quickly. Restrict Git-triggered automatic deployment to main. Keep the
+  existing GitHub CI and the protected-preview access checks.
+- Changed files:
+  - web/vercel.json: Vercel project root is web. Match all Git branches with
+    **: false and explicitly allow main: true. Vercel documents minimatch and
+    any-matching-true semantics, so nested feat/dependabot branches are denied
+    while main matches the explicit allow rule.
+  - qa/home/vercel-deployment-budget-handoff.txt: this report.
+- Generated assets: None.
+- Checks run:
+  - JSON parsing and actual minimatch behavior against main, develop, nested
+    feature/release/dependabot names, main-old and case-sensitive Main.
+  - Official configuration reference:
+    https://vercel.com/docs/project-configuration/git-configuration
+    https://vercel.com/docs/project-configuration/vercel-json
+  - Remote CI/review and deployment observation follow the push/merge flow.
+- Remaining risks or review items:
+  - This is a branch deployment policy, not a custom numeric daily/account cap,
+    and it cannot recover an already consumed Vercel quota.
+  - Future branches must contain this configuration (start from updated develop
+    or merge it into older active branches). No unrelated branch is rewritten.
+  - CLI/dashboard manual deployments remain explicit operations outside the
+    Git-trigger policy. Protected Preview verification can be run on demand.
+  - COD-249 remains pending Vercel management authentication and a successful
+    protected-preview smoke. The Vercel plugin is still unconnected; Chrome and
+    in-app dedicated browser creation both returned browser access host unavailable.
+    No key was generated, copied or disclosed; no protection setting was disabled.
+  - COD-452 actual native simulator/device acceptance stays with the user at home.
