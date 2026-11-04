@@ -40,7 +40,7 @@ export function validateQuizPack(pack: QuizPack): string[] {
     if (question.prompt.ko === question.prompt.en && HANGUL.test(question.prompt.en)) {
       issues.push(`${question.id}: untranslated prompt`);
     }
-    const needsExplanation = question.type === "freeText" || question.hints !== undefined;
+    const needsExplanation = question.type === "freeText" || question.hints !== undefined || question.explanation !== undefined;
     const hints = question.hints ?? [];
     if (!Array.isArray(hints) || hints.length > 2) issues.push(`${question.id}: expected zero to two hints`);
     const accepted = question.type === "freeText"

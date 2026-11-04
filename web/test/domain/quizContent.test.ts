@@ -28,6 +28,18 @@ describe("quiz content packages", () => {
     expect(packs.every(({ questions }) => questions.length === 10)).toBe(true);
   });
 
+  it("provides bilingual reasoning for every question in all five network stages", async () => {
+    const descriptors = Object.values(QUIZ_PACK_MANIFEST).filter(({ chapterId }) => chapterId === "career:network");
+    expect(descriptors).toHaveLength(5);
+    const packs = await Promise.all(descriptors.map(({ id }) => loadQuizPack(id)));
+    const questions = packs.flatMap(({ questions }) => questions);
+    expect(questions).toHaveLength(50);
+    for (const question of questions) {
+      expect(question.explanation?.ko.trim(), question.id).toBeTruthy();
+      expect(question.explanation?.en.trim(), question.id).toBeTruthy();
+    }
+  });
+
   it("keeps the platform release answer correct after varying its choice position", async () => {
     const descriptor = Object.values(QUIZ_PACK_MANIFEST).find(({ stageId }) => stageId === "platform-release-ferry")!;
     const pack = await loadQuizPack(descriptor.id);

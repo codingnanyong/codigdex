@@ -120,6 +120,18 @@ function mixedPack(free: FreeTextQuestion = command) {
 }
 
 describe("mixed content validation", () => {
+  it("validates volunteered choice explanations even without hints", () => {
+    const pack = mixedPack();
+    const target = pack.questions[2];
+    for (const [explanation, message] of [
+      [text("판단 근거", ""), "missing en explanation"],
+      [same("판단 근거"), "untranslated explanation"],
+    ] as const) {
+      const invalid = { ...pack, questions: pack.questions.map((question) => question.id === target.id ? { ...question, explanation } : question) };
+      expect(validateQuizPack(invalid)).toContain(`${target.id}: ${message}`);
+    }
+  });
+
   it("supports a 20% free-text pool with bilingual hints and explanations", () => {
     expect(validateQuizPack(mixedPack())).toEqual([]);
   });
