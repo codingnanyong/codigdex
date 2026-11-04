@@ -31,7 +31,17 @@ const audioLimitBytes = 20 * 1024 * 1024;
 if (audioBytes > audioLimitBytes) throw new Error("Mobile music exceeds its 20 MiB source budget");
 const totalLimitBytes = 20 * 1024 * 1024;
 if (bundledBytes + fontBytes > totalLimitBytes) throw new Error("Mobile images and pixel font exceed the 20 MiB combined source budget");
-const report = { allAssets: allKeys.length, mobileAssets: keys.length, musicTracks: audioKeys.length, allBytes, bundledBytes, fontBytes, audioBytes, totalBytes: bundledBytes + fontBytes + audioBytes, savedBytes: allBytes - bundledBytes - fontBytes - audioBytes, limitBytes, totalLimitBytes, audioLimitBytes };
+const javascriptLimitBytes = 6 * 1024 * 1024;
+const javascriptBundles = await Promise.all(["android", "ios"].map(async platform => {
+  const directory = path.join(mobile, ".tmp-expo-export", platform);
+  const metadata = JSON.parse(await readFile(path.join(directory, "metadata.json"), "utf8"));
+  const files = metadata.fileMetadata[platform];
+  if (files.assets.filter(asset => asset.ext === "mp3").length !== audioKeys.length) throw new Error(`Missing offline audio in ${platform} export`);
+  const bytes = (await stat(path.join(directory, files.bundle))).size;
+  if (bytes > javascriptLimitBytes) throw new Error(`${platform} JavaScript exceeds its 6 MiB budget`);
+  return { platform, bytes };
+}));
+const report = { allAssets: allKeys.length, mobileAssets: keys.length, musicTracks: audioKeys.length, allBytes, bundledBytes, fontBytes, audioBytes, totalBytes: bundledBytes + fontBytes + audioBytes, savedBytes: allBytes - bundledBytes - fontBytes - audioBytes, limitBytes, totalLimitBytes, audioLimitBytes, javascriptLimitBytes, javascriptBundles };
 console.log(JSON.stringify(report, null, 2));
 if (process.argv.includes("--write")) {
   await mkdir(path.join(mobile, ".tmp-qa"), { recursive: true });

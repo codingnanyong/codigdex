@@ -2,6 +2,7 @@ import { musicTrack } from "@codigdex/game-assets/music";
 import { DEFAULT_MUSIC_PREFERENCES, MUSIC_PREFERENCES_KEY, parseMusicPreferences, type MusicPreferences } from "@codigdex/game-core/domain/musicPreferences";
 import { assetUrl } from "./assets";
 import { AudioBufferCache } from "./audioBufferCache";
+import { createMusicContext } from "./audioContext";
 
 export interface MusicState { region?: string; title?: string; playing: boolean; error: boolean; preferences: MusicPreferences }
 /** One game-owned audio graph; the only permitted overlap is a short crossfade. */
@@ -17,7 +18,7 @@ export class MusicPlayer {
   private preferences: MusicPreferences;
   private error = false;
   private listeners = new Set<(state: MusicState) => void>();
-  constructor(private createContext = () => new AudioContext()) {
+  constructor(private createContext = createMusicContext) {
     let raw: string | null = null;
     try { raw = localStorage.getItem(MUSIC_PREFERENCES_KEY); } catch { /* Device settings remain usable in memory. */ }
     this.preferences = parseMusicPreferences(raw);
@@ -75,12 +76,13 @@ export class MusicPlayer {
         const response = await fetch(assetUrl(track.assetKey), { signal: controller.signal });
         if (!response.ok) throw new Error("Music unavailable");
         const encoded = await response.arrayBuffer();
-        await this.decoding;
-        if (this.disposed || generation !== this.generation) return;
-        const pending = context.decodeAudioData(encoded);
+        const pending = this.decoding.then(() => {
+          if (this.disposed || generation !== this.generation) return undefined;
+          return context.decodeAudioData(encoded);
+        });
         this.decoding = pending.then(() => undefined, () => undefined);
         buffer = await pending;
-        if (this.disposed || generation !== this.generation) return;
+        if (!buffer || this.disposed || generation !== this.generation) return;
         this.buffers.set(region!, buffer);
       }
       if (this.disposed || generation !== this.generation || document.hidden || !this.preferences.enabled || !this.preferences.volume) return;

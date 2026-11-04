@@ -38,6 +38,13 @@
   - web/lib/audioBufferCache.ts, musicPlayer.ts: 8 MiB decoded-PCM LRU cache,
     abort stale downloads and serialize decodes. Active sources and the current
     decode are separate allocations and are not claimed to fit inside 8 MiB.
+  - web/lib/audioContext.ts: prefer the 24 kHz source rate, falling back to the
+    output device rate when unsupported. Oversized fallback buffers play without
+    being retained in cache. Add preferred-rate/fallback regression cases.
+  - mobile/src/ui/PixelScene.tsx and PixelScene.test.tsx: send numeric resolved
+    modules to Skia, covering the direct-map call missed in the first refactor.
+  - mobile/scripts/check-bundle.mjs also checks both actual exported Hermes
+    bundles against a 6 MiB limit and counts all 79 offline MP3s in each export.
   - web/test/phaser/audioBufferCache.test.ts, musicPlayer.test.ts,
     web/test/domain/packCache.test.ts, regionMusic.test.ts: byte budgets,
     rapid switching, failure replacement, authoring/runtime split coverage.
@@ -52,8 +59,20 @@
   - Total mobile image/font/audio source assets: 52,272,834 -> 35,199,234 bytes.
   - Generated runtime music metadata and native image/audio resolver maps.
   - WAV masters and transient reports remain in ignored qa-results/.
+  - qa/home/music-decoded-metrics.json: actual Chromium decoding of all 79
+    encoded files at the preferred rate; mono, maximum 5,619,644 PCM bytes.
   - web/public/assets is updated only by the official sync script.
 - Checks run:
+  - Follow-up: the final lazy-map typecheck found PixelScene's direct asset-map
+    access. Earlier typecheck output had been summarized before inspecting its
+    failure. Route Skia through the numeric resolver and add a boundary regression
+    test; rerun final checks before pushing the fix. PR #171 remote Claude review
+    found no blockers. Address its decode/cache notes with strict promise chaining,
+    24 kHz context preference and output-device fallback tests.
+  - Final post-fix checks: full workspace typecheck and lint passed; whole web
+    unit suite 772 passed and whole mobile unit/host suite 160 passed. The real
+    browser music suite passed all 3 cases using the 24 kHz context. Android/iOS
+    exports and the actual bytecode/offline-audio budgets passed again.
   - Whole web unit suite: 769 passed; additional decode-serialization case then
     passed with the 5-test music-player suite (770 cases combined).
   - Mobile suite: 158 passed, one old eager-import regex failed; after updating

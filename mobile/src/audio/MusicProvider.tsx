@@ -18,7 +18,7 @@ export function MusicProvider({ children }: { children: ReactNode }) {
   const registrations = useRef(new Map<symbol, { region: string; priority: number }>());
   const choose = useCallback(() => {
     const selected = [...registrations.current.values()].sort((a,b) => b.priority - a.priority)[0];
-    if (selected) setRegion(selected.region);
+    if (selected) setRegion(selected.region); // Keep music through settings/loading when no screen claims a region.
   }, []);
   const register = useCallback((id: symbol, next: string | undefined, priority: number) => {
     if (musicTrack(next)) registrations.current.set(id, { region: next!, priority }); else registrations.current.delete(id);

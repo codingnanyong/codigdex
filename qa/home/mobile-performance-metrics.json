@@ -18,14 +18,14 @@
     "audioBytes": 17077827,
     "android": [
       {
-        "file": "AppEntry-0de5cf0fca263ef6ce965ad80b45cfdd.hbc",
-        "bytes": 5280056
+        "file": "AppEntry-df8c2c3b11a80d182843b28ec52dd5d7.hbc",
+        "bytes": 5280060
       }
     ],
     "ios": [
       {
-        "file": "AppEntry-8622c89d16275eff3ab30eca1f2971ef.hbc",
-        "bytes": 5272300
+        "file": "AppEntry-fefe6fc1442c0899cfa6be7af313cba8.hbc",
+        "bytes": 5272304
       }
     ]
   },

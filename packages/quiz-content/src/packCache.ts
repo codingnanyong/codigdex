@@ -12,6 +12,7 @@ export class PackCache {
     }
     const pending = Promise.resolve().then(load);
     this.entries.set(id, pending);
+    // Include in-flight entries in the bound; a heavily evicted request may load again.
     while (this.entries.size > this.limit) this.entries.delete(this.entries.keys().next().value!);
     void pending.catch(() => { if (this.entries.get(id) === pending) this.entries.delete(id); });
     return pending;

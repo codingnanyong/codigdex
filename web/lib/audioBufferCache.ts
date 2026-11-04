@@ -12,7 +12,7 @@ export class AudioBufferCache {
     const previous = this.entries.get(key);
     if (previous) { this.bytes -= previous.length * previous.numberOfChannels * 4; this.entries.delete(key); }
     const size = buffer.length * buffer.numberOfChannels * 4;
-    if (size > this.maxBytes) return;
+    if (size > this.maxBytes) return; // Native-rate fallback may exceed budget; play without retaining it.
     this.entries.set(key, buffer); this.bytes += size;
     while (this.bytes > this.maxBytes) {
       const oldest = this.entries.keys().next().value!;
