@@ -1,0 +1,110 @@
+# Handoff
+
+- Owner: Codex
+- Reviewer: Claude read-only review requested with claude-collaboration and
+  shared-change-review instructions. Local review could not authenticate:
+  OAuth session expired and could not refresh. GitHub PR review/CI remain gates.
+- Scope: User-authorized main integration of the pending network-quiz/BGM
+  work plus a focused mobile performance refactor. Preserve saves, quizzes,
+  79 unique compositions, offline assets, navigation and visual appearance.
+- Changed files:
+  - packages/game-assets/src/musicScores.ts: authoring-only score data.
+  - packages/game-assets/src/music.ts and scripts/generate-music-manifest.mjs:
+    generated minimal runtime metadata and indexed track lookup; authoring
+    motifs/harmony no longer enter game clients through the music export.
+  - packages/game-assets/package.json: generation and freshness checks.
+  - scripts/generate-region-music.mts: 48kbps mono/24kHz encoding from original
+    WAV masters, --encode-only for unchanged scores; retain decoded audio QA.
+  - packages/quiz-content/src/packCache.ts, loader.ts, mixed.ts: LRU retention
+    of 12 normalized packs per variant; shared concurrent promises, safe retry
+    and identity guards against stale failures deleting replacement entries.
+    Source modules remain in the JS module graph; this limit bounds normalized
+    pack retention, not the complete quiz-content memory footprint.
+  - packages/quiz-content/src/packs/career.ts: defer fallback generator import.
+  - packages/game-content/src/domain/chapters/index.ts: index chapter/stage
+    lookup once instead of repeatedly scanning the full collection; return
+    a fresh stage wrapper to preserve callers' mutation isolation.
+  - mobile/scripts/generate-asset-map.mjs, mobile/src/assets.generated.ts,
+    mobile/src/audio.generated.ts, mobile/src/assets.ts: resolve assets only
+    when used. Keep literal requires so Metro includes every offline asset.
+    Remove the full asset-key validation manifest from the native image path.
+  - mobile/src/audio/MusicProvider.tsx, MusicProvider.test.tsx: lazy audio source
+    resolution and stable context value so playback position updates do not
+    invalidate the game context on each audio status event.
+  - mobile/scripts/check-bundle.mjs: enforce lazy image declarations and lower
+    the music source budget from 40 to 20 MiB; preserve image/font budgets.
+  - mobile/src/assets.test.ts, src/qa/readiness.test.ts: requested-asset-only
+    resolution, reject unknown/prototype keys and retain completeness checks.
+  - web/lib/audioBufferCache.ts, musicPlayer.ts: 8 MiB decoded-PCM LRU cache,
+    abort stale downloads and serialize decodes. Active sources and the current
+    decode are separate allocations and are not claimed to fit inside 8 MiB.
+  - web/lib/audioContext.ts: prefer the 24 kHz source rate, falling back to the
+    output device rate when unsupported. Oversized fallback buffers play without
+    being retained in cache. Add preferred-rate/fallback regression cases.
+  - mobile/src/ui/PixelScene.tsx and PixelScene.test.tsx: send numeric resolved
+    modules to Skia, covering the direct-map call missed in the first refactor.
+  - mobile/scripts/check-bundle.mjs also checks both actual exported Hermes
+    bundles against a 6 MiB limit and counts all 79 offline MP3s in each export.
+  - web/test/phaser/audioBufferCache.test.ts, musicPlayer.test.ts,
+    web/test/domain/packCache.test.ts, regionMusic.test.ts: byte budgets,
+    rapid switching, failure replacement, authoring/runtime split coverage.
+  - .github/workflows/ci.yml: verify score identity, audio hashes, decoded level
+    and loop measurements in CI with check:bgm (no FFmpeg needed for check).
+  - qa/home/mobile-performance-metrics.json: measured before/after values.
+  - Other pending BGM/quiz changes are enumerated in regional-bgm-handoff.txt
+    and network-quiz-quality-handoff.txt and are included in this release.
+- Generated assets:
+  - 79 MP3s under packages/game-assets/files/audio/music: 17,077,827 bytes,
+    down from 34,151,427 bytes, preserving the original score and duration.
+  - Total mobile image/font/audio source assets: 52,272,834 -> 35,199,234 bytes.
+  - Generated runtime music metadata and native image/audio resolver maps.
+  - WAV masters and transient reports remain in ignored qa-results/.
+  - qa/home/music-decoded-metrics.json: actual Chromium decoding of all 79
+    encoded files at the preferred rate; mono, maximum 5,619,644 PCM bytes.
+  - web/public/assets is updated only by the official sync script.
+- Checks run:
+  - Follow-up: the final lazy-map typecheck found PixelScene's direct asset-map
+    access. Earlier typecheck output had been summarized before inspecting its
+    failure. Route Skia through the numeric resolver and add a boundary regression
+    test; rerun final checks before pushing the fix. PR #171 remote Claude review
+    found no blockers. Address its decode/cache notes with strict promise chaining,
+    24 kHz context preference and output-device fallback tests.
+  - Final post-fix checks: full workspace typecheck and lint passed; whole web
+    unit suite 772 passed and whole mobile unit/host suite 160 passed. The real
+    browser music suite passed all 3 cases using the 24 kHz context. Android/iOS
+    exports and the actual bytecode/offline-audio budgets passed again.
+  - PR Codex review follow-up: do not let an unentered secondary atlas claim
+    higher-priority hub music over a primary region, and create/unlock audio on
+    the enable action after a persisted-muted startup. Add native route, unit
+    and real browser regression coverage for these two findings.
+  - Remote CI 41759034204: all 72 browser cases passed (67 first pass, the same
+    5 existing promotion cases passed on retry), but feature QA had one failure:
+    its background-click coordinate was now under the expanded utility rail.
+    Close the rail using its actual control before clicking, reopen it for HOME,
+    and focus the game for Enter. Stabilize the existing promotion helper by
+    awaiting atlas transitions before inspecting the next scene. No force-clicks
+    or timeout/retry increases are used. Rerun the affected UI paths and CI.
+  - Test-only follow-up passed locally: all 5 affected promotion journeys without
+    retries and all 11 feature journeys using Node 22.23.4/npm 10.9.2. Web lint
+    passed. These final edits change QA interactions only; game source/assets
+    remain the same as the already built/tested 5756590 revision.
+  - Whole web unit suite: 769 passed; additional decode-serialization case then
+    passed with the 5-test music-player suite (770 cases combined).
+  - Mobile suite: 158 passed, one old eager-import regex failed; after updating
+    that completeness check, all 10 focused asset/audio/readiness cases passed
+    (159 cases combined). No product asset was removed to satisfy the check.
+  - Browser: all 9 BGM/network-quiz journeys passed in both quiz languages.
+  - Root typecheck, lint, check:agents and qa:check passed (22 QA tool tests).
+  - check:bgm passed all 79 source/encoded measurements and file hashes.
+  - build:mobile passed Android/iOS Hermes exports, offline asset registration,
+    native static configuration, and tightened image/font/music budgets.
+  - build:web passed after browser tests stopped, avoiding shared dev/build
+    generated-type races. git diff --check passed.
+- Remaining risks or review items:
+  - main integration and remote CI/review are performed after this local report.
+  - The source-asset reduction is measured; native binary size and real-device
+    RSS/frame timing were not measured on this Windows host. Hermes figures
+    are recorded separately, including any closure-related bytecode increase.
+  - Verify new Expo Audio native builds, audio interruptions, silent mode and
+    loop boundaries on physical iOS/Android devices. JS exports are not native QA.
+  - Documentation updates belong to Claude; no docs/README files were edited.

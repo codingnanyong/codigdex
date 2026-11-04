@@ -1,0 +1,560 @@
+{
+  "browser": "Chromium desktop",
+  "requestedSampleRate": 24000,
+  "maxDecodedBytes": 5619644,
+  "tracks": [
+    {
+      "region": "hub:title",
+      "sampleRate": 24000,
+      "channels": 1,
+      "decodedBytes": 4189092,
+      "duration": 43.636375
+    },
+    {
+      "region": "hub:world",
+      "sampleRate": 24000,
+      "channels": 1,
+      "decodedBytes": 3544616,
+      "duration": 36.92308333333333
+    },
+    {
+      "region": "hub:career",
+      "sampleRate": 24000,
+      "channels": 1,
+      "decodedBytes": 2880000,
+      "duration": 30
+    },
+    {
+      "region": "hub:dex",
+      "sampleRate": 24000,
+      "channels": 1,
+      "decodedBytes": 3637896,
+      "duration": 37.89475
+    },
+    {
+      "region": "common:tutorial",
+      "sampleRate": 24000,
+      "channels": 1,
+      "decodedBytes": 3686400,
+      "duration": 38.4
+    },
+    {
+      "region": "common:git",
+      "sampleRate": 24000,
+      "channels": 1,
+      "decodedBytes": 3177932,
+      "duration": 33.103458333333336
+    },
+    {
+      "region": "common:linux",
+      "sampleRate": 24000,
+      "channels": 1,
+      "decodedBytes": 4006956,
+      "duration": 41.739125
+    },
+    {
+      "region": "career:frontend:html-css",
+      "sampleRate": 24000,
+      "channels": 1,
+      "decodedBytes": 2560000,
+      "duration": 26.666666666666668
+    },
+    {
+      "region": "career:frontend:javascript",
+      "sampleRate": 24000,
+      "channels": 1,
+      "decodedBytes": 2972904,
+      "duration": 30.96775
+    },
+    {
+      "region": "career:frontend:http-api",
+      "sampleRate": 24000,
+      "channels": 1,
+      "decodedBytes": 3614116,
+      "duration": 37.64704166666667
+    },
+    {
+      "region": "career:frontend:react",
+      "sampleRate": 24000,
+      "channels": 1,
+      "decodedBytes": 3291428,
+      "duration": 34.28570833333333
+    },
+    {
+      "region": "career:frontend:frontend-testing",
+      "sampleRate": 24000,
+      "channels": 1,
+      "decodedBytes": 2880000,
+      "duration": 30
+    },
+    {
+      "region": "career:backend:http-api",
+      "sampleRate": 24000,
+      "channels": 1,
+      "decodedBytes": 3761632,
+      "duration": 39.18366666666667
+    },
+    {
+      "region": "career:backend:server-framework",
+      "sampleRate": 24000,
+      "channels": 1,
+      "decodedBytes": 3124068,
+      "duration": 32.542375
+    },
+    {
+      "region": "career:backend:sql",
+      "sampleRate": 24000,
+      "channels": 1,
+      "decodedBytes": 3291428,
+      "duration": 34.28570833333333
+    },
+    {
+      "region": "career:backend:security-auth",
+      "sampleRate": 24000,
+      "channels": 1,
+      "decodedBytes": 4347168,
+      "duration": 45.283
+    },
+    {
+      "region": "career:backend:network",
+      "sampleRate": 24000,
+      "channels": 1,
+      "decodedBytes": 3072000,
+      "duration": 32
+    },
+    {
+      "region": "career:backend:docker",
+      "sampleRate": 24000,
+      "channels": 1,
+      "decodedBytes": 3921704,
+      "duration": 40.851083333333335
+    },
+    {
+      "region": "career:devops:network",
+      "sampleRate": 24000,
+      "channels": 1,
+      "decodedBytes": 2792728,
+      "duration": 29.090916666666665
+    },
+    {
+      "region": "career:devops:docker",
+      "sampleRate": 24000,
+      "channels": 1,
+      "decodedBytes": 3351272,
+      "duration": 34.909083333333335
+    },
+    {
+      "region": "career:devops:cicd",
+      "sampleRate": 24000,
+      "channels": 1,
+      "decodedBytes": 2633144,
+      "duration": 27.428583333333332
+    },
+    {
+      "region": "career:devops:kubernetes",
+      "sampleRate": 24000,
+      "channels": 1,
+      "decodedBytes": 3657144,
+      "duration": 38.09525
+    },
+    {
+      "region": "career:devops:cloud-iac",
+      "sampleRate": 24000,
+      "channels": 1,
+      "decodedBytes": 3072000,
+      "duration": 32
+    },
+    {
+      "region": "career:devops:monitoring",
+      "sampleRate": 24000,
+      "channels": 1,
+      "decodedBytes": 4495608,
+      "duration": 46.82925
+    },
+    {
+      "region": "career:data-engineer:python",
+      "sampleRate": 24000,
+      "channels": 1,
+      "decodedBytes": 3233684,
+      "duration": 33.68420833333333
+    },
+    {
+      "region": "career:data-engineer:sql",
+      "sampleRate": 24000,
+      "channels": 1,
+      "decodedBytes": 2880000,
+      "duration": 30
+    },
+    {
+      "region": "career:data-engineer:data-pipeline",
+      "sampleRate": 24000,
+      "channels": 1,
+      "decodedBytes": 3021640,
+      "duration": 31.475416666666668
+    },
+    {
+      "region": "career:data-engineer:docker",
+      "sampleRate": 24000,
+      "channels": 1,
+      "decodedBytes": 3544616,
+      "duration": 36.92308333333333
+    },
+    {
+      "region": "career:data-engineer:orchestration",
+      "sampleRate": 24000,
+      "channels": 1,
+      "decodedBytes": 3972412,
+      "duration": 41.37929166666667
+    },
+    {
+      "region": "career:data-engineer:monitoring",
+      "sampleRate": 24000,
+      "channels": 1,
+      "decodedBytes": 3456000,
+      "duration": 36
+    },
+    {
+      "region": "career:data-analyst:sql",
+      "sampleRate": 24000,
+      "channels": 1,
+      "decodedBytes": 2710588,
+      "duration": 28.235291666666665
+    },
+    {
+      "region": "career:data-analyst:statistics",
+      "sampleRate": 24000,
+      "channels": 1,
+      "decodedBytes": 5236364,
+      "duration": 54.545458333333336
+    },
+    {
+      "region": "career:data-analyst:visualization",
+      "sampleRate": 24000,
+      "channels": 1,
+      "decodedBytes": 3124068,
+      "duration": 32.542375
+    },
+    {
+      "region": "career:data-analyst:bi-tools",
+      "sampleRate": 24000,
+      "channels": 1,
+      "decodedBytes": 3413332,
+      "duration": 35.55554166666667
+    },
+    {
+      "region": "career:data-analyst:python",
+      "sampleRate": 24000,
+      "channels": 1,
+      "decodedBytes": 2972904,
+      "duration": 30.96775
+    },
+    {
+      "region": "secondary:platform-engineer:platform-release-ferry",
+      "sampleRate": 24000,
+      "channels": 1,
+      "decodedBytes": 3072000,
+      "duration": 32
+    },
+    {
+      "region": "secondary:platform-engineer:platform-signal-owl",
+      "sampleRate": 24000,
+      "channels": 1,
+      "decodedBytes": 3214884,
+      "duration": 33.488375
+    },
+    {
+      "region": "secondary:platform-engineer:platform-budget-keeper",
+      "sampleRate": 24000,
+      "channels": 1,
+      "decodedBytes": 4726152,
+      "duration": 49.23075
+    },
+    {
+      "region": "secondary:platform-engineer:platform-incident-heron",
+      "sampleRate": 24000,
+      "channels": 1,
+      "decodedBytes": 3544616,
+      "duration": 36.92308333333333
+    },
+    {
+      "region": "secondary:platform-engineer:platform-harbor-guardian",
+      "sampleRate": 24000,
+      "channels": 1,
+      "decodedBytes": 3233684,
+      "duration": 33.68420833333333
+    },
+    {
+      "region": "secondary:fullstack-engineer:fullstack-contract-fox",
+      "sampleRate": 24000,
+      "channels": 1,
+      "decodedBytes": 3291428,
+      "duration": 34.28570833333333
+    },
+    {
+      "region": "secondary:fullstack-engineer:fullstack-session-otter",
+      "sampleRate": 24000,
+      "channels": 1,
+      "decodedBytes": 2821224,
+      "duration": 29.38775
+    },
+    {
+      "region": "secondary:fullstack-engineer:fullstack-transaction-pangolin",
+      "sampleRate": 24000,
+      "channels": 1,
+      "decodedBytes": 5008696,
+      "duration": 52.17391666666666
+    },
+    {
+      "region": "secondary:fullstack-engineer:fullstack-trace-swallow",
+      "sampleRate": 24000,
+      "channels": 1,
+      "decodedBytes": 2751164,
+      "duration": 28.657958333333333
+    },
+    {
+      "region": "secondary:fullstack-engineer:fullstack-bridge-kirin",
+      "sampleRate": 24000,
+      "channels": 1,
+      "decodedBytes": 2710588,
+      "duration": 28.235291666666665
+    },
+    {
+      "region": "secondary:ml-developer:ml-sample-mouse",
+      "sampleRate": 24000,
+      "channels": 1,
+      "decodedBytes": 3477736,
+      "duration": 36.226416666666665
+    },
+    {
+      "region": "secondary:ml-developer:ml-feature-deer",
+      "sampleRate": 24000,
+      "channels": 1,
+      "decodedBytes": 3291428,
+      "duration": 34.28570833333333
+    },
+    {
+      "region": "secondary:ml-developer:ml-validation-lynx",
+      "sampleRate": 24000,
+      "channels": 1,
+      "decodedBytes": 3972412,
+      "duration": 41.37929166666667
+    },
+    {
+      "region": "secondary:ml-developer:ml-serving-gecko",
+      "sampleRate": 24000,
+      "channels": 1,
+      "decodedBytes": 2710588,
+      "duration": 28.235291666666665
+    },
+    {
+      "region": "secondary:ml-developer:ml-model-griffin",
+      "sampleRate": 24000,
+      "channels": 1,
+      "decodedBytes": 3686400,
+      "duration": 38.4
+    },
+    {
+      "region": "secondary:mlops-engineer:mlops-lineage-snail",
+      "sampleRate": 24000,
+      "channels": 1,
+      "decodedBytes": 3736216,
+      "duration": 38.91891666666667
+    },
+    {
+      "region": "secondary:mlops-engineer:mlops-pipeline-beaver",
+      "sampleRate": 24000,
+      "channels": 1,
+      "decodedBytes": 3124068,
+      "duration": 32.542375
+    },
+    {
+      "region": "secondary:mlops-engineer:mlops-registry-tortoise",
+      "sampleRate": 24000,
+      "channels": 1,
+      "decodedBytes": 2880000,
+      "duration": 30
+    },
+    {
+      "region": "secondary:mlops-engineer:mlops-drift-moth",
+      "sampleRate": 24000,
+      "channels": 1,
+      "decodedBytes": 5619644,
+      "duration": 58.537958333333336
+    },
+    {
+      "region": "secondary:mlops-engineer:mlops-cycle-phoenix",
+      "sampleRate": 24000,
+      "channels": 1,
+      "decodedBytes": 2880000,
+      "duration": 30
+    },
+    {
+      "region": "secondary:analytics-engineer:analytics-grain-sparrow",
+      "sampleRate": 24000,
+      "channels": 1,
+      "decodedBytes": 2513456,
+      "duration": 26.181833333333334
+    },
+    {
+      "region": "secondary:analytics-engineer:analytics-quality-frog",
+      "sampleRate": 24000,
+      "channels": 1,
+      "decodedBytes": 3921704,
+      "duration": 40.851083333333335
+    },
+    {
+      "region": "secondary:analytics-engineer:analytics-metric-lanternfish",
+      "sampleRate": 24000,
+      "channels": 1,
+      "decodedBytes": 3456000,
+      "duration": 36
+    },
+    {
+      "region": "secondary:analytics-engineer:analytics-lineage-stag",
+      "sampleRate": 24000,
+      "channels": 1,
+      "decodedBytes": 4517648,
+      "duration": 47.05883333333333
+    },
+    {
+      "region": "secondary:analytics-engineer:analytics-insight-dragon",
+      "sampleRate": 24000,
+      "channels": 1,
+      "decodedBytes": 3072000,
+      "duration": 32
+    },
+    {
+      "region": "promotion:platform-engineer",
+      "sampleRate": 24000,
+      "channels": 1,
+      "decodedBytes": 3413332,
+      "duration": 35.55554166666667
+    },
+    {
+      "region": "promotion:fullstack-engineer",
+      "sampleRate": 24000,
+      "channels": 1,
+      "decodedBytes": 2383448,
+      "duration": 24.827583333333333
+    },
+    {
+      "region": "promotion:ml-developer",
+      "sampleRate": 24000,
+      "channels": 1,
+      "decodedBytes": 4006956,
+      "duration": 41.739125
+    },
+    {
+      "region": "promotion:mlops-engineer",
+      "sampleRate": 24000,
+      "channels": 1,
+      "decodedBytes": 4114284,
+      "duration": 42.857125
+    },
+    {
+      "region": "promotion:analytics-engineer",
+      "sampleRate": 24000,
+      "channels": 1,
+      "decodedBytes": 2658460,
+      "duration": 27.692291666666666
+    },
+    {
+      "region": "mastery:software-architect",
+      "sampleRate": 24000,
+      "channels": 1,
+      "decodedBytes": 3840000,
+      "duration": 40
+    },
+    {
+      "region": "mastery:cloud-platform-architect",
+      "sampleRate": 24000,
+      "channels": 1,
+      "decodedBytes": 3477736,
+      "duration": 36.226416666666665
+    },
+    {
+      "region": "mastery:ai-product-engineer",
+      "sampleRate": 24000,
+      "channels": 1,
+      "decodedBytes": 2941276,
+      "duration": 30.638291666666667
+    },
+    {
+      "region": "mastery:ai-platform-architect",
+      "sampleRate": 24000,
+      "channels": 1,
+      "decodedBytes": 3490908,
+      "duration": 36.363625
+    },
+    {
+      "region": "mastery:data-architect",
+      "sampleRate": 24000,
+      "channels": 1,
+      "decodedBytes": 4189092,
+      "duration": 43.636375
+    },
+    {
+      "region": "source:hadoop",
+      "sampleRate": 24000,
+      "channels": 1,
+      "decodedBytes": 4006956,
+      "duration": 41.739125
+    },
+    {
+      "region": "source:orchestration",
+      "sampleRate": 24000,
+      "channels": 1,
+      "decodedBytes": 3905084,
+      "duration": 40.677958333333336
+    },
+    {
+      "region": "source:streaming",
+      "sampleRate": 24000,
+      "channels": 1,
+      "decodedBytes": 2671304,
+      "duration": 27.826083333333333
+    },
+    {
+      "region": "source:lakehouse",
+      "sampleRate": 24000,
+      "channels": 1,
+      "decodedBytes": 3544616,
+      "duration": 36.92308333333333
+    },
+    {
+      "region": "source:quality",
+      "sampleRate": 24000,
+      "channels": 1,
+      "decodedBytes": 4608000,
+      "duration": 48
+    },
+    {
+      "region": "source:analytics",
+      "sampleRate": 24000,
+      "channels": 1,
+      "decodedBytes": 2880000,
+      "duration": 30
+    },
+    {
+      "region": "source:ml",
+      "sampleRate": 24000,
+      "channels": 1,
+      "decodedBytes": 3351272,
+      "duration": 34.909083333333335
+    },
+    {
+      "region": "source:platform",
+      "sampleRate": 24000,
+      "channels": 1,
+      "decodedBytes": 3021640,
+      "duration": 31.475416666666668
+    },
+    {
+      "region": "source:application",
+      "sampleRate": 24000,
+      "channels": 1,
+      "decodedBytes": 3233684,
+      "duration": 33.68420833333333
+    }
+  ]
+}

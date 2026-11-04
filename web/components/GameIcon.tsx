@@ -1,8 +1,9 @@
-type GameIconName = "menu" | "home" | "settings" | "notes" | "account" | "fullscreen" | "exit-fullscreen" | "retry";
+type GameIconName = "menu" | "home" | "settings" | "notes" | "account" | "fullscreen" | "exit-fullscreen" | "retry" | "music";
 
 /** One grid and stroke weight for all game utility icons. */
 export function GameIcon({ name }: { name: GameIconName }) {
   return <svg className="game-tool-icon" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="square" strokeLinejoin="miter" aria-hidden="true" focusable="false">
+    {name === "music" ? <path d="M9 17V5l11-2v12M9 8l11-2M9 17c0 2-2 3-4 3s-3-1-3-2 2-3 4-3h3m11 0c0 2-2 3-4 3s-3-1-3-2 2-3 4-3h3" /> : null}
     {name === "menu" ? <path d="M4 6h16M4 12h16M4 18h16" /> : null}
     {name === "home" ? <path d="m3 11 9-8 9 8M5 10v11h5v-7h4v7h5V10" /> : null}
     {name === "settings" ? <><path d="m9 3-1 3-3-1-2 4 2 3-2 3 2 4 3-1 1 3h6l1-3 3 1 2-4-2-3 2-3-2-4-3 1-1-3Z" /><circle cx="12" cy="12" r="3" /></> : null}

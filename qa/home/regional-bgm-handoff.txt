@@ -1,0 +1,84 @@
+# Handoff
+
+Follow-up: mobile-performance-handoff.txt records the later runtime refactor,
+authoring/runtime music split, 16.3 MiB re-encoding and user-authorized release.
+
+- Owner: Codex
+- Reviewer: Claude read-only review attempted through
+  skills/claude-collaboration/SKILL.md; unavailable because the local OAuth
+  session expired and could not refresh. No second writer participated.
+- Scope: COD-429 regional BGM, using the user's selected retro RPG chiptune
+  style. Original authored scores, reproducible synthesis, listening catalog,
+  web playback, and native playback integration. No upload or deployment.
+- Changed files:
+  - packages/game-assets/src/music.ts: 79 original score and track definitions.
+  - scripts/generate-region-music.mts: deterministic synthesis, MP3 encoding,
+    source/encoded audio analysis, duplicate melody guard, catalog generation.
+    Regenerate with npm run generate:bgm and an installed FFmpeg (FFMPEG_PATH).
+    Verify existing artifacts with npm run check:bgm; no FFmpeg needed for check.
+  - packages/game-assets/package.json, scripts/generate-manifest.mjs,
+    src/manifest.generated.ts: export music metadata and register MP3 assets.
+  - packages/game-core/src/domain/musicPreferences.ts: defensive local music
+    preferences, independent of cloud-save schema.
+  - packages/game-content/src/domain/regionMusic.ts: shared destination routing.
+  - web/lib/musicPlayer.ts: gesture-gated audio, one current loop, 250 ms
+    crossfade, stale-load cancellation, three decoded-buffer cache entries,
+    local mute/volume, visibility pause, teardown and nonblocking load failure.
+  - web/components/MusicPanel.tsx, GameIcon.tsx, PhaserGame.tsx,
+    web/app/globals.css: accessible music controls inside the fullscreen shell.
+  - web/lib/phaser/scenes/CodeBattleScene.ts, CaptureQuizScene.ts,
+    CareerWorkshopScene.ts: retain destination identity through game scenes.
+  - mobile/src/audio/MusicContext.tsx, MusicProvider.tsx,
+    MusicProvider.test.tsx: one Expo audio player, region priority, AppState
+    pause/resume, local settings and playback lifecycle checks.
+  - mobile/src/audio.generated.ts, scripts/generate-asset-map.mjs,
+    scripts/check-bundle.mjs: bundle 79 static audio imports, separate 40 MiB
+    audio budget, retain existing image/font budgets.
+  - mobile/App.tsx, app.json, package.json; root package-lock.json: add Expo
+    Audio with microphone/background permissions disabled. Native rebuild is
+    necessary to install the newly added native module on existing devices.
+  - mobile/src/game/NativeGame.tsx, CareerScreen.tsx, CareerWorkshop.tsx,
+    SecondaryExploration.tsx, SettingsScreen.tsx: regional selection and controls.
+  - root package.json: generate:bgm and check:bgm scripts.
+  - web/test/domain/regionMusic.test.ts, test/phaser/musicPlayer.test.ts,
+    web/e2e/game.music.spec.ts: coverage, identity, races, mute, lifecycle,
+    fullscreen, battle continuity and listening catalog.
+  - qa/bgm/index.html, qa/bgm/analysis.json: playable catalog and evidence.
+  - qa/home/regional-bgm-handoff.txt: this report.
+- Generated assets:
+  - packages/game-assets/files/audio/music/*-v1.mp3: 79 original tracks,
+    34,151,427 bytes total (32.6 MiB), approximately 25–59 seconds each.
+    Breakdown: 4 hubs, 3 common, 28 primary career destinations, 25 secondary
+    regions, 5 promotion, 5 mastery, 9 open-source ecosystem arenas.
+  - All 79 normalized melody/rhythm signatures are distinct; a tempo or key
+    change alone cannot pass the duplicate guard. No sampled music is used.
+  - WAV masters and isolated FFmpeg tooling live in ignored qa-results/.
+  - web/public/assets was updated only by the official sync script.
+- Checks run:
+  - npm run check:bgm: 79 score signatures, file SHA-256, source PCM level and
+    seam checks, plus actual decoded MP3 peak/RMS/duration/seam checks passed.
+    Maximum decoded MP3 peak: 0.472, below clipping.
+  - Web unit tests: 60 files, 766 tests passed.
+  - Mobile unit/host tests: 17 files, 158 tests passed.
+  - Browser music suite: 3 passed (gesture/mute/fullscreen persistence,
+    region-to-battle-to-result continuity without refetch, 79-track catalog).
+  - Browser shell regression: Korean portrait 390x844 and landscape 844x390
+    both passed with the additional music button.
+  - Root workspace typecheck and web tsc --noEmit passed.
+  - Web lint, check:agents, static native configuration and bundle budgets passed.
+  - Expo Android and iOS JS/Hermes asset exports passed; all 79 MP3 files bundled.
+  - git diff --check passed.
+  - npm run build:web passed. The first build overlapped the browser dev server
+    and encountered a malformed generated .next/dev/types/routes.d.ts. After
+    the browser server exited, only the verified generated dev/types directory
+    was removed and the standalone production build passed without source fixes.
+- Remaining risks or review items:
+  - No iOS/Android native compilation or physical-device listening was possible
+    in this Windows session. Verify native gapless loops, interruptions, silent
+    mode and background return after rebuilding. JS export is not device QA.
+  - The numeric audio checks do not replace listening and musical taste review.
+    Open qa/bgm/index.html in a browser to compare all themes and loop boundaries.
+  - Claude independent review remains pending authentication recovery.
+  - Documentation ownership stays with Claude; no docs/ or README files changed.
+  - Pre-existing network quiz changes and their handoff remain intact and are
+    separate from this BGM task. No commit, push, merge or deployment performed.

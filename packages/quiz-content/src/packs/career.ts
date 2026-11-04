@@ -1,5 +1,4 @@
 import { findStage } from "@codigdex/game-content/domain/chapters";
-import { buildCareerMonsterQuiz } from "@codigdex/game-content/quiz-sources/career";
 import { hasCareerQuizSource, loadCareerLevelPools } from "../sources/career";
 import type { QuizQuestion } from "@codigdex/game-core/domain/chapters/types";
 
@@ -11,6 +10,7 @@ export async function careerQuizSource(stageId: string): Promise<readonly QuizQu
   const technologyId = chapter.id.slice("career:".length);
   // Technologies without a hand-authored file fall back to the generated pool.
   if (!hasCareerQuizSource(technologyId)) {
+    const { buildCareerMonsterQuiz } = await import("@codigdex/game-content/quiz-sources/career");
     return buildCareerMonsterQuiz(technologyId, index, monster.name.en);
   }
   const pools = await loadCareerLevelPools(technologyId);

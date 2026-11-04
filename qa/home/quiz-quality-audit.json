@@ -170,5 +170,54 @@
       "checks": ["Invalidation without refetch", "Active-query invalidation with refetch", "Direct refetch without invalidating another query", "One-to-many aggregate inflation 250 versus corrected 150", "Transfer ROLLBACK restores 100/50", "Duplicate primary-key rejection", "Population-weighted ratio 901/1010 versus unweighted 0.5", "99.9% request error budget: 100 allowed, 80 consumed, 20 remaining"]
     },
     "limits": "Targeted official-document checks and executable examples, not every framework/version executed. Native host tests and JS exports are distinct from physical-device acceptance; the user will perform device checks at home. Protected Preview access still requires the repository automation credential and a successful live authenticated run. BGM and account/cloud implementation are excluded. Final CI/deployment evidence belongs on the feature/release PRs."
+  },
+  "primaryNetworkFollowup": {
+    "date": "2026-11-04",
+    "owner": "Codex",
+    "userPriority": "Question accuracy, duplication and difficulty progression",
+    "scope": "First batch: the five network stages, 50 existing bilingual questions. Historical review counts above are unchanged.",
+    "stageIds": ["packet-crab", "router-weaver", "packet-relay", "network-orchestrator", "protocol-nexus"],
+    "source": "packages/quiz-content/src/sources/career/network.ts",
+    "method": "Read all 50 Korean/English prompts, answer choices and new rationales. Check selected boundary conditions against official specifications and vendor documentation. Runtime pack validation checks structure and translation completeness, not factual correctness.",
+    "findingsAndChanges": [
+      "Specify IPv4 for loopback, DHCP leases, ARP and IP TTL; distinguish IPv6 alternatives and DNS cache TTL in the reasoning.",
+      "Require a configured default route before choosing its gateway; explain that forwarding fails if no usable route exists.",
+      "Replace overlapping router/switch definitions with an L2 MAC-table forwarding case; use actual /8, /16 and /24 routes for longest-prefix selection.",
+      "Separate receiver-window flow control from network congestion and qualify UDP latency assumptions, ICMP filtering and traceroute observations.",
+      "Use explicit equal-weight healthy servers and connection counts to distinguish round robin from least connections.",
+      "Make local-only, unreplicated session storage explicit before asking about state loss; distinguish client-side TLS termination from optional backend TLS.",
+      "Add authored bilingual reasoning to all 50 questions, with counterexamples and distinctions rather than repeating the correct choice alone.",
+      "Extend the authoring helper with an optional explanation and validate supplied choice explanations even when no hints are present."
+    ],
+    "preserved": ["Stage and question IDs", "Five pools of ten questions", "Four-choice format", "Capture and grading rules"],
+    "officialReferences": [
+      "https://www.rfc-editor.org/rfc/rfc791.html",
+      "https://www.rfc-editor.org/rfc/rfc8200.html",
+      "https://www.rfc-editor.org/rfc/rfc1918.html",
+      "https://www.rfc-editor.org/rfc/rfc2131.html",
+      "https://www.rfc-editor.org/rfc/rfc826.html",
+      "https://www.rfc-editor.org/rfc/rfc1034.html",
+      "https://www.rfc-editor.org/rfc/rfc1035.html",
+      "https://www.rfc-editor.org/rfc/rfc2181.html",
+      "https://www.rfc-editor.org/rfc/rfc3596.html",
+      "https://www.rfc-editor.org/rfc/rfc9293.html",
+      "https://www.rfc-editor.org/rfc/rfc5681.html",
+      "https://www.rfc-editor.org/rfc/rfc1812.html",
+      "https://www.rfc-editor.org/rfc/rfc9110.html",
+      "https://bind9.readthedocs.io/en/v9.20.23/manpages.html#dig-dns-lookup-utility",
+      "https://nginx.org/en/docs/http/load_balancing.html",
+      "https://docs.aws.amazon.com/elasticloadbalancing/latest/application/create-https-listener.html",
+      "https://docs.aws.amazon.com/elasticloadbalancing/latest/application/load-balancer-target-groups.html"
+    ],
+    "inventoryAfterChange": {
+      "primaryQuestions": 1000,
+      "primaryWithBilingualExplanations": 50,
+      "secondaryUniqueQuestionVariants": 500,
+      "secondaryWithBilingualExplanations": 0,
+      "ossUniqueQuestionVariants": 380,
+      "ossPackQuestionOccurrences": 1900,
+      "note": "Variant counts come from loaded mixed packs and exact prompt/choice tuples. They are not semantic-deduplication counts or newly authored questions. Five OSS forms reuse one tool pool. Master review questions overlap secondary content and are not counted as new sources here."
+    },
+    "remaining": "Other primary topics and the common path need separate accuracy/distractor reviews. Cross-form secondary/OSS reuse, stronger level-specific pools and empirical difficulty calibration remain separate follow-up work. Local Claude review could not authenticate; no independent-review completion is claimed for this batch."
   }
 }

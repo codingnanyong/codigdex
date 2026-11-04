@@ -9,6 +9,7 @@
     "userInterfaceStyle": "dark",
     "plugins": [
       "expo-secure-store",
+      ["expo-audio", { "microphonePermission": false, "recordAudioAndroid": false, "enableBackgroundPlayback": false, "enableBackgroundRecording": false }],
       ["expo-build-properties", { "ios": { "enableSceneSupport": true } }]
     ],
     "ios": {

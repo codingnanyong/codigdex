@@ -131,13 +131,18 @@ test("@cod-237 locked chapter cannot start; tutorial completion unlocks Git", as
   await boot(page);
   await clickGame(page, 480, 24);
   await scene(page, "path-map");
+  // The open utility rail can cover this background point after new tools are added.
+  const menu = page.locator(".game-menu-toggle");
+  if (await menu.getAttribute("aria-expanded") === "true") await menu.click();
   await clickGame(page, 24, 280); // Close any focused stage panel.
   await clickGame(page, 300, 272); // Locked Linux chapter.
   await clickGame(page, 690, 408); // No enabled battle action is available.
   await scene(page, "path-map");
   expect((await readSave(page)).progress.captures).toHaveLength(0);
+  await openGameMenu(page);
   await page.getByRole("button", { name: "HOME", exact: true }).click();
   await scene(page, "intro");
+  await page.getByRole("application").focus();
   await page.keyboard.press("Enter");
   await scene(page, "world-map");
   await enterBattle(page);

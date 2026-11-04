@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import { musicRegionForStage } from "@codigdex/game-content/domain/regionMusic";
 import { findStage } from "@codigdex/game-content/domain/chapters";
 import { masterLessonFor } from "@codigdex/game-content/domain/masterChapters";
 import { PROMOTION_WORKSHOPS, WORKSHOP_PHASES } from "@codigdex/game-content/domain/promotionWorkshops";
@@ -22,6 +23,7 @@ export class CareerWorkshopScene extends Phaser.Scene {
   constructor() { super("career-workshop"); }
   init(data: { jobId: string; monsterId: string; evolutionId?: string }) { this.jobId = data.jobId; this.monsterId = data.monsterId; this.evolutionId = data.evolutionId; }
   create() {
+    this.data.set("musicRegion", musicRegionForStage(this.evolutionId ?? this.monsterId, snapshotRegistry(this.registry).player.primaryJobId));
     const root = document.createElement("section");
     root.className = "career-workshop";
     root.setAttribute("aria-label", sceneLocale(this) === "ko" ? "전직 실습 공방" : "Career workshop");

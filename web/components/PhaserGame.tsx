@@ -16,6 +16,9 @@ import GameHeader from "./GameHeader";
 import { AccountPanel } from "./AccountPanel";
 import { OpenSourcePanel } from "./OpenSourcePanel";
 import { GameIcon } from "./GameIcon";
+import { MusicPanel } from "./MusicPanel";
+import { MusicPlayer } from "@/lib/musicPlayer";
+import { musicRegionForView } from "@codigdex/game-content/domain/regionMusic";
 
 const ACCESSIBLE_COPY: Readonly<
   Record<Locale, { label: string; controls: string; loading: string; ready: string; failed: string }>
@@ -45,6 +48,7 @@ export default function PhaserGame({ qaEnabled = false }: { qaEnabled?: boolean 
   const gameRef = useRef<Phaser.Game | null>(null);
   const [backdrop, setBackdrop] = useState(assetUrl(WALLPAPERS.field));
   const [runtime, setRuntime] = useState<Phaser.Game | null>(null);
+  const [music, setMusic] = useState<MusicPlayer>();
   const [activeScene, setActiveScene] = useState("");
   const [hudCompact, setHudCompact] = useState(false);
   const [controls, setControls] = useState<GameControls>({});
@@ -79,6 +83,7 @@ export default function PhaserGame({ qaEnabled = false }: { qaEnabled?: boolean 
     let cancelled = false;
     let observer: ResizeObserver | undefined;
     const stopTracking: (() => void)[] = [];
+    const player = new MusicPlayer();
 
     // Phaser's FIT mode sizes the canvas box to the container; pick the
     // interpolation that stays even at whatever scale that works out to.
@@ -102,6 +107,7 @@ export default function PhaserGame({ qaEnabled = false }: { qaEnabled?: boolean 
       if (cancelled || !containerRef.current) return;
       const game = new PhaserLib.Game(createGameConfig(containerRef.current));
       gameRef.current = game;
+      setMusic(player);
       const textureSources = new Map<string, string>();
       let previousCompact = false;
       let previousScene = "";
@@ -126,6 +132,9 @@ export default function PhaserGame({ qaEnabled = false }: { qaEnabled?: boolean 
           // Phaser may revoke its decoded image's blob URL. Use the loader's
           // original asset URL so CSS can independently fill the viewport.
           const source = painting && textureSources.get(painting.texture.key);
+          const artwork = source?.includes("/assets/") ? source.split("/assets/")[1].split(/[?#]/)[0] : source;
+          const stageRegion: unknown = ["code-battle", "capture-quiz", "career-workshop"].includes(current) ? scene.data.get("musicRegion") : undefined;
+          player.setRegion(typeof stageRegion === "string" ? stageRegion : musicRegionForView(current, artwork));
           if (source && source !== previousBackdrop) {
             previousBackdrop = source;
             setBackdrop(source);
@@ -188,6 +197,7 @@ export default function PhaserGame({ qaEnabled = false }: { qaEnabled?: boolean 
 
     return () => {
       cancelled = true;
+      player.dispose();
       observer?.disconnect();
       stopTracking.forEach((stop) => stop());
       window.removeEventListener("resize", syncRendering);
@@ -211,6 +221,7 @@ export default function PhaserGame({ qaEnabled = false }: { qaEnabled?: boolean 
         </button>
         {qaEnabled ? <Link href="/qa" aria-label={locale === "ko" ? "로컬 QA · 테스트 시작점 바꾸기" : "Local QA · choose a test starting point"}>QA</Link> : null}
         {runtime ? <OpenSourcePanel game={runtime} locale={locale} /> : null}
+        {music ? <MusicPanel player={music} locale={locale} /> : null}
         {runtime ? <AccountPanel game={runtime} locale={locale} open={accountOpen} onOpenChange={setAccountOpen} /> : null}
         {fullscreenAvailable ? <button className="fullscreen-toggle" aria-pressed={fullscreen} onKeyDown={(event) => event.stopPropagation()} onClick={() => void toggleFullscreen()}>
           <GameIcon name={fullscreen ? "exit-fullscreen" : "fullscreen"} />

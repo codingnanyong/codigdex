@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import { musicRegionForStage } from "@codigdex/game-content/domain/regionMusic";
 import { findStage } from "@codigdex/game-content/domain/chapters";
 import type { ChapterDefinition, MonsterDefinition } from "@codigdex/game-core/domain/chapters/types";
 import {
@@ -68,6 +69,7 @@ export class CaptureQuizScene extends Phaser.Scene {
   preload() { if (this.chapter.arena) this.load.image(this.chapter.arena.textureKey, assetUrl(this.chapter.arena.assetKey)); }
 
   create() {
+    this.data.set("musicRegion", musicRegionForStage(this.monster.id, snapshotRegistry(this.registry).player.primaryJobId));
     if (this.chapter.arena) this.add.image(480, 270, this.chapter.arena.textureKey).setDisplaySize(960, 540);
     addShade(this, 0.55);
     createHomeButton(this).setDepth(30);
