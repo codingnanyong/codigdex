@@ -16,6 +16,8 @@ import { CareerScreen } from "./CareerScreen";
 import { secondaryRegionsFor } from "@codigdex/game-content/domain/secondaryExploration";
 
 interface Props { children?: ReactNode; disabled?: boolean; onPress?(): void; style?: unknown; testID?: string }
+const music = vi.hoisted(() => vi.fn());
+vi.mock("../audio/MusicContext", () => ({ useRegionMusic: music }));
 const state = vi.hoisted(() => ({ save: undefined as unknown as StoredGameStateV3, controls: [] as Props[], selected: [] as string[] }));
 vi.mock("../state/SaveProvider", () => ({ useSave: () => ({ save: state.save, locale: state.save.ui.locale ?? "en", selectJob: (id: string) => state.selected.push(id) }) }));
 vi.mock("../ui/Screen", () => ({ Screen: ({ children }: Props) => <main>{children}</main> }));
@@ -28,10 +30,17 @@ vi.mock("react-native", () => ({
   Text: ({ children }: Props) => <p>{children}</p>,
   Pressable: (props: Props) => { state.controls.push(props); return <button disabled={props.disabled}>{props.children}</button>; },
 }));
-beforeEach(() => { state.save = createEmptySave("en"); state.controls = []; state.selected = []; });
+beforeEach(() => { state.save = createEmptySave("en"); state.controls = []; state.selected = []; music.mockClear(); });
 const render = () => renderToStaticMarkup(<CareerScreen onBack={() => {}} onBattle={() => {}} />);
 
 describe("native career route", () => {
+  it("keeps an earned secondary atlas from overriding the selected primary region's music", () => {
+    state.save = selectSecondaryCareer(platformSave("platform-engineer"), "platform-engineer");
+    renderToStaticMarkup(<CareerScreen selectedRegionId="sql" onBack={() => {}} onBattle={() => {}} />);
+    expect(music).toHaveBeenCalledWith("career:backend:sql", 10);
+    expect(music).toHaveBeenCalledWith(undefined, 15);
+    expect(music).not.toHaveBeenCalledWith("hub:career", 15);
+  });
   it("keeps primary careers locked until common-path completion", () => {
     expect(render()).toContain("Complete Tutorial");
     expect(state.controls.filter(({ testID, disabled }) => testID?.startsWith("career-select-") && disabled)).toHaveLength(5);

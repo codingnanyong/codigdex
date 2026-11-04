@@ -20,6 +20,14 @@ let player: MusicPlayer;
 beforeEach(() => { localStorage.clear(); Object.defineProperty(document, "hidden", { value: false, configurable: true }); vi.stubGlobal("fetch", vi.fn(async () => ({ ok: true, arrayBuffer: async () => new ArrayBuffer(2) }))); });
 afterEach(() => { player?.dispose(); vi.unstubAllGlobals(); });
 describe("game-owned music playback", () => {
+  it("starts on the enable action after a persisted-muted startup without another gesture", async () => {
+    localStorage.setItem(MUSIC_PREFERENCES_KEY, '{"enabled":false,"volume":0.5}');
+    const mock = mockContext(), create = vi.fn(mock.create);
+    player = new MusicPlayer(create); player.setRegion("hub:title");
+    window.dispatchEvent(new Event("pointerdown")); await settle(); expect(create).not.toHaveBeenCalled();
+    player.setPreferences({ enabled: true, volume: .5 }); await settle();
+    expect(create).toHaveBeenCalledOnce(); expect(player.snapshot().playing).toBe(true); expect(mock.sources).toHaveLength(1);
+  });
   it("waits for a gesture, loops and does not restart the same region", async () => {
     const mock = mockContext(); player = new MusicPlayer(mock.create); player.setRegion("hub:title");
     expect(mock.context.createBufferSource).not.toHaveBeenCalled();

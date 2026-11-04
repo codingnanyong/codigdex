@@ -43,7 +43,9 @@ export class MusicPlayer {
     this.preferences = parseMusicPreferences(JSON.stringify(next));
     try { localStorage.setItem(MUSIC_PREFERENCES_KEY, JSON.stringify(this.preferences)); } catch { /* Keep playing with in-memory settings. */ }
     if (this.current && this.context) this.current.gain.gain.setTargetAtTime(this.preferences.volume, this.context.currentTime, .03);
-    this.visibility(); this.publish();
+    // Enabling music is itself an unlock gesture, including a persisted-muted startup.
+    if (this.context) this.visibility(); else this.unlock();
+    this.publish();
   }
   private unlock = () => {
     if (this.disposed || !this.preferences.enabled || !this.preferences.volume || document.hidden) return;

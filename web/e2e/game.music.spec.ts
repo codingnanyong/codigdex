@@ -45,6 +45,9 @@ test("plays regional music after input and keeps persisted mute in fullscreen", 
   await page.reload(); await scene(page, "intro");
   await openGameMenu(page);
   await expect(music).toHaveAttribute("data-music-playing", "false");
+  await music.click();
+  await dialog.getByRole("button", { name: "BGM 켜기", exact: true }).click();
+  await expect(music).toHaveAttribute("data-music-playing", "true", { timeout: 15000 });
 });
 
 test("keeps the regional theme through its battle and capture result", async ({ page }) => {

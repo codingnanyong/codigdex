@@ -16,7 +16,7 @@ export function SecondaryExploration({ regionId, onRegion, onPractice, onOpenSou
   const progression = secondaryRegionProgression(save);
   const [focusedId, setFocusedId] = useState<string>();
   const selected = progression.find(({ region, status }) => region.id === regionId && status !== "locked");
-  useRegionMusic(selected ? `secondary:${selected.region.jobId}:${selected.region.id}` : "hub:career", 15);
+  useRegionMusic(selected ? `secondary:${selected.region.jobId}:${selected.region.id}` : undefined, 15);
   const focused = progression.find(({ region, status }) => region.id === focusedId && status !== "locked") ?? progression.find(({ status }) => status === "available") ?? progression[0];
   const ko = locale === "ko";
   if (!focused) return null;

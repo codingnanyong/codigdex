@@ -73,6 +73,10 @@
     unit suite 772 passed and whole mobile unit/host suite 160 passed. The real
     browser music suite passed all 3 cases using the 24 kHz context. Android/iOS
     exports and the actual bytecode/offline-audio budgets passed again.
+  - PR Codex review follow-up: do not let an unentered secondary atlas claim
+    higher-priority hub music over a primary region, and create/unlock audio on
+    the enable action after a persisted-muted startup. Add native route, unit
+    and real browser regression coverage for these two findings.
   - Whole web unit suite: 769 passed; additional decode-serialization case then
     passed with the 5-test music-player suite (770 cases combined).
   - Mobile suite: 158 passed, one old eager-import regex failed; after updating
