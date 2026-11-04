@@ -1,6 +1,9 @@
-import { openGameMenu, continueGame, scene } from "../test-support/game";
+import { openGameMenu, continueGame, scene, bootGame, clickGame } from "../test-support/game";
 import { createEmptySave } from "@codigdex/game-core/save/schema";
 import { expect, test } from "@playwright/test";
+import { webQAPresets } from "../lib/qa/presets";
+import { CAREER_PATHS } from "@codigdex/game-content/domain/careerPaths";
+import { careerCheckpointLayout } from "../lib/phaser/worldMap/careerCheckpointLayout";
 
 for (const locale of ["ko", "en"] as const) for (const viewport of [{ width: 1440, height: 900 }, { width: 1920, height: 1080 }, { width: 390, height: 844 }, { width: 844, height: 390 }]) {
   test(`integrates toolbar and game into the viewport at ${viewport.width}x${viewport.height} (${locale})`, async ({ page }) => {
@@ -129,4 +132,26 @@ test("uses left-rail home and settings actions without starting or resetting gam
   await expect(account).not.toBeVisible();
   await expect(accountButton).toBeFocused();
   await scene(page, "intro");
+});
+
+test("keeps career terrain and checkpoint input together after changing aspect ratios", async ({ page }) => {
+  const seed = webQAPresets("ko").find(({ id }) => id === "encounter:devops")!.save;
+  await page.setViewportSize({ width: 1440, height: 1152 });
+  await bootGame(page, seed);
+  await scene(page, "world-map");
+  const region = CAREER_PATHS.devops.regions[0];
+  await clickGame(page, region.lift.x, region.lift.y);
+  await scene(page, "career-region");
+  for (const viewport of [{ width: 1440, height: 1152 }, { width: 1920, height: 1080 }, { width: 844, height: 390 }]) {
+    await page.setViewportSize(viewport);
+    await expect.poll(async () => page.locator("canvas").evaluate((canvas) => {
+      const buffer = canvas as HTMLCanvasElement;
+      return [buffer.width, buffer.height];
+    })).toEqual([viewport.width, viewport.height]);
+    await page.screenshot({ path: `../qa-results/career-fit-${viewport.width}x${viewport.height}.png` });
+  }
+  const point = careerCheckpointLayout("devops", region.id)[0];
+  await clickGame(page, point.x, point.y);
+  await scene(page, "code-battle");
+  await expect(page.locator(".battle-controls")).toBeVisible();
 });

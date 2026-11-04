@@ -40,7 +40,7 @@ const visible = (value: string, text?: string) => ({ assertVisible: { ...id(valu
 const saved = () => visible("qa-save-status", "SAVED");
 // Emulator UI hierarchy/swipe calls can take >10s under native test load.
 // Allow several swipes without weakening the element or result assertions.
-const scroll = (value: string, direction = "DOWN") => ({ scrollUntilVisible: { element: id(value), direction, timeout: 60000, speed: 20, ...(["qa-fail-save", "qa-world", "career-source-resume", "source-event-details"].includes(value) || ["promotion-checkpoint-", "master-checkpoint-", "qa-start-", "battle-choice-", "open-source-resume-"].some(prefix => value.startsWith(prefix)) ? { centerElement: true } : {}) } });
+const scroll = (value: string, direction = "DOWN") => ({ scrollUntilVisible: { element: id(value), direction, timeout: 60000, speed: 20, ...(["qa-fail-save", "qa-world", "career-source-notes", "source-event-details"].includes(value) || ["promotion-checkpoint-", "master-checkpoint-", "qa-start-", "battle-choice-", "open-source-resume-"].some(prefix => value.startsWith(prefix)) ? { centerElement: true } : {}) } });
 const tap = (value: string, direction = "DOWN"): Command[] => [scroll(value, direction), { tapOn: id(value) }];
 const start: Command[] = [{ runFlow: "../helpers/start.yaml" }];
 const tutorial = CHAPTERS[0].stages[0];
@@ -168,13 +168,13 @@ for (const [index, career] of SOURCE_CAREERS.entries()) {
     ...battleSteps(true, false, await questionsFor(first)), ...(index === 0 ? restart : tap("result-world")),
     visible("source-event-tool", findOpenSource(career.firstTool)!.name),
     ...(index === 1 ? [...restart, visible("source-event-title")] : []),
-    ...tap("source-atlas-enter"), ...tap("source-event-accept"), visible("battle-prompt"),
-    ...(index === 2 ? [...restart, ...tap("source-atlas-enter"), ...tap("source-event-accept"), visible("battle-prompt")] : []),
+    ...tap("source-event-accept"), visible("battle-prompt"),
+    ...(index === 2 ? [...restart, ...tap("source-event-accept"), visible("battle-prompt")] : []),
   ];
   for (const [phase, form] of openSourceEvolutionFor(career.firstTool).entries()) {
     commands.push(...battleSteps(true, false, await questionsFor(form)));
-    if (index === 3 && phase === 0) commands.push(...restart, ...tap("source-atlas-enter"), ...tap("source-event-accept"));
-    else if (index === 4 && phase === 1) commands.push(...tap("result-world"), visible("career-title"), ...tap("career-menu", "UP"), ...restart, ...tap("source-atlas-enter"), ...tap("source-event-accept"));
+    if (index === 3 && phase === 0) commands.push(...restart, ...tap("source-event-accept"));
+    else if (index === 4 && phase === 1) commands.push(...tap("result-world"), visible("career-title"), ...tap("career-menu", "UP"), ...restart, ...tap("source-event-accept"));
     else commands.push(...tap("result-continue"));
   }
   commands.push(visible("career-title"), ...tap("career-menu", "UP"), ...tap("home-qa"),
@@ -240,7 +240,7 @@ yaml("flows/cod-238-encounter-save-recovery", "COD-238 request-history save fail
   { takeScreenshot: "cod-238-request-save-recovered" },
 ]);
 yaml("flows/cod-238-encounter-battle-retry", "COD-238 failed request battle, retry and original career return", ["cod-238", "encounters"], [
-  ...beginRequest, ...battleSteps(true, false, recoveryBattle), ...tap("result-world"), ...tap("source-atlas-enter"), ...tap("source-event-accept"),
+  ...beginRequest, ...battleSteps(true, false, recoveryBattle), ...tap("result-world"), ...tap("source-event-accept"),
   ...battleSteps(false, false, await questionsFor(recoveryTool)), ...tap("result-retry"), visible("source-event-title"),
   ...tap("source-event-accept"), ...battleSteps(true, false, await questionsFor(recoveryTool)), ...tap("result-continue"),
   ...(await Promise.all(openSourceEvolutionFor("tanstack-query").slice(1).map(async (form) => [...battleSteps(true, false, await questionsFor(form)), ...tap("result-continue")]))).flat(),
@@ -250,7 +250,7 @@ yaml("flows/cod-238-encounter-battle-retry", "COD-238 failed request battle, ret
 
 yaml("flows/cod-238-request-resume", "COD-238 return to career, resume through notes and advance without repeated explanations", ["cod-238", "encounters"], [
   ...beginRequest, ...battleSteps(true, false, recoveryBattle), ...tap("result-world"),
-  ...tap("source-event-later"), visible("career-title"), ...tap("career-source-resume"),
+  ...tap("source-event-later"), visible("career-title"), ...tap("career-source-notes"), ...tap("open-source-resume-tanstack-query"),
   visible("source-event-details", "DETAILS"), ...tap("source-event-details"), visible("source-event-details", "HIDE DETAILS"),
   ...tap("source-event-later"), visible("career-title"), ...tap("career-menu", "UP"), ...tap("home-open-source"),
   ...tap("open-source-resume-tanstack-query"), ...tap("source-event-accept"),

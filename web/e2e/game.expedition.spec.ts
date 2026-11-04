@@ -26,12 +26,6 @@ async function firstCareerBattle(page: Page, save: StoredGameStateV3) {
 
 async function enterSourceRegion(page: Page) {
   await scene(page, "open-source-event");
-  const atlas = page.locator(".source-atlas-nav");
-  if (await atlas.count()) {
-    await expect(atlas.locator("button[data-family]")).toHaveCount(9);
-    await expect(atlas.locator("button[data-family]:enabled")).toHaveCount(1);
-    await click(page, 718, 501);
-  }
   await expect(page.locator(".stage-route-nav button[data-stage-id]")).toHaveCount(5);
   const arena = await page.locator(".stage-route-nav").getAttribute("data-arena");
   await expect.poll(() => page.locator(".game-backdrop").evaluate((el) => getComputedStyle(el).backgroundImage)).toContain(arena!);
@@ -124,7 +118,9 @@ test("resumes a closed discovery from notes and keeps explanations compact betwe
   await click(page, 242, 501);
   await scene(page, "career-region");
   await openGameMenu(page);
-  await expect(page.getByRole("button", { name: "RESUME OPEN-SOURCE REQUEST", exact: true })).toBeVisible();
+  await expect(page.locator(".source-launch")).toHaveCount(1);
+  await expect(page.getByRole("button", { name: "RESUME OPEN-SOURCE REQUEST", exact: true })).toHaveCount(0);
+  await expect(page.locator(".source-launch .game-tool-badge")).toBeVisible();
   // A previously deployed version discarded the offer when returning to a career.
   await page.evaluate(() => {
     for (const key of Object.keys(localStorage).filter(key => key.startsWith("codigdex:source-events:v1:"))) {
@@ -139,6 +135,29 @@ test("resumes a closed discovery from notes and keeps explanations compact betwe
   await page.getByRole("dialog").locator('[data-project="tanstack-query"]').getByRole("button", { name: "RESUME REQUEST", exact: true }).click();
   await scene(page, "open-source-event");
   await expect(page.getByRole("dialog")).not.toBeVisible();
+  await expect(page.locator(".source-atlas-nav")).toHaveCount(0);
+  await openGameMenu(page);
+  const settings = page.getByRole("button", { name: "SETTINGS", exact: true });
+  const home = page.getByRole("button", { name: "HOME", exact: true });
+  await expect(settings).toBeEnabled();
+  await expect(home).toBeEnabled();
+  await settings.click(); await scene(page, "settings");
+  await page.keyboard.press("Escape"); await scene(page, "open-source-event");
+  if (await page.evaluate(() => document.fullscreenEnabled)) {
+    await openGameMenu(page);
+    await page.getByRole("button", { name: "FULLSCREEN", exact: true }).click();
+    await expect.poll(() => page.evaluate(() => document.fullscreenElement?.className)).toBe("game-shell");
+    await page.screenshot({ path: "../qa-results/open-source-fullscreen.png" });
+    await openGameMenu(page);
+    await page.getByRole("button", { name: "EXIT FULLSCREEN", exact: true }).click();
+    await expect.poll(() => page.evaluate(() => document.fullscreenElement)).toBeNull();
+  }
+  await openGameMenu(page);
+  await home.click(); await scene(page, "intro");
+  await openGameMenu(page);
+  await page.getByRole("button", { name: "OPEN-SOURCE NOTES", exact: true }).click();
+  await page.getByRole("dialog").locator('[data-project="tanstack-query"]').getByRole("button", { name: "RESUME REQUEST", exact: true }).click();
+  await scene(page, "open-source-event");
   await expect(page.locator('.stage-route-nav [data-route-action="details"]')).toHaveAttribute("aria-expanded", "false");
   await page.setViewportSize({ width: 844, height: 390 });
   await click(page, 798, 350);

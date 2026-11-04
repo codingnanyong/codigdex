@@ -63,7 +63,7 @@ body {
 .game-page { background: #180f08; }
 .game-shell { --game-control-size: 48px; --game-control-gap: 8px; --game-rail-width: calc(var(--game-control-size) + 16px); --game-hud-left: max(12px, env(safe-area-inset-left)); --game-hud-top: max(12px, env(safe-area-inset-top)); --game-hud-bottom: max(12px, env(safe-area-inset-bottom)); --game-panel-left: calc(var(--game-hud-left) + var(--game-rail-width) + 12px); position: relative; color: #f1e4cb; background: #180f08; isolation: isolate; }
 .game-shell:fullscreen { width: 100vw; height: 100dvh; }
-.game-backdrop { position: absolute; inset: 0; background-size: cover; background-position: center; pointer-events: none; z-index: 0; }
+.game-backdrop { position: absolute; inset: 0; background-size: cover; background-position: center; filter: brightness(.32) blur(12px); transform: scale(1.04); pointer-events: none; z-index: 0; }
 .game-toolbar { position: absolute; top: var(--game-hud-top); left: var(--game-hud-left); width: var(--game-rail-width); display: flex; flex-direction: column; align-items: center; gap: var(--game-control-gap); z-index: 40; pointer-events: none; }
 .game-toolbar-actions { box-sizing: border-box; width: var(--game-rail-width); display: flex; flex-direction: column; align-items: center; gap: var(--game-control-gap); padding: 6px; max-height: calc(100dvh - var(--game-hud-top) - var(--game-hud-bottom) - var(--game-control-size) - var(--game-control-gap)); overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; touch-action: pan-y; background: #23160ef2; border: 2px solid #93704b; border-radius: 4px; pointer-events: auto; }
 .game-toolbar-actions::-webkit-scrollbar { display: none; }
@@ -126,7 +126,7 @@ body {
 .account-panel button:focus-visible { outline: 3px solid #a33422; outline-offset: 2px; }
 .account-panel p { overflow-wrap: anywhere; }
 
-.source-launch { cursor: pointer; }
+.source-launch { position: relative; cursor: pointer; }
 .source-dialog { width: min(1080px, calc(100vw - 24px)); max-height: calc(100dvh - 24px); margin: auto; padding: 20px; color: #2a1d14; background: #f1e4cb; border: 5px solid #684525; box-shadow: 5px 5px #2a1d14; font: 16px/1.5 Galmuri14, monospace; }
 .source-dialog[open] { display: flex; flex-direction: column; gap: 14px; }
 .source-dialog::backdrop { background: #180f08c9; }
@@ -254,11 +254,3 @@ body {
     display: none;
   }
 }
-
-/* Canvas destinations also have ordinary keyboard-accessible controls. */
-.source-atlas-nav { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
-.source-atlas-nav:focus-within { width: auto; height: auto; clip-path: none; left: 8px; right: 8px; bottom: 8px; z-index: 35; display: flex; flex-wrap: wrap; gap: 4px; background: #23160e; padding: 8px; }
-.source-atlas-nav button { min-height: 44px; padding: 6px 10px; font: 14px Galmuri14, monospace; background: #49301c; color: #f1e4cb; border: 1px solid #c9a876; }
-.source-atlas-nav button:disabled { opacity: .4; }
-
-.source-resume { position: relative; }

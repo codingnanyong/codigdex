@@ -12,13 +12,12 @@ import { colors, font, pixelPanel } from "../ui/theme";
 import { PixelScene } from "../ui/PixelScene";
 import { openSourceArenaForStage, openSourceEvolutionFor } from "@codigdex/game-content/domain/openSourceChapters";
 
-export function OpenSourceEventScreen({ encounter, stage, captured, capturedLevels = [], locale, onAccept, onLater, onAtlas, saveError, onRetrySave }: { encounter: SourceEncounter; stage: MonsterDefinition; captured: boolean; capturedLevels?: readonly number[]; locale: Locale; onAccept(): void; onLater(): void; onAtlas(): void; saveError: boolean; onRetrySave(): void }) {
+export function OpenSourceEventScreen({ encounter, stage, captured, capturedLevels = [], locale, onAccept, onLater, saveError, onRetrySave }: { encounter: SourceEncounter; stage: MonsterDefinition; captured: boolean; capturedLevels?: readonly number[]; locale: Locale; onAccept(): void; onLater(): void; saveError: boolean; onRetrySave(): void }) {
   const [detailsOpen, setDetailsOpen] = useState(false);
   const entry = findOpenSource(encounter.toolId)!;
   const ko = locale === "ko";
   return <Screen scroll><View style={styles.content}>
     <Text testID="source-event-title" accessibilityRole="header" style={styles.heading}>{ko ? "돌발 의뢰 · 오픈소스와의 만남" : "SURPRISE REQUEST · OPEN SOURCE"}</Text>
-    <PixelButton testID="source-region-atlas" variant="quiet" onPress={onAtlas}>← {ko ? "오픈소스 지도" : "OPEN-SOURCE ATLAS"}</PixelButton>
     <Text testID="source-event-region" style={styles.heading}>{ko ? "의뢰 지역 · 단계별 탐험" : "REQUEST REGION · FIVE-STAGE EXPLORATION"}</Text>
     <Text testID="source-event-career" style={styles.body}>{localize(sourceCareerName(encounter.careerId), locale)}</Text>
     <View style={styles.arena}>
