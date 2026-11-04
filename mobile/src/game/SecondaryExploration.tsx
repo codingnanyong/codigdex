@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useRegionMusic } from "../audio/MusicContext";
 import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 import { secondaryRegionProgression, secondaryExplorationCheckpoints } from "@codigdex/game-content/domain/gameProgress";
 import { EVOLUTION_LESSON_PHASES } from "@codigdex/game-content/domain/secondaryExploration";
@@ -15,6 +16,7 @@ export function SecondaryExploration({ regionId, onRegion, onPractice, onOpenSou
   const progression = secondaryRegionProgression(save);
   const [focusedId, setFocusedId] = useState<string>();
   const selected = progression.find(({ region, status }) => region.id === regionId && status !== "locked");
+  useRegionMusic(selected ? `secondary:${selected.region.jobId}:${selected.region.id}` : undefined, 15);
   const focused = progression.find(({ region, status }) => region.id === focusedId && status !== "locked") ?? progression.find(({ status }) => status === "available") ?? progression[0];
   const ko = locale === "ko";
   if (!focused) return null;

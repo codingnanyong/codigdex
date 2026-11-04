@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { useRegionMusic } from "../audio/MusicContext";
+import { musicRegionForStage } from "@codigdex/game-content/domain/regionMusic";
 import { ActivityIndicator, Text, View } from "react-native";
 import { findStage } from "@codigdex/game-content/domain/chapters";
 import { sourceEncounterStage, openSourceEvolutionFor } from "@codigdex/game-content/domain/openSourceChapters";
@@ -32,6 +34,11 @@ export function NativeGame() {
   const [qaChecks, setQaChecks] = useState<string[]>([]);
   const [worldStageId, setWorldStageId] = useState<string>();
   const [careerRegionId, setCareerRegionId] = useState<string>();
+  const musicStage = route.name === "battle" ? route.battle.monster.id : route.name === "result" ? route.result.monster.id
+    : route.name === "encounter" || route.name === "source-region" ? sourceEvents.pending(save) && sourceEncounterStage(save, sourceEvents.pending(save)!)?.id : undefined;
+  useRegionMusic(!hydrated ? undefined : musicStage ? musicRegionForStage(musicStage, save.player.primaryJobId)
+    : route.name === "title" || route.name === "qa" ? "hub:title" : route.name === "world" ? "hub:world"
+    : route.name === "career" ? "hub:career" : route.name === "dex" || route.name === "detail" ? "hub:dex" : undefined);
 
   if (!hydrated) {
     if (loadError) return <Screen><View style={styles.loading}><Text accessibilityRole="alert" style={styles.wrong}>저장 데이터를 읽지 못했습니다. / Could not read save data.</Text><PixelButton onPress={retryLoad}>다시 불러오기 / RETRY</PixelButton></View></Screen>;

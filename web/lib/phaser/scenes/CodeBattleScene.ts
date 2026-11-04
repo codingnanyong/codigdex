@@ -1,4 +1,5 @@
 import { GAME_SIZE } from "../gameViewport";
+import { musicRegionForStage } from "@codigdex/game-content/domain/regionMusic";
 import Phaser from "phaser";
 import { findStage } from "@codigdex/game-content/domain/chapters";
 import type { ChapterDefinition, MonsterDefinition } from "@codigdex/game-core/domain/chapters/types";
@@ -70,6 +71,7 @@ export class CodeBattleScene extends Phaser.Scene {
 
   create() {
     const save = snapshotRegistry(this.registry);
+    this.data.set("musicRegion", musicRegionForStage(this.monster.id, save.player.primaryJobId));
     if (this.sourceEventId ? !sourceEvents(this.registry).canBattle(save, this.sourceEventId, this.monster.id) : !canEnterBattle(save, this.monster.id)) {
       this.scene.start("world-map");
       return;

@@ -11,13 +11,15 @@ export type ChoiceCopy = string | readonly [ko: string, en: string];
 export function question(
   prompt: readonly [ko: string, en: string],
   choices: readonly ChoiceCopy[],
-  answerIndex = 0
+  answerIndex = 0,
+  explanation?: readonly [ko: string, en: string]
 ): MultipleChoiceQuestion {
   return {
     type: "multipleChoice",
     prompt: text(...prompt),
     choices: choices.map((choice) => (typeof choice === "string" ? same(choice) : text(...choice))),
     answerIndex,
+    ...(explanation ? { explanation: text(...explanation) } : {}),
   };
 }
 

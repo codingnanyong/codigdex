@@ -1,14 +1,14 @@
 import { Canvas, FilterMode, Image, MipmapMode, useImage } from "@shopify/react-native-skia";
 import { useState } from "react";
 import { StyleSheet, View } from "react-native";
-import { MOBILE_ASSETS } from "../assets.generated";
+import { mobileAssetSource } from "../assets";
 import { WALLPAPERS, type Scenery } from "@codigdex/game-assets/visuals";
 
 export type PixelScenery = Scenery;
 
 /** Share the web original, with nearest sampling and whole-step upscaling. */
 export function PixelScene({ scene = "field", assetKey, height, backdrop = false }: { scene?: PixelScenery; assetKey?: string; height?: number; backdrop?: boolean }) {
-  const image = useImage(MOBILE_ASSETS[(assetKey ?? WALLPAPERS[scene]) as keyof typeof MOBILE_ASSETS]);
+  const image = useImage(mobileAssetSource(assetKey ?? WALLPAPERS[scene]));
   const [size, setSize] = useState({ width: 0, height: 0 });
   const ratio = image ? Math.max(size.width / image.width(), size.height / image.height()) : 1;
   const scale = ratio >= 1 ? Math.ceil(ratio) : ratio;

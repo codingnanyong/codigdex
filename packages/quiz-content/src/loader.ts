@@ -3,8 +3,9 @@ import { quizPackDescriptor } from "./manifest";
 import { createQuizPack } from "./pack";
 import type { QuizPack, QuizPackDescriptor } from "./types";
 import { evolutionIdentity } from "@codigdex/game-content/domain/secondaryEvolutionIds";
+import { PackCache } from "./packCache";
 
-const cache = new Map<string, Promise<QuizPack>>();
+const cache = new PackCache();
 
 async function loadSource(descriptor: QuizPackDescriptor): Promise<readonly QuizQuestion[]> {
   if (descriptor.chapterId.startsWith("mastery:")) {
@@ -45,13 +46,8 @@ async function loadSource(descriptor: QuizPackDescriptor): Promise<readonly Quiz
 }
 
 export function loadQuizPack(id: string): Promise<QuizPack> {
-  const existing = cache.get(id);
-  if (existing) return existing;
-  const pending = (async () => {
+  return cache.load(id, async () => {
     const descriptor = quizPackDescriptor(id);
     return createQuizPack(descriptor, await loadSource(descriptor));
-  })();
-  cache.set(id, pending);
-  pending.catch(() => cache.delete(id));
-  return pending;
+  });
 }

@@ -8,17 +8,20 @@
     "./visuals": "./src/visuals.ts",
     "./secondaryArt": "./src/secondaryArt.ts",
     "./openSourceArt": "./src/openSourceArt.ts",
+    "./music": "./src/music.ts",
+    "./music-scores": "./src/musicScores.ts",
     "./files/*": "./files/*",
     "./package.json": "./package.json"
   },
   "scripts": {
+    "generate:music": "node scripts/generate-music-manifest.mjs",
     "generate": "node scripts/generate-manifest.mjs",
     "generate:guide": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/generate-evolution-guide.ps1",
     "generate:normalized": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/prepare-common-monster-normalizations.ps1",
     "generate:order-fixes": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/prepare-corrected-monster-order.ps1",
     "generate:overflows": "node scripts/recover-sheet-overflows.mjs",
     "generate:portraits": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/prepare-monster-evolutions.ps1",
-    "typecheck": "node scripts/generate-manifest.mjs --check && tsc --noEmit -p tsconfig.json"
+    "typecheck": "node scripts/generate-manifest.mjs --check && node scripts/generate-music-manifest.mjs --check && tsc --noEmit -p tsconfig.json"
   },
   "devDependencies": {
     "sharp": "^0.35.4",

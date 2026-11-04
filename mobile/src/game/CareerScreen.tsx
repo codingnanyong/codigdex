@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useRegionMusic } from "../audio/MusicContext";
 import { Image, StyleSheet, Text, View } from "react-native";
 import { isCommonPathComplete } from "@codigdex/game-content/domain/chapters";
 import { CAREER_CATALOG, careerStatus, isCareerId } from "@codigdex/game-content/domain/careerDex";
@@ -27,6 +28,7 @@ export function CareerScreen({ onBack, onBattle, onOpenSources, selectedRegionId
   const setRegionId = (id: string | undefined) => { setLocalRegionId(id); onRegionChange?.(id); };
   const [confirmSecondary, setConfirmSecondary] = useState<SecondaryJobId>();
   const [workshop, setWorkshop] = useState<{ jobId: string; stageId: string }>();
+  useRegionMusic(confirmSecondary && !workshop ? `promotion:${confirmSecondary}` : undefined, 30);
   if (workshop) return <CareerWorkshop {...workshop} onBack={() => setWorkshop(undefined)} onBattle={onBattle} />;
   const ko = locale === "ko";
   const lockCopy = ko ? "잠김 · 선행 경로 완료 필요" : "LOCKED · COMPLETE REQUIRED PATHS";
@@ -112,6 +114,7 @@ function CareerRegions({ jobId, regionId, onRegion, onBattle, onOpenSources }: {
     ?? progression.find(({ region }) => bookmarked?.chapter.id === `career:${region.id}`)
     ?? progression.find(({ status }) => status === "available") ?? progression[0];
   const related = openSourcesForRegion(selected.region.id, jobId).filter(({ id }) => discovered.has(id));
+  useRegionMusic(`career:${jobId}:${selected.region.id}`, 10);
   return <>
     <Text style={styles.heading}>{localize(path.title, locale)}</Text>
     <View style={styles.panel}>

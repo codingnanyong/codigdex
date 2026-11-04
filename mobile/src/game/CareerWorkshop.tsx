@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from "react";
+import { useRegionMusic } from "../audio/MusicContext";
+import { musicRegionForStage } from "@codigdex/game-content/domain/regionMusic";
 import { Linking, StyleSheet, Text, View } from "react-native";
 import { findStage } from "@codigdex/game-content/domain/chapters";
 import { masterLessonFor } from "@codigdex/game-content/domain/masterChapters";
@@ -17,6 +19,7 @@ import { colors, font, pixelPanel } from "../ui/theme";
 
 export function CareerWorkshop({ jobId, stageId, onBack, onBattle }: { jobId: string; stageId: string; onBack(): void; onBattle(id: string): void }) {
   const { save, locale, saveError, retrySave, selectCheckpoint } = useSave();
+  useRegionMusic(musicRegionForStage(stageId, save.player.primaryJobId), 20);
   useEffect(() => { selectCheckpoint(stageId); }, [stageId, selectCheckpoint]);
   const master = masterLessonFor(stageId);
   const identity = evolutionIdentity(stageId);

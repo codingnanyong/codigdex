@@ -1,0 +1,51 @@
+# Handoff
+
+- Owner: Codex
+- Reviewer: Claude read-only review attempted through claude-collaboration;
+  unavailable because the local OAuth session expired and could not refresh.
+- Scope: First quiz-quality batch following the user's priority of accuracy,
+  duplication and level progression. Revise the 50 bilingual network questions
+  without changing stage IDs, pack counts, captures or grading rules.
+- Changed files:
+  - packages/quiz-content/src/sources/career/network.ts: clarify boundary
+    conditions, replace overlapping definitions with routing/connection-count
+    scenarios, and add authored Korean/English reasoning to all 50 questions.
+  - packages/quiz-content/src/sources/question.ts: optional bilingual explanation.
+  - packages/quiz-content/src/validation.ts: check supplied choice explanations
+    even when the question has no hints.
+  - web/test/domain/quizContent.test.ts: require explanations in all five network
+    stages, covering the actual 50 loaded questions.
+  - web/test/domain/mixedQuiz.test.ts: reject missing/untranslated choice
+    explanations without relying on hints to trigger validation.
+  - web/e2e/game.quiz-content.spec.ts: real loaded questions at Lv.1/4/5 in both
+    languages, grading, visible reasoning and explicit next-question action.
+  - qa/home/quiz-quality-audit.json: preserve earlier reviews and append the
+    bounded network review, official references, inventory and remaining work.
+  - qa/home/network-quiz-quality-handoff.txt: this report.
+- Generated assets:
+  - No new game art or manifest changes.
+  - qa:generate regenerated/verified the 37 native case files without tracked
+    changes, because existing selected answers and exercised actions still fit.
+  - Ignored qa-results/quiz-inventory.mts and quiz-inventory.json record loaded
+    mixed-pack inventory; network-reasoning-lv*-*.png contains browser captures.
+  - Visually inspected the Korean Lv.4 landscape and English Lv.5 desktop
+    captures; explanations wrap and remain visible before the next action.
+- Checks run:
+  - Focused content, mixed grading, feedback and OSS tests: 48 passed.
+  - Full web suite: 58 files, 759 tests passed.
+  - Mobile battle/model presentation tests: 2 files, 17 tests passed.
+  - New Chromium content journeys: 6 passed (ko/en, Lv.1/4/5).
+  - check:agents, full workspace types, web TypeScript and web lint passed.
+  - qa:check verified 37 case files and passed all 22 runner checks.
+  - git diff --check and audit JSON parsing passed.
+  - Primary-reference review supports the corrected assumptions. No live network,
+    router, proxy, DNS service or physical mobile device execution is claimed.
+- Remaining risks or review items:
+  - Independent Claude review remains outstanding due to the expired login.
+  - Other primary subjects (950 questions still lack bilingual reasoning), the
+    common path and 500 unique secondary questions need further content work.
+  - Secondary and OSS progression still reuse pools across forms. Exact-string
+    inventory is not a semantic duplicate audit; new level-specific questions
+    and calibrated difficulty need a separate content pass.
+  - This batch is local on feat/network-quiz-explanations; no quiz changes were
+    pushed, merged or deployed. The previous production release is preserved.

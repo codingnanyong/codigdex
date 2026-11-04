@@ -16,6 +16,8 @@
     "packages/*"
   ],
   "scripts": {
+    "generate:bgm": "tsx scripts/generate-region-music.mts",
+    "check:bgm": "tsx scripts/generate-region-music.mts --check",
     "build:web": "npm run build --workspace @codigdex/web --",
     "build:mobile": "node mobile/scripts/check-native.mjs && npm run export:android --workspace @codigdex/mobile && npm run export:ios --workspace @codigdex/mobile && node mobile/scripts/check-bundle.mjs",
     "postinstall": "node scripts/link-agent-workspace.mjs",

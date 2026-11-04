@@ -1,0 +1,41 @@
+{
+  "before": {
+    "audioBytes": 34151427,
+    "android": [
+      {
+        "file": "AppEntry-395ccdc1fb819b4fb15807f2f1d55e06.hbc",
+        "bytes": 5259573
+      }
+    ],
+    "ios": [
+      {
+        "file": "AppEntry-5921e08d52d62f176e46c51284b04b70.hbc",
+        "bytes": 5251543
+      }
+    ]
+  },
+  "after": {
+    "audioBytes": 17077827,
+    "android": [
+      {
+        "file": "AppEntry-df8c2c3b11a80d182843b28ec52dd5d7.hbc",
+        "bytes": 5280060
+      }
+    ],
+    "ios": [
+      {
+        "file": "AppEntry-fefe6fc1442c0899cfa6be7af313cba8.hbc",
+        "bytes": 5272304
+      }
+    ]
+  },
+  "audioSavedBytes": 17073600,
+  "sourceAssetsBeforeBytes": 52272834,
+  "sourceAssetsAfterBytes": 35199234,
+  "limits": {
+    "decodedWebAudioCacheBytes": 8388608,
+    "quizPacksPerVariant": 12,
+    "mobileMusicBytes": 20971520
+  },
+  "note": "Hermes bytecode exports and source-asset sizes, not native binary/RSS measurements. Static require closures defer asset registration; all files remain bundled for offline play."
+}
