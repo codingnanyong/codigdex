@@ -25,6 +25,7 @@ on:
       - "start-home-qa.command"
       - "scripts/generate-home-qa*"
       - "scripts/generate-master-guardians.mjs"
+      - "scripts/generate-region-music.mts"
       - "scripts/web-smoke-target*"
       - "qa/**"
       - "skills/**"
@@ -53,6 +54,7 @@ jobs:
       - run: npm run check:agents
       - run: npm run qa:check
       - run: npm run typecheck
+      - run: npm run check:bgm
       - run: npm run lint
       - run: npm test
       # Bundle the React Native + Skia application for both platforms without

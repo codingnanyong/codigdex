@@ -78,7 +78,7 @@ describe("QA isolation and deliberate failures", () => {
 describe("mobile asset completeness", () => {
   it("bundles every released monster and the same common-path wallpapers as web", () => {
     const map = readFileSync(new URL("../assets.generated.ts", import.meta.url), "utf8");
-    const keys = new Set([...map.matchAll(/^  "([^"]+)": require\(/gm)].map((match) => match[1]));
+    const keys = new Set([...map.matchAll(/^  "([^"]+)": \(\) => require\(/gm)].map((match) => match[1]));
     for (const monster of DEX_MONSTERS) {
       expect(keys.has(monster.assetKey), monster.assetKey).toBe(true);
       expect(existsSync(fileURLToPath(new URL(`../../../packages/game-assets/files/${monster.assetKey}`, import.meta.url)))).toBe(true);

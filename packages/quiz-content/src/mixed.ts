@@ -2,14 +2,13 @@ import { loadQuizPack } from "./loader";
 import { createQuizPack } from "./pack";
 import { validateQuizPack } from "./validation";
 import type { QuizPack } from "./types";
+import { PackCache } from "./packCache";
 
-const cache = new Map<string, Promise<QuizPack>>();
+const cache = new PackCache();
 
 /** An opt-in, separately identified variant. Existing clients continue to receive the original choice packs. */
 export function loadMixedQuizPack(id: string): Promise<QuizPack> {
-  const existing = cache.get(id);
-  if (existing) return existing;
-  const pending = (async () => {
+  return cache.load(id, async () => {
     const base = await loadQuizPack(id);
     const { MIXED_REPLACEMENTS } = await import("./sources/mixed");
     const replacements = MIXED_REPLACEMENTS[base.descriptor.stageId];
@@ -19,8 +18,5 @@ export function loadMixedQuizPack(id: string): Promise<QuizPack> {
     const issues = validateQuizPack(pack);
     if (issues.length) throw new Error(`Invalid mixed quiz pack: ${issues.join("; ")}`);
     return pack;
-  })();
-  cache.set(id, pending);
-  void pending.catch(() => cache.delete(id));
-  return pending;
+  });
 }

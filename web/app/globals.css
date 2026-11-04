@@ -254,3 +254,17 @@ body {
     display: none;
   }
 }
+/* The music dialog stays inside the game shell in browser fullscreen. */
+.music-dialog {
+  margin: auto; width: min(420px, calc(100% - 32px)); max-height: calc(100% - 32px);
+  overflow: auto; padding: 22px; color: #efdfbd; background: #302315;
+  border: 3px solid #c99d5d; box-shadow: 0 0 0 4px #1f190f;
+  font-family: var(--font-pixel-body), monospace;
+}
+.music-dialog::backdrop { background: #120e0a88; }
+.music-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.music-heading h2 { font-size: 20px; }
+.music-dialog button { padding: 8px 12px; border: 2px solid #bd9256; background: #52371e; color: #fff0cc; cursor: pointer; }
+.music-dialog p { margin: 16px 0; }
+.music-volume { display: grid; gap: 12px; margin-top: 20px; }
+.music-volume input { width: 100%; accent-color: #ffb75e; }

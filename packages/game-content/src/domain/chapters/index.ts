@@ -34,9 +34,11 @@ export const DEX_MONSTERS: readonly MonsterDefinition[] = ALL_CHAPTERS.flatMap(
   (chapter) => chapter.stages
 ).sort((a, b) => a.dexNumber.localeCompare(b.dexNumber));
 export const CAPTURABLE_MONSTERS = DEX_MONSTERS;
+const chaptersById = new Map([...ALL_CHAPTERS, ...PROMOTION_CHAPTERS].map(chapter => [chapter.id, chapter]));
+const stagesById = new Map(ALL_CHAPTERS.flatMap(chapter => chapter.stages.map((monster, index) => [monster.id, { chapter, monster, index }] as const)));
 
 export function getChapter(id: ChapterId): ChapterDefinition {
-  const chapter = ALL_CHAPTERS.find((candidate) => candidate.id === id) ?? PROMOTION_CHAPTERS.find((candidate) => candidate.id === id);
+  const chapter = chaptersById.get(id);
   if (!chapter) throw new Error(`Unknown chapter: ${id}`);
   return chapter;
 }
@@ -46,10 +48,8 @@ export function findStage(monsterId: string): {
   monster: MonsterDefinition;
   index: number;
 } {
-  for (const chapter of ALL_CHAPTERS) {
-    const index = chapter.stages.findIndex((stage) => stage.id === monsterId);
-    if (index !== -1) return { chapter, monster: chapter.stages[index], index };
-  }
+  const stage = stagesById.get(monsterId);
+  if (stage) return { ...stage };
   throw new Error(`Unknown monster: ${monsterId}`);
 }
 

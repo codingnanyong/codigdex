@@ -4,13 +4,14 @@ import { SaveProvider } from "@/state/SaveProvider";
 import { NativeGame } from "@/game/NativeGame";
 import { PixelFontGate } from "@/ui/PixelFontGate";
 import { AccountProvider, useGameAccount } from "@/account/AccountPanel";
+import { MusicProvider } from "@/audio/MusicProvider";
 
 export default function App() {
   return (
     <SafeAreaProvider>
       <PixelFontGate><SaveProvider><AccountProvider>
         <StatusBar hidden />
-        <GameSession />
+        <MusicProvider><GameSession /></MusicProvider>
       </AccountProvider></SaveProvider></PixelFontGate>
     </SafeAreaProvider>
   );
