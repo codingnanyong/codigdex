@@ -68,3 +68,33 @@ it.each([
   if (chosen.enabled) expect(mocks.player.play).toHaveBeenCalled();
   else expect(mocks.player.play).not.toHaveBeenCalled();
 });
+
+it.each([
+  { saved: { enabled: false, volume: .2 }, chosen: { volume: .75 }, expected: { enabled: false, volume: .75 } },
+  { saved: { enabled: true, volume: .8 }, chosen: { enabled: false }, expected: { enabled: false, volume: .8 } },
+])("preserves untouched saved fields when the early change is $chosen", async ({ saved, chosen, expected }) => {
+  let finishRead!: (raw: string) => void;
+  mocks.get.mockImplementationOnce(() => new Promise<string>(resolve => { finishRead = resolve; }));
+  await render();
+  await act(async () => controls.setPreferences(chosen));
+  mocks.player.play.mockClear();
+  await act(async () => finishRead(JSON.stringify(saved)));
+  expect(controls.preferences).toEqual(expected);
+  expect(mocks.player.volume).toBe(expected.volume);
+  expect(mocks.player.play).not.toHaveBeenCalled();
+  expect(mocks.set).toHaveBeenLastCalledWith("codigdex:music:v1", JSON.stringify(expected));
+});
+
+it("keeps consecutive early changes when the saved-settings read fails", async () => {
+  let failRead!: (error: Error) => void;
+  mocks.get.mockImplementationOnce(() => new Promise<string>((_, reject) => { failRead = reject; }));
+  await render();
+  await act(async () => {
+    controls.setPreferences({ enabled: false });
+    controls.setPreferences({ volume: .75 });
+  });
+  await act(async () => failRead(new Error("Storage unavailable")));
+  expect(controls.preferences).toEqual({ enabled: false, volume: .75 });
+  expect(mocks.set).toHaveBeenLastCalledWith("codigdex:music:v1", '{"enabled":false,"volume":0.75}');
+  expect(mocks.player.play).not.toHaveBeenCalled();
+});
