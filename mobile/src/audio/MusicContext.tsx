@@ -5,7 +5,7 @@ export interface MusicControls {
   preferences: MusicPreferences;
   title?: string;
   error: boolean;
-  setPreferences(next: MusicPreferences): void;
+  setPreferences(next: Partial<MusicPreferences>): void;
   register(id: symbol, region: string | undefined, priority: number): void;
   unregister(id: symbol): void;
 }

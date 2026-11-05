@@ -17,9 +17,9 @@ export function SettingsScreen({ onBack }: { onBack(): void }) {
         <AccountPanel />
         <Text style={styles.hudTitle}>{ko ? "지역 BGM" : "REGIONAL MUSIC"}</Text>
         {music.title ? <Text style={styles.hint}>{music.title}</Text> : null}
-        <PixelButton testID="music-toggle" onPress={() => music.setPreferences({ ...music.preferences, enabled: !music.preferences.enabled })}>{music.preferences.enabled ? (ko ? "BGM 끄기" : "MUTE MUSIC") : (ko ? "BGM 켜기" : "ENABLE MUSIC")}</PixelButton>
+        <PixelButton testID="music-toggle" onPress={() => music.setPreferences({ enabled: !music.preferences.enabled })}>{music.preferences.enabled ? (ko ? "BGM 끄기" : "MUTE MUSIC") : (ko ? "BGM 켜기" : "ENABLE MUSIC")}</PixelButton>
         <Text style={styles.hint}>{ko ? "음악 크기" : "Music volume"} · {Math.round(music.preferences.volume * 100)}%</Text>
-        <View style={[styles.settingsRow, { flexWrap: "wrap" }]}>{[0, .25, .5, .75, 1].map(volume => <PixelButton key={volume} compact testID={`music-volume-${volume * 100}`} variant={music.preferences.volume === volume ? "primary" : "secondary"} onPress={() => music.setPreferences({ ...music.preferences, volume })}>{volume * 100}%</PixelButton>)}</View>
+        <View style={[styles.settingsRow, { flexWrap: "wrap" }]}>{[0, .25, .5, .75, 1].map(volume => <PixelButton key={volume} compact testID={`music-volume-${volume * 100}`} variant={music.preferences.volume === volume ? "primary" : "secondary"} onPress={() => music.setPreferences({ volume })}>{volume * 100}%</PixelButton>)}</View>
         {music.error ? <Text accessibilityRole="alert" style={styles.hint}>{ko ? "음악 또는 설정을 불러오지 못했습니다. 다시 시도해 주세요." : "Music or settings could not load. Try again."}</Text> : null}
         <Text style={styles.hudTitle}>{ko ? "언어" : "LANGUAGE"}</Text>
         <View style={styles.settingsRow}>

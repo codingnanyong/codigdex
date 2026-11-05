@@ -1,0 +1,44 @@
+# Handoff
+
+- Owner: Codex
+- Reviewer: Claude read-only review through the normal GitHub PR workflow.
+- Scope: User requested progress on what can be verified without the unpublished
+  home Mac source. Fix the existing MusicProvider startup preference race noted
+  in COD-452. An explicit user choice must win over a delayed saved snapshot.
+- Changed files:
+  - mobile/src/audio/MusicProvider.tsx: track early field changes and merge them
+    over the saved snapshot. Use a current-value ref for consecutive updates and
+    queue only the merged snapshot once storage restoration finishes, avoiding
+    an early write of defaults over untouched saved values. Preserve the
+    hydration gate and playback policy.
+  - mobile/src/audio/MusicContext.tsx and mobile/src/game/SettingsScreen.tsx:
+    accept and submit partial settings so changing volume cannot replace a
+    saved mute preference, and changing mute cannot replace saved volume.
+  - mobile/src/audio/MusicProvider.test.tsx: defer the storage read and verify
+    early mute/unmute and single-field choices retain volume, persistence and
+    playback. Cover a rejected read with consecutive changes in one update.
+  - qa/home/mobile-music-preference-race-handoff.txt: this handoff.
+- Generated assets: None.
+- Checks run:
+  - Red baseline: both delayed-read cases failed against unmodified main because
+    saved values replaced the newer choice.
+  - Initial fix: Node 22.23.4/npm 10.9.2 full mobile suite 163/163 passed.
+    Reviewer noted untouched saved fields in partial UI changes; the expanded
+    seven-case music suite and mobile typecheck pass after addressing it.
+    Final expanded full mobile host/unit suite 166/166 passed. Remote check
+    results are recorded in the PR.
+  - Mobile typecheck and asset-map freshness check passed.
+  - check:agents and git diff --check passed.
+  - Current public production browser smoke 3/3 passed without a new deployment.
+  - Remote PR CI, review and release verification are recorded in the PR.
+- Remaining risks or review items:
+  - Home commit 47a944929664a43b1e19c6c171bc8693339f0f67 is not in origin and
+    cannot be read here. This patch is based on main e8e3a4f and does not include
+    the separate home rendering/cache/list/IME improvements. Preserve and review
+    those changes when the source becomes available, especially MusicProvider.
+  - Native simulator/device UI was not rerun on this Windows machine. COD-452's
+    home simulator acceptance applies to its own commit, not this new patch.
+  - The home Mac's current process state cannot be inferred from completion
+    records. No process on the home Mac was stopped or restarted.
+  - Keep the main-only Vercel deployment policy; no manual deployment is needed
+    for intermediate feature/develop commits.
