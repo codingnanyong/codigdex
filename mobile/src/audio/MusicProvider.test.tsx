@@ -48,3 +48,23 @@ it("lets the entered region override the hub and keeps the same track through re
   await render("hub:career", "career:backend:network"); expect(controls.title).toBe("지하 케이블의 맥박");
   await render("hub:career"); expect(controls.title).toBe("길드의 오후");
 });
+
+it.each([
+  { saved: { enabled: true, volume: .8 }, chosen: { enabled: false, volume: .2 } },
+  { saved: { enabled: false, volume: .2 }, chosen: { enabled: true, volume: .8 } },
+])("preserves an early user choice $chosen when the saved settings arrive late", async ({ saved, chosen }) => {
+  let finishRead!: (raw: string) => void;
+  mocks.get.mockImplementationOnce(() => new Promise<string>(resolve => { finishRead = resolve; }));
+  await render();
+  await act(async () => controls.setPreferences(chosen));
+  expect(controls.preferences).toEqual(chosen);
+  mocks.player.play.mockClear();
+
+  await act(async () => finishRead(JSON.stringify(saved)));
+
+  expect(controls.preferences).toEqual(chosen);
+  expect(mocks.player.volume).toBe(chosen.volume);
+  expect(mocks.set).toHaveBeenLastCalledWith("codigdex:music:v1", JSON.stringify(chosen));
+  if (chosen.enabled) expect(mocks.player.play).toHaveBeenCalled();
+  else expect(mocks.player.play).not.toHaveBeenCalled();
+});

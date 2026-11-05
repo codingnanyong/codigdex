@@ -15,6 +15,7 @@ export function MusicProvider({ children }: { children: ReactNode }) {
   const [error, setError] = useState(false);
   const [region, setRegion] = useState<string>();
   const [active, setActive] = useState(AppState.currentState === "active");
+  const preferencesChanged = useRef(false);
   const registrations = useRef(new Map<symbol, { region: string; priority: number }>());
   const choose = useCallback(() => {
     const selected = [...registrations.current.values()].sort((a,b) => b.priority - a.priority)[0];
@@ -27,7 +28,10 @@ export function MusicProvider({ children }: { children: ReactNode }) {
   const unregister = useCallback((id: symbol) => { registrations.current.delete(id); choose(); }, [choose]);
   useEffect(() => {
     let live = true;
-    void AsyncStorage.getItem(MUSIC_PREFERENCES_KEY).then(raw => { if (live) setLocalPreferences(parseMusicPreferences(raw)); }).catch(() => undefined).finally(() => { if (live) setHydrated(true); });
+    void AsyncStorage.getItem(MUSIC_PREFERENCES_KEY).then(raw => {
+      // An explicit choice made during startup takes precedence over the saved snapshot.
+      if (live && !preferencesChanged.current) setLocalPreferences(parseMusicPreferences(raw));
+    }).catch(() => undefined).finally(() => { if (live) setHydrated(true); });
     void setAudioModeAsync({ playsInSilentMode: false, shouldPlayInBackground: false, allowsRecording: false, interruptionMode: "mixWithOthers" }).catch(() => { if (live) setError(true); });
     const listener = AppState.addEventListener("change", next => setActive(next === "active"));
     return () => { live = false; listener.remove(); };
@@ -35,6 +39,7 @@ export function MusicProvider({ children }: { children: ReactNode }) {
   const writes = useRef(Promise.resolve());
   const setPreferences = useCallback((next: MusicPreferences) => {
     const safe = parseMusicPreferences(JSON.stringify(next));
+    preferencesChanged.current = true;
     setLocalPreferences(safe);
     writes.current = writes.current.catch(() => undefined).then(() => AsyncStorage.setItem(MUSIC_PREFERENCES_KEY, JSON.stringify(safe))).catch(() => setError(true));
   }, []);
