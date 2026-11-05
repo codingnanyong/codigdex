@@ -8,8 +8,9 @@
 - Changed files:
   - mobile/src/audio/MusicProvider.tsx: track early field changes and merge them
     over the saved snapshot. Use a current-value ref for consecutive updates and
-    queue the merged snapshot after any early writes so untouched saved values
-    remain persisted. Preserve the hydration gate and playback policy.
+    queue only the merged snapshot once storage restoration finishes, avoiding
+    an early write of defaults over untouched saved values. Preserve the
+    hydration gate and playback policy.
   - mobile/src/audio/MusicContext.tsx and mobile/src/game/SettingsScreen.tsx:
     accept and submit partial settings so changing volume cannot replace a
     saved mute preference, and changing mute cannot replace saved volume.

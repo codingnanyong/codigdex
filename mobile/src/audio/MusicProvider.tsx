@@ -57,7 +57,7 @@ export function MusicProvider({ children }: { children: ReactNode }) {
     }
     latestPreferences.current = safe;
     setLocalPreferences(safe);
-    persist(safe);
+    if (preferencesReady.current) persist(safe);
   }, [persist]);
   useEffect(() => {
     const track = musicTrack(region);

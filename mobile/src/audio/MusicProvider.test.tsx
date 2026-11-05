@@ -31,6 +31,7 @@ const render = (region?: string, nested?: string) => act(async () => { root.rend
 it("restores muted settings, uses one player and pauses while backgrounded", async () => {
   await render();
   expect(controls.preferences).toEqual({ enabled: false, volume: .5 });
+  expect(mocks.set).not.toHaveBeenCalled();
   expect(mocks.player.play).not.toHaveBeenCalled(); expect(mocks.player.loop).toBe(true);
   await act(async () => controls.setPreferences({ enabled: true, volume: .25 }));
   expect(mocks.player.volume).toBe(.25); expect(mocks.player.play).toHaveBeenCalled();
@@ -58,6 +59,7 @@ it.each([
   await render();
   await act(async () => controls.setPreferences(chosen));
   expect(controls.preferences).toEqual(chosen);
+  expect(mocks.set).not.toHaveBeenCalled();
   mocks.player.play.mockClear();
 
   await act(async () => finishRead(JSON.stringify(saved)));
@@ -77,6 +79,7 @@ it.each([
   mocks.get.mockImplementationOnce(() => new Promise<string>(resolve => { finishRead = resolve; }));
   await render();
   await act(async () => controls.setPreferences(chosen));
+  expect(mocks.set).not.toHaveBeenCalled();
   mocks.player.play.mockClear();
   await act(async () => finishRead(JSON.stringify(saved)));
   expect(controls.preferences).toEqual(expected);
@@ -93,6 +96,7 @@ it("keeps consecutive early changes when the saved-settings read fails", async (
     controls.setPreferences({ enabled: false });
     controls.setPreferences({ volume: .75 });
   });
+  expect(mocks.set).not.toHaveBeenCalled();
   await act(async () => failRead(new Error("Storage unavailable")));
   expect(controls.preferences).toEqual({ enabled: false, volume: .75 });
   expect(mocks.set).toHaveBeenLastCalledWith("codigdex:music:v1", '{"enabled":false,"volume":0.75}');
