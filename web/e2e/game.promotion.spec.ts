@@ -37,6 +37,35 @@ async function openFinalProjectAfterReload(page: Page) {
   await expect(game).toHaveAttribute("data-scene", "promotion-chapter");
 }
 
+for (const job of SECONDARY_JOB_OPTIONS) test(`shows shared chain locks on ${job.id} regions and evolution stages`, async ({ page }) => {
+  const seed = eligibleSave(job.id);
+  if (job.id === "fullstack-engineer") seed.ui.locale = "ko";
+  const regionalIds = new Set(secondaryRegionsFor(job.id).flatMap(({ chapter }) => chapter.stages.map(({ id }) => id)));
+  seed.progress.captures = seed.progress.captures.filter(({ id }) => !regionalIds.has(id));
+  await bootGame(page, selectSecondaryCareer(seed, job.id));
+  const game = page.getByRole("application");
+  await expect(game).toHaveAttribute("data-scene", "secondary-region");
+  await expect(page.locator(".stage-route-nav button:disabled")).toHaveCount(4);
+  await page.screenshot({ path: `../qa-results/advanced-chain-locks/${job.id}-stages.png` });
+  await clickGame(page, 216, 511);
+  await expect(game).toHaveAttribute("data-scene", "secondary-atlas");
+  await page.screenshot({ path: `../qa-results/advanced-chain-locks/${job.id}-atlas.png` });
+  await page.keyboard.press("2");
+  await page.keyboard.press("Enter");
+  await expect(game).toHaveAttribute("data-scene", "secondary-atlas");
+  await page.keyboard.press("1");
+  await page.keyboard.press("Enter");
+  await expect(game).toHaveAttribute("data-scene", "secondary-region");
+});
+
+test("uses the same chain locks for tier-three project stages", async ({ page }) => {
+  const preset = gameQAPresets("en").find(({ id }) => id === "master-project:software-architect")!;
+  await bootGame(page, preset.save);
+  await openFinalProjectAfterReload(page);
+  await expect(page.locator(".stage-route-nav button:disabled")).toHaveCount(4);
+  await page.screenshot({ path: "../qa-results/advanced-chain-locks/tier-three-stages.png" });
+});
+
 for (const job of SECONDARY_JOB_OPTIONS) test(`restores ${job.id}, visits five painted regions and keeps mastery`, async ({ page }) => {
   test.setTimeout(120000);
   await page.setViewportSize({ width: 844, height: 390 });

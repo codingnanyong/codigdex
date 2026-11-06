@@ -4,10 +4,12 @@ import { EventEmitter } from "node:events";
 import { expect, it, vi } from "vitest";
 import { SECONDARY_REGIONS } from "@codigdex/game-content/domain/secondaryExploration";
 import { drawFiveStageRoute } from "@/lib/phaser/fiveStageRoute";
+import { drawPixelChainLock } from "@/lib/phaser/worldMap/pixelChainLock";
 
 vi.mock("phaser", () => ({ default: { Scenes: { Events: { SHUTDOWN: "shutdown", DESTROY: "destroy" } } } }));
 vi.mock("@/lib/phaser/ui", () => ({ fitTextInside: (value: unknown) => value }));
 vi.mock("@/lib/phaser/i18n", () => ({ sceneLocale: () => "en", lt: (_: unknown, text: { en: string }) => text.en }));
+vi.mock("@/lib/phaser/worldMap/pixelChainLock", () => ({ drawPixelChainLock: vi.fn(() => ({ setScale: vi.fn() })) }));
 
 it("exposes a focused learning action and removes DOM/keyboard controls when destroyed without shutdown", () => {
   const events = new EventEmitter(), keyboard = new EventEmitter();
@@ -23,6 +25,8 @@ it("exposes a focused learning action and removes DOM/keyboard controls when des
   const start = vi.fn();
   try {
     drawFiveStageRoute(scene, stages.map((monster, i) => ({ monster, status: i ? "locked" : "available" })), stages[0].id, vi.fn(), { arena: "fixture", onEnter: start });
+    expect(drawPixelChainLock).toHaveBeenCalledTimes(4);
+    expect(parent.querySelectorAll("button:disabled")).toHaveLength(4);
     const action = parent.querySelector<HTMLButtonElement>('[data-route-action="start"]')!;
     action.focus(); action.click();
     expect(document.activeElement).toBe(action);
