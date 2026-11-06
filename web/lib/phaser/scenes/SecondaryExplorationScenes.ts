@@ -14,6 +14,7 @@ import { openSourcesForMonster } from "@codigdex/game-content/domain/openSourceL
 import { discoveredSourceIds } from "../openSourceEvents";
 import { showOpenSourceNotes } from "../openSourceNotes";
 import { drawFiveStageRoute } from "../fiveStageRoute";
+import { drawPixelChainLock } from "../worldMap/pixelChainLock";
 
 const atlasKey = (id: string) => `secondary-atlas-${id}`;
 const terrainKey = (id: string) => `secondary-terrain-${id}`;
@@ -43,7 +44,8 @@ export class SecondaryAtlasScene extends Phaser.Scene {
     const layers = progression.map(({ region, status, captured }, index) => {
       const shadow = this.add.image(480, 278, terrainKey(region.id)).setTint(PALETTE.nightBrown).setAlpha(0).setDepth(2);
       const terrain = this.add.image(480, 270, terrainKey(region.id)).setAlpha(0).setDepth(3);
-      const label = this.add.text(region.center[0], region.center[1] + 42, `${status === "locked" ? "🔒" : status === "completed" ? "✓" : index + 1} ${lt(this, region.label)}\n${captured}/5`, { ...pixelText("caption"), color: PALETTE_HEX.cream, backgroundColor: PALETTE_HEX.nightBrown, align: "center", padding: { x: 7, y: 5 } }).setOrigin(0.5).setDepth(7);
+      if (status === "locked") drawPixelChainLock(this, ...region.center).setScale(0.72);
+      const label = this.add.text(region.center[0], region.center[1] + 42, `${status === "completed" ? "✓" : index + 1} ${lt(this, region.label)}\n${captured}/5`, { ...pixelText("caption"), color: PALETTE_HEX.cream, backgroundColor: PALETTE_HEX.nightBrown, align: "center", padding: { x: 7, y: 5 } }).setOrigin(0.5).setDepth(7);
       fitTextInside(label, 212, 43);
       return { shadow, terrain, label, polygon: new Phaser.Geom.Polygon(region.outline.map(([x, y]) => ({ x, y }))) };
     });

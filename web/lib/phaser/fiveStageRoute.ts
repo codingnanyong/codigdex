@@ -4,6 +4,7 @@ import { lt, sceneLocale } from "./i18n";
 import { PALETTE, PALETTE_HEX } from "./palette";
 import { pixelText } from "./pixelFont";
 import { fitTextInside } from "./ui";
+import { drawPixelChainLock } from "./worldMap/pixelChainLock";
 
 interface RouteStage { monster: MonsterDefinition; status: "locked" | "available" | "cleared" }
 export const FIVE_STAGE_POINTS = [128, 304, 480, 656, 832].map((x, i) => ({ x, y: i % 2 ? 224 : 188 }));
@@ -42,7 +43,7 @@ export function drawFiveStageRoute(scene: Phaser.Scene, stages: readonly RouteSt
     const disk = scene.add.ellipse(x, y + 28, 122, 38, PALETTE.nightBrown, 0.74)
       .setStrokeStyle(selected ? 4 : 2, selected ? PALETTE.amber : status === "cleared" ? PALETTE.cream : PALETTE.wood);
     if (status !== "locked") scene.add.image(x, y - 24, monster.textureKey).setDisplaySize(128, 128);
-    else scene.add.text(x, y - 16, "?", { ...pixelText("title"), color: PALETTE_HEX.sand }).setOrigin(0.5);
+    else drawPixelChainLock(scene, x, y - 20).setScale(0.82);
     const badge = scene.add.text(x, y - 78, `${index + 1}/5 · ${state}`, { ...pixelText("caption"), color: selected ? PALETTE_HEX.cream : PALETTE_HEX.sand, backgroundColor: selected ? PALETTE_HEX.maroon : PALETTE_HEX.nightBrown, padding: { x: 7, y: 4 } }).setOrigin(0.5);
     fitTextInside(badge, 156, 23);
     const label = scene.add.text(x, y + 64, `Lv.${monster.level} · No.${monster.dexNumber}\n${options.captions?.[index] ?? (status === "locked" ? "???" : lt(scene, monster.name))}`, {
