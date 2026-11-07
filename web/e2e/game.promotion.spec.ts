@@ -66,6 +66,36 @@ test("uses the same chain locks for tier-three project stages", async ({ page })
   await page.screenshot({ path: "../qa-results/advanced-chain-locks/tier-three-stages.png" });
 });
 
+test("keeps the primary atlas as the chain-lock reference", async ({ page }) => {
+  const seed = createEmptySave("ko");
+  seed.player.primaryJobId = "backend";
+  seed.ui.tutorialOnboardingSeen = true;
+  seed.progress.captures = CHAPTERS.flatMap(({ stages }) => stages.map(({ id }) => ({ id, capturedAt: "2026-11-07T00:00:00.000Z" })));
+  await bootGame(page, seed);
+  await expect(page.getByRole("application")).toHaveAttribute("data-scene", "world-map");
+  await page.screenshot({ path: "../qa-results/terrain-chain-locks/primary-backend-ko.png" });
+});
+
+test("aligns platform island locks after the first region is completed", async ({ page }) => {
+  const seed = eligibleSave("platform-engineer");
+  seed.ui.locale = "ko";
+  const regions = secondaryRegionsFor("platform-engineer");
+  const regionalIds = new Set(regions.flatMap(({ chapter }) => chapter.stages.map(({ id }) => id)));
+  seed.progress.captures = seed.progress.captures.filter(({ id }) => !regionalIds.has(id));
+  seed.progress.captures.push(...regions[0].chapter.stages.map(({ id }) => ({ id, capturedAt: "2026-11-07T00:00:00.000Z" })));
+  await bootGame(page, selectSecondaryCareer(seed, "platform-engineer"));
+  await expect(page.getByRole("application")).toHaveAttribute("data-scene", "secondary-region");
+  await clickGame(page, 216, 511);
+  await expect(page.getByRole("application")).toHaveAttribute("data-scene", "secondary-atlas");
+  await page.screenshot({ path: "../qa-results/terrain-chain-locks/platform-first-cleared-ko.png" });
+  await page.keyboard.press("3");
+  await page.keyboard.press("Enter");
+  await expect(page.getByRole("application")).toHaveAttribute("data-scene", "secondary-atlas");
+  await page.keyboard.press("2");
+  await page.keyboard.press("Enter");
+  await expect(page.getByRole("application")).toHaveAttribute("data-scene", "secondary-region");
+});
+
 for (const job of SECONDARY_JOB_OPTIONS) test(`restores ${job.id}, visits five painted regions and keeps mastery`, async ({ page }) => {
   test.setTimeout(120000);
   await page.setViewportSize({ width: 844, height: 390 });
