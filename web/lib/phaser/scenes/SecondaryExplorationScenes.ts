@@ -14,7 +14,7 @@ import { openSourcesForMonster } from "@codigdex/game-content/domain/openSourceL
 import { discoveredSourceIds } from "../openSourceEvents";
 import { showOpenSourceNotes } from "../openSourceNotes";
 import { drawFiveStageRoute } from "../fiveStageRoute";
-import { drawPixelChainLock } from "../worldMap/pixelChainLock";
+import { drawPixelChainLock, terrainChainLockLayoutForOutline } from "../worldMap/pixelChainLock";
 
 const atlasKey = (id: string) => `secondary-atlas-${id}`;
 const terrainKey = (id: string) => `secondary-terrain-${id}`;
@@ -44,10 +44,13 @@ export class SecondaryAtlasScene extends Phaser.Scene {
     const layers = progression.map(({ region, status, captured }, index) => {
       const shadow = this.add.image(480, 278, terrainKey(region.id)).setTint(PALETTE.nightBrown).setAlpha(0).setDepth(2);
       const terrain = this.add.image(480, 270, terrainKey(region.id)).setAlpha(0).setDepth(3);
-      if (status === "locked") drawPixelChainLock(this, ...region.center).setScale(0.72);
-      const label = this.add.text(region.center[0], region.center[1] + 42, `${status === "completed" ? "✓" : index + 1} ${lt(this, region.label)}\n${captured}/5`, { ...pixelText("caption"), color: PALETTE_HEX.cream, backgroundColor: PALETTE_HEX.nightBrown, align: "center", padding: { x: 7, y: 5 } }).setOrigin(0.5).setDepth(7);
+      const lockLayout = terrainChainLockLayoutForOutline(region.outline);
+      if (status === "locked") drawPixelChainLock(this, lockLayout.x, lockLayout.y).setScale(lockLayout.scale);
+      const labelX = status === "locked" ? lockLayout.x : region.center[0];
+      const labelY = status === "locked" ? lockLayout.labelY : region.center[1] + 42;
+      const label = this.add.text(labelX, labelY, `${status === "completed" ? "✓" : index + 1} ${lt(this, region.label)}\n${captured}/5`, { ...pixelText("caption"), color: PALETTE_HEX.cream, backgroundColor: PALETTE_HEX.nightBrown, align: "center", padding: { x: 7, y: 5 } }).setOrigin(0.5).setDepth(7);
       fitTextInside(label, 212, 43);
-      return { shadow, terrain, label, polygon: new Phaser.Geom.Polygon(region.outline.map(([x, y]) => ({ x, y }))) };
+      return { shadow, terrain, label, labelY, polygon: new Phaser.Geom.Polygon(region.outline.map(([x, y]) => ({ x, y }))) };
     });
     let focused = -1;
     const hint = this.add.text(480, 474, ko ? "지역을 가리키거나 1–5 키로 선택 · Enter로 입장" : "POINT AT A REGION OR PRESS 1–5 · ENTER TO EXPLORE", { ...pixelText("caption"), color: PALETTE_HEX.cream, backgroundColor: PALETTE_HEX.nightBrown, padding: { x: 10, y: 6 } }).setOrigin(0.5).setDepth(10);
@@ -55,12 +58,12 @@ export class SecondaryAtlasScene extends Phaser.Scene {
       if (index === focused) return;
       focused = index;
       this.game.canvas.style.cursor = index >= 0 && progression[index].status !== "locked" ? "pointer" : "default";
-      layers.forEach(({ shadow, terrain, label }, i) => {
+      layers.forEach(({ shadow, terrain, label, labelY }, i) => {
         this.tweens.killTweensOf([shadow, terrain, label]);
         const active = i === index && progression[i].status !== "locked";
         this.tweens.add({ targets: shadow, alpha: active ? 0.35 : 0, duration: 150 });
         this.tweens.add({ targets: terrain, alpha: active ? 1 : 0, y: active ? 259 : 270, duration: 150, ease: "Cubic.Out" });
-        this.tweens.add({ targets: label, y: progression[i].region.center[1] + (active ? 31 : 42), duration: 150 });
+        this.tweens.add({ targets: label, y: active ? progression[i].region.center[1] + 31 : labelY, duration: 150 });
       });
       const item = progression[index];
       if (item) hint.setText(item.status === "locked" ? (ko ? "앞 지역의 Lv.5 수호자를 포획하면 열립니다." : "CAPTURE THE PREVIOUS REGION'S LV.5 GUARDIAN TO UNLOCK.") : `${lt(this, item.region.label)} · ${item.captured}/5 · ${ko ? "클릭 또는 Enter로 탐험" : "CLICK OR ENTER TO EXPLORE"}`);

@@ -16,7 +16,7 @@ import { createDialogPortrait } from "./dialogPortrait";
 import { capturedIds } from "@codigdex/game-core/domain/dex/capture";
 import { readDexState } from "../registryAdapter";
 import { careerRegionProgression, type CareerRegionStatus } from "./careerRegionProgression";
-import { drawPixelChainLock } from "./pixelChainLock";
+import { drawPixelChainLock, terrainChainLockLayout } from "./pixelChainLock";
 
 interface CareerAtlasOptions {
   job: JobOption;
@@ -244,12 +244,12 @@ function drawRegion(
     .setDepth(5);
 
   if (status === "locked") {
-    const lock = drawPixelChainLock(scene, labelCenter.x, labelCenter.y);
+    const placement = terrainChainLockLayout(lift);
+    const lock = drawPixelChainLock(scene, placement.x, placement.y);
     // The lock marks the destination without covering the illustrated object.
     // Its position comes from the real terrain asset bounds, not the old route
     // disc coordinates.
-    const scale = Phaser.Math.Clamp(Math.min(lift.width / 300, lift.height / 250), 0.62, 0.82);
-    lock.setScale(scale);
+    lock.setScale(placement.scale);
   }
 
   const liftTerrain = () => {

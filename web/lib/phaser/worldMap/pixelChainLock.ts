@@ -1,6 +1,20 @@
 import type Phaser from "phaser";
 import { PALETTE } from "../palette";
 
+/** Shared atlas placement, based on painted terrain bounds rather than route coordinates. */
+export function terrainChainLockLayout(bounds: { x: number; y: number; width: number; height: number }) {
+  const x = Math.round(bounds.x), y = Math.round(bounds.y);
+  const scale = Math.max(0.62, Math.min(0.82, bounds.width / 300, bounds.height / 250));
+  // The diagonal chain reaches 40px below its centre; leave room for a two-line label.
+  return { x, y, scale, labelY: y + Math.ceil(40 * scale) + 30 };
+}
+
+export function terrainChainLockLayoutForOutline(outline: readonly (readonly [number, number])[]) {
+  const xs = outline.map(([x]) => x), ys = outline.map(([, y]) => y);
+  const left = Math.min(...xs), right = Math.max(...xs), top = Math.min(...ys), bottom = Math.max(...ys);
+  return terrainChainLockLayout({ x: (left + right) / 2, y: (top + bottom) / 2, width: right - left, height: bottom - top });
+}
+
 /** Draws two chunky pixel chains crossing behind a central padlock. */
 export function drawPixelChainLock(
   scene: Phaser.Scene,
