@@ -49,10 +49,17 @@ for (const job of SECONDARY_JOB_OPTIONS) test(`shows shared chain locks on ${job
   await page.screenshot({ path: `../qa-results/advanced-chain-locks/${job.id}-stages.png` });
   await clickGame(page, 216, 511);
   await expect(game).toHaveAttribute("data-scene", "secondary-atlas");
+  // Atlas labels fade in over 150ms; capture the settled presentation.
+  await page.waitForTimeout(200);
   await page.screenshot({ path: `../qa-results/advanced-chain-locks/${job.id}-atlas.png` });
   await page.keyboard.press("2");
   await page.keyboard.press("Enter");
   await expect(game).toHaveAttribute("data-scene", "secondary-atlas");
+  await page.keyboard.press("5");
+  await page.keyboard.press("Enter");
+  await expect(game).toHaveAttribute("data-scene", "secondary-atlas");
+  await page.waitForTimeout(200);
+  await page.screenshot({ path: `../qa-results/atlas-text/${job.id}-locked-label.png` });
   await page.keyboard.press("1");
   await page.keyboard.press("Enter");
   await expect(game).toHaveAttribute("data-scene", "secondary-region");
@@ -87,10 +94,13 @@ test("aligns platform island locks after the first region is completed", async (
   await expect(page.getByRole("application")).toHaveAttribute("data-scene", "secondary-region");
   await clickGame(page, 216, 511);
   await expect(page.getByRole("application")).toHaveAttribute("data-scene", "secondary-atlas");
+  await page.waitForTimeout(200);
   await page.screenshot({ path: "../qa-results/terrain-chain-locks/platform-first-cleared-ko.png" });
   await page.keyboard.press("3");
   await page.keyboard.press("Enter");
   await expect(page.getByRole("application")).toHaveAttribute("data-scene", "secondary-atlas");
+  await page.waitForTimeout(200);
+  await page.screenshot({ path: "../qa-results/atlas-text/platform-locked-ko.png" });
   await page.keyboard.press("2");
   await page.keyboard.press("Enter");
   await expect(page.getByRole("application")).toHaveAttribute("data-scene", "secondary-region");
