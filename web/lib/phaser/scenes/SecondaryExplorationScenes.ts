@@ -41,19 +41,30 @@ export class SecondaryAtlasScene extends Phaser.Scene {
     drawOrnateFrame(this, 480, 37, 670, 58, { fillAlpha: 0.96, radius: 10 }).setDepth(10);
     this.add.text(480, 26, lt(this, job.name), { ...pixelText("subtitle"), color: PALETTE_HEX.maroon }).setOrigin(0.5).setDepth(11);
     this.add.text(480, 48, `${progression.reduce((n, item) => n + item.captured, 0)}/25 · ${ko ? "다섯 지역 · 다섯 단계의 진화" : "FIVE REGIONS · FIVE EVOLUTIONS"}`, { ...pixelText("caption"), color: PALETTE_HEX.ink }).setOrigin(0.5).setDepth(11);
-    const layers = progression.map(({ region, status, captured }, index) => {
+    const layers = progression.map(({ region, status }, index) => {
       const shadow = this.add.image(480, 278, terrainKey(region.id)).setTint(PALETTE.nightBrown).setAlpha(0).setDepth(2);
       const terrain = this.add.image(480, 270, terrainKey(region.id)).setAlpha(0).setDepth(3);
       const lockLayout = terrainChainLockLayoutForOutline(region.outline);
       if (status === "locked") drawPixelChainLock(this, lockLayout.x, lockLayout.y).setScale(lockLayout.scale);
       const labelX = status === "locked" ? lockLayout.x : region.center[0];
-      const labelY = status === "locked" ? lockLayout.labelY : region.center[1] + 42;
-      const label = this.add.text(labelX, labelY, `${status === "completed" ? "✓" : index + 1} ${lt(this, region.label)}\n${captured}/5`, { ...pixelText("caption"), color: PALETTE_HEX.cream, backgroundColor: PALETTE_HEX.nightBrown, align: "center", padding: { x: 7, y: 5 } }).setOrigin(0.5).setDepth(7);
-      fitTextInside(label, 212, 43);
+      // A 26px label must end above the dock's top edge at y438.
+      const labelY = Math.min(status === "locked" ? lockLayout.labelY : region.center[1] + 42, 421);
+      const label = this.add.text(labelX, labelY, `${status === "completed" ? "✓" : index + 1} · ${lt(this, region.label)}`, {
+        ...pixelText("body"), color: PALETTE_HEX.cream, align: "center",
+        stroke: PALETTE_HEX.ink, strokeThickness: 4,
+        shadow: { offsetX: 1, offsetY: 2, color: PALETTE_HEX.ink, blur: 0, fill: true, stroke: true },
+      }).setOrigin(0.5).setAlpha(0).setDepth(7);
+      fitTextInside(label, 212, 26);
       return { shadow, terrain, label, labelY, polygon: new Phaser.Geom.Polygon(region.outline.map(([x, y]) => ({ x, y }))) };
     });
-    let focused = -1;
-    const hint = this.add.text(480, 474, ko ? "지역을 가리키거나 1–5 키로 선택 · Enter로 입장" : "POINT AT A REGION OR PRESS 1–5 · ENTER TO EXPLORE", { ...pixelText("caption"), color: PALETTE_HEX.cream, backgroundColor: PALETTE_HEX.nightBrown, padding: { x: 10, y: 6 } }).setOrigin(0.5).setDepth(10);
+    let focused = -2;
+    drawOrnateFrame(this, 480, 466, 800, 56, { fillAlpha: 0.96, radius: 10 }).setDepth(10);
+    const selectionTitle = this.add.text(100, 453, "", { ...pixelText("subtitle"), color: PALETTE_HEX.maroon }).setOrigin(0, 0.5).setDepth(11);
+    const selectionProgress = this.add.text(860, 453, "", { ...pixelText("body"), color: PALETTE_HEX.ink }).setOrigin(1, 0.5).setDepth(11);
+    const defaultHint = ko ? "지역을 가리키거나 1–5 키로 선택하세요." : "POINT AT A REGION OR PRESS 1–5 TO SELECT.";
+    const hint = this.add.text(100, 480, defaultHint, { ...pixelText("body"), color: PALETTE_HEX.ink }).setOrigin(0, 0.5).setDepth(11);
+    fitTextInside(selectionTitle, 600, 26);
+    fitTextInside(hint, 760, 20);
     const focus = (index: number) => {
       if (index === focused) return;
       focused = index;
@@ -63,10 +74,14 @@ export class SecondaryAtlasScene extends Phaser.Scene {
         const active = i === index && progression[i].status !== "locked";
         this.tweens.add({ targets: shadow, alpha: active ? 0.35 : 0, duration: 150 });
         this.tweens.add({ targets: terrain, alpha: active ? 1 : 0, y: active ? 259 : 270, duration: 150, ease: "Cubic.Out" });
-        this.tweens.add({ targets: label, y: active ? progression[i].region.center[1] + 31 : labelY, duration: 150 });
+        this.tweens.add({ targets: label, alpha: i === index ? 1 : 0, y: active ? progression[i].region.center[1] + 31 : labelY, duration: 150 });
       });
       const item = progression[index];
-      if (item) hint.setText(item.status === "locked" ? (ko ? "앞 지역의 Lv.5 수호자를 포획하면 열립니다." : "CAPTURE THE PREVIOUS REGION'S LV.5 GUARDIAN TO UNLOCK.") : `${lt(this, item.region.label)} · ${item.captured}/5 · ${ko ? "클릭 또는 Enter로 탐험" : "CLICK OR ENTER TO EXPLORE"}`);
+      selectionTitle.setText(item ? `${index + 1} · ${lt(this, item.region.label)}` : (ko ? "탐험할 지역을 선택하세요" : "CHOOSE A REGION"));
+      const statusCopy = item?.status === "locked" ? (ko ? "잠김" : "LOCKED") : item?.status === "completed" ? (ko ? "완료" : "COMPLETE") : (ko ? "탐험 가능" : "READY");
+      selectionProgress.setText(item ? `${item.captured}/5 · ${statusCopy}` : "");
+      hint.setText(item ? item.status === "locked" ? (ko ? "앞 지역의 Lv.5 수호자를 포획하면 열립니다." : "CAPTURE THE PREVIOUS REGION'S LV.5 GUARDIAN TO UNLOCK.") : (ko ? "클릭 또는 Enter로 탐험" : "CLICK OR ENTER TO EXPLORE") : defaultHint);
+      fitTextInside(hint, 760, 20);
     };
     const enter = () => { const item = progression[focused]; if (item && item.status !== "locked") this.scene.start("secondary-region", { jobId: job.id, regionId: item.region.id }); };
     const regionAt = (pointer: Phaser.Input.Pointer) => {
