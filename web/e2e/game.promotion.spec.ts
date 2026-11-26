@@ -60,6 +60,9 @@ for (const job of SECONDARY_JOB_OPTIONS) test(`shows shared chain locks on ${job
   await expect(game).toHaveAttribute("data-scene", "secondary-atlas");
   await page.waitForTimeout(200);
   await page.screenshot({ path: `../qa-results/atlas-text/${job.id}-locked-label.png` });
+  await page.keyboard.press("4");
+  await page.waitForTimeout(200);
+  await page.screenshot({ path: `../qa-results/atlas-text/${job.id}-fourth-locked-label.png` });
   await page.keyboard.press("1");
   await page.keyboard.press("Enter");
   await expect(game).toHaveAttribute("data-scene", "secondary-region");
