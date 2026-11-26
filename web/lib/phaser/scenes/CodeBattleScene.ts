@@ -1,3 +1,4 @@
+import { webBattleQuizPack, webLearningMonster, releaseHarborLesson } from "../../learning/releaseHarbor";
 import { GAME_SIZE } from "../gameViewport";
 import { musicRegionForStage } from "@codigdex/game-content/domain/regionMusic";
 import Phaser from "phaser";
@@ -53,7 +54,7 @@ export class CodeBattleScene extends Phaser.Scene {
   init(data: CodeBattleData) {
     const { chapter, monster } = findStage(data.monsterId);
     this.chapter = chapter;
-    this.monster = monster;
+    this.monster = webLearningMonster(monster);
     this.sourceEventId = data.sourceEventId;
     this.battle = undefined;
     this.feedback = undefined;
@@ -100,7 +101,7 @@ export class CodeBattleScene extends Phaser.Scene {
 
   private async createBattleUi(generation: number, loading: Phaser.GameObjects.Text) {
     try {
-      const pack = await loadMixedQuizPack(this.monster.quizPackId);
+      const pack = webBattleQuizPack(await loadMixedQuizPack(this.monster.quizPackId));
       if ((!this.sys.isActive() && !this.sys.isPaused()) || generation !== this.loadGeneration) return;
       const rng = process.env.NODE_ENV === "development" && process.env.NEXT_PUBLIC_E2E === "1" ? createQaRandom() : Math.random;
       this.battle = createBattleState(drawMixedQuizQuestions(pack.questions, quizCountForLevel(this.monster.level), rng));
@@ -118,7 +119,8 @@ export class CodeBattleScene extends Phaser.Scene {
     drawNpcBanner(this, this.sourceEventId ? `${sceneLocale(this) === "ko" ? "오픈소스 의뢰" : "OPEN-SOURCE REQUEST"} · Lv.${this.monster.level}/5` : `${lt(this, npcName)}: ${lt(this, this.monster.preBattleLine)}`);
     this.status = new StatusPanel(this, this.monster);
     this.opponent = new Opponent(this, this.monster);
-    this.controls = new MixedControls(this);
+    this.controls = new MixedControls(this, releaseHarborLesson(this.monster.id)?.source);
+    this.status.setBattle(this.battle);
 
     this.showQuestion();
     applyPixelFontToScene(this);
@@ -143,8 +145,7 @@ export class CodeBattleScene extends Phaser.Scene {
     if (next === this.battle) return;
     this.locked = true;
     this.feedback = next;
-    const required = Math.ceil(next.questions.length * 0.6);
-    this.status.setHealth(Math.max(0, required - next.correctCount) / required);
+    this.status.setBattle(next);
     if (next.attempts.at(-1)?.correct) this.opponent.flinch();
     this.showQuestion();
   }

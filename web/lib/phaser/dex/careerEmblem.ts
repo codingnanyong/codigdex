@@ -1,3 +1,4 @@
+import { tintImage } from "../canvasTint";
 import Phaser from "phaser";
 import {
   careerEmblemTextureKey,
@@ -21,7 +22,7 @@ export function createCareerEmblem(
     .image(0, 0, careerEmblemTextureKey(entry.id))
     .setDisplaySize(size, size)
     .setAlpha(locked ? 0.16 : 1);
-  if (locked) image.setTint(PALETTE.mutedBrown);
+  if (locked) tintImage(scene, image, PALETTE.mutedBrown);
 
   const items: Phaser.GameObjects.GameObject[] = [image];
   if (locked) {

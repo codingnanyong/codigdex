@@ -19,7 +19,9 @@ export function createGameConfig(
   parent: HTMLElement
 ): Phaser.Types.Core.GameConfig {
   return {
-    type: Phaser.AUTO,
+    // Keep the HTML quiz and the battle HUD composited correctly in browsers.
+    // WebGL readback was correct, but the overlay obscured the on-screen HUD.
+    type: Phaser.CANVAS,
     parent,
     width: 960,
     height: 540,

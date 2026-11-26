@@ -1,3 +1,4 @@
+import { tintImage } from "../canvasTint";
 import { createAtlasRegionLabel } from "./atlasRegionLabel";
 import { GAME_SIZE } from "../gameViewport";
 import Phaser from "phaser";
@@ -177,9 +178,7 @@ function drawRegion(
 
   const createTerrainLayers = () => {
     if (shadow || !scene.textures.exists(terrainTextureKey)) return;
-    shadow = scene.add
-      .image(width / 2, height / 2 + 5, terrainTextureKey)
-      .setTint(PALETTE.nightBrown)
+    shadow = tintImage(scene, scene.add.image(width / 2, height / 2 + 5, terrainTextureKey), PALETTE.nightBrown)
       .setAlpha(0)
       .setVisible(false)
       .setDepth(3);
