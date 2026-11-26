@@ -11,7 +11,7 @@ export const FIVE_STAGE_POINTS = [128, 304, 480, 656, 832].map((x, i) => ({ x, y
 
 /** The same five stops, locks and selection affordances across advanced paths. */
 export function drawFiveStageRoute(scene: Phaser.Scene, stages: readonly RouteStage[], selectedId: string | undefined,
-  onSelect: (id: string) => void, options: { arena: string; onEnter?: () => void; enterLabel?: string; captions?: readonly string[] } ) {
+  onSelect: (id: string) => void, options: { arena: string; onEnter?: () => void; enterLabel?: string; enterHint?: string; captions?: readonly string[] } ) {
   const ko = sceneLocale(scene) === "ko";
   const route = scene.add.graphics();
   FIVE_STAGE_POINTS.slice(0, -1).forEach((point, index) => {
@@ -23,7 +23,7 @@ export function drawFiveStageRoute(scene: Phaser.Scene, stages: readonly RouteSt
   nav.className = "stage-route-nav";
   nav.setAttribute("aria-label", ko ? "1~5단계 경로" : "Five-stage route");
   nav.dataset.arena = options.arena;
-  const hint = scene.add.text(480, 322, ko ? "1–5 또는 ← → 선택 · Enter로 학습 · 앞 단계를 마치면 다음 단계가 열립니다" : "1–5 OR ← → TO SELECT · ENTER TO LEARN · COMPLETE EACH STAGE TO UNLOCK THE NEXT", {
+  const hint = scene.add.text(480, 322, options.enterHint ?? (ko ? "1–5 또는 ← → 선택 · Enter로 학습 · 앞 단계를 마치면 다음 단계가 열립니다" : "1–5 OR ← → TO SELECT · ENTER TO LEARN · COMPLETE EACH STAGE TO UNLOCK THE NEXT"), {
     ...pixelText("caption"), color: PALETTE_HEX.cream, backgroundColor: PALETTE_HEX.nightBrown, padding: { x: 8, y: 4 },
   }).setOrigin(0.5);
   fitTextInside(hint, 858, 22);

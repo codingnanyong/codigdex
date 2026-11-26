@@ -11,7 +11,7 @@ import { careerCheckpointLayout } from "../lib/phaser/worldMap/careerCheckpointL
 import type { JobId } from "@codigdex/game-content/domain/player/jobs";
 
 async function firstCareerBattle(page: Page, save: StoredGameStateV3) {
-  if (save.player.secondaryJobId) { await scene(page, "secondary-region"); await click(page, 736, 511); await page.locator(".career-workshop").getByRole("button", { name: "START EVOLUTION BATTLE", exact: true }).click(); }
+  if (save.player.secondaryJobId) { await scene(page, "secondary-region"); await click(page, 736, 511); }
   else {
     await scene(page, "world-map");
     const job = save.player.primaryJobId as JobId;

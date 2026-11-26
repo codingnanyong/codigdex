@@ -27,6 +27,11 @@ export interface CapturedPanelOptions {
 
 /** The card-registered panel: what the monster teaches, a code sample, and what opened up. */
 export function showCapturedPanel(scene: Phaser.Scene, options: CapturedPanelOptions) {
+  if (options.onPause) createButton(scene, GAME_SIZE.width - 230, 32, 180, 34, sceneLocale(scene) === "ko" ? "잠시 멈춤" : "PAUSE", options.onPause).setDepth(5);
+  return buildCapturedPanel(scene, options, false);
+}
+
+function buildCapturedPanel(scene: Phaser.Scene, options: CapturedPanelOptions, expanded: boolean): Phaser.GameObjects.Container {
   const { width, height } = GAME_SIZE;
   const { monster } = options;
   const textWidth = CAPTURED_PANEL.width - 120;
@@ -45,7 +50,7 @@ export function showCapturedPanel(scene: Phaser.Scene, options: CapturedPanelOpt
   cursor += title.height + 14;
 
   const description = scene.add
-    .text(0, cursor, lt(scene, monster.description), {
+    .text(0, cursor, expanded ? lt(scene, monster.description) : `Lv.${monster.level} · ${lt(scene, monster.classification)}`, {
       ...pixelText("body"),
       color: PALETTE_HEX.ink,
       align: "center",
@@ -54,21 +59,24 @@ export function showCapturedPanel(scene: Phaser.Scene, options: CapturedPanelOpt
     .setOrigin(0.5, 0);
   cursor += description.height + 14;
 
-  const snippet = addSnippetBlock(scene, cursor, CAPTURED_PANEL.width - 140, lt(scene, monster.snippet));
-  cursor += snippet.height + 16;
+  const content: Positioned[] = [title, description];
+  if (expanded) {
+    const snippet = addSnippetBlock(scene, cursor, CAPTURED_PANEL.width - 140, lt(scene, monster.snippet));
+    cursor += snippet.height + 16;
 
-  const npcLine = scene.add
-    .text(0, cursor, options.npcLine, {
-      ...pixelText("body"),
-      color: PALETTE_HEX.maroon,
-      fontStyle: "bold",
-      align: "center",
-      wordWrap: { width: textWidth },
-    })
-    .setOrigin(0.5, 0);
-  cursor += npcLine.height;
+    const npcLine = scene.add
+      .text(0, cursor, options.npcLine, {
+        ...pixelText("body"),
+        color: PALETTE_HEX.maroon,
+        fontStyle: "bold",
+        align: "center",
+        wordWrap: { width: textWidth },
+      })
+      .setOrigin(0.5, 0);
+    cursor += npcLine.height;
 
-  const content: Positioned[] = [title, description, snippet.plate, snippet.text, npcLine];
+    content.push(snippet.plate, snippet.text, npcLine);
+  }
 
   if (options.unlockNotice) {
     cursor += 12;
@@ -85,8 +93,8 @@ export function showCapturedPanel(scene: Phaser.Scene, options: CapturedPanelOpt
   }
 
   const panelHeight = Math.max(
-    CAPTURED_PANEL.minHeight,
-    cursor + CAPTURED_PANEL.topPad + CAPTURED_PANEL.bottomPad
+    expanded ? CAPTURED_PANEL.minHeight : 280,
+    cursor + CAPTURED_PANEL.topPad + CAPTURED_PANEL.bottomPad + 44
   );
   const shiftY = -panelHeight / 2 + CAPTURED_PANEL.topPad;
   content.forEach((element) => {
@@ -104,10 +112,13 @@ export function showCapturedPanel(scene: Phaser.Scene, options: CapturedPanelOpt
     options.onConfirm
   );
 
+  const details = createButton(scene, 0, panelHeight / 2 - 76, 240, 30,
+    expanded ? (sceneLocale(scene) === "ko" ? "설명 접기" : "HIDE DETAILS") : (sceneLocale(scene) === "ko" ? "설명 · 코드 예제 보기" : "DETAILS · CODE EXAMPLE"),
+    () => { scene.tweens.killTweensOf(panel); panel.destroy(true); buildCapturedPanel(scene, options, !expanded); });
   const panel = scene.add
-    .container(width / 2, height / 2, [frame, ...content, confirm])
+    .container(width / 2, height / 2, [frame, ...content, details, confirm])
+    .setName(expanded ? "capture-details" : "capture-summary")
     .setDepth(1);
-  if (options.onPause) createButton(scene, width - 230, 32, 180, 34, sceneLocale(scene) === "ko" ? "잠시 멈춤" : "PAUSE", options.onPause).setDepth(5);
   popIn(scene, panel, 0.85, panelScaleToViewport(CAPTURED_PANEL.width, panelHeight, width, height));
   return panel;
 }

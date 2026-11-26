@@ -80,7 +80,7 @@ for (const job of SECONDARY_JOB_OPTIONS) test(`${job.id} regional evolution: fai
   await expect(game).toHaveAttribute("data-scene", "secondary-region");
   await page.keyboard.press("5");
   await expect(route.locator('[aria-current="step"]')).toHaveAttribute("data-stage-id", region.chapter.stages[0].id);
-  await page.keyboard.press("Enter");
+  await clickGame(page,468,511);
   const workshop = page.locator(".career-workshop");
   await expect(workshop.locator("pre")).not.toBeEmpty();
   await workshop.getByRole("button", { name:"START EVOLUTION BATTLE", exact:true }).click();
@@ -89,7 +89,9 @@ for (const job of SECONDARY_JOB_OPTIONS) test(`${job.id} regional evolution: fai
   await expect(game).toHaveAttribute("data-scene","secondary-region");
   for(const [index,monster] of region.chapter.stages.entries()) {
     await expect(route.locator("button[data-stage-id]:enabled")).toHaveCount(index + 1);
-    await clickGame(page,736,511);await workshop.getByRole("button",{name:"START EVOLUTION BATTLE",exact:true}).click();
+    await clickGame(page,736,511);
+    await expect(game).toHaveAttribute("data-scene","code-battle");
+    await expect(workshop).toHaveCount(0);
     await answerBattle(page,monster.id);await confirmResult(page);
     if(await game.getAttribute("data-scene")==="open-source-event")await clickGame(page,242,501);
     expect((await readSave(page)).progress.captures.some(({id})=>id===monster.id)).toBe(true);
