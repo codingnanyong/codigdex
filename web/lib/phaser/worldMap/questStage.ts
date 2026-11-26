@@ -1,3 +1,4 @@
+import { tintImage } from "../canvasTint";
 import { GAME_SIZE } from "../gameViewport";
 import Phaser from "phaser";
 import type { ChapterDefinition, MonsterDefinition } from "@codigdex/game-core/domain/chapters/types";
@@ -165,7 +166,7 @@ function drawCheckpointMonsters(
       .setScale(fit.scale)
       .setAlpha(captured ? 0.8 : 0.48)
       .setDepth(2.5);
-    if (!captured) image.setTint(PALETTE.nightBrown);
+    if (!captured) tintImage(scene, image, PALETTE.nightBrown);
     scene.add
       .text(point.x, point.y - 88, `LV.${monster.level}${captured ? " ✓" : ""}`, {
         ...pixelText("micro"),

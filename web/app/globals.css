@@ -101,6 +101,8 @@ body {
 }
 .battle-controls p { margin: 0 0 8px; }
 .battle-progress { color: #684525; }
+.battle-threshold { color: #793c25; font-weight: bold; }
+.battle-reference { display: inline-block; color: #684525; margin: 0 12px 8px 0; }
 .battle-prompt, .battle-feedback { white-space: pre-wrap; overflow-wrap: anywhere; }
 .battle-prompt { font-size: 18px; }
 .battle-hint { padding: 6px; background: #e3cda7; }

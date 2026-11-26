@@ -1,3 +1,5 @@
+import { tintImage } from "../canvasTint";
+import { webLearningMonster } from "../../learning/releaseHarbor";
 import Phaser from "phaser";
 import { createAtlasRegionLabel } from "../worldMap/atlasRegionLabel";
 import { secondaryRegionsFor, secondaryRegionForStage, EVOLUTION_LESSON_PHASES } from "@codigdex/game-content/domain/secondaryExploration";
@@ -43,7 +45,7 @@ export class SecondaryAtlasScene extends Phaser.Scene {
     this.add.text(480, 26, lt(this, job.name), { ...pixelText("subtitle"), color: PALETTE_HEX.maroon }).setOrigin(0.5).setDepth(11);
     this.add.text(480, 48, `${progression.reduce((n, item) => n + item.captured, 0)}/25 · ${ko ? "다섯 지역 · 다섯 단계의 진화" : "FIVE REGIONS · FIVE EVOLUTIONS"}`, { ...pixelText("caption"), color: PALETTE_HEX.ink }).setOrigin(0.5).setDepth(11);
     const layers = progression.map(({ region, status }, index) => {
-      const shadow = this.add.image(480, 278, terrainKey(region.id)).setTint(PALETTE.nightBrown).setAlpha(0).setDepth(2);
+      const shadow = tintImage(this, this.add.image(480, 278, terrainKey(region.id)), PALETTE.nightBrown).setAlpha(0).setDepth(2);
       const terrain = this.add.image(480, 270, terrainKey(region.id)).setAlpha(0).setDepth(3);
       const lockLayout = terrainChainLockLayoutForOutline(region.outline);
       // Match the primary atlas: the name and lock share the painted terrain centre.
@@ -135,7 +137,7 @@ export class SecondaryRegionScene extends Phaser.Scene {
     });
     drawOrnateFrame(this, 480, 409, 858, 150, { fillAlpha: 0.98, radius: 12 });
     this.add.text(84, 350, `No.${selected.monster.dexNumber} · ${lt(this, selected.monster.name)}`, { ...pixelText("body"), color: PALETTE_HEX.maroon });
-    const brief = this.add.text(84, 379, lt(this, selected.monster.briefing), { ...pixelText("body"), color: PALETTE_HEX.ink, wordWrap: { width: 788 }, lineSpacing: 4 });
+    const brief = this.add.text(84, 379, lt(this, webLearningMonster(selected.monster).briefing), { ...pixelText("body"), color: PALETTE_HEX.ink, wordWrap: { width: 788 }, lineSpacing: 4 });
     fitTextInside(brief, 788, 65);
     const discovered = discoveredSourceIds(this.registry, save), tools = openSourcesForMonster(region.core.id).filter(({ id }) => discovered.has(id));
     if (tools.length) this.add.text(84, 452, `${ko ? "연관 도구" : "RELATED TOOLS"} · ${tools.map(({ name }) => name).join(" · ")} ↗`, { ...pixelText("caption"), color: PALETTE_HEX.maroon }).setInteractive({ useHandCursor: true }).on("pointerup", () => showOpenSourceNotes(tools.map(({ id }) => id)));

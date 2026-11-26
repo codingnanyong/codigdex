@@ -1,3 +1,4 @@
+import { webBattleQuizPack } from "../lib/learning/releaseHarbor";
 import { expect, type Page } from "@playwright/test";
 import { findStage } from "@codigdex/game-content/domain/chapters";
 import type { StoredGameStateV3 } from "@codigdex/game-core/save/schema";
@@ -73,7 +74,7 @@ export async function reloadCareerGame(page: Page) {
 
 /** Answer the actual localized question, supporting randomized decks and both input types. */
 export async function answerBattle(page: Page, monsterId: string, pass = true) {
-  const pack = await loadMixedQuizPack(findStage(monsterId).monster.quizPackId);
+  const pack = webBattleQuizPack(await loadMixedQuizPack(findStage(monsterId).monster.quizPackId));
   const controls = page.locator(".battle-controls");
   await expect(controls).toBeVisible();
   for (let i = 0; i < pack.questions.length && await game(page).getAttribute("data-scene") === "code-battle"; i++) {

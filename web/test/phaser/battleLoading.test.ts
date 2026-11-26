@@ -6,7 +6,7 @@ import { CodeBattleScene } from "@/lib/phaser/scenes/CodeBattleScene";
 vi.mock("phaser", () => ({ default: { Scene: class {} } }));
 vi.mock("@codigdex/quiz-content", () => ({ loadMixedQuizPack: vi.fn() }));
 vi.mock("@/lib/phaser/battle/banner", () => ({ drawNpcBanner: vi.fn() }));
-vi.mock("@/lib/phaser/battle/statusPanel", () => ({ StatusPanel: class {} }));
+vi.mock("@/lib/phaser/battle/statusPanel", () => ({ StatusPanel: class { setBattle() {} } }));
 vi.mock("@/lib/phaser/battle/opponent", () => ({ Opponent: class {} }));
 vi.mock("@/lib/phaser/battle/mixedControls", () => ({ MixedControls: class {} }));
 vi.mock("@/lib/phaser/ui", () => ({ applyPixelFontToScene: vi.fn() }));
