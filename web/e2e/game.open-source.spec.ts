@@ -86,7 +86,6 @@ test("opens chapter-related notes, resumes its battle and keeps save progress un
   await dialog.getByRole("button", { name: "오픈소스 노트 닫기", exact: true }).click();
   expect(await page.evaluate(() => localStorage.getItem("codigdex:save:v3"))).toBe(before);
   await click(742, 509);
-  await page.locator(".career-workshop").getByRole("button", { name: "진화 배틀 시작", exact: true }).click();
   const controls = page.locator(".battle-controls");
   await expect(controls).toBeVisible();
   const prompt = await controls.locator(".battle-prompt").innerText();
