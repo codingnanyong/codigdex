@@ -1,3 +1,6 @@
+import type { BattleState } from "@codigdex/game-core/domain/dex/battle";
+import { battleReadout } from "./readout";
+import { sceneLocale } from "../i18n";
 import type Phaser from "phaser";
 import type { MonsterDefinition } from "@codigdex/game-core/domain/chapters/types";
 import { lt } from "../i18n";
@@ -22,6 +25,7 @@ function hpColorFor(ratio: number): number {
 /** Name, level and one continuous HP bar that drains as answers land. */
 export class StatusPanel {
   private readonly scene: Phaser.Scene;
+  private readonly caption: Phaser.GameObjects.Text;
   private readonly hpFill: Phaser.GameObjects.Rectangle;
 
   constructor(scene: Phaser.Scene, monster: MonsterDefinition) {
@@ -40,19 +44,28 @@ export class StatusPanel {
     fitTextInside(name, STATUS_BOX.width - 32, 18);
 
     scene.add
-      .text(left + 16, top + 42, "HP", {
+      .text(left + 16, top + 42, sceneLocale(scene) === "ko" ? "몬스터 HP" : "FOE HP", {
         ...pixelText("body"),
         color: PALETTE_HEX.ink,
       })
       .setOrigin(0, 0.5);
 
-    const barLeft = left + 44;
+    const barLeft = left + 112;
     scene.add
       .rectangle(barLeft, top + 42, HP_BAR_WIDTH, HP_BAR_HEIGHT, PALETTE.ink, 1)
       .setOrigin(0, 0.5);
     this.hpFill = scene.add
       .rectangle(barLeft + 1, top + 42, HP_BAR_WIDTH - 2, HP_BAR_HEIGHT - 2, hpColorFor(1), 1)
       .setOrigin(0, 0.5);
+    this.caption = scene.add.text(left + 16, top + 58, "", { ...pixelText("caption"), color: PALETTE_HEX.maroon });
+
+  }
+
+  setBattle(battle: BattleState) {
+    const readout = battleReadout(battle, sceneLocale(this.scene));
+    this.setHealth(readout.health);
+    this.caption.setText(readout.caption);
+    fitTextInside(this.caption, STATUS_BOX.width - 32, 14);
   }
 
   /** Slides the bar down to `ratio` of full health, recoloring as it gets low. */

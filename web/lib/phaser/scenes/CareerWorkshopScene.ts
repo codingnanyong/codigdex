@@ -1,3 +1,4 @@
+import { releaseHarborLesson, webLearningMonster } from "../../learning/releaseHarbor";
 import Phaser from "phaser";
 import { musicRegionForStage } from "@codigdex/game-content/domain/regionMusic";
 import { findStage } from "@codigdex/game-content/domain/chapters";
@@ -62,11 +63,12 @@ export class CareerWorkshopScene extends Phaser.Scene {
     applySaveToRegistry(this.registry, rememberCheckpoint(save, this.monsterId));
     const ko = sceneLocale(this) === "ko";
     const locale = ko ? "ko" : "en";
-    const { monster, chapter } = findStage(this.monsterId);
+    const { monster: originalMonster, chapter } = findStage(this.monsterId);
+    const monster = webLearningMonster(originalMonster);
     const identity = evolutionIdentity(this.monsterId);
     const index = identity?.regionIndex ?? promotionChapterFor(this.jobId)?.stages.findIndex(({ id }) => id === this.monsterId) ?? -1;
     const master = masterLessonFor(this.monsterId);
-    const lesson = master ?? PROMOTION_WORKSHOPS[this.jobId as SecondaryJobId]?.[index];
+    const lesson = (this.evolutionId ? releaseHarborLesson(this.monsterId) : undefined) ?? master ?? PROMOTION_WORKSHOPS[this.jobId as SecondaryJobId]?.[index];
     if (!lesson) throw new Error("Unknown lesson");
     this.line("h2", monster.classification[locale]);
     if (chapter.arena) {

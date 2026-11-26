@@ -1,3 +1,4 @@
+import { webLearningMonster } from "../../learning/releaseHarbor";
 import Phaser from "phaser";
 import { musicRegionForStage } from "@codigdex/game-content/domain/regionMusic";
 import { findStage } from "@codigdex/game-content/domain/chapters";
@@ -56,7 +57,7 @@ export class CaptureQuizScene extends Phaser.Scene {
   init(data: CaptureResultData) {
     const { chapter, monster } = findStage(data.monsterId);
     this.chapter = chapter;
-    this.monster = monster;
+    this.monster = webLearningMonster(monster);
     this.correctCount = data.correctCount;
     this.total = data.total;
     this.passed = data.passed;

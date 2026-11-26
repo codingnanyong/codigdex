@@ -1,3 +1,4 @@
+import { battleReadout } from "./readout";
 import { gameViewport } from "../gameViewport";
 import type Phaser from "phaser";
 import type { BattleState } from "@codigdex/game-core/domain/dex/battle";
@@ -9,7 +10,7 @@ export class MixedControls {
   private readonly root = document.createElement("section");
   private composing = false;
 
-  constructor(scene: Phaser.Scene) {
+  constructor(scene: Phaser.Scene, private readonly reference?: string) {
     this.root.className = "battle-controls";
     this.root.setAttribute("aria-label", "Quiz / 퀴즈");
     const canvas = scene.game.canvas;
@@ -49,16 +50,18 @@ export class MixedControls {
     this.composing = false;
     const progress = document.createElement("p");
     progress.className = "battle-progress";
-    const total = battle.questions.length;
     const current = feedback ?? battle;
-    const required = Math.ceil(total * 0.6);
-    const allowed = total - required;
-    const mistakes = current.attempts.filter(({ correct }) => !correct).length;
-    progress.textContent = `${battle.questionIndex + 1}/${total} · ${current.correctCount}/${required} ${ko ? "정답" : "correct"} · ${ko ? "플레이어 HP" : "PLAYER HP"} ${Math.max(0, allowed - mistakes + 1)}/${allowed + 1}`;
+    const readout = battleReadout(current, locale, battle.questionIndex + 1);
+    this.root.dataset.battleStatus = current.status;
+    // Feedback still refers to the question that was just answered.
+    progress.textContent = readout.progress;
+    const threshold = document.createElement("p");
+    threshold.className = "battle-threshold";
+    threshold.textContent = readout.threshold;
     const prompt = document.createElement("p");
     prompt.className = "battle-prompt";
     prompt.textContent = localize(question.prompt, locale);
-    this.root.append(progress, prompt);
+    this.root.append(progress, threshold, prompt);
     if (question.required) {
       const criterion = document.createElement("p");
       criterion.className = "battle-hint";
@@ -86,7 +89,21 @@ export class MixedControls {
       const answer = question.type === "freeText" ? question.acceptedAnswers[0] : localize(question.choices[question.answerIndex], locale);
       line.textContent = `${attempt.correct ? (ko ? "정답!" : "Correct!") : (ko ? "오답" : "Incorrect")} · ${ko ? "정답" : "Answer"}: ${answer}\n${question.explanation ? localize(question.explanation, locale) : ""}\n${ko ? "공격 위력" : "Attack strength"}: ${attempt.damage}`;
       const next = button(feedback.status === "active" ? (ko ? "다음 문제" : "NEXT QUESTION") : (ko ? "결과 확인" : "SHOW RESULT"), handlers.next);
-      this.root.append(line, next);
+      this.root.append(line);
+      if (this.reference) {
+        const reference = document.createElement("a");
+        reference.className = "battle-reference";
+        reference.textContent = ko ? "해설의 공식 근거 ↗" : "EXPLANATION REFERENCE ↗";
+        reference.href = this.reference; reference.target = "_blank"; reference.rel = "noopener noreferrer";
+        this.root.append(reference);
+      }
+      if (attempt.hintsUsed) {
+        const hintEffect = document.createElement("p");
+        hintEffect.className = "battle-hint";
+        hintEffect.textContent = ko ? "힌트는 공격 위력만 낮춥니다. 필요한 정답 수는 같습니다." : "Hints reduce attack strength; the correct-answer target stays the same.";
+        this.root.append(hintEffect);
+      }
+      this.root.append(next);
       next.focus({ preventScroll: true });
       return;
     }
