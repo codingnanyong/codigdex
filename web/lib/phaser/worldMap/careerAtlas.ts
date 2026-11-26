@@ -1,3 +1,4 @@
+import { createAtlasRegionLabel } from "./atlasRegionLabel";
 import { GAME_SIZE } from "../gameViewport";
 import Phaser from "phaser";
 import {
@@ -216,32 +217,8 @@ function drawRegion(
     .polygon(lift.x, lift.y, lift.points, 0xffffff, 0)
     .setInteractive({ useHandCursor: true })
     .setDepth(6);
-  const label = scene.add
-    .text(
-      labelCenter.x,
-      labelCenter.y + 6,
-      `${status === "completed" ? "✓" : order} · ${lt(scene, region.label)}`,
-      {
-      ...pixelText("subtitle"),
-      color: PALETTE_HEX.cream,
-      backgroundColor: "#2a1d14eb",
-      stroke: PALETTE_HEX.ink,
-      strokeThickness: 3,
-      padding: { x: 10, y: 6 },
-      shadow: {
-        offsetX: 3,
-        offsetY: 3,
-        color: PALETTE_HEX.maroon,
-        blur: 0,
-        stroke: true,
-        fill: true,
-      },
-      }
-    )
-    .setOrigin(0.5)
-    .setAlpha(0)
-    .setScale(0.96)
-    .setDepth(5);
+  const lockPlacement = status === "locked" ? terrainChainLockLayout(lift) : undefined;
+  const label = createAtlasRegionLabel(scene, labelCenter, `${status === "completed" ? "✓" : order} · ${lt(scene, region.label)}`, lockPlacement?.scale);
 
   if (status === "locked") {
     const placement = terrainChainLockLayout(lift);
