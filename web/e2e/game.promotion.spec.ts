@@ -118,7 +118,6 @@ for (const job of SECONDARY_JOB_OPTIONS) test(`restores ${job.id}, visits five p
   for (const [index, region] of secondaryRegionsFor(job.id).entries()) {
     await expect(game).toHaveAttribute("data-scene", "secondary-region");
     await clickGame(page, 736, 511);
-    await page.locator(".career-workshop").getByRole("button", { name: "START EVOLUTION BATTLE", exact: true }).click();
     await answerBattle(page, region.core.id); await confirmResult(page);
     if (await game.getAttribute("data-scene") === "open-source-event") await clickGame(page, 242, 501);
     await expect(game).toHaveAttribute("data-scene", "secondary-region");
@@ -269,4 +268,29 @@ test("cannot abandon an unfinished secondary through either lineage or path-map 
   await clickGame(page, 565, 184);
   await expect(page.getByRole("application")).toHaveAttribute("data-scene", "job-select");
   expect((await readSave(page)).player.secondaryJobId).toBe("fullstack-engineer");
+});
+
+
+test("starts a regional level without a learning dialog and keeps the capture summary concise", async ({ page }) => {
+  const jobId = "platform-engineer";
+  const seed = eligibleSave(jobId);
+  const region = secondaryRegionsFor(jobId)[0];
+  const ids = new Set(secondaryRegionsFor(jobId).flatMap(({ chapter }) => chapter.stages.map(({ id }) => id)));
+  seed.progress.captures = seed.progress.captures.filter(({ id }) => !ids.has(id));
+  await bootGame(page, selectSecondaryCareer(seed, jobId));
+  const start = page.getByRole("navigation", { name: "Five-stage route" }).getByRole("button", { name: "START SELECTED BATTLE", exact: true });
+  await start.focus();
+  await start.press("Enter");
+  await expect(page.getByRole("application")).toHaveAttribute("data-scene", "code-battle");
+  await expect(page.locator(".career-workshop")).toHaveCount(0);
+  await answerBattle(page, region.chapter.stages[0].id);
+  await page.waitForTimeout(250);
+  await page.screenshot({ path: "../qa-results/level-flow/capture-summary.png" });
+  const saved = await readSave(page);
+  expect(saved.progress.captures.some(({ id }) => id === region.chapter.stages[0].id)).toBe(true);
+  await clickGame(page, 480, 334);
+  await page.waitForTimeout(250);
+  await page.screenshot({ path: "../qa-results/level-flow/capture-details.png" });
+  expect((await readSave(page)).progress.captures).toEqual(saved.progress.captures);
+  await confirmResult(page);
 });

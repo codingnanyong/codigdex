@@ -129,8 +129,9 @@ export class SecondaryRegionScene extends Phaser.Scene {
     this.add.text(480, 29, `${lt(this, region.label)} · ${item.captured}/5`, { ...pixelText("subtitle"), color: PALETTE_HEX.maroon }).setOrigin(0.5);
     this.add.text(480, 56, ko ? "한 종의 성장과 함께 원리 → 구현 → 진단 → 검증 → 통합" : "ONE SPECIES · DISCOVER → BUILD → DIAGNOSE → VERIFY → INTEGRATE", { ...pixelText("caption"), color: PALETTE_HEX.ink }).setOrigin(0.5);
     const learn = () => this.scene.start("career-workshop", { jobId: this.jobId, monsterId: selected.monster.id, evolutionId: selected.monster.id });
+    const battle = () => this.scene.start("code-battle", { monsterId: selected.monster.id, returnTo: { scene: "secondary-region", data: { jobId: this.jobId, regionId: this.regionId } } });
     drawFiveStageRoute(this, path, selected.monster.id, (monsterId) => this.scene.restart({ jobId: this.jobId, regionId: this.regionId, monsterId }), {
-      arena: region.chapter.arena!.assetKey, onEnter: learn, captions: EVOLUTION_LESSON_PHASES.map((phase) => lt(this, phase)),
+      arena: region.chapter.arena!.assetKey, onEnter: battle, enterLabel: ko ? "선택 단계 배틀 시작" : "START SELECTED BATTLE", enterHint: ko ? "1–5 또는 ← → 선택 · Enter로 바로 배틀 · 학습 자료는 필요할 때" : "1–5 OR ← → TO SELECT · ENTER TO BATTLE · LEARNING MATERIAL IS OPTIONAL", captions: EVOLUTION_LESSON_PHASES.map((phase) => lt(this, phase)),
     });
     drawOrnateFrame(this, 480, 409, 858, 150, { fillAlpha: 0.98, radius: 12 });
     this.add.text(84, 350, `No.${selected.monster.dexNumber} · ${lt(this, selected.monster.name)}`, { ...pixelText("body"), color: PALETTE_HEX.maroon });
@@ -138,8 +139,9 @@ export class SecondaryRegionScene extends Phaser.Scene {
     fitTextInside(brief, 788, 65);
     const discovered = discoveredSourceIds(this.registry, save), tools = openSourcesForMonster(region.core.id).filter(({ id }) => discovered.has(id));
     if (tools.length) this.add.text(84, 452, `${ko ? "연관 도구" : "RELATED TOOLS"} · ${tools.map(({ name }) => name).join(" · ")} ↗`, { ...pixelText("caption"), color: PALETTE_HEX.maroon }).setInteractive({ useHandCursor: true }).on("pointerup", () => showOpenSourceNotes(tools.map(({ id }) => id)));
-    createButton(this, 216, 511, 320, 36, ko ? "← 2차 지역 지도" : "← SECONDARY ATLAS", () => this.scene.start("secondary-atlas", { jobId: this.jobId, regionId: this.regionId }));
-    createButton(this, 736, 511, 350, 36, ko ? "학습 자료 · 진화 배틀" : "LEARNING BRIEF · EVOLUTION BATTLE", learn);
+    createButton(this, 196, 511, 280, 36, ko ? "← 2차 지역 지도" : "← SECONDARY ATLAS", () => this.scene.start("secondary-atlas", { jobId: this.jobId, regionId: this.regionId }));
+    createButton(this, 468, 511, 220, 36, ko ? "학습 자료 보기" : "LEARNING MATERIAL", learn);
+    createButton(this, 752, 511, 310, 36, ko ? "바로 배틀 시작" : "START BATTLE", battle);
     createHomeButton(this).setDepth(20); applyPixelFontToScene(this);
   }
 }
