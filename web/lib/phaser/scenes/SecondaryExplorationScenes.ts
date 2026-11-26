@@ -46,12 +46,14 @@ export class SecondaryAtlasScene extends Phaser.Scene {
       const shadow = this.add.image(480, 278, terrainKey(region.id)).setTint(PALETTE.nightBrown).setAlpha(0).setDepth(2);
       const terrain = this.add.image(480, 270, terrainKey(region.id)).setAlpha(0).setDepth(3);
       const lockLayout = terrainChainLockLayoutForOutline(region.outline);
-      if (status === "locked") drawPixelChainLock(this, lockLayout.x, lockLayout.y).setScale(lockLayout.scale);
       // Match the primary atlas: the name and lock share the painted terrain centre.
       // Keep the native 21px bitmap size; fractional fitting blurs its pixel grid.
       const label = createAtlasRegionLabel(this, lockLayout, `${status === "completed" ? "✓" : index + 1} · ${lt(this, region.label)}`, status === "locked" ? lockLayout.scale : undefined);
       // Leave a clear gap above the dock, including the label padding and shadow.
-      label.setY(Math.min(label.y, 432 - Math.ceil(label.height / 2)));
+      const dockAdjustment = Math.max(0, label.y + Math.ceil(label.height / 2) - 432);
+      label.setY(label.y - dockAdjustment).setDepth(7);
+      // Move the lock with its name so the dock clamp cannot create an overlap.
+      if (status === "locked") drawPixelChainLock(this, lockLayout.x, lockLayout.y - dockAdjustment).setScale(lockLayout.scale);
       const labelY = label.y;
       return { shadow, terrain, label, labelY, polygon: new Phaser.Geom.Polygon(region.outline.map(([x, y]) => ({ x, y }))) };
     });
